@@ -1,4 +1,3 @@
-
 type Translations = {
   [key: string]: {
     ar: string;
@@ -159,6 +158,74 @@ export const translations: Translations = {
   registrationError: {
     ar: "خطأ في التسجيل",
     en: "Registration Error"
+  },
+  nationalId: {
+    ar: "رقم الهوية",
+    en: "National ID"
+  },
+  nationalIdPlaceholder: {
+    ar: "أدخل رقم الهوية",
+    en: "Enter your national ID"
+  },
+  licenseNumber: {
+    ar: "رقم الرخصة",
+    en: "License Number"
+  },
+  licenseNumberPlaceholder: {
+    ar: "أدخل رقم الرخصة",
+    en: "Enter your license number"
+  },
+  nationalIdDocument: {
+    ar: "صورة الهوية",
+    en: "National ID Document"
+  },
+  licenseDocument: {
+    ar: "صورة الرخصة",
+    en: "License Document"
+  },
+  vehicleMake: {
+    ar: "نوع السيارة",
+    en: "Vehicle Make"
+  },
+  vehicleMakePlaceholder: {
+    ar: "أدخل نوع السيارة",
+    en: "Enter vehicle make"
+  },
+  vehicleModel: {
+    ar: "موديل السيارة",
+    en: "Vehicle Model"
+  },
+  vehicleModelPlaceholder: {
+    ar: "أدخل موديل السيارة",
+    en: "Enter vehicle model"
+  },
+  vehicleYear: {
+    ar: "سنة الصنع",
+    en: "Vehicle Year"
+  },
+  vehicleYearPlaceholder: {
+    ar: "أدخل سنة الصنع",
+    en: "Enter vehicle year"
+  },
+  plateNumber: {
+    ar: "رقم اللوحة",
+    en: "Plate Number"
+  },
+  plateNumberPlaceholder: {
+    ar: "أدخل رقم اللوحة",
+    en: "Enter plate number"
+  },
+  driverRegistrationPendingDescription: {
+    ar: "تم تقديم طلب التسجيل بنجاح. سيتم مراجعة طلبك من قبل الإدارة.",
+    en: "Your registration has been submitted successfully. Your application will be reviewed by our team."
+  },
+  blacklistedMessage: {
+    ar: "عذراً، لا يمكن إكمال التسجيل. يرجى التواصل مع خدمة العملاء.",
+    en: "Sorry, registration cannot be completed. Please contact customer support."
+  },
+  registrationBlocked: {
+    ar: "تم حظر التسجيل",
+    en: "Registration Blocked"
   }
 };
 

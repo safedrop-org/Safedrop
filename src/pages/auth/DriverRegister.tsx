@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
-import { useLanguage } from '@/components/ui/language-context';
+import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { useNavigate } from 'react-router-dom';
 import { UserIcon, LockIcon, MailIcon, PhoneIcon, UploadIcon } from 'lucide-react';
 import { Database } from '@/integrations/supabase/custom-types';
@@ -40,7 +40,7 @@ const driverRegisterSchema = z.object({
 
 type DriverFormValues = z.infer<typeof driverRegisterSchema>;
 
-const DriverRegister = () => {
+const DriverRegisterContent = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -446,6 +446,15 @@ const DriverRegister = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+// Wrap the component with LanguageProvider
+const DriverRegister = () => {
+  return (
+    <LanguageProvider>
+      <DriverRegisterContent />
+    </LanguageProvider>
   );
 };
 
