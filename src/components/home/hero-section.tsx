@@ -31,13 +31,13 @@ const HeroSection = () => {
           <div className="flex flex-wrap gap-4">
             <Link to="/register/customer">
               <Button className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-black font-bold px-8 py-6 text-lg">
-                {t('joinAsCustomer')}
+                انضم كعميل
               </Button>
             </Link>
             
             <Link to="/register/driver">
               <Button variant="outline" className="border-safedrop-gold text-white bg-transparent hover:bg-white/10 font-bold px-8 py-6 text-lg">
-                {t('joinAsDriver')}
+                انضم كسائق
               </Button>
             </Link>
           </div>
