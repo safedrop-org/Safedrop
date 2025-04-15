@@ -61,6 +61,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				safedrop: {
+					primary: '#041c38',
+					gold: '#c9972b',
+					light: '#f8f9fa',
+					gray: '#6c757d',
+					"dark-gray": '#343a40',
+					success: '#28a745',
+					error: '#dc3545'
 				}
 			},
 			borderRadius: {
