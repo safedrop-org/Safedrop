@@ -25,7 +25,7 @@ const CustomerSidebar = () => {
       path: "/customer/dashboard"
     },
     {
-      icon: <PackageIcon className="h-5 w-5" />,
+      icon: <Package className="h-5 w-5" />,
       label: "الطلبات",
       path: "/customer/orders"
     },
@@ -40,7 +40,7 @@ const CustomerSidebar = () => {
       path: "/customer/profile"
     },
     {
-      icon: <SettingsIcon className="h-5 w-5" />,
+      icon: <Settings className="h-5 w-5" />,
       label: "الإعدادات",
       path: "/customer/settings"
     }
@@ -85,7 +85,7 @@ const CustomerSidebar = () => {
           variant="outline" 
           className="w-full text-white border-white/20 hover:bg-white/10 hover:text-white flex items-center gap-2"
         >
-          <LogOutIcon className="h-4 w-4" />
+          <LogOut className="h-4 w-4" />
           <span>تسجيل الخروج</span>
         </Button>
       </div>
@@ -94,3 +94,4 @@ const CustomerSidebar = () => {
 };
 
 export default CustomerSidebar;
+
