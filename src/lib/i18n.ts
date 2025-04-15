@@ -28,6 +28,10 @@ export const translations: Translations = {
     ar: "إنشاء حساب",
     en: "Register"
   },
+  registering: {
+    ar: "جاري التسجيل...",
+    en: "Registering..."
+  },
   customerRegister: {
     ar: "تسجيل كعميل",
     en: "Register as Customer"
@@ -111,6 +115,50 @@ export const translations: Translations = {
   delivered: {
     ar: "تم التوصيل",
     en: "Delivered"
+  },
+  firstName: {
+    ar: "الاسم الأول",
+    en: "First Name"
+  },
+  lastName: {
+    ar: "اسم العائلة",
+    en: "Last Name"
+  },
+  email: {
+    ar: "البريد الإلكتروني",
+    en: "Email"
+  },
+  emailPlaceholder: {
+    ar: "أدخل بريدك الإلكتروني",
+    en: "Enter your email"
+  },
+  phone: {
+    ar: "رقم الهاتف",
+    en: "Phone Number"
+  },
+  phonePlaceholder: {
+    ar: "أدخل رقم هاتفك",
+    en: "Enter your phone number"
+  },
+  password: {
+    ar: "كلمة المرور",
+    en: "Password"
+  },
+  alreadyHaveAccount: {
+    ar: "لديك حساب بالفعل؟",
+    en: "Already have an account?"
+  },
+  registrationSuccess: {
+    ar: "تم التسجيل بنجاح",
+    en: "Registration Successful"
+  },
+  registrationSuccessDescription: {
+    ar: "تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول.",
+    en: "Your account has been created successfully. You can now log in."
+  },
+  registrationError: {
+    ar: "خطأ في التسجيل",
+    en: "Registration Error"
   }
 };
 
