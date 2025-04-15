@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useLanguage } from '@/components/ui/language-context';
 import { useNavigate } from 'react-router-dom';
 import { UserIcon, LockIcon, MailIcon, PhoneIcon, UploadIcon } from 'lucide-react';
+import { Database } from '@/integrations/supabase/custom-types';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -37,12 +38,14 @@ const driverRegisterSchema = z.object({
   })
 });
 
+type DriverFormValues = z.infer<typeof driverRegisterSchema>;
+
 const DriverRegister = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof driverRegisterSchema>>({
+  const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverRegisterSchema),
     defaultValues: {
       firstName: '',
@@ -61,7 +64,7 @@ const DriverRegister = () => {
     }
   });
 
-  const onSubmit = async (data: z.infer<typeof driverRegisterSchema>) => {
+  const onSubmit = async (data: DriverFormValues) => {
     setIsLoading(true);
     try {
       // Check if user is blacklisted
@@ -123,7 +126,7 @@ const DriverRegister = () => {
           documents: {
             national_id_image: nationalIdPath
           }
-        });
+        } as Database['public']['Tables']['drivers']['Insert']);
 
       if (driverInsertError) throw driverInsertError;
 

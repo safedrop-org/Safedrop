@@ -21,12 +21,14 @@ const customerRegisterSchema = z.object({
   password: z.string().min(8, { message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }),
 });
 
+type CustomerFormValues = z.infer<typeof customerRegisterSchema>;
+
 const CustomerRegister = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof customerRegisterSchema>>({
+  const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerRegisterSchema),
     defaultValues: {
       firstName: '',
@@ -37,7 +39,7 @@ const CustomerRegister = () => {
     }
   });
 
-  const onSubmit = async (data: z.infer<typeof customerRegisterSchema>) => {
+  const onSubmit = async (data: CustomerFormValues) => {
     setIsLoading(true);
     try {
       // Sign up user
