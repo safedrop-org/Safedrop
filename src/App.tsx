@@ -9,12 +9,8 @@ import NotFound from "./pages/NotFound";
 
 // Import new pages
 import Login from "./pages/auth/Login";
-// These will be implemented in future iterations
-// import CustomerRegister from "./pages/auth/CustomerRegister";
-// import DriverRegister from "./pages/auth/DriverRegister";
-// import CustomerDashboard from "./pages/dashboard/CustomerDashboard";
-// import DriverDashboard from "./pages/dashboard/DriverDashboard";
-// import AdminDashboard from "./pages/dashboard/AdminDashboard";
+import CustomerRegister from "./pages/auth/CustomerRegister";
+import DriverRegister from "./pages/auth/DriverRegister";
 
 const queryClient = new QueryClient();
 
@@ -29,9 +25,8 @@ const App = () => (
           
           {/* Auth Routes */}
           <Route path="/login" element={<Login />} />
-          {/* To be implemented */}
-          {/* <Route path="/register/customer" element={<CustomerRegister />} />
-          <Route path="/register/driver" element={<DriverRegister />} /> */}
+          <Route path="/register/customer" element={<CustomerRegister />} />
+          <Route path="/register/driver" element={<DriverRegister />} />
           
           {/* Dashboard Routes - To be implemented */}
           {/* <Route path="/customer/dashboard" element={<CustomerDashboard />} />
