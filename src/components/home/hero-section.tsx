@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -16,12 +15,12 @@ export const HeroSection = () => {
           className="absolute inset-0 w-full h-full object-cover"
         >
           <source
-            src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+            src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"
             type="video/mp4"
           />
           {/* Fallback background image */}
           <img
-            src="https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?q=80&w=2070&auto=format&fit=crop"
+            src="https://images.unsplash.com/photo-1566576912333-261b896ef5cd?q=80&w=2070&auto=format&fit=crop"
             alt="خلفية سيف دروب"
             className="w-full h-full object-cover"
           />
@@ -60,4 +59,3 @@ export const HeroSection = () => {
     </div>
   );
 };
-
