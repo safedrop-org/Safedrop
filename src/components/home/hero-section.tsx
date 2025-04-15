@@ -1,50 +1,63 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/components/ui/language-context';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
-const HeroSection = () => {
-  const { t, language } = useLanguage();
-  
+export const HeroSection = () => {
   return (
-    <section className="relative bg-safedrop-primary text-white">
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40"></div>
-        <img 
-          src="/lovable-uploads/3cb43b49-2c61-4bfc-ba86-addfe77f7c3a.png" 
-          alt="Hero Background" 
-          className="w-full h-full object-cover"
-        />
+    <div className="relative min-h-[85vh] flex items-center justify-center">
+      {/* Background Video */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source
+            src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+            type="video/mp4"
+          />
+          {/* Fallback background image */}
+          <img
+            src="https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?q=80&w=2070&auto=format&fit=crop"
+            alt="خلفية سيف دروب"
+            className="w-full h-full object-cover"
+          />
+        </video>
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/50"></div>
       </div>
-      
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-        <div className="md:w-2/3">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="text-safedrop-gold">سيف دروب</span> | أول منصة توصيل آمنة للطرود الثمينة
-          </h1>
-          
-          <p className="text-xl mb-8 text-gray-200">
-            توصيل آمن ومضمون للطرود والمشتريات الثمينة بين الأفراد مع خدمة الضمان والتحقق
-          </p>
-          
-          <div className="flex flex-wrap gap-4">
-            <Link to="/register/customer">
-              <Button className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-black font-bold px-8 py-6 text-lg">
-                انضم كعميل
-              </Button>
-            </Link>
-            
-            <Link to="/register/driver">
-              <Button variant="outline" className="border-safedrop-gold text-white bg-transparent hover:bg-white/10 font-bold px-8 py-6 text-lg">
-                انضم كسائق
-              </Button>
-            </Link>
-          </div>
+
+      <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
+          سيف دروب
+        </h1>
+        <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">
+          توصيل آمن ومضمون للشحنات الثمينة
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link to="/auth/customer-register">
+            <Button
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-white px-8"
+            >
+              تسجيل كعميل
+            </Button>
+          </Link>
+          <Link to="/auth/driver-register">
+            <Button
+              size="lg"
+              variant="outline"
+              className="bg-white/10 hover:bg-white/20 text-white border-white px-8"
+            >
+              تسجيل كسائق
+            </Button>
+          </Link>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
-export default HeroSection;
