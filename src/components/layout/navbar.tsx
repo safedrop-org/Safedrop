@@ -21,9 +21,9 @@ const Navbar = () => {
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center">
                 <img 
-                  src="/favicon.ico" 
+                  src="/lovable-uploads/3cb43b49-2c61-4bfc-ba86-addfe77f7c3a.png" 
                   alt="SafeDrop Logo" 
-                  className="h-10 w-auto" 
+                  className="h-10 w-auto"
                 />
                 <span className={`ml-2 text-xl font-bold ${language === 'ar' ? 'mr-2 ml-0' : 'ml-2 mr-0'}`}>
                   {t('siteTitle')}
