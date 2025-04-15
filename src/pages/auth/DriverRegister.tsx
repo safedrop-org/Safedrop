@@ -68,10 +68,12 @@ const DriverRegister = () => {
     setIsLoading(true);
     try {
       // Check if user is blacklisted
-      const { data: blacklistData, error: blacklistError } = await supabase.rpc('is_blacklisted', {
-        email: data.email,
-        phone: data.phone,
-        national_id: data.nationalId
+      const { data: blacklistData, error: blacklistError } = await supabase.functions.invoke('is_blacklisted', {
+        body: {
+          email: data.email,
+          phone: data.phone,
+          national_id: data.nationalId
+        }
       });
 
       if (blacklistError) throw blacklistError;
