@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { LanguageProvider } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
-import HeroSection from '@/components/home/hero-section';
+import { HeroSection } from '@/components/home/hero-section';
 import HowItWorks from '@/components/home/how-it-works';
 import CallToAction from '@/components/home/call-to-action';
 
