@@ -1,8 +1,7 @@
-
-import { useLanguage } from '@/components/ui/language-context';
-import { DashboardIcon, PackageIcon, TruckIcon, UserIcon, SettingsIcon, LogOutIcon } from 'lucide-react';
+import { LayoutDashboard, Package, Truck, UserIcon, Settings, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/components/ui/language-context';
 
 const DriverSidebar = () => {
   const { t } = useLanguage();
@@ -20,17 +19,17 @@ const DriverSidebar = () => {
 
   const menuItems = [
     {
-      icon: <DashboardIcon className="h-5 w-5" />,
+      icon: <LayoutDashboard className="h-5 w-5" />,
       label: "لوحة المعلومات",
       path: "/driver/dashboard"
     },
     {
-      icon: <PackageIcon className="h-5 w-5" />,
+      icon: <Package className="h-5 w-5" />,
       label: "الطلبات",
       path: "/driver/orders"
     },
     {
-      icon: <TruckIcon className="h-5 w-5" />,
+      icon: <Truck className="h-5 w-5" />,
       label: "مركبتي",
       path: "/driver/vehicle"
     },
@@ -40,7 +39,7 @@ const DriverSidebar = () => {
       path: "/driver/profile"
     },
     {
-      icon: <SettingsIcon className="h-5 w-5" />,
+      icon: <Settings className="h-5 w-5" />,
       label: "الإعدادات",
       path: "/driver/settings"
     }
@@ -85,7 +84,7 @@ const DriverSidebar = () => {
           variant="outline" 
           className="w-full text-white border-white/20 hover:bg-white/10 hover:text-white flex items-center gap-2"
         >
-          <LogOutIcon className="h-4 w-4" />
+          <LogOut className="h-4 w-4" />
           <span>تسجيل الخروج</span>
         </Button>
       </div>

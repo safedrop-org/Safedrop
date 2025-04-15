@@ -1,8 +1,8 @@
 
-import { useLanguage } from '@/components/ui/language-context';
-import { DashboardIcon, PackageIcon, PlusCircle, UserIcon, SettingsIcon, LogOutIcon } from 'lucide-react';
+import { LayoutDashboard, Package, PlusCircle, UserIcon, Settings, LogOut } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/components/ui/language-context';
 
 const CustomerSidebar = () => {
   const { t } = useLanguage();
@@ -20,7 +20,7 @@ const CustomerSidebar = () => {
 
   const menuItems = [
     {
-      icon: <DashboardIcon className="h-5 w-5" />,
+      icon: <LayoutDashboard className="h-5 w-5" />,
       label: "لوحة المعلومات",
       path: "/customer/dashboard"
     },
