@@ -59,7 +59,7 @@ const AdminDashboardContent = () => {
                   <CardDescription>إجمالي عدد العملاء المسجلين</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">24</p>
+                  <p className="text-3xl font-bold">-</p>
                 </CardContent>
               </Card>
               
@@ -72,7 +72,7 @@ const AdminDashboardContent = () => {
                   <CardDescription>إجمالي عدد السائقين المسجلين</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">12</p>
+                  <p className="text-3xl font-bold">-</p>
                 </CardContent>
               </Card>
               
@@ -85,7 +85,7 @@ const AdminDashboardContent = () => {
                   <CardDescription>إجمالي عدد الطلبات</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">57</p>
+                  <p className="text-3xl font-bold">-</p>
                 </CardContent>
               </Card>
             </div>
@@ -112,36 +112,7 @@ const AdminDashboardContent = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">أحمد محمد</td>
-                        <td className="px-6 py-4 whitespace-nowrap">1234567890</td>
-                        <td className="px-6 py-4 whitespace-nowrap">تويوتا كامري 2020</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            قيد الانتظار
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2 rtl:space-x-reverse">
-                            <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700">موافقة</Button>
-                            <Button variant="destructive" size="sm">رفض</Button>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">خالد عبدالله</td>
-                        <td className="px-6 py-4 whitespace-nowrap">0987654321</td>
-                        <td className="px-6 py-4 whitespace-nowrap">هوندا أكورد 2021</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            قيد الانتظار
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2 rtl:space-x-reverse">
-                            <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700">موافقة</Button>
-                            <Button variant="destructive" size="sm">رفض</Button>
-                          </div>
-                        </td>
+                        <td colSpan={5} className="px-6 py-4 text-center text-gray-500">لا توجد طلبات انضمام حالياً</td>
                       </tr>
                     </tbody>
                   </table>
@@ -163,22 +134,7 @@ const AdminDashboardContent = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">محمد أحمد</td>
-                        <td className="px-6 py-4 whitespace-nowrap">mohammed@example.com</td>
-                        <td className="px-6 py-4 whitespace-nowrap">0512345678</td>
-                        <td className="px-6 py-4 whitespace-nowrap">5</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <Button variant="outline" size="sm">عرض التفاصيل</Button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">سارة خالد</td>
-                        <td className="px-6 py-4 whitespace-nowrap">sarah@example.com</td>
-                        <td className="px-6 py-4 whitespace-nowrap">0587654321</td>
-                        <td className="px-6 py-4 whitespace-nowrap">3</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <Button variant="outline" size="sm">عرض التفاصيل</Button>
-                        </td>
+                        <td colSpan={5} className="px-6 py-4 text-center text-gray-500">لا يوجد عملاء مسجلين حالياً</td>
                       </tr>
                     </tbody>
                   </table>
@@ -201,32 +157,7 @@ const AdminDashboardContent = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">#12345</td>
-                        <td className="px-6 py-4 whitespace-nowrap">محمد أحمد</td>
-                        <td className="px-6 py-4 whitespace-nowrap">أحمد علي</td>
-                        <td className="px-6 py-4 whitespace-nowrap">2025-04-10</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            تم التوصيل
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <Button variant="outline" size="sm">عرض التفاصيل</Button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">#12346</td>
-                        <td className="px-6 py-4 whitespace-nowrap">سارة خالد</td>
-                        <td className="px-6 py-4 whitespace-nowrap">محمد إبراهيم</td>
-                        <td className="px-6 py-4 whitespace-nowrap">2025-04-12</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            قيد التوصيل
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <Button variant="outline" size="sm">عرض التفاصيل</Button>
-                        </td>
+                        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">لا توجد طلبات حالياً</td>
                       </tr>
                     </tbody>
                   </table>

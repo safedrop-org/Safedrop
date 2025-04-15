@@ -14,7 +14,7 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center mb-4">
               <img 
-                src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png" 
+                src="/favicon.ico" 
                 alt="SafeDrop Logo" 
                 className="h-10 w-auto" 
               />

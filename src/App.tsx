@@ -8,6 +8,11 @@ import { LanguageProvider } from "@/components/ui/language-context";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
+// Public Pages
+import Services from "./pages/Services";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+
 // Auth Pages
 import Login from "./pages/auth/Login";
 import CustomerRegister from "./pages/auth/CustomerRegister";
@@ -39,6 +44,11 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            
+            {/* Public Pages */}
+            <Route path="/services" element={<Services />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
             
             {/* Auth Routes */}
             <Route path="/login" element={<Login />} />

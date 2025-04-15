@@ -7,21 +7,36 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Package, Clock, CheckCircle, PlusCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const CustomerDashboardContent = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Mock user data - in a real app this would come from authentication state
-  const [user] = useState({
-    name: "محمد أحمد",
-    email: "mohammed@example.com",
-    phone: "0512345678"
-  });
+  // Check if user is authenticated
+  useEffect(() => {
+    const customerAuth = localStorage.getItem('customerAuth');
+    if (!customerAuth || customerAuth !== 'true') {
+      toast({
+        title: "غير مصرح بالدخول",
+        description: "يرجى تسجيل الدخول أولاً",
+        variant: "destructive",
+      });
+      navigate('/login');
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [navigate, toast]);
 
   const handleCreateOrder = () => {
     navigate('/customer/create-order');
   };
+
+  if (!isAuthenticated) {
+    return <div className="flex justify-center items-center h-screen">جاري التحميل...</div>;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -31,9 +46,6 @@ const CustomerDashboardContent = () => {
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <h1 className="text-xl font-bold text-gray-900">لوحة تحكم العميل</h1>
-            <div>
-              <span className="mr-2 text-sm text-gray-600">مرحباً، {user.name}</span>
-            </div>
           </div>
         </header>
 
@@ -59,7 +71,7 @@ const CustomerDashboardContent = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">8</p>
+                  <p className="text-3xl font-bold">-</p>
                 </CardContent>
               </Card>
               
@@ -71,7 +83,7 @@ const CustomerDashboardContent = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">2</p>
+                  <p className="text-3xl font-bold">-</p>
                 </CardContent>
               </Card>
               
@@ -83,7 +95,7 @@ const CustomerDashboardContent = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">6</p>
+                  <p className="text-3xl font-bold">-</p>
                 </CardContent>
               </Card>
             </div>
@@ -110,32 +122,7 @@ const CustomerDashboardContent = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">#12348</td>
-                        <td className="px-6 py-4 whitespace-nowrap">الرياض، حي الملقا</td>
-                        <td className="px-6 py-4 whitespace-nowrap">الرياض، حي النخيل</td>
-                        <td className="px-6 py-4 whitespace-nowrap">أحمد علي</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            قيد التوصيل
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <Button variant="outline" size="sm">تتبع</Button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">#12349</td>
-                        <td className="px-6 py-4 whitespace-nowrap">الرياض، حي العليا</td>
-                        <td className="px-6 py-4 whitespace-nowrap">الرياض، حي الورود</td>
-                        <td className="px-6 py-4 whitespace-nowrap">محمد خالد</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            بانتظار الموافقة
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <Button variant="outline" size="sm">إلغاء</Button>
-                        </td>
+                        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">لا توجد طلبات نشطة حالياً</td>
                       </tr>
                     </tbody>
                   </table>
@@ -158,20 +145,7 @@ const CustomerDashboardContent = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">#12345</td>
-                        <td className="px-6 py-4 whitespace-nowrap">2025-04-01</td>
-                        <td className="px-6 py-4 whitespace-nowrap">الرياض، حي الملقا</td>
-                        <td className="px-6 py-4 whitespace-nowrap">الرياض، حي النخيل</td>
-                        <td className="px-6 py-4 whitespace-nowrap">أحمد علي</td>
-                        <td className="px-6 py-4 whitespace-nowrap">⭐⭐⭐⭐⭐</td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 whitespace-nowrap">#12346</td>
-                        <td className="px-6 py-4 whitespace-nowrap">2025-03-25</td>
-                        <td className="px-6 py-4 whitespace-nowrap">الرياض، حي العليا</td>
-                        <td className="px-6 py-4 whitespace-nowrap">الرياض، حي الورود</td>
-                        <td className="px-6 py-4 whitespace-nowrap">محمد خالد</td>
-                        <td className="px-6 py-4 whitespace-nowrap">⭐⭐⭐⭐</td>
+                        <td colSpan={6} className="px-6 py-4 text-center text-gray-500">لا يوجد سجل للطلبات السابقة</td>
                       </tr>
                     </tbody>
                   </table>
