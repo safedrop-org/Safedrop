@@ -16,12 +16,17 @@ import DriverRegister from "./pages/auth/DriverRegister";
 // Admin Pages
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import DriverVerification from "./pages/admin/DriverVerification";
 
 // Customer Pages
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
+import CustomerProfile from "./pages/customer/CustomerProfile";
 
 // Driver Pages
 import DriverDashboard from "./pages/driver/DriverDashboard";
+import DriverProfile from "./pages/driver/DriverProfile";
+import DriverOrders from "./pages/driver/DriverOrders";
+import DriverVehicle from "./pages/driver/DriverVehicle";
 
 const queryClient = new QueryClient();
 
@@ -43,12 +48,17 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/drivers" element={<DriverVerification />} />
             
             {/* Customer Routes */}
             <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+            <Route path="/customer/profile" element={<CustomerProfile />} />
             
             {/* Driver Routes */}
             <Route path="/driver/dashboard" element={<DriverDashboard />} />
+            <Route path="/driver/profile" element={<DriverProfile />} />
+            <Route path="/driver/orders" element={<DriverOrders />} />
+            <Route path="/driver/vehicle" element={<DriverVehicle />} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

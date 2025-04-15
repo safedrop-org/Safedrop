@@ -94,4 +94,3 @@ const CustomerSidebar = () => {
 };
 
 export default CustomerSidebar;
-
