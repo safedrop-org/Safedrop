@@ -4,14 +4,24 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LanguageProvider } from "@/components/ui/language-context";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import { LanguageProvider } from "@/components/ui/language-context";
 
-// Import new pages
+// Auth Pages
 import Login from "./pages/auth/Login";
 import CustomerRegister from "./pages/auth/CustomerRegister";
 import DriverRegister from "./pages/auth/DriverRegister";
+
+// Admin Pages
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+
+// Customer Pages
+import CustomerDashboard from "./pages/customer/CustomerDashboard";
+
+// Driver Pages
+import DriverDashboard from "./pages/driver/DriverDashboard";
 
 const queryClient = new QueryClient();
 
@@ -30,10 +40,15 @@ const App = () => (
             <Route path="/register/customer" element={<CustomerRegister />} />
             <Route path="/register/driver" element={<DriverRegister />} />
             
-            {/* Dashboard Routes - To be implemented */}
-            {/* <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            
+            {/* Customer Routes */}
+            <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+            
+            {/* Driver Routes */}
             <Route path="/driver/dashboard" element={<DriverDashboard />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} /> */}
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

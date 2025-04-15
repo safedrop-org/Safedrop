@@ -1,3 +1,4 @@
+
 type Translations = {
   [key: string]: {
     ar: string;
@@ -226,6 +227,118 @@ export const translations: Translations = {
   registrationBlocked: {
     ar: "تم حظر التسجيل",
     en: "Registration Blocked"
+  },
+  adminLogin: {
+    ar: "تسجيل دخول المشرف",
+    en: "Admin Login"
+  },
+  adminDashboard: {
+    ar: "لوحة تحكم المشرف",
+    en: "Admin Dashboard"
+  },
+  customerDashboard: {
+    ar: "لوحة تحكم العميل",
+    en: "Customer Dashboard"
+  },
+  driverDashboard: {
+    ar: "لوحة تحكم السائق",
+    en: "Driver Dashboard"
+  },
+  overview: {
+    ar: "نظرة عامة",
+    en: "Overview"
+  },
+  activeOrders: {
+    ar: "الطلبات النشطة",
+    en: "Active Orders"
+  },
+  orderHistory: {
+    ar: "سجل الطلبات",
+    en: "Order History"
+  },
+  loginSuccess: {
+    ar: "تم تسجيل الدخول بنجاح",
+    en: "Login Successful"
+  },
+  loginFailed: {
+    ar: "فشل تسجيل الدخول",
+    en: "Login Failed"
+  },
+  status: {
+    ar: "الحالة",
+    en: "Status"
+  },
+  actions: {
+    ar: "الإجراءات",
+    en: "Actions"
+  },
+  viewDetails: {
+    ar: "عرض التفاصيل",
+    en: "View Details"
+  },
+  totalOrders: {
+    ar: "إجمالي الطلبات",
+    en: "Total Orders"
+  },
+  revenue: {
+    ar: "الإيرادات",
+    en: "Revenue"
+  },
+  availableOrders: {
+    ar: "طلبات متاحة",
+    en: "Available Orders"
+  },
+  currentOrders: {
+    ar: "الطلبات الحالية",
+    en: "Current Orders"
+  },
+  myVehicle: {
+    ar: "مركبتي",
+    en: "My Vehicle"
+  },
+  accept: {
+    ar: "قبول",
+    en: "Accept"
+  },
+  reject: {
+    ar: "رفض",
+    en: "Reject"
+  },
+  available: {
+    ar: "متاح",
+    en: "Available"
+  },
+  unavailable: {
+    ar: "غير متاح",
+    en: "Unavailable"
+  },
+  from: {
+    ar: "من",
+    en: "From"
+  },
+  to: {
+    ar: "إلى",
+    en: "To"
+  },
+  distance: {
+    ar: "المسافة",
+    en: "Distance"
+  },
+  amount: {
+    ar: "المبلغ",
+    en: "Amount"
+  },
+  order: {
+    ar: "الطلب",
+    en: "Order"
+  },
+  date: {
+    ar: "التاريخ",
+    en: "Date"
+  },
+  rating: {
+    ar: "التقييم",
+    en: "Rating"
   }
 };
 
