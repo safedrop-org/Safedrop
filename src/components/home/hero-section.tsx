@@ -36,7 +36,7 @@ const HeroSection = () => {
             </Link>
             
             <Link to="/register/driver">
-              <Button variant="outline" className="border-safedrop-gold text-black bg-white hover:bg-white/90 font-bold px-8 py-6 text-lg">
+              <Button variant="outline" className="border-safedrop-gold text-white bg-transparent hover:bg-white/10 font-bold px-8 py-6 text-lg">
                 {t('joinAsDriver')}
               </Button>
             </Link>
