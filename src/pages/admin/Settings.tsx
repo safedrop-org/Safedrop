@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -22,8 +21,8 @@ const SettingsContent = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Commission Settings
-  const [commissionRate, setCommissionRate] = useState(15);
+  // Commission Settings - Now fixed at 15%
+  const commissionRate = 15; // Fixed at 15%
   const [minOrderValue, setMinOrderValue] = useState(50);
   const [maxDistance, setMaxDistance] = useState(30);
   
@@ -70,8 +69,7 @@ const SettingsContent = () => {
   };
 
   const handleResetSettings = () => {
-    // Show confirmation first in a real app
-    setCommissionRate(15);
+    // Reset settings except commission rate which is fixed
     setMinOrderValue(50);
     setMaxDistance(30);
     setRequireVerification(true);
@@ -169,24 +167,16 @@ const SettingsContent = () => {
                       إعدادات العمولة والأسعار
                     </CardTitle>
                     <CardDescription>
-                      تحكم في نسب العمولة وحدود الخدمة
+                      تحكم في حدود الخدمة (عمولة المنصة ثابتة 15%)
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <Label htmlFor="commission-rate">نسبة العمولة</Label>
-                        <span className="text-sm font-semibold">{commissionRate}%</span>
+                        <Label htmlFor="commission-rate">نسبة العمولة (ثابتة)</Label>
+                        <span className="text-sm font-semibold bg-gray-100 px-3 py-1 rounded">{commissionRate}%</span>
                       </div>
-                      <Slider
-                        id="commission-rate"
-                        min={5}
-                        max={30}
-                        step={1}
-                        defaultValue={[commissionRate]}
-                        onValueChange={(value) => setCommissionRate(value[0])}
-                      />
-                      <p className="text-sm text-gray-500">نسبة العمولة التي سيتم خصمها من كل طلب.</p>
+                      <p className="text-sm text-gray-500">نسبة العمولة التي سيتم خصمها من كل طلب (قيمة ثابتة لا يمكن تغييرها).</p>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -314,7 +304,7 @@ const SettingsContent = () => {
                       إعدادات المستخدمين
                     </CardTitle>
                     <CardDescription>
-                      تحكم في طريقة تسجيل وتفاعل المستخدمين
+                      تحكم في طريقة تس��يل وتفاعل المستخدمين
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">

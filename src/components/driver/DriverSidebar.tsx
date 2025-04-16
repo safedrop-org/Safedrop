@@ -1,4 +1,5 @@
-import { LayoutDashboard, Package, Truck, UserIcon, Settings, LogOut } from 'lucide-react';
+
+import { LayoutDashboard, Package, Truck, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, MessageSquare } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
@@ -13,7 +14,7 @@ const DriverSidebar = () => {
   };
 
   const handleLogout = () => {
-    // Implementation would depend on your auth setup
+    localStorage.removeItem('driverAuth');
     navigate('/login');
   };
 
@@ -37,6 +38,26 @@ const DriverSidebar = () => {
       icon: <UserIcon className="h-5 w-5" />,
       label: "الملف الشخصي",
       path: "/driver/profile"
+    },
+    {
+      icon: <Star className="h-5 w-5" />,
+      label: "التقييمات",
+      path: "/driver/ratings"
+    },
+    {
+      icon: <DollarSign className="h-5 w-5" />,
+      label: "الأرباح",
+      path: "/driver/earnings"
+    },
+    {
+      icon: <Bell className="h-5 w-5" />,
+      label: "الإشعارات",
+      path: "/driver/notifications"
+    },
+    {
+      icon: <HelpCircle className="h-5 w-5" />,
+      label: "الدعم والمساعدة",
+      path: "/driver/support"
     },
     {
       icon: <Settings className="h-5 w-5" />,
