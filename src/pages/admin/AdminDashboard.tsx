@@ -22,7 +22,8 @@ import {
   DollarSign, LineChart, BarChart2Icon, FileDownIcon,
   AlertTriangleIcon, BellIcon, UserXIcon, UserCheckIcon,
   SearchIcon, MoreVerticalIcon, FilterIcon,
-  FileTextIcon, MessageSquareIcon, SettingsIcon
+  FileTextIcon, MessageSquareIcon, SettingsIcon,
+  Check
 } from 'lucide-react';
 
 type DateRange = 'today' | 'week' | 'month' | 'year';
