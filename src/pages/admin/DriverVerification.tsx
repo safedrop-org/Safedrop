@@ -11,89 +11,21 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import { LogOutIcon, SearchIcon, EyeIcon, CheckIcon, XIcon, AlertTriangleIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface Driver {
-  id: string;
-  name: string;
-  nationalId: string;
-  phone: string;
-  vehicle: string;
-  documents: {
-    nationalId: string;
-    license: string;
-    goodConduct?: string;
-  };
-  status: 'pending' | 'approved' | 'rejected';
-  rejectionReason?: string;
-  submissionDate: string;
-}
-
 const DriverVerificationContent = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const [selectedDriver, setSelectedDriver] = useState(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [viewDocumentUrl, setViewDocumentUrl] = useState('');
   const [documentDialogOpen, setDocumentDialogOpen] = useState(false);
 
-  const mockDrivers: Driver[] = [
-    {
-      id: '1',
-      name: 'أحمد محمد',
-      nationalId: '1234567890',
-      phone: '0512345678',
-      vehicle: 'تويوتا كامري 2020',
-      documents: {
-        nationalId: '/path/to/national-id.jpg',
-        license: '/path/to/license.jpg'
-      },
-      status: 'pending',
-      submissionDate: '2025-04-10'
-    },
-    {
-      id: '2',
-      name: 'خالد عبدالله',
-      nationalId: '0987654321',
-      phone: '0587654321',
-      vehicle: 'هوندا أكورد 2021',
-      documents: {
-        nationalId: '/path/to/national-id.jpg',
-        license: '/path/to/license.jpg',
-        goodConduct: '/path/to/good-conduct.pdf'
-      },
-      status: 'pending',
-      submissionDate: '2025-04-11'
-    },
-    {
-      id: '3',
-      name: 'محمد عبدالرحمن',
-      nationalId: '5678901234',
-      phone: '0556789012',
-      vehicle: 'نيسان ألتيما 2022',
-      documents: {
-        nationalId: '/path/to/national-id.jpg',
-        license: '/path/to/license.jpg'
-      },
-      status: 'approved',
-      submissionDate: '2025-04-05'
-    },
-    {
-      id: '4',
-      name: 'سعيد علي',
-      nationalId: '6789012345',
-      phone: '0567890123',
-      vehicle: 'هيونداي سوناتا 2021',
-      documents: {
-        nationalId: '/path/to/national-id.jpg',
-        license: '/path/to/license.jpg'
-      },
-      status: 'rejected',
-      rejectionReason: 'الصور غير واضحة، يرجى إعادة رفع صور أوضح للوثائق',
-      submissionDate: '2025-04-08'
-    }
-  ];
+  // Removed mock drivers data as requested, now it's an empty array
+  const pendingDrivers = [];
+  const approvedDrivers = [];
+  const rejectedDrivers = [];
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -110,22 +42,12 @@ const DriverVerificationContent = () => {
     navigate('/admin');
   };
 
-  const filteredDrivers = mockDrivers.filter(driver => 
-    driver.name.includes(searchQuery) || 
-    driver.nationalId.includes(searchQuery) ||
-    driver.phone.includes(searchQuery)
-  );
-
-  const pendingDrivers = filteredDrivers.filter(driver => driver.status === 'pending');
-  const approvedDrivers = filteredDrivers.filter(driver => driver.status === 'approved');
-  const rejectedDrivers = filteredDrivers.filter(driver => driver.status === 'rejected');
-
-  const handleApproveDriver = (driver: Driver) => {
+  const handleApproveDriver = (driver) => {
     // In a real app, this would call an API to approve the driver
     toast.success(`تمت الموافقة على السائق ${driver.name} بنجاح`);
   };
 
-  const handleOpenRejectDialog = (driver: Driver) => {
+  const handleOpenRejectDialog = (driver) => {
     setSelectedDriver(driver);
     setRejectDialogOpen(true);
   };
@@ -140,7 +62,7 @@ const DriverVerificationContent = () => {
     setSelectedDriver(null);
   };
 
-  const handleViewDocument = (url: string) => {
+  const handleViewDocument = (url) => {
     // In a real app, this would be a valid document URL
     setViewDocumentUrl(url);
     setDocumentDialogOpen(true);
@@ -259,7 +181,7 @@ const DriverVerificationContent = () => {
                                     variant="outline" 
                                     size="sm" 
                                     className="ml-2"
-                                    onClick={() => handleViewDocument(driver.documents.goodConduct as string)}
+                                    onClick={() => handleViewDocument(driver.documents.goodConduct)}
                                   >
                                     <EyeIcon className="h-4 w-4 mr-1" />
                                     عرض حسن السيرة
