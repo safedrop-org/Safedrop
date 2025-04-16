@@ -1,6 +1,6 @@
 
 import { useLanguage } from '@/components/ui/language-context';
-import { UsersIcon, TruckIcon, PackageIcon, BarChart2Icon, SettingsIcon, ShieldIcon } from 'lucide-react';
+import { UsersIcon, TruckIcon, PackageIcon, BarChart2Icon, SettingsIcon, ShieldIcon, DollarSign, MessageSquareIcon } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const AdminSidebar = () => {
@@ -18,6 +18,11 @@ const AdminSidebar = () => {
       path: "/admin/dashboard"
     },
     {
+      icon: <DollarSign className="h-5 w-5" />,
+      label: "الملخص المالي",
+      path: "/admin/finance"
+    },
+    {
       icon: <TruckIcon className="h-5 w-5" />,
       label: "إدارة السائقين",
       path: "/admin/drivers"
@@ -31,6 +36,11 @@ const AdminSidebar = () => {
       icon: <PackageIcon className="h-5 w-5" />,
       label: "إدارة الطلبات",
       path: "/admin/orders"
+    },
+    {
+      icon: <MessageSquareIcon className="h-5 w-5" />,
+      label: "الشكاوى والدعم",
+      path: "/admin/complaints"
     },
     {
       icon: <SettingsIcon className="h-5 w-5" />,
@@ -59,7 +69,9 @@ const AdminSidebar = () => {
                 <Link
                   to={item.path}
                   className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                    isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                    (isActive(item.path) || 
+                     (item.path === '/admin/dashboard' && location.pathname === '/admin')) ? 
+                    'bg-white/10 border-r-4 border-safedrop-gold' : ''
                   }`}
                 >
                   {item.icon}
