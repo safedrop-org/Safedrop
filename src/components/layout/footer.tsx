@@ -1,23 +1,17 @@
-
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
 import { MapPin, Phone, Mail, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
-
 const Footer = () => {
-  const { t } = useLanguage();
-
-  return (
-    <footer className="bg-safedrop-primary text-white pt-12 pb-6">
+  const {
+    t
+  } = useLanguage();
+  return <footer className="bg-safedrop-primary text-white pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo and About */}
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center mb-4">
-              <img 
-                src="/lovable-uploads/3cb43b49-2c61-4bfc-ba86-addfe77f7c3a.png" 
-                alt="SafeDrop Logo" 
-                className="h-10 w-auto" 
-              />
+              
               <span className="ml-2 text-xl font-bold rtl:mr-2 rtl:ml-0">
                 {t('siteTitle')}
               </span>
@@ -121,8 +115,6 @@ const Footer = () => {
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
