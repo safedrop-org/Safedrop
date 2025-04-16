@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,9 +35,7 @@ const CustomersContent = () => {
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [messageText, setMessageText] = useState('');
 
-  // Fetch customers data - in a real app, this would be from an API
   useEffect(() => {
-    // Simulating API call
     setTimeout(() => {
       const mockCustomers: Customer[] = [
         {
@@ -92,7 +89,6 @@ const CustomersContent = () => {
   }, []);
 
   useEffect(() => {
-    // Check if admin is authenticated
     const adminAuth = localStorage.getItem('adminAuth');
     if (!adminAuth || adminAuth !== 'true') {
       navigate('/admin');
@@ -109,10 +105,8 @@ const CustomersContent = () => {
   const handleSuspendCustomer = () => {
     if (!selectedCustomer) return;
     
-    // In a real app, this would call an API
     toast.success(`تم تعليق حساب العميل ${selectedCustomer.name} بنجاح`);
     
-    // Update local state
     setCustomers(prev => 
       prev.map(customer => 
         customer.id === selectedCustomer.id 
@@ -129,10 +123,8 @@ const CustomersContent = () => {
   const handleBanCustomer = () => {
     if (!selectedCustomer) return;
     
-    // In a real app, this would call an API
     toast.success(`تم حظر حساب العميل ${selectedCustomer.name} بنجاح`);
     
-    // Update local state
     setCustomers(prev => 
       prev.map(customer => 
         customer.id === selectedCustomer.id 
@@ -149,7 +141,6 @@ const CustomersContent = () => {
   const handleSendMessage = () => {
     if (!selectedCustomer || !messageText.trim()) return;
     
-    // In a real app, this would call an API to send a message
     toast.success(`تم إرسال الرسالة إلى العميل ${selectedCustomer.name} بنجاح`);
     
     setMessageDialogOpen(false);
@@ -158,10 +149,8 @@ const CustomersContent = () => {
   };
 
   const handleActivateCustomer = (customer: Customer) => {
-    // In a real app, this would call an API
     toast.success(`تم تفعيل حساب العميل ${customer.name} بنجاح`);
     
-    // Update local state
     setCustomers(prev => 
       prev.map(c => 
         c.id === customer.id 
@@ -220,7 +209,7 @@ const CustomersContent = () => {
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input 
                   className="pl-10 pr-4" 
-                  placeholder="ابحث باسم العميل أو البريد الإلكتروني أو رقم الهاتف" 
+                  placeholder="ابحث باسم العميل أو البريد ا��إلكتروني أو رقم الهاتف" 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -359,7 +348,6 @@ const CustomersContent = () => {
         </main>
       </div>
       
-      {/* Suspension Dialog */}
       <Dialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -383,8 +371,7 @@ const CustomersContent = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setSuspendDialogOpen(false)}>إلغاء</Button>
             <Button 
-              variant="warning" 
-              className="bg-yellow-500 hover:bg-yellow-600"
+              variant="secondary" 
               onClick={handleSuspendCustomer}
               disabled={!suspensionReason.trim()}
             >
@@ -394,7 +381,6 @@ const CustomersContent = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Ban Dialog */}
       <Dialog open={banDialogOpen} onOpenChange={setBanDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -428,7 +414,6 @@ const CustomersContent = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Message Dialog */}
       <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -571,7 +556,6 @@ const CustomersList = ({
   );
 };
 
-// Wrap the component with LanguageProvider
 const Customers = () => {
   return (
     <LanguageProvider>
