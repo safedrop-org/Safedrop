@@ -26,7 +26,7 @@ export const HeroSection = () => {
           className="absolute inset-0 w-full h-full object-cover"
           poster="https://images.unsplash.com/photo-1566576912333-261b896ef5cd?q=80&w=2070&auto=format&fit=crop"
         >
-          <source src="https://assets.mixkit.co/videos/preview/mixkit-parcel-clerk-placing-boxes-on-a-loading-dolly-31267-large.mp4" type="video/mp4" />
+          <source src="/mixkit-parcel-clerk-placing-boxes-on-a-loading-dolly-31267-hd-ready.mp4" type="video/mp4" />
           {/* Fallback background image */}
         </video>
         {/* Dark overlay */}
