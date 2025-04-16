@@ -1,15 +1,33 @@
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+
 export const HeroSection = () => {
-  return <div className="relative min-h-[85vh] flex items-center justify-center">
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    // Make sure the video loads and plays
+    if (videoRef.current) {
+      videoRef.current.load();
+    }
+  }, []);
+
+  return (
+    <div className="relative min-h-[85vh] flex items-center justify-center">
       {/* Background Video */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden">
-        <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
+      <div className="absolute inset-0 w-full h-full overflow-hidden bg-gray-800">
+        <video 
+          ref={videoRef}
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="absolute inset-0 w-full h-full object-cover"
+          poster="https://images.unsplash.com/photo-1566576912333-261b896ef5cd?q=80&w=2070&auto=format&fit=crop"
+        >
           <source src="https://assets.mixkit.co/videos/preview/mixkit-parcel-clerk-placing-boxes-on-a-loading-dolly-31267-large.mp4" type="video/mp4" />
           {/* Fallback background image */}
-          <img src="https://images.unsplash.com/photo-1566576912333-261b896ef5cd?q=80&w=2070&auto=format&fit=crop" alt="خلفية سيف دروب" className="w-full h-full object-cover" />
         </video>
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/50"></div>
@@ -33,5 +51,6 @@ export const HeroSection = () => {
           </Link>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
