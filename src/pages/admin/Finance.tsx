@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from '@tanstack/react-query';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { LogOutIcon, Download, BarChart2, DollarSign, Calendar } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import {
   BarChart,
   Bar,
@@ -22,15 +24,7 @@ import {
 } from 'recharts';
 
 // Define types for our data
-type MonthlyDataType = {
-  month: string;
-  totalOrders: number;
-  revenue: number;
-  commission: number;
-  driverPayout: number;
-};
-
-type DailyDataType = {
+type FinanceDataType = {
   date: string;
   totalOrders: number;
   revenue: number;
@@ -38,36 +32,37 @@ type DailyDataType = {
   driverPayout: number;
 };
 
-// Union type for chart data
-type ChartDataType = MonthlyDataType | DailyDataType;
+const calculateFinanceSummary = (data: FinanceDataType[]) => ({
+  totalRevenue: data.reduce((acc, curr) => acc + curr.revenue, 0),
+  totalCommissions: data.reduce((acc, curr) => acc + curr.commission, 0),
+  platformProfit: data.reduce((acc, curr) => acc + curr.commission, 0),
+  driverPayouts: data.reduce((acc, curr) => acc + curr.driverPayout, 0),
+  totalOrders: data.reduce((acc, curr) => acc + curr.totalOrders, 0)
+});
 
-const mockMonthlyData: MonthlyDataType[] = [
-  { month: 'يناير', totalOrders: 120, revenue: 24000, commission: 3600, driverPayout: 20400 },
-  { month: 'فبراير', totalOrders: 150, revenue: 30000, commission: 4500, driverPayout: 25500 },
-  { month: 'مارس', totalOrders: 180, revenue: 36000, commission: 5400, driverPayout: 30600 },
-  { month: 'أبريل', totalOrders: 200, revenue: 40000, commission: 6000, driverPayout: 34000 }
-];
-
-const mockDailyData: DailyDataType[] = [
-  { date: '2025-04-10', totalOrders: 42, revenue: 8400, commission: 1260, driverPayout: 7140 },
-  { date: '2025-04-11', totalOrders: 38, revenue: 7600, commission: 1140, driverPayout: 6460 },
-  { date: '2025-04-12', totalOrders: 45, revenue: 9000, commission: 1350, driverPayout: 7650 },
-  { date: '2025-04-13', totalOrders: 52, revenue: 10400, commission: 1560, driverPayout: 8840 },
-  { date: '2025-04-14', totalOrders: 48, revenue: 9600, commission: 1440, driverPayout: 8160 },
-  { date: '2025-04-15', totalOrders: 50, revenue: 10000, commission: 1500, driverPayout: 8500 },
-  { date: '2025-04-16', totalOrders: 55, revenue: 11000, commission: 1650, driverPayout: 9350 }
-];
-
-// Create a utility function to adapt daily data to monthly data format
-const adaptDailyDataToMonthlyFormat = (dailyData: DailyDataType[]): (MonthlyDataType & { date: string })[] => {
-  return dailyData.map(item => ({
-    month: '',  // This will be unused but needed for type safety
-    date: item.date,
-    totalOrders: item.totalOrders,
-    revenue: item.revenue,
-    commission: item.commission,
-    driverPayout: item.driverPayout
-  }));
+const useFinanceData = (timeRange: string) => {
+  return useQuery({
+    queryKey: ['financeData', timeRange],
+    queryFn: async () => {
+      // In a real implementation, this would fetch data from Supabase
+      // based on the timeRange parameter
+      try {
+        // Here we would query the database for financial data
+        // const { data, error } = await supabase
+        //   .from('orders')
+        //   .select('price, commission_rate, driver_payout, created_at')
+        //   .gte('created_at', getTimeRangeStart(timeRange))
+        //   .lte('created_at', new Date().toISOString());
+        
+        // For now, since we don't have real data yet, return empty data
+        return [] as FinanceDataType[];
+        
+      } catch (error) {
+        console.error('Error fetching finance data:', error);
+        return [] as FinanceDataType[];
+      }
+    }
+  });
 };
 
 const FinanceContent = () => {
@@ -75,15 +70,9 @@ const FinanceContent = () => {
   const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
   const [timeRange, setTimeRange] = useState('monthly');
-  const [chartData, setChartData] = useState<MonthlyDataType[]>(mockMonthlyData);
 
-  const summaryData = {
-    totalRevenue: chartData.reduce((acc, curr) => acc + curr.revenue, 0),
-    totalCommissions: chartData.reduce((acc, curr) => acc + curr.commission, 0),
-    platformProfit: chartData.reduce((acc, curr) => acc + curr.commission, 0),
-    driverPayouts: chartData.reduce((acc, curr) => acc + curr.driverPayout, 0),
-    totalOrders: chartData.reduce((acc, curr) => acc + curr.totalOrders, 0)
-  };
+  const { data: financeData = [], isLoading } = useFinanceData(timeRange);
+  const summaryData = calculateFinanceSummary(financeData);
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -94,15 +83,6 @@ const FinanceContent = () => {
       setIsAdmin(true);
     }
   }, [navigate]);
-
-  useEffect(() => {
-    // Update chart data based on timeRange
-    if (timeRange === 'daily') {
-      setChartData(adaptDailyDataToMonthlyFormat(mockDailyData));
-    } else {
-      setChartData(mockMonthlyData);
-    }
-  }, [timeRange]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
@@ -225,84 +205,99 @@ const FinanceContent = () => {
                 <TabsTrigger value="comparison">مقارنة</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="revenue" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>تحليل الإيرادات</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[400px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={chartData}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey={timeRange === 'daily' ? 'date' : 'month'} />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Line type="monotone" dataKey="revenue" name="إجمالي الإيرادات" stroke="#FFD700" strokeWidth={2} activeDot={{ r: 8 }} />
-                          <Line type="monotone" dataKey="commission" name="العمولات" stroke="#82ca9d" />
-                          <Line type="monotone" dataKey="driverPayout" name="مستحقات السائقين" stroke="#8884d8" />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="orders" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>تحليل الطلبات</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[400px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={chartData}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey={timeRange === 'daily' ? 'date' : 'month'} />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="totalOrders" name="عدد الطلبات" fill="#1c4e80" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="comparison" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>مقارنة الإيرادات والمدفوعات</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[400px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={chartData}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey={timeRange === 'daily' ? 'date' : 'month'} />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="revenue" name="الإيرادات" fill="#FFD700" />
-                          <Bar dataKey="commission" name="العمولات" fill="#82ca9d" />
-                          <Bar dataKey="driverPayout" name="مدفوعات السائقين" fill="#8884d8" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              {isLoading ? (
+                <div className="flex justify-center items-center p-12">
+                  <p>جاري تحميل البيانات...</p>
+                </div>
+              ) : financeData.length === 0 ? (
+                <div className="bg-white rounded-lg shadow p-6 text-center">
+                  <div className="flex flex-col items-center justify-center">
+                    <BarChart2 className="h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-500">لا توجد بيانات مالية متاحة حاليًا</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <TabsContent value="revenue" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>تحليل الإيرادات</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-[400px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              data={financeData}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" />
+                              <YAxis />
+                              <Tooltip />
+                              <Legend />
+                              <Line type="monotone" dataKey="revenue" name="إجمالي الإيرادات" stroke="#FFD700" strokeWidth={2} activeDot={{ r: 8 }} />
+                              <Line type="monotone" dataKey="commission" name="العمولات" stroke="#82ca9d" />
+                              <Line type="monotone" dataKey="driverPayout" name="مستحقات السائقين" stroke="#8884d8" />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="orders" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>تحليل الطلبات</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-[400px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={financeData}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" />
+                              <YAxis />
+                              <Tooltip />
+                              <Legend />
+                              <Bar dataKey="totalOrders" name="عدد الطلبات" fill="#1c4e80" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  <TabsContent value="comparison" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>مقارنة الإيرادات والمدفوعات</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-[400px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={financeData}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" />
+                              <YAxis />
+                              <Tooltip />
+                              <Legend />
+                              <Bar dataKey="revenue" name="الإيرادات" fill="#FFD700" />
+                              <Bar dataKey="commission" name="العمولات" fill="#82ca9d" />
+                              <Bar dataKey="driverPayout" name="مدفوعات السائقين" fill="#8884d8" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </>
+              )}
             </Tabs>
 
             <Card className="mt-6">
@@ -310,39 +305,45 @@ const FinanceContent = () => {
                 <CardTitle>تفاصيل المعاملات المالية</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 text-xs uppercase">
-                      <tr>
-                        <th className="px-6 py-3 text-right font-medium text-gray-500">{timeRange === 'daily' ? 'التاريخ' : 'الشهر'}</th>
-                        <th className="px-6 py-3 text-right font-medium text-gray-500">عدد الطلبات</th>
-                        <th className="px-6 py-3 text-right font-medium text-gray-500">إجمالي الإيرادات</th>
-                        <th className="px-6 py-3 text-right font-medium text-gray-500">العمولات (15%)</th>
-                        <th className="px-6 py-3 text-right font-medium text-gray-500">مستحقات السائقين</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {chartData.map((item, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">{timeRange === 'daily' ? (item as any).date : item.month}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{item.totalOrders}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{item.revenue} ريال</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{item.commission} ريال</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{item.driverPayout} ريال</td>
+                {financeData.length === 0 ? (
+                  <div className="text-center p-6">
+                    <p className="text-gray-500">لا توجد معاملات مالية لعرضها</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 text-xs uppercase">
+                        <tr>
+                          <th className="px-6 py-3 text-right font-medium text-gray-500">التاريخ</th>
+                          <th className="px-6 py-3 text-right font-medium text-gray-500">عدد الطلبات</th>
+                          <th className="px-6 py-3 text-right font-medium text-gray-500">إجمالي الإيرادات</th>
+                          <th className="px-6 py-3 text-right font-medium text-gray-500">العمولات (15%)</th>
+                          <th className="px-6 py-3 text-right font-medium text-gray-500">مستحقات السائقين</th>
                         </tr>
-                      ))}
-                    </tbody>
-                    <tfoot className="bg-gray-50 font-medium">
-                      <tr>
-                        <td className="px-6 py-3 text-right">المجموع</td>
-                        <td className="px-6 py-3 text-right">{summaryData.totalOrders}</td>
-                        <td className="px-6 py-3 text-right">{summaryData.totalRevenue} ريال</td>
-                        <td className="px-6 py-3 text-right">{summaryData.totalCommissions} ريال</td>
-                        <td className="px-6 py-3 text-right">{summaryData.driverPayouts} ريال</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {financeData.map((item, index) => (
+                          <tr key={index} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">{item.date}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{item.totalOrders}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{item.revenue} ريال</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{item.commission} ريال</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{item.driverPayout} ريال</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-gray-50 font-medium">
+                        <tr>
+                          <td className="px-6 py-3 text-right">المجموع</td>
+                          <td className="px-6 py-3 text-right">{summaryData.totalOrders}</td>
+                          <td className="px-6 py-3 text-right">{summaryData.totalRevenue} ريال</td>
+                          <td className="px-6 py-3 text-right">{summaryData.totalCommissions} ريال</td>
+                          <td className="px-6 py-3 text-right">{summaryData.driverPayouts} ريال</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

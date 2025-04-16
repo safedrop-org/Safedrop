@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -7,8 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { LogOutIcon, SearchIcon, Ban, AlertCircle, MessageSquare, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface Customer {
@@ -21,12 +24,37 @@ interface Customer {
   status: 'active' | 'suspended' | 'banned';
 }
 
+const useCustomers = () => {
+  return useQuery({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      try {
+        // In a real implementation, this would fetch data from Supabase
+        // const { data, error } = await supabase
+        //   .from('profiles')
+        //   .select('*')
+        //   .eq('user_type', 'customer')
+        //   .order('created_at', { ascending: false })
+        //   .limit(20);
+        
+        // if (error) throw error;
+        
+        // Return an empty array for now
+        return [] as Customer[];
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+        return [] as Customer[];
+      }
+    }
+  });
+};
+
 const CustomersContent = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const { data: customers = [], isLoading } = useCustomers();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
   const [banDialogOpen, setBanDialogOpen] = useState(false);
@@ -34,59 +62,6 @@ const CustomersContent = () => {
   const [banReason, setBanReason] = useState('');
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [messageText, setMessageText] = useState('');
-
-  useEffect(() => {
-    setTimeout(() => {
-      const mockCustomers: Customer[] = [
-        {
-          id: '1',
-          name: 'محمد أحمد',
-          email: 'mohammed@example.com',
-          phone: '0512345678',
-          registrationDate: '2025-01-15',
-          ordersCount: 12,
-          status: 'active',
-        },
-        {
-          id: '2',
-          name: 'فاطمة علي',
-          email: 'fatima@example.com',
-          phone: '0523456789',
-          registrationDate: '2025-02-20',
-          ordersCount: 8,
-          status: 'active',
-        },
-        {
-          id: '3',
-          name: 'عبدالله محمد',
-          email: 'abdullah@example.com',
-          phone: '0534567890',
-          registrationDate: '2025-03-05',
-          ordersCount: 5,
-          status: 'suspended',
-        },
-        {
-          id: '4',
-          name: 'نورة خالد',
-          email: 'noura@example.com',
-          phone: '0545678901',
-          registrationDate: '2025-03-15',
-          ordersCount: 3,
-          status: 'active',
-        },
-        {
-          id: '5',
-          name: 'سعود فهد',
-          email: 'saud@example.com',
-          phone: '0556789012',
-          registrationDate: '2025-03-25',
-          ordersCount: 0,
-          status: 'banned',
-        },
-      ];
-      setCustomers(mockCustomers);
-    }, 500);
-  }, []);
 
   useEffect(() => {
     const adminAuth = localStorage.getItem('adminAuth');
@@ -105,15 +80,13 @@ const CustomersContent = () => {
   const handleSuspendCustomer = () => {
     if (!selectedCustomer) return;
     
-    toast.success(`تم تعليق حساب العميل ${selectedCustomer.name} بنجاح`);
+    // In a real implementation, this would call an API to update the customer status
+    // await supabase
+    //   .from('profiles')
+    //   .update({ status: 'suspended' })
+    //   .eq('id', selectedCustomer.id);
     
-    setCustomers(prev => 
-      prev.map(customer => 
-        customer.id === selectedCustomer.id 
-          ? { ...customer, status: 'suspended' as const } 
-          : customer
-      )
-    );
+    toast.success(`تم تعليق حساب العميل ${selectedCustomer.name} بنجاح`);
     
     setSuspendDialogOpen(false);
     setSuspensionReason('');
@@ -123,15 +96,13 @@ const CustomersContent = () => {
   const handleBanCustomer = () => {
     if (!selectedCustomer) return;
     
-    toast.success(`تم حظر حساب العميل ${selectedCustomer.name} بنجاح`);
+    // In a real implementation, this would call an API to update the customer status
+    // await supabase
+    //   .from('profiles')
+    //   .update({ status: 'banned' })
+    //   .eq('id', selectedCustomer.id);
     
-    setCustomers(prev => 
-      prev.map(customer => 
-        customer.id === selectedCustomer.id 
-          ? { ...customer, status: 'banned' as const } 
-          : customer
-      )
-    );
+    toast.success(`تم حظر حساب العميل ${selectedCustomer.name} بنجاح`);
     
     setBanDialogOpen(false);
     setBanReason('');
@@ -141,6 +112,11 @@ const CustomersContent = () => {
   const handleSendMessage = () => {
     if (!selectedCustomer || !messageText.trim()) return;
     
+    // In a real implementation, this would send a message to the customer
+    // await supabase
+    //   .from('messages')
+    //   .insert([{ recipient_id: selectedCustomer.id, message: messageText, sender_type: 'admin' }]);
+    
     toast.success(`تم إرسال الرسالة إلى العميل ${selectedCustomer.name} بنجاح`);
     
     setMessageDialogOpen(false);
@@ -149,15 +125,13 @@ const CustomersContent = () => {
   };
 
   const handleActivateCustomer = (customer: Customer) => {
-    toast.success(`تم تفعيل حساب العميل ${customer.name} بنجاح`);
+    // In a real implementation, this would call an API to update the customer status
+    // await supabase
+    //   .from('profiles')
+    //   .update({ status: 'active' })
+    //   .eq('id', customer.id);
     
-    setCustomers(prev => 
-      prev.map(c => 
-        c.id === customer.id 
-          ? { ...c, status: 'active' as const } 
-          : c
-      )
-    );
+    toast.success(`تم تفعيل حساب العميل ${customer.name} بنجاح`);
   };
 
   const filteredCustomers = customers.filter(customer => 
@@ -209,7 +183,7 @@ const CustomersContent = () => {
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input 
                   className="pl-10 pr-4" 
-                  placeholder="ابحث باسم العميل أو البريد ا��إلكتروني أو رقم الهاتف" 
+                  placeholder="ابحث باسم العميل أو البريد الإلكتروني أو رقم الهاتف" 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -264,85 +238,93 @@ const CustomersContent = () => {
                 <TabsTrigger value="banned">المحظورين</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="all">
-                <CustomersList 
-                  customers={filteredCustomers} 
-                  onSuspend={(customer) => {
-                    setSelectedCustomer(customer);
-                    setSuspendDialogOpen(true);
-                  }}
-                  onBan={(customer) => {
-                    setSelectedCustomer(customer);
-                    setBanDialogOpen(true);
-                  }}
-                  onMessage={(customer) => {
-                    setSelectedCustomer(customer);
-                    setMessageDialogOpen(true);
-                  }}
-                  onActivate={handleActivateCustomer}
-                  getStatusBadge={getStatusBadge}
-                />
-              </TabsContent>
-              
-              <TabsContent value="active">
-                <CustomersList 
-                  customers={activeCustomers} 
-                  onSuspend={(customer) => {
-                    setSelectedCustomer(customer);
-                    setSuspendDialogOpen(true);
-                  }}
-                  onBan={(customer) => {
-                    setSelectedCustomer(customer);
-                    setBanDialogOpen(true);
-                  }}
-                  onMessage={(customer) => {
-                    setSelectedCustomer(customer);
-                    setMessageDialogOpen(true);
-                  }}
-                  onActivate={handleActivateCustomer}
-                  getStatusBadge={getStatusBadge}
-                />
-              </TabsContent>
-              
-              <TabsContent value="suspended">
-                <CustomersList 
-                  customers={suspendedCustomers} 
-                  onSuspend={(customer) => {
-                    setSelectedCustomer(customer);
-                    setSuspendDialogOpen(true);
-                  }}
-                  onBan={(customer) => {
-                    setSelectedCustomer(customer);
-                    setBanDialogOpen(true);
-                  }}
-                  onMessage={(customer) => {
-                    setSelectedCustomer(customer);
-                    setMessageDialogOpen(true);
-                  }}
-                  onActivate={handleActivateCustomer}
-                  getStatusBadge={getStatusBadge}
-                />
-              </TabsContent>
-              
-              <TabsContent value="banned">
-                <CustomersList 
-                  customers={bannedCustomers} 
-                  onSuspend={(customer) => {
-                    setSelectedCustomer(customer);
-                    setSuspendDialogOpen(true);
-                  }}
-                  onBan={(customer) => {
-                    setSelectedCustomer(customer);
-                    setBanDialogOpen(true);
-                  }}
-                  onMessage={(customer) => {
-                    setSelectedCustomer(customer);
-                    setMessageDialogOpen(true);
-                  }}
-                  onActivate={handleActivateCustomer}
-                  getStatusBadge={getStatusBadge}
-                />
-              </TabsContent>
+              {isLoading ? (
+                <div className="flex justify-center items-center p-12">
+                  <p>جاري تحميل البيانات...</p>
+                </div>
+              ) : (
+                <>
+                  <TabsContent value="all">
+                    <CustomersList 
+                      customers={filteredCustomers} 
+                      onSuspend={(customer) => {
+                        setSelectedCustomer(customer);
+                        setSuspendDialogOpen(true);
+                      }}
+                      onBan={(customer) => {
+                        setSelectedCustomer(customer);
+                        setBanDialogOpen(true);
+                      }}
+                      onMessage={(customer) => {
+                        setSelectedCustomer(customer);
+                        setMessageDialogOpen(true);
+                      }}
+                      onActivate={handleActivateCustomer}
+                      getStatusBadge={getStatusBadge}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="active">
+                    <CustomersList 
+                      customers={activeCustomers} 
+                      onSuspend={(customer) => {
+                        setSelectedCustomer(customer);
+                        setSuspendDialogOpen(true);
+                      }}
+                      onBan={(customer) => {
+                        setSelectedCustomer(customer);
+                        setBanDialogOpen(true);
+                      }}
+                      onMessage={(customer) => {
+                        setSelectedCustomer(customer);
+                        setMessageDialogOpen(true);
+                      }}
+                      onActivate={handleActivateCustomer}
+                      getStatusBadge={getStatusBadge}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="suspended">
+                    <CustomersList 
+                      customers={suspendedCustomers} 
+                      onSuspend={(customer) => {
+                        setSelectedCustomer(customer);
+                        setSuspendDialogOpen(true);
+                      }}
+                      onBan={(customer) => {
+                        setSelectedCustomer(customer);
+                        setBanDialogOpen(true);
+                      }}
+                      onMessage={(customer) => {
+                        setSelectedCustomer(customer);
+                        setMessageDialogOpen(true);
+                      }}
+                      onActivate={handleActivateCustomer}
+                      getStatusBadge={getStatusBadge}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="banned">
+                    <CustomersList 
+                      customers={bannedCustomers} 
+                      onSuspend={(customer) => {
+                        setSelectedCustomer(customer);
+                        setSuspendDialogOpen(true);
+                      }}
+                      onBan={(customer) => {
+                        setSelectedCustomer(customer);
+                        setBanDialogOpen(true);
+                      }}
+                      onMessage={(customer) => {
+                        setSelectedCustomer(customer);
+                        setMessageDialogOpen(true);
+                      }}
+                      onActivate={handleActivateCustomer}
+                      getStatusBadge={getStatusBadge}
+                    />
+                  </TabsContent>
+                </>
+              )}
             </Tabs>
           </div>
         </main>

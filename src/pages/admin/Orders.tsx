@@ -5,127 +5,81 @@ import { LanguageProvider, useLanguage } from '@/components/ui/language-context'
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from '@tanstack/react-query';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { LogOutIcon, SearchIcon, AlertCircle, PackageIcon, MapPin, Clock, Calendar, FileText, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
+import { LogOutIcon, SearchIcon, PackageIcon, TruckIcon, AlertCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
-interface Order {
+interface OrderItem {
   id: string;
-  trackingNumber: string;
-  createdAt: string;
-  deliveryDate: string | null;
-  status: 'pending' | 'inProgress' | 'delivered' | 'cancelled';
-  price: number;
-  commissionRate: number;
   customerName: string;
-  driverName: string | null;
+  driverName: string;
   pickupLocation: string;
   deliveryLocation: string;
-  packageDetails: string;
-  contactNumber: string;
+  price: number;
+  orderDate: string;
+  status: 'pending' | 'accepted' | 'picked_up' | 'in_transit' | 'delivered' | 'canceled';
 }
+
+const useOrders = (status?: string) => {
+  return useQuery({
+    queryKey: ['orders', status],
+    queryFn: async () => {
+      try {
+        // In a real implementation, this would fetch data from Supabase
+        // const query = supabase
+        //   .from('orders')
+        //   .select('*, customer:customer_id(first_name, last_name), driver:driver_id(first_name, last_name)')
+        //   .order('created_at', { ascending: false })
+        //   .limit(20);
+        
+        // if (status) {
+        //   query.eq('status', status);
+        // }
+        
+        // const { data, error } = await query;
+        
+        // if (error) throw error;
+        
+        // Return the processed orders
+        // return data.map(order => ({
+        //   id: order.id,
+        //   customerName: `${order.customer.first_name} ${order.customer.last_name}`,
+        //   driverName: order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'لم يتم التعيين',
+        //   pickupLocation: order.pickup_location,
+        //   deliveryLocation: order.delivery_location,
+        //   price: order.price,
+        //   orderDate: new Date(order.created_at).toLocaleDateString('ar-SA'),
+        //   status: order.status
+        // }));
+        
+        // Return an empty array for now
+        return [] as OrderItem[];
+        
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        return [] as OrderItem[];
+      }
+    }
+  });
+};
 
 const OrdersContent = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-
-  // Fetch orders data - in a real app, this would be from an API
-  useEffect(() => {
-    // Simulating API call
-    setTimeout(() => {
-      const mockOrders: Order[] = [
-        {
-          id: '1',
-          trackingNumber: 'SD-20250416-001',
-          createdAt: '2025-04-16 10:30',
-          deliveryDate: '2025-04-16 14:15',
-          status: 'delivered',
-          price: 120,
-          commissionRate: 0.15,
-          customerName: 'أحمد محمد',
-          driverName: 'خالد العمري',
-          pickupLocation: 'شارع الملك فهد، الرياض',
-          deliveryLocation: 'حي النرجس، الرياض',
-          packageDetails: 'صندوق متوسط الحجم - أجهزة إلكترونية',
-          contactNumber: '0512345678'
-        },
-        {
-          id: '2',
-          trackingNumber: 'SD-20250416-002',
-          createdAt: '2025-04-16 11:45',
-          deliveryDate: null,
-          status: 'inProgress',
-          price: 85,
-          commissionRate: 0.15,
-          customerName: 'سارة عبدالله',
-          driverName: 'محمد السعيد',
-          pickupLocation: 'حي العليا، الرياض',
-          deliveryLocation: 'حي الياسمين، الرياض',
-          packageDetails: 'صندوق صغير - وثائق',
-          contactNumber: '0523456789'
-        },
-        {
-          id: '3',
-          trackingNumber: 'SD-20250416-003',
-          createdAt: '2025-04-16 13:00',
-          deliveryDate: null,
-          status: 'pending',
-          price: 150,
-          commissionRate: 0.15,
-          customerName: 'عبدالرحمن العتيبي',
-          driverName: null,
-          pickupLocation: 'حي الملقا، الرياض',
-          deliveryLocation: 'حي الربيع، الرياض',
-          packageDetails: 'صندوق كبير - أثاث منزلي صغير',
-          contactNumber: '0534567890'
-        },
-        {
-          id: '4',
-          trackingNumber: 'SD-20250415-001',
-          createdAt: '2025-04-15 16:20',
-          deliveryDate: null,
-          status: 'cancelled',
-          price: 95,
-          commissionRate: 0.15,
-          customerName: 'نورة الدوسري',
-          driverName: null,
-          pickupLocation: 'حي الورود، الرياض',
-          deliveryLocation: 'حي الروضة، الرياض',
-          packageDetails: 'صندوق متوسط - كتب',
-          contactNumber: '0545678901'
-        },
-        {
-          id: '5',
-          trackingNumber: 'SD-20250415-002',
-          createdAt: '2025-04-15 14:10',
-          deliveryDate: '2025-04-15 17:45',
-          status: 'delivered',
-          price: 110,
-          commissionRate: 0.15,
-          customerName: 'فيصل الشمري',
-          driverName: 'عبدالله القحطاني',
-          pickupLocation: 'حي الخزامى، الرياض',
-          deliveryLocation: 'حي العارض، الرياض',
-          packageDetails: 'صندوق متوسط - ملابس',
-          contactNumber: '0556789012'
-        }
-      ];
-      setOrders(mockOrders);
-    }, 500);
-  }, []);
+  const [filterStatus, setFilterStatus] = useState<string | undefined>();
+  const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
+  
+  const { data: orders = [], isLoading } = useOrders(filterStatus);
 
   useEffect(() => {
-    // Check if admin is authenticated
     const adminAuth = localStorage.getItem('adminAuth');
     if (!adminAuth || adminAuth !== 'true') {
       navigate('/admin');
@@ -139,62 +93,47 @@ const OrdersContent = () => {
     navigate('/admin');
   };
 
-  const handleViewDetails = (order: Order) => {
+  const handleViewDetails = (order: OrderItem) => {
     setSelectedOrder(order);
-    setDetailsDialogOpen(true);
+    setOrderDetailsOpen(true);
   };
 
-  const handleCancelOrder = () => {
-    if (!selectedOrder) return;
-    
-    // In a real app, this would call an API
-    toast.success(`تم إلغاء الطلب ${selectedOrder.trackingNumber} بنجاح`);
-    
-    // Update local state
-    setOrders(prev => 
-      prev.map(order => 
-        order.id === selectedOrder.id 
-          ? { ...order, status: 'cancelled' as const } 
-          : order
+  const filteredOrders = searchQuery
+    ? orders.filter(
+        order =>
+          order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.driverName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.pickupLocation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.deliveryLocation.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    );
-    
-    setDetailsDialogOpen(false);
-    setSelectedOrder(null);
-  };
+    : orders;
+
+  const pendingOrders = orders.filter(order => order.status === 'pending');
+  const activeOrders = orders.filter(
+    order => ['accepted', 'picked_up', 'in_transit'].includes(order.status)
+  );
+  const completedOrders = orders.filter(order => order.status === 'delivered');
+  const canceledOrders = orders.filter(order => order.status === 'canceled');
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-blue-500">قيد الانتظار</Badge>;
-      case 'inProgress':
-        return <Badge className="bg-yellow-500">جاري التوصيل</Badge>;
+        return <Badge className="bg-yellow-500">قيد الانتظار</Badge>;
+      case 'accepted':
+        return <Badge className="bg-blue-500">تم القبول</Badge>;
+      case 'picked_up':
+        return <Badge className="bg-blue-600">تم الاستلام</Badge>;
+      case 'in_transit':
+        return <Badge className="bg-purple-500">جاري التوصيل</Badge>;
       case 'delivered':
         return <Badge className="bg-green-500">تم التوصيل</Badge>;
-      case 'cancelled':
+      case 'canceled':
         return <Badge className="bg-red-500">ملغي</Badge>;
       default:
         return null;
     }
   };
-
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
-      order.trackingNumber.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (order.driverName && order.driverName.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    if (filterStatus === 'all') {
-      return matchesSearch;
-    } else {
-      return matchesSearch && order.status === filterStatus;
-    }
-  });
-
-  const pendingOrders = filteredOrders.filter(order => order.status === 'pending');
-  const inProgressOrders = filteredOrders.filter(order => order.status === 'inProgress');
-  const deliveredOrders = filteredOrders.filter(order => order.status === 'delivered');
-  const cancelledOrders = filteredOrders.filter(order => order.status === 'cancelled');
 
   if (!isAdmin) {
     return <div className="flex justify-center items-center h-screen">جاري التحميل...</div>;
@@ -217,53 +156,56 @@ const OrdersContent = () => {
 
         <main className="flex-1 overflow-auto p-4">
           <div className="max-w-7xl mx-auto">
-            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="relative w-full max-w-md">
+            <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between">
+              <div className="relative w-full sm:w-auto">
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input 
                   className="pl-10 pr-4" 
-                  placeholder="ابحث برقم التتبع، اسم العميل أو السائق" 
+                  placeholder="ابحث برقم الطلب أو اسم العميل أو السائق" 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="تصفية حسب الحالة" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">جميع الحالات</SelectItem>
-                  <SelectItem value="pending">قيد الانتظار</SelectItem>
-                  <SelectItem value="inProgress">جاري التوصيل</SelectItem>
-                  <SelectItem value="delivered">تم التوصيل</SelectItem>
-                  <SelectItem value="cancelled">ملغي</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="w-full sm:w-auto">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="فلترة حسب الحالة" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={undefined}>جميع الحالات</SelectItem>
+                    <SelectItem value="pending">قيد الانتظار</SelectItem>
+                    <SelectItem value="accepted">تم القبول</SelectItem>
+                    <SelectItem value="picked_up">تم الاستلام</SelectItem>
+                    <SelectItem value="in_transit">جاري التوصيل</SelectItem>
+                    <SelectItem value="delivered">تم التوصيل</SelectItem>
+                    <SelectItem value="canceled">ملغي</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
             <div className="bg-white rounded-lg shadow mb-6 p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-yellow-50 p-4 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm text-gray-600">طلبات قيد الانتظار</p>
                       <p className="text-xl font-bold">{pendingOrders.length}</p>
                     </div>
-                    <div className="p-3 bg-blue-100 rounded-full">
-                      <Clock className="h-6 w-6 text-blue-500" />
+                    <div className="p-3 bg-yellow-100 rounded-full">
+                      <Clock className="h-6 w-6 text-yellow-500" />
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-yellow-50 p-4 rounded-lg">
+                <div className="bg-blue-50 p-4 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-sm text-gray-600">طلبات جاري توصيلها</p>
-                      <p className="text-xl font-bold">{inProgressOrders.length}</p>
+                      <p className="text-sm text-gray-600">طلبات نشطة</p>
+                      <p className="text-xl font-bold">{activeOrders.length}</p>
                     </div>
-                    <div className="p-3 bg-yellow-100 rounded-full">
-                      <MapPin className="h-6 w-6 text-yellow-500" />
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <TruckIcon className="h-6 w-6 text-blue-500" />
                     </div>
                   </div>
                 </div>
@@ -271,11 +213,11 @@ const OrdersContent = () => {
                 <div className="bg-green-50 p-4 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-sm text-gray-600">طلبات تم توصيلها</p>
-                      <p className="text-xl font-bold">{deliveredOrders.length}</p>
+                      <p className="text-sm text-gray-600">طلبات مكتملة</p>
+                      <p className="text-xl font-bold">{completedOrders.length}</p>
                     </div>
                     <div className="p-3 bg-green-100 rounded-full">
-                      <PackageIcon className="h-6 w-6 text-green-500" />
+                      <CheckCircle className="h-6 w-6 text-green-500" />
                     </div>
                   </div>
                 </div>
@@ -283,11 +225,11 @@ const OrdersContent = () => {
                 <div className="bg-red-50 p-4 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-sm text-gray-600">طلبات ملغية</p>
-                      <p className="text-xl font-bold">{cancelledOrders.length}</p>
+                      <p className="text-sm text-gray-600">طلبات ملغاة</p>
+                      <p className="text-xl font-bold">{canceledOrders.length}</p>
                     </div>
                     <div className="p-3 bg-red-100 rounded-full">
-                      <AlertCircle className="h-6 w-6 text-red-500" />
+                      <XCircle className="h-6 w-6 text-red-500" />
                     </div>
                   </div>
                 </div>
@@ -298,154 +240,135 @@ const OrdersContent = () => {
               <TabsList className="w-full grid grid-cols-5 mb-6">
                 <TabsTrigger value="all">جميع الطلبات</TabsTrigger>
                 <TabsTrigger value="pending">قيد الانتظار</TabsTrigger>
-                <TabsTrigger value="inProgress">جاري التوصيل</TabsTrigger>
-                <TabsTrigger value="delivered">تم التوصيل</TabsTrigger>
-                <TabsTrigger value="cancelled">ملغي</TabsTrigger>
+                <TabsTrigger value="active">نشطة</TabsTrigger>
+                <TabsTrigger value="completed">مكتملة</TabsTrigger>
+                <TabsTrigger value="canceled">ملغاة</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="all">
-                <OrdersTable 
-                  orders={filteredOrders} 
-                  onViewDetails={handleViewDetails} 
-                  getStatusBadge={getStatusBadge} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="pending">
-                <OrdersTable 
-                  orders={pendingOrders} 
-                  onViewDetails={handleViewDetails} 
-                  getStatusBadge={getStatusBadge} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="inProgress">
-                <OrdersTable 
-                  orders={inProgressOrders} 
-                  onViewDetails={handleViewDetails} 
-                  getStatusBadge={getStatusBadge} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="delivered">
-                <OrdersTable 
-                  orders={deliveredOrders} 
-                  onViewDetails={handleViewDetails} 
-                  getStatusBadge={getStatusBadge} 
-                />
-              </TabsContent>
-              
-              <TabsContent value="cancelled">
-                <OrdersTable 
-                  orders={cancelledOrders} 
-                  onViewDetails={handleViewDetails} 
-                  getStatusBadge={getStatusBadge} 
-                />
-              </TabsContent>
+              {isLoading ? (
+                <div className="flex justify-center items-center p-12">
+                  <p>جاري تحميل البيانات...</p>
+                </div>
+              ) : (
+                <>
+                  <TabsContent value="all">
+                    <OrdersTable
+                      orders={filteredOrders}
+                      getStatusBadge={getStatusBadge}
+                      onViewDetails={handleViewDetails}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="pending">
+                    <OrdersTable
+                      orders={pendingOrders.filter(order =>
+                        searchQuery
+                          ? order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            order.customerName.toLowerCase().includes(searchQuery.toLowerCase())
+                          : true
+                      )}
+                      getStatusBadge={getStatusBadge}
+                      onViewDetails={handleViewDetails}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="active">
+                    <OrdersTable
+                      orders={activeOrders.filter(order =>
+                        searchQuery
+                          ? order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            order.driverName.toLowerCase().includes(searchQuery.toLowerCase())
+                          : true
+                      )}
+                      getStatusBadge={getStatusBadge}
+                      onViewDetails={handleViewDetails}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="completed">
+                    <OrdersTable
+                      orders={completedOrders.filter(order =>
+                        searchQuery
+                          ? order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            order.driverName.toLowerCase().includes(searchQuery.toLowerCase())
+                          : true
+                      )}
+                      getStatusBadge={getStatusBadge}
+                      onViewDetails={handleViewDetails}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="canceled">
+                    <OrdersTable
+                      orders={canceledOrders.filter(order =>
+                        searchQuery
+                          ? order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            order.customerName.toLowerCase().includes(searchQuery.toLowerCase())
+                          : true
+                      )}
+                      getStatusBadge={getStatusBadge}
+                      onViewDetails={handleViewDetails}
+                    />
+                  </TabsContent>
+                </>
+              )}
             </Tabs>
           </div>
         </main>
       </div>
       
       {/* Order Details Dialog */}
-      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={orderDetailsOpen} onOpenChange={setOrderDetailsOpen}>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              تفاصيل الطلب #{selectedOrder?.trackingNumber}
-            </DialogTitle>
+            <DialogTitle>تفاصيل الطلب #{selectedOrder?.id}</DialogTitle>
           </DialogHeader>
           
           {selectedOrder && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">معلومات الطلب</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500">رقم التتبع:</p>
-                      <p className="font-medium">{selectedOrder.trackingNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">تاريخ الإنشاء:</p>
-                      <p className="font-medium">{selectedOrder.createdAt}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">تاريخ التوصيل:</p>
-                      <p className="font-medium">{selectedOrder.deliveryDate || 'غير محدد'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">حالة الطلب:</p>
-                      <div>{getStatusBadge(selectedOrder.status)}</div>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">السعر:</p>
-                      <p className="font-medium">{selectedOrder.price} ريال</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">العمولة ({selectedOrder.commissionRate * 100}%):</p>
-                      <p className="font-medium">{(selectedOrder.price * selectedOrder.commissionRate).toFixed(2)} ريال</p>
-                    </div>
-                  </div>
+                  <p className="text-sm text-gray-500">العميل:</p>
+                  <p className="font-medium">{selectedOrder.customerName}</p>
                 </div>
-                
                 <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-2">معلومات العميل والسائق</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500">العميل:</p>
-                      <p className="font-medium">{selectedOrder.customerName}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">السائق:</p>
-                      <p className="font-medium">{selectedOrder.driverName || 'لم يتم تعيين سائق'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">رقم التواصل:</p>
-                      <p className="font-medium">{selectedOrder.contactNumber}</p>
-                    </div>
-                  </div>
-                  
-                  <h4 className="text-sm font-medium text-gray-500 mt-6 mb-2">معلومات التوصيل</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500">موقع الاستلام:</p>
-                      <p className="font-medium">{selectedOrder.pickupLocation}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">موقع التوصيل:</p>
-                      <p className="font-medium">{selectedOrder.deliveryLocation}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">تفاصيل الشحنة:</p>
-                      <p className="font-medium">{selectedOrder.packageDetails}</p>
-                    </div>
-                  </div>
+                  <p className="text-sm text-gray-500">السائق:</p>
+                  <p className="font-medium">{selectedOrder.driverName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">تاريخ الطلب:</p>
+                  <p className="font-medium">{selectedOrder.orderDate}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">حالة الطلب:</p>
+                  <div className="mt-1">{getStatusBadge(selectedOrder.status)}</div>
                 </div>
               </div>
               
-              <div className="flex justify-between pt-4 border-t border-gray-200">
-                <Button
-                  variant="outline"
-                  onClick={() => window.open(`/admin/orders/${selectedOrder.id}`, '_blank')}
-                  className="gap-2"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  عرض الصفحة الكاملة
-                </Button>
-                
-                {(selectedOrder.status === 'pending' || selectedOrder.status === 'inProgress') && (
-                  <Button 
-                    variant="destructive" 
-                    onClick={handleCancelOrder}
-                  >
-                    إلغاء الطلب
-                  </Button>
-                )}
+              <div>
+                <p className="text-sm text-gray-500">موقع الاستلام:</p>
+                <p className="font-medium">{selectedOrder.pickupLocation}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-gray-500">موقع التوصيل:</p>
+                <p className="font-medium">{selectedOrder.deliveryLocation}</p>
+              </div>
+              
+              <div className="pt-4 border-t">
+                <div className="flex justify-between items-center text-lg">
+                  <p>المبلغ الإجمالي:</p>
+                  <p className="font-bold">{selectedOrder.price} ريال</p>
+                </div>
               </div>
             </div>
           )}
+          
+          <DialogFooter>
+            <Button onClick={() => setOrderDetailsOpen(false)}>إغلاق</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
@@ -453,12 +376,12 @@ const OrdersContent = () => {
 };
 
 interface OrdersTableProps {
-  orders: Order[];
-  onViewDetails: (order: Order) => void;
+  orders: OrderItem[];
   getStatusBadge: (status: string) => React.ReactNode;
+  onViewDetails: (order: OrderItem) => void;
 }
 
-const OrdersTable = ({ orders, onViewDetails, getStatusBadge }: OrdersTableProps) => {
+const OrdersTable = ({ orders, getStatusBadge, onViewDetails }: OrdersTableProps) => {
   if (orders.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
@@ -477,11 +400,11 @@ const OrdersTable = ({ orders, onViewDetails, getStatusBadge }: OrdersTableProps
           <table className="w-full">
             <thead className="bg-gray-50 text-xs uppercase">
               <tr>
-                <th className="px-6 py-3 text-right font-medium text-gray-500">رقم التتبع</th>
-                <th className="px-6 py-3 text-right font-medium text-gray-500">تاريخ الإنشاء</th>
+                <th className="px-6 py-3 text-right font-medium text-gray-500">رقم الطلب</th>
                 <th className="px-6 py-3 text-right font-medium text-gray-500">العميل</th>
                 <th className="px-6 py-3 text-right font-medium text-gray-500">السائق</th>
-                <th className="px-6 py-3 text-right font-medium text-gray-500">السعر</th>
+                <th className="px-6 py-3 text-right font-medium text-gray-500">التاريخ</th>
+                <th className="px-6 py-3 text-right font-medium text-gray-500">المبلغ</th>
                 <th className="px-6 py-3 text-right font-medium text-gray-500">الحالة</th>
                 <th className="px-6 py-3 text-right font-medium text-gray-500">الإجراءات</th>
               </tr>
@@ -489,10 +412,10 @@ const OrdersTable = ({ orders, onViewDetails, getStatusBadge }: OrdersTableProps
             <tbody className="divide-y divide-gray-200">
               {orders.map(order => (
                 <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">{order.trackingNumber}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{order.createdAt}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">#{order.id}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{order.customerName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{order.driverName || '-'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{order.driverName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{order.orderDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{order.price} ريال</td>
                   <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(order.status)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -514,7 +437,6 @@ const OrdersTable = ({ orders, onViewDetails, getStatusBadge }: OrdersTableProps
   );
 };
 
-// Wrap the component with LanguageProvider
 const Orders = () => {
   return (
     <LanguageProvider>

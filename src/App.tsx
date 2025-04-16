@@ -22,6 +22,10 @@ import DriverRegister from "./pages/auth/DriverRegister";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import DriverVerification from "./pages/admin/DriverVerification";
+import Finance from "./pages/admin/Finance";
+import Customers from "./pages/admin/Customers";
+import Orders from "./pages/admin/Orders";
+import Complaints from "./pages/admin/Complaints";
 import Settings from "./pages/admin/Settings";
 
 // Customer Pages
@@ -60,6 +64,10 @@ const App = () => (
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/drivers" element={<DriverVerification />} />
+            <Route path="/admin/finance" element={<Finance />} />
+            <Route path="/admin/customers" element={<Customers />} />
+            <Route path="/admin/orders" element={<Orders />} />
+            <Route path="/admin/complaints" element={<Complaints />} />
             <Route path="/admin/settings" element={<Settings />} />
             
             {/* Customer Routes */}
