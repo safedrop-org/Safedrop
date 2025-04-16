@@ -1,61 +1,36 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-
 export const HeroSection = () => {
-  return (
-    <div className="relative min-h-[85vh] flex items-center justify-center">
+  return <div className="relative min-h-[85vh] flex items-center justify-center">
       {/* Background Video */}
       <div className="absolute inset-0 w-full h-full overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source
-            src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"
-            type="video/mp4"
-          />
+        <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
+          <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" type="video/mp4" />
           {/* Fallback background image */}
-          <img
-            src="https://images.unsplash.com/photo-1566576912333-261b896ef5cd?q=80&w=2070&auto=format&fit=crop"
-            alt="خلفية سيف دروب"
-            className="w-full h-full object-cover"
-          />
+          <img src="https://images.unsplash.com/photo-1566576912333-261b896ef5cd?q=80&w=2070&auto=format&fit=crop" alt="خلفية سيف دروب" className="w-full h-full object-cover" />
         </video>
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/50"></div>
       </div>
 
       <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
-          سيف دروب
-        </h1>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">Safe Drop</h1>
         <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">
           توصيل آمن ومضمون للشحنات الثمينة
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/auth/customer-register">
-            <Button
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-white px-8"
-            >
+            <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8">
               تسجيل كعميل
             </Button>
           </Link>
           <Link to="/auth/driver-register">
-            <Button
-              size="lg"
-              variant="outline"
-              className="bg-white/10 hover:bg-white/20 text-white border-white px-8"
-            >
+            <Button size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white px-8">
               تسجيل كسائق
             </Button>
           </Link>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
