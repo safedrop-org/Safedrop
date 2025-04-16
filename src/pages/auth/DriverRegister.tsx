@@ -75,16 +75,18 @@ const DriverRegisterContent = () => {
     
     try {
       // First check if the email is already registered
-      const { data: existingUsers, error: existingUserError } = await supabase.auth.admin
-        .listUsers({ 
-          filter: {
-            email: data.email
-          }
-        });
+      // Instead of using admin.listUsers which has different parameters,
+      // use a simpler approach to check existing users
+      const { data: existingUsers, error: existingUserError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', data.email)
+        .single();
       
-      if (existingUserError) {
+      if (existingUserError && existingUserError.code !== 'PGRST116') {
+        // PGRST116 is "no rows returned" which means the user doesn't exist (good)
         console.log("Error checking existing users:", existingUserError);
-      } else if (existingUsers && existingUsers.length > 0) {
+      } else if (existingUsers) {
         throw new Error("البريد الإلكتروني مسجل بالفعل");
       }
       
