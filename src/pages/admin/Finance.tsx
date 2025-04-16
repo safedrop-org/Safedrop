@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { LogOutIcon, Download, LineChart, BarChart2, DollarSign, Calendar } from 'lucide-react';
+import { LogOutIcon, Download, BarChart2, DollarSign, Calendar } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -21,14 +21,34 @@ import {
   Line
 } from 'recharts';
 
-const mockMonthlyData = [
+// Define types for our data
+type MonthlyDataType = {
+  month: string;
+  totalOrders: number;
+  revenue: number;
+  commission: number;
+  driverPayout: number;
+};
+
+type DailyDataType = {
+  date: string;
+  totalOrders: number;
+  revenue: number;
+  commission: number;
+  driverPayout: number;
+};
+
+// Union type for chart data
+type ChartDataType = MonthlyDataType | DailyDataType;
+
+const mockMonthlyData: MonthlyDataType[] = [
   { month: 'يناير', totalOrders: 120, revenue: 24000, commission: 3600, driverPayout: 20400 },
   { month: 'فبراير', totalOrders: 150, revenue: 30000, commission: 4500, driverPayout: 25500 },
   { month: 'مارس', totalOrders: 180, revenue: 36000, commission: 5400, driverPayout: 30600 },
   { month: 'أبريل', totalOrders: 200, revenue: 40000, commission: 6000, driverPayout: 34000 }
 ];
 
-const mockDailyData = [
+const mockDailyData: DailyDataType[] = [
   { date: '2025-04-10', totalOrders: 42, revenue: 8400, commission: 1260, driverPayout: 7140 },
   { date: '2025-04-11', totalOrders: 38, revenue: 7600, commission: 1140, driverPayout: 6460 },
   { date: '2025-04-12', totalOrders: 45, revenue: 9000, commission: 1350, driverPayout: 7650 },
@@ -38,12 +58,24 @@ const mockDailyData = [
   { date: '2025-04-16', totalOrders: 55, revenue: 11000, commission: 1650, driverPayout: 9350 }
 ];
 
+// Create a utility function to adapt daily data to monthly data format
+const adaptDailyDataToMonthlyFormat = (dailyData: DailyDataType[]): (MonthlyDataType & { date: string })[] => {
+  return dailyData.map(item => ({
+    month: '',  // This will be unused but needed for type safety
+    date: item.date,
+    totalOrders: item.totalOrders,
+    revenue: item.revenue,
+    commission: item.commission,
+    driverPayout: item.driverPayout
+  }));
+};
+
 const FinanceContent = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
   const [timeRange, setTimeRange] = useState('monthly');
-  const [chartData, setChartData] = useState(mockMonthlyData);
+  const [chartData, setChartData] = useState<MonthlyDataType[]>(mockMonthlyData);
 
   const summaryData = {
     totalRevenue: chartData.reduce((acc, curr) => acc + curr.revenue, 0),
@@ -66,7 +98,7 @@ const FinanceContent = () => {
   useEffect(() => {
     // Update chart data based on timeRange
     if (timeRange === 'daily') {
-      setChartData(mockDailyData);
+      setChartData(adaptDailyDataToMonthlyFormat(mockDailyData));
     } else {
       setChartData(mockMonthlyData);
     }
@@ -292,7 +324,7 @@ const FinanceContent = () => {
                     <tbody className="divide-y divide-gray-200">
                       {chartData.map((item, index) => (
                         <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">{timeRange === 'daily' ? item.date : item.month}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">{timeRange === 'daily' ? (item as any).date : item.month}</td>
                           <td className="px-6 py-4 whitespace-nowrap">{item.totalOrders}</td>
                           <td className="px-6 py-4 whitespace-nowrap">{item.revenue} ريال</td>
                           <td className="px-6 py-4 whitespace-nowrap">{item.commission} ريال</td>
