@@ -1,30 +1,25 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, ChevronDown, User, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
-
 const Navbar = () => {
-  const { t, language, setLanguage } = useLanguage();
+  const {
+    t,
+    language,
+    setLanguage
+  } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const toggleLanguage = () => {
     setLanguage(language === 'ar' ? 'en' : 'ar');
   };
-
-  return (
-    <nav className="bg-safedrop-primary text-white">
+  return <nav className="bg-safedrop-primary text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center">
-                <img 
-                  src="/lovable-uploads/3cb43b49-2c61-4bfc-ba86-addfe77f7c3a.png" 
-                  alt="SafeDrop Logo" 
-                  className="h-10 w-auto"
-                />
+                
                 <span className={`ml-2 text-xl font-bold ${language === 'ar' ? 'mr-2 ml-0' : 'ml-2 mr-0'}`}>
                   {t('siteTitle')}
                 </span>
@@ -78,27 +73,16 @@ const Navbar = () => {
             </div>
           </div>
           <div className="flex md:hidden">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-safedrop-primary hover:bg-opacity-75"
-              aria-controls="mobile-menu"
-              aria-expanded="false"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
+            <button type="button" className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-safedrop-primary hover:bg-opacity-75" aria-controls="mobile-menu" aria-expanded="false" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               <span className="sr-only">Open main menu</span>
-              {mobileMenuOpen ? (
-                <X className="block h-6 w-6" aria-hidden="true" />
-              ) : (
-                <Menu className="block h-6 w-6" aria-hidden="true" />
-              )}
+              {mobileMenuOpen ? <X className="block h-6 w-6" aria-hidden="true" /> : <Menu className="block h-6 w-6" aria-hidden="true" />}
             </button>
           </div>
         </div>
       </div>
 
       {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden" id="mobile-menu">
+      {mobileMenuOpen && <div className="md:hidden" id="mobile-menu">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link to="/" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-safedrop-primary hover:bg-opacity-75">
               {t('getStarted')}
@@ -131,10 +115,7 @@ const Navbar = () => {
               </Link>
             </div>
           </div>
-        </div>
-      )}
-    </nav>
-  );
+        </div>}
+    </nav>;
 };
-
 export default Navbar;
