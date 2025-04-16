@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -744,7 +743,7 @@ const AdminDashboardContent = () => {
                                     الرد
                                   </Button>
                                   <Button variant="outline" size="sm" onClick={() => handleResolveComplaint(complaint.id)}>
-                                    <CheckIcon className="h-4 w-4 mr-1" />
+                                    <Check className="h-4 w-4 mr-1" />
                                     حل الشكوى
                                   </Button>
                                   <Button variant="outline" size="sm" onClick={() => handleSuspendUser(complaint.userId, complaint.userType)}>
