@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,6 +44,7 @@ const DriverRegisterContent = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [submitAttempts, setSubmitAttempts] = useState(0);
 
   const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverRegisterSchema),
@@ -65,9 +67,26 @@ const DriverRegisterContent = () => {
 
   const onSubmit = async (data: DriverFormValues) => {
     setIsLoading(true);
+    
+    // Add delay if there were previous attempts to avoid rate limiting
+    if (submitAttempts > 0) {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+    
     try {
-      // Skip file uploads temporarily due to storage bucket issues
-      // Instead, register the driver with placeholder document links
+      // First check if the email is already registered
+      const { data: existingUsers, error: existingUserError } = await supabase.auth.admin
+        .listUsers({ 
+          filter: {
+            email: data.email
+          }
+        });
+      
+      if (existingUserError) {
+        console.log("Error checking existing users:", existingUserError);
+      } else if (existingUsers && existingUsers.length > 0) {
+        throw new Error("البريد الإلكتروني مسجل بالفعل");
+      }
       
       // Sign up user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -83,16 +102,28 @@ const DriverRegisterContent = () => {
         }
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        if (signUpError.message.includes("security purposes") || signUpError.code === "over_email_send_rate_limit") {
+          throw new Error("تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار قليلاً ثم المحاولة مرة أخرى");
+        }
+        throw signUpError;
+      }
+
+      if (!authData.user) {
+        throw new Error("فشل إنشاء الحساب");
+      }
       
-      const nationalIdPath = `placeholder_national_id_${data.nationalId}`;
-      const licensePath = `placeholder_license_${data.licenseNumber}`;
+      const userId = authData.user.id;
+      
+      // Create placeholder paths for documents
+      const nationalIdPath = `drivers/${userId}/national_id_${data.nationalId}`;
+      const licensePath = `drivers/${userId}/license_${data.licenseNumber}`;
 
       // Insert driver details
       const { error: driverInsertError } = await supabase
         .from('drivers')
         .insert({
-          id: authData.user?.id,
+          id: userId,
           national_id: data.nationalId,
           license_number: data.licenseNumber,
           license_image: licensePath,
@@ -104,19 +135,25 @@ const DriverRegisterContent = () => {
           }
         });
 
-      if (driverInsertError) throw driverInsertError;
+      if (driverInsertError) {
+        console.error("Driver insert error:", driverInsertError);
+        throw driverInsertError;
+      }
 
       toast.success(t('registrationSuccess'), {
         description: t('driverRegistrationPendingDescription')
       });
 
-      navigate('/');
+      navigate('/login');
     } catch (error: any) {
       console.error('Registration error:', error);
       
       toast.error(t('registrationError'), {
         description: error.message || "حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى"
       });
+      
+      // Increment attempt counter to add delay next time
+      setSubmitAttempts(prev => prev + 1);
     } finally {
       setIsLoading(false);
     }

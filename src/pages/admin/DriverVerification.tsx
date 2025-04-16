@@ -10,22 +10,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { LogOutIcon, SearchIcon, EyeIcon, CheckIcon, XIcon, AlertTriangleIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { IDriver, IProfile, Database } from '@/integrations/supabase/custom-types';
+
+interface DriverWithProfile extends IDriver {
+  profiles: IProfile;
+}
 
 const DriverVerificationContent = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDriver, setSelectedDriver] = useState(null);
+  const [selectedDriver, setSelectedDriver] = useState<DriverWithProfile | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [viewDocumentUrl, setViewDocumentUrl] = useState('');
   const [documentDialogOpen, setDocumentDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Removed mock drivers data as requested, now it's an empty array
-  const pendingDrivers = [];
-  const approvedDrivers = [];
-  const rejectedDrivers = [];
+  const [pendingDrivers, setPendingDrivers] = useState<DriverWithProfile[]>([]);
+  const [approvedDrivers, setApprovedDrivers] = useState<DriverWithProfile[]>([]);
+  const [rejectedDrivers, setRejectedDrivers] = useState<DriverWithProfile[]>([]);
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -34,43 +40,125 @@ const DriverVerificationContent = () => {
       navigate('/admin');
     } else {
       setIsAdmin(true);
+      fetchDrivers();
     }
   }, [navigate]);
+
+  const fetchDrivers = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch all drivers with their profiles
+      const { data: drivers, error } = await supabase
+        .from('drivers')
+        .select('*, profiles(*)')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching drivers:", error);
+        toast.error("حدث خطأ أثناء جلب بيانات السائقين");
+        return;
+      }
+
+      // Cast and filter drivers by status
+      const typedDrivers = drivers as unknown as DriverWithProfile[];
+      
+      setPendingDrivers(typedDrivers.filter(driver => driver.status === 'pending'));
+      setApprovedDrivers(typedDrivers.filter(driver => driver.status === 'approved'));
+      setRejectedDrivers(typedDrivers.filter(driver => driver.status === 'rejected'));
+      
+    } catch (error) {
+      console.error("Error in fetchDrivers:", error);
+      toast.error("حدث خطأ أثناء جلب بيانات السائقين");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
     navigate('/admin');
   };
 
-  const handleApproveDriver = (driver) => {
-    // In a real app, this would call an API to approve the driver
-    toast.success(`تمت الموافقة على السائق ${driver.name} بنجاح`);
+  const handleApproveDriver = async (driver: DriverWithProfile) => {
+    try {
+      const { error } = await supabase
+        .from('drivers')
+        .update({ status: 'approved' })
+        .eq('id', driver.id);
+
+      if (error) throw error;
+      
+      toast.success(`تمت الموافقة على السائق ${driver.profiles.first_name} ${driver.profiles.last_name} بنجاح`);
+      
+      // Update local state
+      await fetchDrivers();
+      
+    } catch (error) {
+      console.error("Error approving driver:", error);
+      toast.error("حدث خطأ أثناء الموافقة على السائق");
+    }
   };
 
-  const handleOpenRejectDialog = (driver) => {
+  const handleOpenRejectDialog = (driver: DriverWithProfile) => {
     setSelectedDriver(driver);
     setRejectDialogOpen(true);
   };
 
-  const handleRejectDriver = () => {
-    if (!selectedDriver) return;
+  const handleRejectDriver = async () => {
+    if (!selectedDriver || !rejectionReason.trim()) return;
     
-    // In a real app, this would call an API to reject the driver with the reason
-    toast.success(`تم رفض السائق ${selectedDriver.name} بنجاح`);
-    setRejectDialogOpen(false);
-    setRejectionReason('');
-    setSelectedDriver(null);
+    try {
+      const { error } = await supabase
+        .from('drivers')
+        .update({ 
+          status: 'rejected',
+          rejection_reason: rejectionReason 
+        })
+        .eq('id', selectedDriver.id);
+
+      if (error) throw error;
+      
+      toast.success(`تم رفض السائق ${selectedDriver.profiles.first_name} ${selectedDriver.profiles.last_name} بنجاح`);
+      
+      setRejectDialogOpen(false);
+      setRejectionReason('');
+      setSelectedDriver(null);
+      
+      // Update local state
+      await fetchDrivers();
+      
+    } catch (error) {
+      console.error("Error rejecting driver:", error);
+      toast.error("حدث خطأ أثناء رفض السائق");
+    }
   };
 
-  const handleViewDocument = (url) => {
-    // In a real app, this would be a valid document URL
+  const handleViewDocument = (url: string) => {
     setViewDocumentUrl(url);
     setDocumentDialogOpen(true);
+  };
+
+  // Function to filter drivers based on search query
+  const filterDrivers = (drivers: DriverWithProfile[]) => {
+    if (!searchQuery) return drivers;
+    
+    return drivers.filter(driver => {
+      const fullName = `${driver.profiles.first_name} ${driver.profiles.last_name}`;
+      return (
+        fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        driver.national_id.includes(searchQuery) ||
+        driver.profiles.phone.includes(searchQuery)
+      );
+    });
   };
 
   if (!isAdmin) {
     return <div className="flex justify-center items-center h-screen">جاري التحميل...</div>;
   }
+
+  const filteredPendingDrivers = filterDrivers(pendingDrivers);
+  const filteredApprovedDrivers = filterDrivers(approvedDrivers);
+  const filteredRejectedDrivers = filterDrivers(rejectedDrivers);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -105,9 +193,9 @@ const DriverVerificationContent = () => {
               <TabsList className="w-full grid grid-cols-3 mb-6">
                 <TabsTrigger value="pending" className="relative">
                   طلبات قيد الانتظار
-                  {pendingDrivers.length > 0 && (
+                  {filteredPendingDrivers.length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {pendingDrivers.length}
+                      {filteredPendingDrivers.length}
                     </span>
                   )}
                 </TabsTrigger>
@@ -118,7 +206,14 @@ const DriverVerificationContent = () => {
               <TabsContent value="pending" className="space-y-4">
                 <h3 className="text-xl font-semibold mb-4">طلبات انضمام السائقين قيد الانتظار</h3>
                 
-                {pendingDrivers.length === 0 ? (
+                {isLoading ? (
+                  <div className="bg-white rounded-lg shadow p-6 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-safedrop-primary mb-4" />
+                      <p className="text-gray-500">جاري تحميل البيانات...</p>
+                    </div>
+                  </div>
+                ) : filteredPendingDrivers.length === 0 ? (
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <CheckIcon className="h-12 w-12 text-green-500 mb-4" />
@@ -126,27 +221,38 @@ const DriverVerificationContent = () => {
                     </div>
                   </div>
                 ) : (
-                  pendingDrivers.map(driver => (
+                  filteredPendingDrivers.map(driver => (
                     <Card key={driver.id} className="mb-4">
                       <CardContent className="p-6">
                         <div className="flex flex-col md:flex-row justify-between">
                           <div className="space-y-4">
                             <div>
-                              <h4 className="text-lg font-semibold">{driver.name}</h4>
-                              <p className="text-gray-500">تاريخ التقديم: {driver.submissionDate}</p>
+                              <h4 className="text-lg font-semibold">
+                                {driver.profiles.first_name} {driver.profiles.last_name}
+                              </h4>
+                              <p className="text-gray-500">
+                                تاريخ التقديم: {new Date(driver.profiles.created_at).toLocaleDateString('ar-SA')}
+                              </p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
                                 <p className="text-sm text-gray-500">رقم الهوية:</p>
-                                <p>{driver.nationalId}</p>
+                                <p>{driver.national_id}</p>
                               </div>
                               <div>
                                 <p className="text-sm text-gray-500">رقم الهاتف:</p>
-                                <p>{driver.phone}</p>
+                                <p>{driver.profiles.phone}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-gray-500">البريد الإلكتروني:</p>
+                                <p className="break-all">{driver.profiles.id}</p>
                               </div>
                               <div className="md:col-span-2">
                                 <p className="text-sm text-gray-500">تفاصيل السيارة:</p>
-                                <p>{driver.vehicle}</p>
+                                <p>
+                                  {driver.vehicle_info.make} {driver.vehicle_info.model} {driver.vehicle_info.year} - 
+                                  لوحة رقم: {driver.vehicle_info.plateNumber}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -158,7 +264,7 @@ const DriverVerificationContent = () => {
                                   variant="outline" 
                                   size="sm" 
                                   className="ml-2"
-                                  onClick={() => handleViewDocument(driver.documents.nationalId)}
+                                  onClick={() => handleViewDocument(driver.documents?.national_id_image || '')}
                                 >
                                   <EyeIcon className="h-4 w-4 mr-1" />
                                   عرض الهوية
@@ -169,25 +275,12 @@ const DriverVerificationContent = () => {
                                   variant="outline" 
                                   size="sm" 
                                   className="ml-2"
-                                  onClick={() => handleViewDocument(driver.documents.license)}
+                                  onClick={() => handleViewDocument(driver.license_image || '')}
                                 >
                                   <EyeIcon className="h-4 w-4 mr-1" />
                                   عرض الرخصة
                                 </Button>
                               </div>
-                              {driver.documents.goodConduct && (
-                                <div className="flex items-center justify-end">
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="ml-2"
-                                    onClick={() => handleViewDocument(driver.documents.goodConduct)}
-                                  >
-                                    <EyeIcon className="h-4 w-4 mr-1" />
-                                    عرض حسن السيرة
-                                  </Button>
-                                </div>
-                              )}
                             </div>
                             
                             <div className="flex space-x-2 rtl:space-x-reverse mt-4">
@@ -220,7 +313,14 @@ const DriverVerificationContent = () => {
               <TabsContent value="approved" className="space-y-4">
                 <h3 className="text-xl font-semibold mb-4">السائقين المعتمدين</h3>
                 
-                {approvedDrivers.length === 0 ? (
+                {isLoading ? (
+                  <div className="bg-white rounded-lg shadow p-6 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-safedrop-primary mb-4" />
+                      <p className="text-gray-500">جاري تحميل البيانات...</p>
+                    </div>
+                  </div>
+                ) : filteredApprovedDrivers.length === 0 ? (
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <AlertTriangleIcon className="h-12 w-12 text-yellow-500 mb-4" />
@@ -243,15 +343,31 @@ const DriverVerificationContent = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
-                            {approvedDrivers.map(driver => (
+                            {filteredApprovedDrivers.map(driver => (
                               <tr key={driver.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">{driver.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{driver.nationalId}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{driver.phone}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{driver.vehicle}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{driver.submissionDate}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {driver.profiles.first_name} {driver.profiles.last_name}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">{driver.national_id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{driver.profiles.phone}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {driver.vehicle_info.make} {driver.vehicle_info.model} {driver.vehicle_info.year}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {new Date(driver.profiles.created_at).toLocaleDateString('ar-SA')}
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                  <Button variant="outline" size="sm">عرض التفاصيل</Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedDriver(driver);
+                                      // In a real app, this would open a detailed view
+                                      toast.info("عرض التفاصيل غير متاح حاليًا");
+                                    }}
+                                  >
+                                    عرض التفاصيل
+                                  </Button>
                                 </td>
                               </tr>
                             ))}
@@ -266,7 +382,14 @@ const DriverVerificationContent = () => {
               <TabsContent value="rejected" className="space-y-4">
                 <h3 className="text-xl font-semibold mb-4">الطلبات المرفوضة</h3>
                 
-                {rejectedDrivers.length === 0 ? (
+                {isLoading ? (
+                  <div className="bg-white rounded-lg shadow p-6 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-safedrop-primary mb-4" />
+                      <p className="text-gray-500">جاري تحميل البيانات...</p>
+                    </div>
+                  </div>
+                ) : filteredRejectedDrivers.length === 0 ? (
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <CheckIcon className="h-12 w-12 text-green-500 mb-4" />
@@ -288,14 +411,28 @@ const DriverVerificationContent = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
-                            {rejectedDrivers.map(driver => (
+                            {filteredRejectedDrivers.map(driver => (
                               <tr key={driver.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">{driver.name}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{driver.nationalId}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{driver.submissionDate}</td>
-                                <td className="px-6 py-4">{driver.rejectionReason}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {driver.profiles.first_name} {driver.profiles.last_name}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">{driver.national_id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {new Date(driver.profiles.created_at).toLocaleDateString('ar-SA')}
+                                </td>
+                                <td className="px-6 py-4">{driver.rejection_reason || "غير محدد"}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                  <Button variant="outline" size="sm">عرض التفاصيل</Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => {
+                                      setSelectedDriver(driver);
+                                      // In a real app, this would open a detailed view
+                                      toast.info("عرض التفاصيل غير متاح حاليًا");
+                                    }}
+                                  >
+                                    عرض التفاصيل
+                                  </Button>
                                 </td>
                               </tr>
                             ))}
@@ -317,7 +454,7 @@ const DriverVerificationContent = () => {
           <DialogHeader>
             <DialogTitle>رفض طلب السائق</DialogTitle>
             <DialogDescription>
-              يرجى توضيح سبب رفض طلب السائق {selectedDriver?.name}
+              يرجى توضيح سبب رفض طلب السائق {selectedDriver && `${selectedDriver.profiles.first_name} ${selectedDriver.profiles.last_name}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -352,10 +489,13 @@ const DriverVerificationContent = () => {
             <DialogTitle>عرض الوثيقة</DialogTitle>
           </DialogHeader>
           <div className="min-h-[400px] flex items-center justify-center bg-gray-100 rounded-md">
-            {/* In a real app, this would display the actual document */}
             <div className="text-center">
-              <p className="text-gray-500 mb-4">سيتم عرض الوثيقة هنا</p>
-              <p className="text-sm text-gray-400">رابط الوثيقة: {viewDocumentUrl}</p>
+              <p className="text-gray-500 mb-4">
+                هذه الوثيقة مخزنة في مسار: {viewDocumentUrl || 'غير متوفر'}
+              </p>
+              <p className="text-sm text-gray-400">
+                ملاحظة: الملفات الفعلية غير مرفوعة حاليًا بسبب قيود واجهة برمجة التطبيقات
+              </p>
             </div>
           </div>
           <DialogFooter>
