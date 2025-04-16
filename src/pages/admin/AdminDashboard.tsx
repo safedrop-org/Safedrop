@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -60,30 +61,6 @@ const AdminDashboardContent = () => {
     driversPayout: 0
   });
 
-  // Placeholder for mock data (in a real app, this would come from Supabase)
-  const mockComplaints: Complaint[] = [
-    {
-      id: '1',
-      userId: 'user123',
-      userName: 'محمد أحمد',
-      userType: 'customer',
-      subject: 'تأخر السائق',
-      content: 'السائق وصل متأخر 45 دقيقة عن الموعد المتفق عليه',
-      status: 'pending',
-      createdAt: '2025-04-15'
-    },
-    {
-      id: '2',
-      userId: 'driver456',
-      userName: 'عبدالله خالد',
-      userType: 'driver',
-      subject: 'مشكلة في الدفع',
-      content: 'لم يتم استلام المبلغ المستحق للتوصيل رقم #12345',
-      status: 'in-progress',
-      createdAt: '2025-04-14'
-    }
-  ];
-
   // Fetch users count
   const { data: customersCount = 0, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ['customers-count'],
@@ -94,7 +71,10 @@ const AdminDashboardContent = () => {
           .select('*', { count: 'exact', head: true })
           .eq('user_type', 'customer');
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching customers count:', error);
+          return 0;
+        }
         return count || 0;
       } catch (error) {
         console.error('Error fetching customers count:', error);
@@ -112,7 +92,10 @@ const AdminDashboardContent = () => {
           .from('drivers')
           .select('*', { count: 'exact', head: true });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching drivers count:', error);
+          return 0;
+        }
         return count || 0;
       } catch (error) {
         console.error('Error fetching drivers count:', error);
@@ -126,9 +109,15 @@ const AdminDashboardContent = () => {
     queryKey: ['orders-count'],
     queryFn: async () => {
       try {
-        // In a real app, this would fetch from an orders table
-        // For now, returning a mock value
-        return 48;
+        const { count, error } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+          console.error('Error fetching orders count:', error);
+          return 0;
+        }
+        return count || 0;
       } catch (error) {
         console.error('Error fetching orders count:', error);
         return 0;
@@ -151,7 +140,8 @@ const AdminDashboardContent = () => {
             vehicle_info,
             status,
             rejection_reason,
-            profiles:id (
+            profile_id,
+            profiles:profile_id (
               first_name,
               last_name,
               phone
@@ -159,7 +149,10 @@ const AdminDashboardContent = () => {
           `)
           .eq('status', 'pending');
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching driver applications:', error);
+          return [];
+        }
         return data || [];
       } catch (error) {
         console.error('Error fetching driver applications:', error);
@@ -168,39 +161,185 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch financial data
-  useEffect(() => {
-    // In a real app, this would come from the database
-    // For now, using mock data
-    const mockFinancialData = {
-      today: {
-        totalRevenue: 2500,
-        commissions: 375,
-        platformProfit: 200,
-        driversPayout: 2125
-      },
-      week: {
-        totalRevenue: 15000,
-        commissions: 2250,
-        platformProfit: 1200,
-        driversPayout: 12750
-      },
-      month: {
-        totalRevenue: 65000,
-        commissions: 9750,
-        platformProfit: 5200,
-        driversPayout: 55250
-      },
-      year: {
-        totalRevenue: 780000,
-        commissions: 117000,
-        platformProfit: 62400,
-        driversPayout: 663000
+  // Fetch complaints
+  const { data: complaints = [], isLoading: isLoadingComplaints } = useQuery({
+    queryKey: ['complaints'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('complaints')
+          .select(`
+            *,
+            profiles:user_id (
+              first_name,
+              last_name,
+              user_type
+            )
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching complaints:', error);
+          return [];
+        }
+        
+        return (data || []).map(item => ({
+          id: item.id,
+          userId: item.user_id,
+          userName: `${item.profiles?.first_name || ''} ${item.profiles?.last_name || ''}`,
+          userType: item.profiles?.user_type as UserType || 'customer',
+          subject: item.subject,
+          content: item.content,
+          status: item.status,
+          createdAt: item.created_at
+        }));
+      } catch (error) {
+        console.error('Error fetching complaints:', error);
+        return [];
       }
-    };
+    }
+  });
 
-    setFinancialSummary(mockFinancialData[dateRange]);
-  }, [dateRange]);
+  // Fetch orders
+  const { data: orders = [], isLoading: isLoadingOrdersList } = useQuery({
+    queryKey: ['orders-list'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select(`
+            *,
+            customer:customer_id (
+              first_name,
+              last_name
+            ),
+            driver:driver_id (
+              first_name,
+              last_name
+            )
+          `)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        
+        if (error) {
+          console.error('Error fetching orders:', error);
+          return [];
+        }
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        return [];
+      }
+    }
+  });
+
+  // Fetch customers list
+  const { data: customersList = [], isLoading: isLoadingCustomersList } = useQuery({
+    queryKey: ['customers-list'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_type', 'customer')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        
+        if (error) {
+          console.error('Error fetching customers list:', error);
+          return [];
+        }
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching customers list:', error);
+        return [];
+      }
+    }
+  });
+
+  // Fetch financial data
+  const { data: financialData, isLoading: isLoadingFinancial } = useQuery({
+    queryKey: ['financial-data', dateRange],
+    queryFn: async () => {
+      try {
+        // This would be a real API call to get financial data based on dateRange
+        // For now, we'll just return dummy data but will update it when real data is available
+        const today = new Date();
+        let startDate;
+        
+        switch (dateRange) {
+          case 'today':
+            startDate = new Date(today);
+            startDate.setHours(0, 0, 0, 0);
+            break;
+          case 'week':
+            startDate = new Date(today);
+            startDate.setDate(today.getDate() - 7);
+            break;
+          case 'month':
+            startDate = new Date(today);
+            startDate.setMonth(today.getMonth() - 1);
+            break;
+          case 'year':
+            startDate = new Date(today);
+            startDate.setFullYear(today.getFullYear() - 1);
+            break;
+          default:
+            startDate = new Date(today);
+            startDate.setMonth(today.getMonth() - 1);
+        }
+        
+        // Convert dates to ISO strings for Supabase
+        const startDateString = startDate.toISOString();
+        const endDateString = today.toISOString();
+        
+        // Get orders within the date range
+        const { data: ordersInRange, error } = await supabase
+          .from('orders')
+          .select('price, commission_rate, driver_payout')
+          .gte('created_at', startDateString)
+          .lte('created_at', endDateString);
+          
+        if (error) {
+          console.error('Error fetching financial data:', error);
+          return {
+            totalRevenue: 0,
+            commissions: 0,
+            platformProfit: 0,
+            driversPayout: 0
+          };
+        }
+        
+        // Calculate financial metrics
+        const totalRevenue = ordersInRange?.reduce((sum, order) => sum + (order.price || 0), 0) || 0;
+        const commissions = ordersInRange?.reduce((sum, order) => sum + (order.commission_rate || 0), 0) || 0;
+        const driversPayout = ordersInRange?.reduce((sum, order) => sum + (order.driver_payout || 0), 0) || 0;
+        const platformProfit = totalRevenue - driversPayout;
+        
+        return {
+          totalRevenue,
+          commissions,
+          platformProfit,
+          driversPayout
+        };
+      } catch (error) {
+        console.error('Error fetching financial data:', error);
+        return {
+          totalRevenue: 0,
+          commissions: 0,
+          platformProfit: 0,
+          driversPayout: 0
+        };
+      }
+    }
+  });
+
+  useEffect(() => {
+    // Update financial summary when data is loaded
+    if (financialData) {
+      setFinancialSummary(financialData);
+    }
+  }, [financialData]);
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -222,34 +361,107 @@ const AdminDashboardContent = () => {
     toast.success(`تم تصدير التقرير بصيغة ${format}`);
   };
 
-  const handleUpdateCommissionRate = () => {
-    // In a real app, this would update the commission rate in the database
-    toast.success(`تم تحديث نسبة العمولة إلى ${selectedCommissionRate}%`);
+  const handleUpdateCommissionRate = async () => {
+    try {
+      // In a real app, this would update the commission rate in the database
+      const { error } = await supabase
+        .from('system_settings')
+        .upsert({ 
+          key: 'commission_rate', 
+          value: selectedCommissionRate, 
+          updated_at: new Date().toISOString() 
+        });
+        
+      if (error) throw error;
+      
+      toast.success(`تم تحديث نسبة العمولة إلى ${selectedCommissionRate}%`);
+    } catch (error) {
+      console.error('Error updating commission rate:', error);
+      toast.error('حدث خطأ أثناء تحديث نسبة العمولة');
+    }
   };
 
-  const handleApproveDriver = (driverId: string) => {
-    // In a real app, this would update the driver status in the database
-    toast.success('تم قبول السائق بنجاح');
+  const handleApproveDriver = async (driverId: string) => {
+    try {
+      const { error } = await supabase
+        .from('drivers')
+        .update({ status: 'approved' })
+        .eq('id', driverId);
+        
+      if (error) throw error;
+      
+      toast.success('تم قبول السائق بنجاح');
+    } catch (error) {
+      console.error('Error approving driver:', error);
+      toast.error('حدث خطأ أثناء قبول السائق');
+    }
   };
 
-  const handleRejectDriver = (driverId: string) => {
-    // In a real app, this would update the driver status in the database
-    toast.success('تم رفض طلب السائق');
+  const handleRejectDriver = async (driverId: string) => {
+    try {
+      const { error } = await supabase
+        .from('drivers')
+        .update({ 
+          status: 'rejected',
+          rejection_reason: 'تم رفض الطلب من قبل المشرف'
+        })
+        .eq('id', driverId);
+        
+      if (error) throw error;
+      
+      toast.success('تم رفض طلب السائق');
+    } catch (error) {
+      console.error('Error rejecting driver:', error);
+      toast.error('حدث خطأ أثناء رفض السائق');
+    }
   };
 
-  const handleSuspendUser = (userId: string, userType: UserType) => {
-    // In a real app, this would update the user status in the database
-    toast.success(`تم تعليق حساب ${userType === 'customer' ? 'العميل' : 'السائق'} بنجاح`);
+  const handleSuspendUser = async (userId: string, userType: UserType) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: 'suspended' })
+        .eq('id', userId);
+        
+      if (error) throw error;
+      
+      toast.success(`تم تعليق حساب ${userType === 'customer' ? 'العميل' : 'السائق'} بنجاح`);
+    } catch (error) {
+      console.error('Error suspending user:', error);
+      toast.error('حدث خطأ أثناء تعليق الحساب');
+    }
   };
 
-  const handleBanUser = (userId: string, userType: UserType) => {
-    // In a real app, this would update the user status in the database
-    toast.success(`تم حظر ${userType === 'customer' ? 'العميل' : 'السائق'} بنجاح`);
+  const handleBanUser = async (userId: string, userType: UserType) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: 'banned' })
+        .eq('id', userId);
+        
+      if (error) throw error;
+      
+      toast.success(`تم حظر ${userType === 'customer' ? 'العميل' : 'السائق'} بنجاح`);
+    } catch (error) {
+      console.error('Error banning user:', error);
+      toast.error('حدث خطأ أثناء حظر الحساب');
+    }
   };
 
-  const handleResolveComplaint = (complaintId: string) => {
-    // In a real app, this would update the complaint status in the database
-    toast.success('تم تحديث حالة الشكوى بنجاح');
+  const handleResolveComplaint = async (complaintId: string) => {
+    try {
+      const { error } = await supabase
+        .from('complaints')
+        .update({ status: 'resolved' })
+        .eq('id', complaintId);
+        
+      if (error) throw error;
+      
+      toast.success('تم تحديث حالة الشكوى بنجاح');
+    } catch (error) {
+      console.error('Error resolving complaint:', error);
+      toast.error('حدث خطأ أثناء تحديث حالة الشكوى');
+    }
   };
 
   if (!isAdmin) {
@@ -387,7 +599,13 @@ const AdminDashboardContent = () => {
                             <div className="flex justify-between items-center">
                               <div>
                                 <p className="text-sm text-gray-500">إجمالي المبالغ المستلمة</p>
-                                <h3 className="text-2xl font-bold">{financialSummary.totalRevenue.toLocaleString()} ريال</h3>
+                                <h3 className="text-2xl font-bold">
+                                  {isLoadingFinancial ? (
+                                    <span className="text-gray-400">...</span>
+                                  ) : (
+                                    `${financialSummary.totalRevenue.toLocaleString()} ريال`
+                                  )}
+                                </h3>
                               </div>
                               <div className="p-3 bg-green-100 rounded-full">
                                 <DollarSign className="h-6 w-6 text-green-600" />
@@ -401,7 +619,13 @@ const AdminDashboardContent = () => {
                             <div className="flex justify-between items-center">
                               <div>
                                 <p className="text-sm text-gray-500">إجمالي العمولات (15%)</p>
-                                <h3 className="text-2xl font-bold">{financialSummary.commissions.toLocaleString()} ريال</h3>
+                                <h3 className="text-2xl font-bold">
+                                  {isLoadingFinancial ? (
+                                    <span className="text-gray-400">...</span>
+                                  ) : (
+                                    `${financialSummary.commissions.toLocaleString()} ريال`
+                                  )}
+                                </h3>
                               </div>
                               <div className="p-3 bg-blue-100 rounded-full">
                                 <BarChart2Icon className="h-6 w-6 text-blue-600" />
@@ -415,7 +639,13 @@ const AdminDashboardContent = () => {
                             <div className="flex justify-between items-center">
                               <div>
                                 <p className="text-sm text-gray-500">أرباح المنصة</p>
-                                <h3 className="text-2xl font-bold">{financialSummary.platformProfit.toLocaleString()} ريال</h3>
+                                <h3 className="text-2xl font-bold">
+                                  {isLoadingFinancial ? (
+                                    <span className="text-gray-400">...</span>
+                                  ) : (
+                                    `${financialSummary.platformProfit.toLocaleString()} ريال`
+                                  )}
+                                </h3>
                               </div>
                               <div className="p-3 bg-violet-100 rounded-full">
                                 <LineChart className="h-6 w-6 text-violet-600" />
@@ -429,7 +659,13 @@ const AdminDashboardContent = () => {
                             <div className="flex justify-between items-center">
                               <div>
                                 <p className="text-sm text-gray-500">الأرباح المستحقة للسائقين</p>
-                                <h3 className="text-2xl font-bold">{financialSummary.driversPayout.toLocaleString()} ريال</h3>
+                                <h3 className="text-2xl font-bold">
+                                  {isLoadingFinancial ? (
+                                    <span className="text-gray-400">...</span>
+                                  ) : (
+                                    `${financialSummary.driversPayout.toLocaleString()} ريال`
+                                  )}
+                                </h3>
                               </div>
                               <div className="p-3 bg-amber-100 rounded-full">
                                 <TruckIcon className="h-6 w-6 text-amber-600" />
@@ -557,16 +793,22 @@ const AdminDashboardContent = () => {
                       </TabsContent>
                       
                       <TabsContent value="active">
-                        <div className="text-center py-8 text-gray-500">
-                          <TruckIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                          يتم عرض السائقين النشطين هنا
-                        </div>
+                        {driverApplications.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <TruckIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            لا يوجد سائقين نشطين حاليًا
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-gray-500">
+                            جاري تحميل بيانات السائقين...
+                          </div>
+                        )}
                       </TabsContent>
                       
                       <TabsContent value="suspended">
                         <div className="text-center py-8 text-gray-500">
                           <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                          يتم عرض السائقين المعلقين هنا
+                          لا يوجد سائقين معلقين حاليًا
                         </div>
                       </TabsContent>
                     </Tabs>
@@ -604,18 +846,45 @@ const AdminDashboardContent = () => {
                             <TableHead>الاسم</TableHead>
                             <TableHead>البريد الإلكتروني</TableHead>
                             <TableHead>رقم الهاتف</TableHead>
-                            <TableHead>عدد الطلبات</TableHead>
+                            <TableHead>تاريخ التسجيل</TableHead>
                             <TableHead>الإجراءات</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {/* This would be populated from the database in a real app */}
-                          <TableRow>
-                            <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                              <UsersIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                              سيتم عرض بيانات العملاء هنا عندما يتم تسجيلهم
-                            </TableCell>
-                          </TableRow>
+                          {isLoadingCustomersList ? (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                                جاري تحميل بيانات العملاء...
+                              </TableCell>
+                            </TableRow>
+                          ) : customersList.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                                <UsersIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                                لا يوجد عملاء مسجلين حاليًا
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            customersList.map((customer: any) => (
+                              <TableRow key={customer.id}>
+                                <TableCell className="font-medium">{customer.first_name} {customer.last_name}</TableCell>
+                                <TableCell>{customer.email}</TableCell>
+                                <TableCell>{customer.phone}</TableCell>
+                                <TableCell>{new Date(customer.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                                <TableCell>
+                                  <div className="flex gap-2">
+                                    <Button variant="outline" size="sm">
+                                      عرض التفاصيل
+                                    </Button>
+                                    <Button variant="outline" size="sm" className="text-amber-600 border-amber-600 hover:bg-amber-50"
+                                      onClick={() => handleSuspendUser(customer.id, 'customer')}>
+                                      تعليق
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
                         </TableBody>
                       </Table>
                     </div>
@@ -668,13 +937,45 @@ const AdminDashboardContent = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {/* This would be populated from the database in a real app */}
-                          <TableRow>
-                            <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                              <PackageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                              سيتم عرض بيانات الطلبات هنا عند إنشائها
-                            </TableCell>
-                          </TableRow>
+                          {isLoadingOrdersList ? (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                جاري تحميل بيانات الطلبات...
+                              </TableCell>
+                            </TableRow>
+                          ) : orders.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                <PackageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                                لا توجد طلبات مسجلة حاليًا
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            orders.map((order: any) => (
+                              <TableRow key={order.id}>
+                                <TableCell className="font-medium">#{order.id.substring(0, 8)}</TableCell>
+                                <TableCell>{order.customer?.first_name} {order.customer?.last_name}</TableCell>
+                                <TableCell>{order.driver?.first_name} {order.driver?.last_name}</TableCell>
+                                <TableCell>{order.price} ريال</TableCell>
+                                <TableCell>{new Date(order.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                                <TableCell>
+                                  <span className={`px-2 py-1 text-xs rounded-full ${
+                                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                    order.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                                    order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                    'bg-red-100 text-red-800'
+                                  }`}>
+                                    {order.status === 'pending' ? 'قيد الانتظار' :
+                                     order.status === 'in_progress' ? 'قيد التنفيذ' :
+                                     order.status === 'completed' ? 'مكتمل' : 'ملغي'}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <Button variant="outline" size="sm">عرض التفاصيل</Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
                         </TableBody>
                       </Table>
                     </div>
@@ -705,13 +1006,15 @@ const AdminDashboardContent = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {mockComplaints.length === 0 ? (
+                      {isLoadingComplaints ? (
+                        <div className="text-center py-8">جاري تحميل البيانات...</div>
+                      ) : complaints.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                           <MessageSquareIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                           لا توجد شكاوى حالياً
                         </div>
                       ) : (
-                        mockComplaints.map(complaint => (
+                        complaints.map((complaint) => (
                           <Card key={complaint.id}>
                             <CardContent className="pt-6">
                               <div className="flex flex-col md:flex-row justify-between">
@@ -733,7 +1036,7 @@ const AdminDashboardContent = () => {
                                     </span>
                                   </div>
                                   <p className="text-sm text-gray-600">من: {complaint.userName} ({complaint.userType === 'customer' ? 'عميل' : 'سائق'})</p>
-                                  <p className="text-sm text-gray-500">تاريخ التقديم: {complaint.createdAt}</p>
+                                  <p className="text-sm text-gray-500">تاريخ التقديم: {new Date(complaint.createdAt).toLocaleDateString('ar-SA')}</p>
                                   <p className="mt-2 text-gray-700">{complaint.content}</p>
                                 </div>
                                 

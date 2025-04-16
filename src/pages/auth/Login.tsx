@@ -8,20 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserIcon, TruckIcon, ShieldCheckIcon, LockIcon, MailIcon } from 'lucide-react';
+import { LockIcon, MailIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const LoginContent = () => {
   const { t, language } = useLanguage();
-  const [userType, setUserType] = useState('customer');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -36,33 +35,68 @@ const LoginContent = () => {
       return;
     }
 
-    // Simulate login request
-    setTimeout(() => {
-      setIsLoading(false);
-
-      if (userType === 'admin') {
-        // Redirect to admin login instead
-        navigate('/admin');
-        return;
-      }
+    try {
+      // Authenticate with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // For demo purposes - using localStorage to simulate authentication
-      if (userType === 'customer') {
+      if (error) throw error;
+      
+      // Get user profile to determine user type
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', data.user?.id)
+        .single();
+      
+      if (profileError) throw profileError;
+      
+      // Redirect based on user type
+      if (profileData?.user_type === 'customer') {
         localStorage.setItem('customerAuth', 'true');
+        localStorage.setItem('userId', data.user?.id);
+        
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك في منصة سيف دروب",
         });
+        
         navigate('/customer/dashboard');
-      } else if (userType === 'driver') {
+      } else if (profileData?.user_type === 'driver') {
         localStorage.setItem('driverAuth', 'true');
+        localStorage.setItem('userId', data.user?.id);
+        
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك في منصة سيف دروب",
         });
+        
         navigate('/driver/dashboard');
+      } else if (profileData?.user_type === 'admin') {
+        // If they are an admin, redirect to admin dashboard
+        localStorage.setItem('adminAuth', 'true');
+        localStorage.setItem('adminId', data.user?.id);
+        
+        toast({
+          title: "تم تسجيل الدخول بنجاح",
+          description: "مرحباً بك في لوحة تحكم المشرف",
+        });
+        
+        navigate('/admin/dashboard');
+      } else {
+        throw new Error('نوع المستخدم غير معروف');
       }
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "فشل تسجيل الدخول",
+        description: error.message || "بيانات تسجيل الدخول غير صحيحة، يرجى المحاولة مرة أخرى",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -81,68 +115,51 @@ const LoginContent = () => {
             </CardHeader>
             
             <form onSubmit={handleLogin}>
-              <Tabs defaultValue="customer" onValueChange={setUserType} className="w-full">
-                <TabsList className="grid grid-cols-3 mb-4">
-                  <TabsTrigger value="customer" className="flex items-center gap-2">
-                    <UserIcon className="h-4 w-4" />
-                    <span>{t('customer')}</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="driver" className="flex items-center gap-2">
-                    <TruckIcon className="h-4 w-4" />
-                    <span>{t('driver')}</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="admin" className="flex items-center gap-2">
-                    <ShieldCheckIcon className="h-4 w-4" />
-                    <span>{t('admin')}</span>
-                  </TabsTrigger>
-                </TabsList>
+              <CardContent className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">البريد الإلكتروني</Label>
+                  <div className="relative">
+                    <MailIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      className="pl-10 rtl:pl-4 rtl:pr-10" 
+                      placeholder="your@email.com" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
                 
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">البريد الإلكتروني</Label>
-                    <div className="relative">
-                      <MailIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                      <Input 
-                        id="email" 
-                        type="email" 
-                        className="pl-10 rtl:pl-4 rtl:pr-10" 
-                        placeholder="your@email.com" 
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">كلمة المرور</Label>
+                  <div className="relative">
+                    <LockIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      className="pl-10 rtl:pl-4 rtl:pr-10" 
+                      placeholder="••••••••" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="password">كلمة المرور</Label>
-                    <div className="relative">
-                      <LockIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                      <Input 
-                        id="password" 
-                        type="password" 
-                        className="pl-10 rtl:pl-4 rtl:pr-10" 
-                        placeholder="••••••••" 
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-                    </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <input
+                      type="checkbox"
+                      id="remember"
+                      className="w-4 h-4 text-safedrop-gold border-gray-300 rounded focus:ring-safedrop-gold"
+                    />
+                    <Label htmlFor="remember" className="text-sm">تذكرني</Label>
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                      <input
-                        type="checkbox"
-                        id="remember"
-                        className="w-4 h-4 text-safedrop-gold border-gray-300 rounded focus:ring-safedrop-gold"
-                      />
-                      <Label htmlFor="remember" className="text-sm">تذكرني</Label>
-                    </div>
-                    <Link to="/forgot-password" className="text-sm text-safedrop-gold hover:underline">
-                      نسيت كلمة المرور؟
-                    </Link>
-                  </div>
-                </CardContent>
-              </Tabs>
+                  <Link to="/forgot-password" className="text-sm text-safedrop-gold hover:underline">
+                    نسيت كلمة المرور؟
+                  </Link>
+                </div>
+              </CardContent>
               
               <CardFooter className="flex flex-col space-y-4">
                 <Button 
@@ -155,12 +172,15 @@ const LoginContent = () => {
                 
                 <div className="text-center text-sm">
                   ليس لديك حساب؟{' '}
-                  <Link 
-                    to={userType === 'driver' ? '/register/driver' : '/register/customer'} 
-                    className="text-safedrop-gold hover:underline font-semibold"
-                  >
-                    سجل الآن
-                  </Link>
+                  <div className="flex justify-center gap-2 mt-2">
+                    <Link to="/register/customer" className="text-safedrop-gold hover:underline font-semibold">
+                      سجل كعميل
+                    </Link>
+                    <span className="text-gray-500">|</span>
+                    <Link to="/register/driver" className="text-safedrop-gold hover:underline font-semibold">
+                      سجل كسائق
+                    </Link>
+                  </div>
                 </div>
               </CardFooter>
             </form>
