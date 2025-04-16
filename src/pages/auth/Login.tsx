@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -75,16 +74,13 @@ const LoginContent = () => {
         
         navigate('/driver/dashboard');
       } else if (profileData?.user_type === 'admin') {
-        // If they are an admin, redirect to admin dashboard
-        localStorage.setItem('adminAuth', 'true');
-        localStorage.setItem('adminId', data.user?.id);
-        
+        // If they are an admin, redirect to admin login page
         toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في لوحة تحكم المشرف",
+          title: "يرجى استخدام صفحة تسجيل دخول المشرفين",
+          description: "تم اكتشاف حساب مشرف، يرجى استخدام صفحة تسجيل دخول المشرفين",
         });
         
-        navigate('/admin/dashboard');
+        navigate('/admin');
       } else {
         throw new Error('نوع المستخدم غير معروف');
       }

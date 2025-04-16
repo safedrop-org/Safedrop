@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -67,25 +66,9 @@ const DriverRegisterContent = () => {
   const onSubmit = async (data: DriverFormValues) => {
     setIsLoading(true);
     try {
-      // Skip blacklist check as it seems to be causing issues with the Edge Function
-      // Instead, proceed directly with registration
+      // Skip file uploads temporarily due to storage bucket issues
+      // Instead, register the driver with placeholder document links
       
-      // Upload national ID document
-      const nationalIdPath = `driver_documents/${Date.now()}_national_id_${data.nationalId}`;
-      const { error: nationalIdUploadError } = await supabase.storage
-        .from('driver_documents')
-        .upload(nationalIdPath, data.nationalIdFile);
-
-      if (nationalIdUploadError) throw nationalIdUploadError;
-
-      // Upload license document
-      const licensePath = `driver_documents/${Date.now()}_license_${data.licenseNumber}`;
-      const { error: licenseUploadError } = await supabase.storage
-        .from('driver_documents')
-        .upload(licensePath, data.licenseFile);
-
-      if (licenseUploadError) throw licenseUploadError;
-
       // Sign up user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
@@ -101,6 +84,9 @@ const DriverRegisterContent = () => {
       });
 
       if (signUpError) throw signUpError;
+      
+      const nationalIdPath = `placeholder_national_id_${data.nationalId}`;
+      const licensePath = `placeholder_license_${data.licenseNumber}`;
 
       // Insert driver details
       const { error: driverInsertError } = await supabase
@@ -129,7 +115,7 @@ const DriverRegisterContent = () => {
       console.error('Registration error:', error);
       
       toast.error(t('registrationError'), {
-        description: error.message
+        description: error.message || "حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى"
       });
     } finally {
       setIsLoading(false);

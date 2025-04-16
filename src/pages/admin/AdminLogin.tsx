@@ -10,12 +10,11 @@ import { ShieldCheckIcon, LockIcon } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { supabase } from '@/integrations/supabase/client';
 
-const ADMIN_EMAIL = "admin@safedrop.com";
-const ADMIN_PASSWORD = "SafeDrop@admin2024";
+// كلمة المرور الجديدة للأدمن
+const ADMIN_PASSWORD = "SafeDrop@ibrahim2515974";
 
 const AdminLoginContent = () => {
   const { t } = useLanguage();
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -25,10 +24,10 @@ const AdminLoginContent = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!email || !password) {
+    if (!password) {
       toast({
         title: "خطأ في تسجيل الدخول",
-        description: "يرجى إدخال البريد الإلكتروني وكلمة المرور",
+        description: "يرجى إدخال كلمة المرور",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -36,11 +35,11 @@ const AdminLoginContent = () => {
     }
 
     try {
-      // For development purposes, allow direct login with predefined credentials
-      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-        // Set admin auth in localStorage
+      // تحقق من كلمة المرور فقط
+      if (password === ADMIN_PASSWORD) {
+        // تعيين معلومات المصادقة للمشرف في التخزين المحلي
         localStorage.setItem('adminAuth', 'true');
-        localStorage.setItem('adminEmail', email);
+        localStorage.setItem('adminEmail', 'admin@safedrop.com');
         
         toast({
           title: "تم تسجيل الدخول بنجاح",
@@ -49,43 +48,13 @@ const AdminLoginContent = () => {
         
         navigate('/admin/dashboard');
         return;
-      }
-      
-      // Fallback to check with actual Supabase authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (error) throw error;
-      
-      // Check if the user has admin role (this would require a proper RLS policy)
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', data.user?.id)
-        .single();
-      
-      if (profileError) throw profileError;
-      
-      if (profileData?.user_type === 'admin') {
-        localStorage.setItem('adminAuth', 'true');
-        localStorage.setItem('adminEmail', email);
-        localStorage.setItem('adminId', data.user?.id);
-        
-        toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في لوحة تحكم المشرف",
-        });
-        
-        navigate('/admin/dashboard');
       } else {
-        throw new Error('ليس لديك صلاحيات المشرف');
+        throw new Error('كلمة المرور غير صحيحة');
       }
     } catch (error: any) {
       toast({
         title: "فشل تسجيل الدخول",
-        description: error.message || "بيانات تسجيل الدخول غير صحيحة، يرجى المحاولة مرة أخرى",
+        description: error.message || "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });
     } finally {
@@ -106,23 +75,12 @@ const AdminLoginContent = () => {
                 تسجيل دخول المشرف
               </CardTitle>
               <CardDescription>
-                أدخل بيانات تسجيل الدخول للوصول إلى لوحة تحكم المشرف
+                أدخل كلمة المرور للوصول إلى لوحة تحكم المشرف
               </CardDescription>
             </CardHeader>
             
             <form onSubmit={handleLogin}>
               <CardContent className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">البريد الإلكتروني</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="admin@safedrop.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">كلمة المرور</Label>
                   <div className="relative">
