@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -35,6 +36,18 @@ const LoginContent = () => {
     }
 
     try {
+      // Check if this is an admin email
+      if (email.toLowerCase() === 'admin@safedrop.com') {
+        toast({
+          title: "يرجى استخدام صفحة تسجيل دخول المشرفين",
+          description: "تم اكتشاف حساب مشرف، يرجى استخدام صفحة تسجيل دخول المشرفين",
+        });
+        
+        navigate('/admin');
+        setIsLoading(false);
+        return;
+      }
+      
       // Authenticate with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

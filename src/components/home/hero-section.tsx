@@ -39,12 +39,12 @@ export const HeroSection = () => {
           توصيل آمن ومضمون للشحنات الثمينة
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/auth/customer-register">
+          <Link to="/register/customer">
             <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8">
               تسجيل كعميل
             </Button>
           </Link>
-          <Link to="/auth/driver-register">
+          <Link to="/register/driver">
             <Button size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white px-8">
               تسجيل كسائق
             </Button>

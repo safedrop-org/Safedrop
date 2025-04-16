@@ -36,7 +36,7 @@ const CallToAction = () => {
                   <ArrowIcon className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-safedrop-primary">
+              <Button asChild size="lg" variant="outline" className="border-white text-black bg-white hover:bg-white/90 hover:text-safedrop-primary">
                 <Link to="/register/driver" className="flex items-center gap-2">
                   {t('driverRegister')}
                   <ArrowIcon className="h-4 w-4" />

@@ -8,9 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { ShieldCheckIcon, LockIcon } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
-import { supabase } from '@/integrations/supabase/client';
 
-// كلمة المرور الجديدة للأدمن
+// كلمة المرور للأدمن
 const ADMIN_PASSWORD = "SafeDrop@ibrahim2515974";
 
 const AdminLoginContent = () => {
