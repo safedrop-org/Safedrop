@@ -59,6 +59,10 @@ const AppContent = () => {
         if (result.success) {
           setDbInitialized(true);
           setInitializing(false);
+          
+          if (result.tablesCreated) {
+            toast.success("تم إنشاء جداول قاعدة البيانات بنجاح");
+          }
         } else {
           console.error("Failed to initialize database:", result.error);
           
@@ -71,7 +75,7 @@ const AppContent = () => {
             setTimeout(initDb, 2000);
           } else {
             // After max attempts, continue anyway but show error
-            toast.error("خطأ في تهيئة قاعدة البيانات، يرجى تحديث الصفحة");
+            toast.error("يلزم إنشاء جداول قاعدة البيانات يدوياً");
             setManualSetupRequired(true);
             setInitializing(false);
           }
@@ -104,17 +108,29 @@ const AppContent = () => {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center max-w-lg mx-auto p-4">
           <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
-            <p className="font-bold">تنبيه: يلزم إعداد قاعدة البيانات يدوياً</p>
-            <p>لم نتمكن من إنشاء جداول قاعدة البيانات تلقائياً. يرجى إنشاء الجداول التالية في لوحة تحكم Supabase:</p>
-            <ol className="list-decimal list-inside mt-2 text-left">
-              <li>جدول profiles</li>
-              <li>جدول drivers</li>
-            </ol>
-            <p className="mt-2">بعد إنشاء الجداول، قم بتحديث الصفحة.</p>
+            <img 
+              src="/lovable-uploads/144c103f-de3f-44e4-b681-dcd0d917c51b.png" 
+              alt="Database Setup Required" 
+              className="mx-auto mb-4 max-w-full" 
+            />
+            <p className="font-bold text-xl">تنبيه: يلزم إعداد قاعدة البيانات يدوياً</p>
+            <p className="mt-2">لم نتمكن من إنشاء جداول قاعدة البيانات تلقائياً. يرجى إنشاء الجداول التالية في لوحة تحكم Supabase:</p>
+            <div className="mt-4 bg-white p-3 rounded border border-gray-200 overflow-auto text-left">
+              <p className="font-semibold">1. جدول profiles:</p>
+              <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded mt-1 overflow-x-auto">
+                {createProfilesTableSql}
+              </pre>
+              
+              <p className="font-semibold mt-4">2. جدول drivers:</p>
+              <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded mt-1 overflow-x-auto">
+                {createDriversTableSql}
+              </pre>
+            </div>
+            <p className="mt-4">بعد إنشاء الجداول، قم بتحديث الصفحة.</p>
           </div>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-safedrop-primary text-white rounded hover:bg-safedrop-primary/90 transition-colors"
+            className="px-6 py-3 bg-safedrop-primary text-white rounded-md hover:bg-safedrop-primary/90 transition-colors text-lg font-semibold"
           >
             تحديث الصفحة
           </button>
