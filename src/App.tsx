@@ -9,6 +9,9 @@ import { useEffect, useState } from "react";
 import { setupDatabase } from "@/integrations/supabase/db-init";
 import { createProfilesTableSql, createDriversTableSql } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Loader2Icon, RefreshCcwIcon, DatabaseIcon } from "lucide-react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -46,102 +49,140 @@ import PendingApproval from "./pages/driver/PendingApproval";
 
 const queryClient = new QueryClient();
 
-const AppContent = () => {
-  const [dbInitialized, setDbInitialized] = useState(false);
+// Database initialization component
+const DatabaseInitializer = ({ onSuccess }: { onSuccess: () => void }) => {
   const [initializing, setInitializing] = useState(true);
-  const [initAttempts, setInitAttempts] = useState(0);
   const [manualSetupRequired, setManualSetupRequired] = useState(false);
-
-  useEffect(() => {
-    const initDb = async () => {
-      try {
-        const result = await setupDatabase();
-        
-        if (result.success) {
-          setDbInitialized(true);
-          setInitializing(false);
-          
-          if (result.tablesCreated) {
-            toast.success("تم إنشاء جداول قاعدة البيانات بنجاح");
-          }
-        } else {
-          console.error("Failed to initialize database:", result.error);
-          
-          // Maximum 2 retry attempts
-          if (initAttempts < 2) {
-            // Increment retry counter
-            setInitAttempts(prev => prev + 1);
-            toast.error("جاري محاولة إعادة تهيئة قاعدة البيانات...");
-            // Wait longer between retries
-            setTimeout(initDb, 2000);
-          } else {
-            // After max attempts, continue anyway but show error
-            toast.error("يلزم إنشاء جداول قاعدة البيانات يدوياً");
-            setManualSetupRequired(true);
-            setInitializing(false);
-          }
+  const [dialogOpen, setDialogOpen] = useState(false);
+  
+  const initDb = async () => {
+    setInitializing(true);
+    try {
+      const result = await setupDatabase();
+      
+      if (result.success) {
+        if (result.tablesCreated) {
+          toast.success("تم إنشاء جداول قاعدة البيانات بنجاح");
         }
-      } catch (error) {
-        console.error("Error during database initialization:", error);
-        toast.error("خطأ في تهيئة قاعدة البيانات، يرجى تحديث الصفحة");
+        onSuccess();
+      } else {
+        console.error("Database initialization failed:", result.error);
+        toast.error("يلزم إنشاء جداول قاعدة البيانات يدوياً");
         setManualSetupRequired(true);
-        setInitializing(false);
+        setDialogOpen(true);
       }
-    };
-
-    // Start initialization process
+    } catch (error) {
+      console.error("Error during database initialization:", error);
+      toast.error("خطأ في تهيئة قاعدة البيانات");
+      setManualSetupRequired(true);
+      setDialogOpen(true);
+    } finally {
+      setInitializing(false);
+    }
+  };
+  
+  useEffect(() => {
     initDb();
-  }, [initAttempts]);
-
+  }, []);
+  
   if (initializing) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-safedrop-primary mx-auto"></div>
+          <Loader2Icon className="h-16 w-16 text-safedrop-primary animate-spin mx-auto" />
           <p className="mt-4 text-lg">جاري تهيئة التطبيق...</p>
         </div>
       </div>
     );
   }
-
+  
   if (manualSetupRequired) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center max-w-lg mx-auto p-4">
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-center">
+                تنبيه: يلزم إعداد قاعدة البيانات يدوياً
+              </DialogTitle>
+              <DialogDescription className="text-base">
+                لم نتمكن من إنشاء جداول قاعدة البيانات تلقائياً. يرجى إنشاء الجداول التالية في لوحة تحكم Supabase:
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
+              <div className="flex items-center mb-2">
+                <DatabaseIcon className="h-5 w-5 text-yellow-700 mr-2" />
+                <p className="font-semibold">قم بإنشاء الجداول التالية في لوحة تحكم Supabase</p>
+              </div>
+              
+              <div className="mt-4 bg-white p-3 rounded border border-gray-200 overflow-auto text-left">
+                <p className="font-semibold">1. جدول profiles:</p>
+                <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded mt-1 overflow-x-auto">
+                  {createProfilesTableSql}
+                </pre>
+                
+                <p className="font-semibold mt-4">2. جدول drivers:</p>
+                <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded mt-1 overflow-x-auto">
+                  {createDriversTableSql}
+                </pre>
+              </div>
+              
+              <p className="mt-4 text-center">بعد إنشاء الجداول، قم بتحديث الصفحة.</p>
+            </div>
+            
+            <div className="flex justify-center mt-4">
+              <Button 
+                onClick={() => window.location.reload()} 
+                className="px-6 py-3 bg-safedrop-primary text-white rounded-md hover:bg-safedrop-primary/90 transition-colors text-lg font-semibold"
+              >
+                <RefreshCcwIcon className="h-5 w-5 mr-2" />
+                تحديث الصفحة
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+        
+        <div className="max-w-lg mx-auto p-4 text-center">
           <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
             <img 
-              src="/lovable-uploads/144c103f-de3f-44e4-b681-dcd0d917c51b.png" 
+              src="/lovable-uploads/1886cc0f-1edf-43cd-ac23-b828270d4ea4.png" 
               alt="Database Setup Required" 
               className="mx-auto mb-4 max-w-full" 
             />
             <p className="font-bold text-xl">تنبيه: يلزم إعداد قاعدة البيانات يدوياً</p>
-            <p className="mt-2">لم نتمكن من إنشاء جداول قاعدة البيانات تلقائياً. يرجى إنشاء الجداول التالية في لوحة تحكم Supabase:</p>
-            <div className="mt-4 bg-white p-3 rounded border border-gray-200 overflow-auto text-left">
-              <p className="font-semibold">1. جدول profiles:</p>
-              <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded mt-1 overflow-x-auto">
-                {createProfilesTableSql}
-              </pre>
-              
-              <p className="font-semibold mt-4">2. جدول drivers:</p>
-              <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded mt-1 overflow-x-auto">
-                {createDriversTableSql}
-              </pre>
-            </div>
-            <p className="mt-4">بعد إنشاء الجداول، قم بتحديث الصفحة.</p>
+            <p className="mt-2">لم نتمكن من إنشاء جداول قاعدة البيانات تلقائياً. انقر على الزر أدناه لمعرفة التفاصيل.</p>
           </div>
-          <button 
-            onClick={() => window.location.reload()} 
+          <Button 
+            onClick={() => setDialogOpen(true)}
             className="px-6 py-3 bg-safedrop-primary text-white rounded-md hover:bg-safedrop-primary/90 transition-colors text-lg font-semibold"
           >
+            <DatabaseIcon className="h-5 w-5 mr-2" />
+            عرض التفاصيل
+          </Button>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="px-6 py-3 bg-safedrop-gold text-white rounded-md hover:bg-safedrop-gold/90 transition-colors text-lg font-semibold ml-2"
+          >
+            <RefreshCcwIcon className="h-5 w-5 mr-2" />
             تحديث الصفحة
-          </button>
+          </Button>
         </div>
       </div>
     );
   }
+  
+  return null;
+};
 
-  // Continue with routing even if DB initialization failed
-  // This allows users to access public pages and authentication
+const AppContent = () => {
+  const [dbInitialized, setDbInitialized] = useState(false);
+  
+  if (!dbInitialized) {
+    return <DatabaseInitializer onSuccess={() => setDbInitialized(true)} />;
+  }
+
+  // Continue with routing after DB initialization
   return (
     <BrowserRouter>
       <Routes>

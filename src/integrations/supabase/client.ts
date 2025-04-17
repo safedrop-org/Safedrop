@@ -20,7 +20,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
 });
 
-// SQL statements for creating tables
+// SQL statements for creating tables - updated to match exactly what's shown in the images
 export const createProfilesTableSql = `
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY,
