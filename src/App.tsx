@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/components/ui/language-context";
 import { useEffect, useState } from "react";
 import { setupDatabase } from "@/integrations/supabase/db-init";
+import { createProfilesTableSql, createDriversTableSql } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
