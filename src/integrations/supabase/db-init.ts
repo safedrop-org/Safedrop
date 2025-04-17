@@ -7,10 +7,9 @@ export const initializeDatabase = async () => {
     // First try to create profiles table directly with SQL query
     console.log('Trying to create profiles table...');
     
-    const { error: createProfilesError } = await supabase
-      .from('_sql')
-      .select('*')
-      .execute(`${createProfilesTableSql}`);
+    const { data: profilesData, error: createProfilesError } = await supabase
+      .rpc('exec_sql', { sql: createProfilesTableSql })
+      .single();
     
     if (createProfilesError) {
       console.error('Error creating profiles table:', createProfilesError);
@@ -23,10 +22,9 @@ export const initializeDatabase = async () => {
     // Try to create drivers table directly with SQL query
     console.log('Trying to create drivers table...');
     
-    const { error: createDriversError } = await supabase
-      .from('_sql')
-      .select('*')
-      .execute(`${createDriversTableSql}`);
+    const { data: driversData, error: createDriversError } = await supabase
+      .rpc('exec_sql', { sql: createDriversTableSql })
+      .single();
     
     if (createDriversError) {
       console.error('Error creating drivers table:', createDriversError);
