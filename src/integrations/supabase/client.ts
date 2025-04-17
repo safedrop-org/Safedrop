@@ -20,8 +20,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   },
 });
 
-// Create SQL functions for table creation
-const createProfilesTableSql = `
+// SQL statements for creating tables
+export const createProfilesTableSql = `
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY,
   first_name TEXT,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 )
 `;
 
-const createDriversTableSql = `
+export const createDriversTableSql = `
 CREATE TABLE IF NOT EXISTS drivers (
   id UUID PRIMARY KEY REFERENCES profiles(id),
   national_id TEXT NOT NULL,
@@ -51,26 +51,3 @@ CREATE TABLE IF NOT EXISTS drivers (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 )
 `;
-
-// Register the SQL functions with Supabase
-supabase.rpc('create_profiles_table', {}, {
-  head: true,
-  body: null,
-  count: null,
-  schema: 'public',
-  serializer: (params, method, queryParams) => ({
-    sql: createProfilesTableSql,
-    values: {},
-  }),
-});
-
-supabase.rpc('create_drivers_table', {}, {
-  head: true,
-  body: null,
-  count: null,
-  schema: 'public',
-  serializer: (params, method, queryParams) => ({
-    sql: createDriversTableSql,
-    values: {},
-  }),
-});

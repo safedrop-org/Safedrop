@@ -1,5 +1,5 @@
 
-import { supabase } from './client';
+import { supabase, createProfilesTableSql, createDriversTableSql } from './client';
 
 // Create the required tables if they don't exist
 export const initializeDatabase = async () => {
@@ -9,9 +9,12 @@ export const initializeDatabase = async () => {
     
     if (profilesCheckError && profilesCheckError.code === '42P01') {
       console.log('Creating profiles table...');
-      // Create profiles table
-      const { error: createProfilesError } = await supabase.rpc('create_profiles_table');
-      if (createProfilesError) throw createProfilesError;
+      // Create profiles table using SQL
+      const { error: createProfilesError } = await supabase.rpc('exec_sql', { sql: createProfilesTableSql });
+      if (createProfilesError) {
+        console.error('Error creating profiles table:', createProfilesError);
+        throw createProfilesError;
+      }
     }
     
     // Check if drivers table exists
@@ -19,9 +22,12 @@ export const initializeDatabase = async () => {
     
     if (driversCheckError && driversCheckError.code === '42P01') {
       console.log('Creating drivers table...');
-      // Create drivers table
-      const { error: createDriversError } = await supabase.rpc('create_drivers_table');
-      if (createDriversError) throw createDriversError;
+      // Create drivers table using SQL
+      const { error: createDriversError } = await supabase.rpc('exec_sql', { sql: createDriversTableSql });
+      if (createDriversError) {
+        console.error('Error creating drivers table:', createDriversError);
+        throw createDriversError;
+      }
     }
 
     return { success: true };

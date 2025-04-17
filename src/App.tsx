@@ -48,6 +48,7 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [initializing, setInitializing] = useState(true);
+  const [initAttempts, setInitAttempts] = useState(0);
 
   useEffect(() => {
     const initDb = async () => {
@@ -57,7 +58,17 @@ const AppContent = () => {
           setDbInitialized(true);
         } else {
           console.error("Failed to initialize database:", result.error);
-          toast.error("خطأ في تهيئة قاعدة البيانات، يرجى تحديث الصفحة");
+          
+          if (initAttempts < 3) {
+            // Retry initialization up to 3 times
+            setInitAttempts(prev => prev + 1);
+            toast.error("جاري محاولة إعادة تهيئة قاعدة البيانات...");
+            // Wait before retrying
+            setTimeout(initDb, 1000);
+            return;
+          } else {
+            toast.error("خطأ في تهيئة قاعدة البيانات، يرجى تحديث الصفحة");
+          }
         }
       } catch (error) {
         console.error("Error during database initialization:", error);
@@ -67,7 +78,7 @@ const AppContent = () => {
     };
 
     initDb();
-  }, []);
+  }, [initAttempts]);
 
   if (initializing) {
     return (
@@ -80,6 +91,8 @@ const AppContent = () => {
     );
   }
 
+  // Continue with routing even if DB initialization failed
+  // This allows users to access public pages and authentication
   return (
     <BrowserRouter>
       <Routes>
