@@ -68,7 +68,7 @@ const LoginContent = () => {
       // Redirect based on user type
       if (profileData?.user_type === 'customer') {
         localStorage.setItem('customerAuth', 'true');
-        localStorage.setItem('userId', data.user?.id);
+        localStorage.setItem('userId', data.user?.id || '');
         
         toast({
           title: "تم تسجيل الدخول بنجاح",
@@ -77,15 +77,29 @@ const LoginContent = () => {
         
         navigate('/customer/dashboard');
       } else if (profileData?.user_type === 'driver') {
+        // Check driver status before redirecting
+        const { data: driverData, error: driverError } = await supabase
+          .from('drivers')
+          .select('status')
+          .eq('id', data.user?.id)
+          .single();
+        
+        if (driverError) throw driverError;
+        
         localStorage.setItem('driverAuth', 'true');
-        localStorage.setItem('userId', data.user?.id);
+        localStorage.setItem('userId', data.user?.id || '');
         
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك في منصة سيف دروب",
         });
         
-        navigate('/driver/dashboard');
+        if (driverData.status === 'approved') {
+          navigate('/driver/dashboard');
+        } else {
+          // Redirect to pending approval page
+          navigate('/driver/pending-approval');
+        }
       } else if (profileData?.user_type === 'admin') {
         // If they are an admin, redirect to admin login page
         toast({
@@ -98,6 +112,8 @@ const LoginContent = () => {
         throw new Error('نوع المستخدم غير معروف');
       }
     } catch (error: any) {
+      console.error("Login error:", error);
+      
       toast({
         title: "فشل تسجيل الدخول",
         description: error.message || "بيانات تسجيل الدخول غير صحيحة، يرجى المحاولة مرة أخرى",

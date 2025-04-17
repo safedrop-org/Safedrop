@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,6 +44,7 @@ const DriverRegisterContent = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [submitAttempts, setSubmitAttempts] = useState(0);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
 
   const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverRegisterSchema),
@@ -74,23 +74,20 @@ const DriverRegisterContent = () => {
     }
     
     try {
-      // First check if the email is already registered
-      // Instead of using admin.listUsers which has different parameters,
-      // use a simpler approach to check existing users
-      const { data: existingUsers, error: existingUserError } = await supabase
+      // Check if the email is already registered
+      const { data: existingUser, error: queryError } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('email', data.email)
-        .single();
+        .select('id')
+        .eq('id', data.email)
+        .maybeSingle();
       
-      if (existingUserError && existingUserError.code !== 'PGRST116') {
-        // PGRST116 is "no rows returned" which means the user doesn't exist (good)
-        console.log("Error checking existing users:", existingUserError);
-      } else if (existingUsers) {
+      if (queryError && queryError.code !== 'PGRST116') {
+        console.error("Error checking for existing user:", queryError);
+      } else if (existingUser) {
         throw new Error("البريد الإلكتروني مسجل بالفعل");
       }
       
-      // Sign up user
+      // Sign up user with email confirmation
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -100,7 +97,8 @@ const DriverRegisterContent = () => {
             last_name: data.lastName,
             phone: data.phone,
             user_type: 'driver'
-          }
+          },
+          emailRedirectTo: window.location.origin + '/email-verification'
         }
       });
 
@@ -120,6 +118,24 @@ const DriverRegisterContent = () => {
       // Create placeholder paths for documents
       const nationalIdPath = `drivers/${userId}/national_id_${data.nationalId}`;
       const licensePath = `drivers/${userId}/license_${data.licenseNumber}`;
+
+      // Insert profile record
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          phone: data.phone,
+          user_type: 'driver',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+        
+      if (profileError) {
+        console.error("Profile insert error:", profileError);
+        throw profileError;
+      }
 
       // Insert driver details
       const { error: driverInsertError } = await supabase
@@ -142,11 +158,9 @@ const DriverRegisterContent = () => {
         throw driverInsertError;
       }
 
-      toast.success(t('registrationSuccess'), {
-        description: t('driverRegistrationPendingDescription')
-      });
-
-      navigate('/login');
+      // Show success message
+      setRegistrationComplete(true);
+      
     } catch (error: any) {
       console.error('Registration error:', error);
       
@@ -160,6 +174,41 @@ const DriverRegisterContent = () => {
       setIsLoading(false);
     }
   };
+
+  // Show registration success message
+  if (registrationComplete) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
+          <div>
+            <img 
+              src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png" 
+              alt="SafeDrop Logo" 
+              className="mx-auto h-20 w-auto mb-4" 
+            />
+            <h2 className="text-2xl font-bold text-safedrop-primary mt-6">
+              تم التسجيل بنجاح!
+            </h2>
+            <p className="mt-4 text-gray-600">
+              شكراً لتسجيلك في سيف دروب. تم إرسال رسالة تأكيد إلى بريدك الإلكتروني.
+              يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك.
+            </p>
+            <p className="mt-4 text-gray-600">
+              بعد تأكيد بريدك الإلكتروني، سيتم مراجعة طلبك كسائق من قبل فريقنا.
+            </p>
+            <div className="mt-8">
+              <Button
+                onClick={() => navigate('/login')}
+                className="bg-safedrop-gold hover:bg-safedrop-gold/90"
+              >
+                الذهاب إلى صفحة تسجيل الدخول
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

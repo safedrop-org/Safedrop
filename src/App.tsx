@@ -17,6 +17,7 @@ import Contact from "./pages/Contact";
 import Login from "./pages/auth/Login";
 import CustomerRegister from "./pages/auth/CustomerRegister";
 import DriverRegister from "./pages/auth/DriverRegister";
+import EmailVerification from "./pages/auth/EmailVerification";
 
 // Admin Pages
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -37,6 +38,7 @@ import DriverDashboard from "./pages/driver/DriverDashboard";
 import DriverProfile from "./pages/driver/DriverProfile";
 import DriverOrders from "./pages/driver/DriverOrders";
 import DriverVehicle from "./pages/driver/DriverVehicle";
+import PendingApproval from "./pages/driver/PendingApproval";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +61,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register/customer" element={<CustomerRegister />} />
             <Route path="/register/driver" element={<DriverRegister />} />
+            <Route path="/email-verification" element={<EmailVerification />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLogin />} />
@@ -79,6 +82,7 @@ const App = () => (
             <Route path="/driver/profile" element={<DriverProfile />} />
             <Route path="/driver/orders" element={<DriverOrders />} />
             <Route path="/driver/vehicle" element={<DriverVehicle />} />
+            <Route path="/driver/pending-approval" element={<PendingApproval />} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
