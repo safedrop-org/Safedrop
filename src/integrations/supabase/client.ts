@@ -9,45 +9,4 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  db: {
-    schema: 'public',
-  },
-  global: {
-    headers: {
-      'x-app-name': 'safedrop',
-    },
-  },
-});
-
-// SQL statements for creating tables - updated to match exactly what's shown in the images
-export const createProfilesTableSql = `
-CREATE TABLE IF NOT EXISTS profiles (
-  id UUID PRIMARY KEY,
-  first_name TEXT,
-  last_name TEXT,
-  phone TEXT,
-  address TEXT,
-  profile_image TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  user_type TEXT CHECK (user_type IN ('customer', 'driver', 'admin'))
-)
-`;
-
-export const createDriversTableSql = `
-CREATE TABLE IF NOT EXISTS drivers (
-  id UUID PRIMARY KEY REFERENCES profiles(id),
-  national_id TEXT NOT NULL,
-  license_number TEXT NOT NULL,
-  license_image TEXT,
-  vehicle_info JSONB NOT NULL,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-  rejection_reason TEXT,
-  rating DECIMAL(3,1),
-  is_available BOOLEAN DEFAULT FALSE,
-  location JSONB,
-  documents JSONB,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-)
-`;
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);

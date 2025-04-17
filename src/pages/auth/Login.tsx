@@ -11,7 +11,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LockIcon, MailIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 const LoginContent = () => {
   const { t, language } = useLanguage();
@@ -19,7 +18,7 @@ const LoginContent = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast: uiToast } = useToast();
+  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +26,7 @@ const LoginContent = () => {
 
     // Simple validation
     if (!email || !password) {
-      uiToast({
+      toast({
         title: "خطأ في تسجيل الدخول",
         description: "يرجى إدخال البريد الإلكتروني وكلمة المرور",
         variant: "destructive",
@@ -37,20 +36,13 @@ const LoginContent = () => {
     }
 
     try {
-      // First check if tables exist before attempting login
-      const { error: tablesCheckError } = await supabase.from('profiles').select('id').limit(1);
-      
-      if (tablesCheckError && tablesCheckError.code === '42P01') {
-        // The profiles table doesn't exist
-        toast.error("جداول قاعدة البيانات غير موجودة، يرجى إعادة تحميل الصفحة أو الاتصال بالمسؤول");
-        navigate('/'); // Redirect to homepage where tables creation UI is shown
-        setIsLoading(false);
-        return;
-      }
-      
       // Check if this is an admin email
       if (email.toLowerCase() === 'admin@safedrop.com') {
-        toast.info("يرجى استخدام صفحة تسجيل دخول المشرفين");
+        toast({
+          title: "يرجى استخدام صفحة تسجيل دخول المشرفين",
+          description: "تم اكتشاف حساب مشرف، يرجى استخدام صفحة تسجيل دخول المشرفين",
+        });
+        
         navigate('/admin');
         setIsLoading(false);
         return;
@@ -71,24 +63,17 @@ const LoginContent = () => {
         .eq('id', data.user?.id)
         .single();
       
-      if (profileError) {
-        if (profileError.code === '42P01') {
-          // Table doesn't exist
-          toast.error("جداول قاعدة البيانات غير موجودة. يرجى تحديث الصفحة الرئيسية لإنشاء الجداول");
-          navigate('/');
-          setIsLoading(false);
-          return;
-        } else {
-          throw profileError;
-        }
-      }
+      if (profileError) throw profileError;
       
       // Redirect based on user type
       if (profileData?.user_type === 'customer') {
         localStorage.setItem('customerAuth', 'true');
         localStorage.setItem('userId', data.user?.id || '');
         
-        toast.success("تم تسجيل الدخول بنجاح");
+        toast({
+          title: "تم تسجيل الدخول بنجاح",
+          description: "مرحباً بك في منصة سيف دروب",
+        });
         
         navigate('/customer/dashboard');
       } else if (profileData?.user_type === 'driver') {
@@ -99,22 +84,15 @@ const LoginContent = () => {
           .eq('id', data.user?.id)
           .single();
         
-        if (driverError) {
-          if (driverError.code === '42P01') {
-            // Table doesn't exist
-            toast.error("جداول قاعدة البيانات غير موجودة. يرجى تحديث الصفحة الرئيسية لإنشاء الجداول");
-            navigate('/');
-            setIsLoading(false);
-            return;
-          } else {
-            throw driverError;
-          }
-        }
+        if (driverError) throw driverError;
         
         localStorage.setItem('driverAuth', 'true');
         localStorage.setItem('userId', data.user?.id || '');
         
-        toast.success("تم تسجيل الدخول بنجاح");
+        toast({
+          title: "تم تسجيل الدخول بنجاح",
+          description: "مرحباً بك في منصة سيف دروب",
+        });
         
         if (driverData.status === 'approved') {
           navigate('/driver/dashboard');
@@ -124,7 +102,10 @@ const LoginContent = () => {
         }
       } else if (profileData?.user_type === 'admin') {
         // If they are an admin, redirect to admin login page
-        toast.info("يرجى استخدام صفحة تسجيل دخول المشرفين");
+        toast({
+          title: "يرجى استخدام صفحة تسجيل دخول المشرفين",
+          description: "تم اكتشاف حساب مشرف، يرجى استخدام صفحة تسجيل دخول المشرفين",
+        });
         
         navigate('/admin');
       } else {
@@ -133,18 +114,9 @@ const LoginContent = () => {
     } catch (error: any) {
       console.error("Login error:", error);
       
-      let errorMessage = "بيانات تسجيل الدخول غير صحيحة، يرجى المحاولة مرة أخرى";
-      
-      if (error.code === '42P01') {
-        errorMessage = "جداول قاعدة البيانات غير موجودة. يرجى تحديث الصفحة الرئيسية لإنشاء الجداول";
-        navigate('/');
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      uiToast({
+      toast({
         title: "فشل تسجيل الدخول",
-        description: errorMessage,
+        description: error.message || "بيانات تسجيل الدخول غير صحيحة، يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });
     } finally {
