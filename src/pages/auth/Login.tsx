@@ -43,6 +43,7 @@ const LoginContent = () => {
       if (tablesCheckError && tablesCheckError.code === '42P01') {
         // The profiles table doesn't exist
         toast.error("جداول قاعدة البيانات غير موجودة، يرجى إعادة تحميل الصفحة أو الاتصال بالمسؤول");
+        navigate('/'); // Redirect to homepage where tables creation UI is shown
         setIsLoading(false);
         return;
       }
@@ -73,7 +74,10 @@ const LoginContent = () => {
       if (profileError) {
         if (profileError.code === '42P01') {
           // Table doesn't exist
-          throw new Error('جداول قاعدة البيانات غير موجودة. يرجى الاتصال بالمسؤول');
+          toast.error("جداول قاعدة البيانات غير موجودة. يرجى تحديث الصفحة الرئيسية لإنشاء الجداول");
+          navigate('/');
+          setIsLoading(false);
+          return;
         } else {
           throw profileError;
         }
@@ -98,7 +102,10 @@ const LoginContent = () => {
         if (driverError) {
           if (driverError.code === '42P01') {
             // Table doesn't exist
-            throw new Error('جداول قاعدة البيانات غير موجودة. يرجى الاتصال بالمسؤول');
+            toast.error("جداول قاعدة البيانات غير موجودة. يرجى تحديث الصفحة الرئيسية لإنشاء الجداول");
+            navigate('/');
+            setIsLoading(false);
+            return;
           } else {
             throw driverError;
           }
@@ -129,7 +136,8 @@ const LoginContent = () => {
       let errorMessage = "بيانات تسجيل الدخول غير صحيحة، يرجى المحاولة مرة أخرى";
       
       if (error.code === '42P01') {
-        errorMessage = "جداول قاعدة البيانات غير موجودة. يرجى الاتصال بالمسؤول";
+        errorMessage = "جداول قاعدة البيانات غير موجودة. يرجى تحديث الصفحة الرئيسية لإنشاء الجداول";
+        navigate('/');
       } else if (error.message) {
         errorMessage = error.message;
       }
