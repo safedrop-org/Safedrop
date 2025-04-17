@@ -54,29 +54,34 @@ const AppContent = () => {
     const initDb = async () => {
       try {
         const result = await setupDatabase();
+        
         if (result.success) {
           setDbInitialized(true);
+          setInitializing(false);
         } else {
           console.error("Failed to initialize database:", result.error);
           
-          if (initAttempts < 3) {
-            // Retry initialization up to 3 times
+          // Maximum 2 retry attempts
+          if (initAttempts < 2) {
+            // Increment retry counter
             setInitAttempts(prev => prev + 1);
             toast.error("جاري محاولة إعادة تهيئة قاعدة البيانات...");
-            // Wait before retrying
-            setTimeout(initDb, 1000);
-            return;
+            // Wait longer between retries
+            setTimeout(initDb, 2000);
           } else {
+            // After max attempts, continue anyway but show error
             toast.error("خطأ في تهيئة قاعدة البيانات، يرجى تحديث الصفحة");
+            setInitializing(false);
           }
         }
       } catch (error) {
         console.error("Error during database initialization:", error);
-      } finally {
+        toast.error("خطأ في تهيئة قاعدة البيانات، يرجى تحديث الصفحة");
         setInitializing(false);
       }
     };
 
+    // Start initialization process
     initDb();
   }, [initAttempts]);
 
