@@ -49,6 +49,7 @@ const AppContent = () => {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [initAttempts, setInitAttempts] = useState(0);
+  const [manualSetupRequired, setManualSetupRequired] = useState(false);
 
   useEffect(() => {
     const initDb = async () => {
@@ -71,12 +72,14 @@ const AppContent = () => {
           } else {
             // After max attempts, continue anyway but show error
             toast.error("خطأ في تهيئة قاعدة البيانات، يرجى تحديث الصفحة");
+            setManualSetupRequired(true);
             setInitializing(false);
           }
         }
       } catch (error) {
         console.error("Error during database initialization:", error);
         toast.error("خطأ في تهيئة قاعدة البيانات، يرجى تحديث الصفحة");
+        setManualSetupRequired(true);
         setInitializing(false);
       }
     };
@@ -91,6 +94,30 @@ const AppContent = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-safedrop-primary mx-auto"></div>
           <p className="mt-4 text-lg">جاري تهيئة التطبيق...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (manualSetupRequired) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center max-w-lg mx-auto p-4">
+          <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
+            <p className="font-bold">تنبيه: يلزم إعداد قاعدة البيانات يدوياً</p>
+            <p>لم نتمكن من إنشاء جداول قاعدة البيانات تلقائياً. يرجى إنشاء الجداول التالية في لوحة تحكم Supabase:</p>
+            <ol className="list-decimal list-inside mt-2 text-left">
+              <li>جدول profiles</li>
+              <li>جدول drivers</li>
+            </ol>
+            <p className="mt-2">بعد إنشاء الجداول، قم بتحديث الصفحة.</p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-safedrop-primary text-white rounded hover:bg-safedrop-primary/90 transition-colors"
+          >
+            تحديث الصفحة
+          </button>
         </div>
       </div>
     );
