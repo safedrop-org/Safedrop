@@ -75,7 +75,7 @@ const LoginContent = () => {
       if (error) throw error;
       if (!data.user) throw new Error(t('failedToGetUserInfo'));
 
-      // Fetch profile
+      // Fetch profile - updated to handle missing profile correctly with maybeSingle()
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('user_type')
@@ -83,7 +83,16 @@ const LoginContent = () => {
         .maybeSingle();
 
       if (profileError) throw profileError;
-      if (!profileData) throw new Error(t('profileDataNotFound'));
+
+      if (!profileData) {
+        toast({
+          title: t('profileDataNotFound'),
+          description: t('pleaseContactSupport'),
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
 
       if (profileData.user_type === 'customer') {
         localStorage.setItem('customerAuth', 'true');
@@ -104,7 +113,15 @@ const LoginContent = () => {
           .maybeSingle();
 
         if (driverError) throw driverError;
-        if (!driverData) throw new Error(t('driverDataNotFound'));
+        if (!driverData) {
+          toast({
+            title: t('driverDataNotFound'),
+            description: t('pleaseContactSupport'),
+            variant: 'destructive',
+          });
+          setIsLoading(false);
+          return;
+        }
 
         localStorage.setItem('driverAuth', 'true');
         localStorage.setItem('userId', data.user.id);
