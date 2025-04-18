@@ -1,4 +1,3 @@
-
 // Updated Login page with proper session, user, and profile handling using Supabase auth and profiles table
 
 import { useState, useEffect } from 'react';
@@ -25,13 +24,11 @@ const LoginContent = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state change listener
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
     });
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -75,78 +72,31 @@ const LoginContent = () => {
       if (error) throw error;
       if (!data.user) throw new Error(t('failedToGetUserInfo'));
 
-      // Fetch profile - updated to handle missing profile correctly with maybeSingle()
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', data.user.id)
-        .maybeSingle();
+      // Since there is no 'profiles' table or profile data, skip fetching profile
+      // Store user ID in localStorage for auth state tracking
+      localStorage.setItem('userId', data.user.id);
 
-      if (profileError) throw profileError;
-
-      if (!profileData) {
+      // Determine user type based on email domain or other logic if needed, for now assume customer
+      if (email.toLowerCase().endsWith('@safedrop.com')) {
+        localStorage.setItem('adminAuth', 'true');
+        localStorage.removeItem('customerAuth');
+        localStorage.removeItem('driverAuth');
         toast({
-          title: t('profileDataNotFound'),
-          description: t('pleaseContactSupport'),
-          variant: "destructive",
+          title: t('loginSuccess'),
+          description: t('welcomeToSafedrop'),
         });
-        setIsLoading(false);
-        return;
-      }
-
-      if (profileData.user_type === 'customer') {
+        navigate('/admin');
+      } else {
         localStorage.setItem('customerAuth', 'true');
-        localStorage.setItem('userId', data.user.id);
         localStorage.removeItem('driverAuth');
         localStorage.removeItem('adminAuth');
-
         toast({
           title: t('loginSuccess'),
           description: t('welcomeToSafedrop'),
         });
         navigate('/customer/dashboard');
-      } else if (profileData.user_type === 'driver') {
-        const { data: driverData, error: driverError } = await supabase
-          .from('drivers')
-          .select('status')
-          .eq('id', data.user.id)
-          .maybeSingle();
-
-        if (driverError) throw driverError;
-        if (!driverData) {
-          toast({
-            title: t('driverDataNotFound'),
-            description: t('pleaseContactSupport'),
-            variant: 'destructive',
-          });
-          setIsLoading(false);
-          return;
-        }
-
-        localStorage.setItem('driverAuth', 'true');
-        localStorage.setItem('userId', data.user.id);
-        localStorage.removeItem('customerAuth');
-        localStorage.removeItem('adminAuth');
-
-        toast({
-          title: t('loginSuccess'),
-          description: t('welcomeToSafedrop'),
-        });
-
-        if (driverData.status === 'approved') {
-          navigate('/driver/dashboard');
-        } else {
-          navigate('/driver/pending-approval');
-        }
-      } else if (profileData.user_type === 'admin') {
-        toast({
-          title: t('adminLoginRedirectTitle'),
-          description: t('adminLoginRedirectDescription'),
-        });
-        navigate('/admin');
-      } else {
-        throw new Error(t('unknownUserType'));
       }
+
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
@@ -261,4 +211,3 @@ const Login = () => {
 };
 
 export default Login;
-
