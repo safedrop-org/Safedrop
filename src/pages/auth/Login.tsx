@@ -64,6 +64,8 @@ const LoginContent = () => {
       if (profileData.user_type === 'customer') {
         localStorage.setItem('customerAuth', 'true');
         localStorage.setItem('userId', data.user.id);
+        localStorage.removeItem('driverAuth');
+        localStorage.removeItem('adminAuth');
 
         toast({
           title: "تم تسجيل الدخول بنجاح",
@@ -82,6 +84,8 @@ const LoginContent = () => {
 
         localStorage.setItem('driverAuth', 'true');
         localStorage.setItem('userId', data.user.id);
+        localStorage.removeItem('customerAuth');
+        localStorage.removeItem('adminAuth');
 
         toast({
           title: "تم تسجيل الدخول بنجاح",
