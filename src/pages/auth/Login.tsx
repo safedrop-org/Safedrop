@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -24,7 +23,6 @@ const LoginContent = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simple validation
     if (!email || !password) {
       toast({
         title: "خطأ في تسجيل الدخول",
@@ -36,84 +34,76 @@ const LoginContent = () => {
     }
 
     try {
-      // Check if this is an admin email
       if (email.toLowerCase() === 'admin@safedrop.com') {
         toast({
           title: "يرجى استخدام صفحة تسجيل دخول المشرفين",
           description: "تم اكتشاف حساب مشرف، يرجى استخدام صفحة تسجيل دخول المشرفين",
         });
-        
         navigate('/admin');
         setIsLoading(false);
         return;
       }
-      
-      // Authenticate with Supabase
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      
+
       if (error) throw error;
-      
-      // Get user profile to determine user type
+      if (!data.user) throw new Error("فشل في الحصول على معلومات المستخدم.");
+
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('user_type')
-        .eq('id', data.user?.id)
-        .single();
-      
+        .eq('id', data.user.id)
+        .maybeSingle();
+
       if (profileError) throw profileError;
-      
-      // Redirect based on user type
-      if (profileData?.user_type === 'customer') {
+      if (!profileData) throw new Error("لم يتم العثور على بيانات الملف الشخصي.");
+
+      if (profileData.user_type === 'customer') {
         localStorage.setItem('customerAuth', 'true');
-        localStorage.setItem('userId', data.user?.id || '');
-        
+        localStorage.setItem('userId', data.user.id);
+
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك في منصة سيف دروب",
         });
-        
         navigate('/customer/dashboard');
-      } else if (profileData?.user_type === 'driver') {
-        // Check driver status before redirecting
+      } else if (profileData.user_type === 'driver') {
         const { data: driverData, error: driverError } = await supabase
           .from('drivers')
           .select('status')
-          .eq('id', data.user?.id)
-          .single();
-        
+          .eq('id', data.user.id)
+          .maybeSingle();
+
         if (driverError) throw driverError;
-        
+        if (!driverData) throw new Error("لم يتم العثور على بيانات السائق.");
+
         localStorage.setItem('driverAuth', 'true');
-        localStorage.setItem('userId', data.user?.id || '');
-        
+        localStorage.setItem('userId', data.user.id);
+
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك في منصة سيف دروب",
         });
-        
+
         if (driverData.status === 'approved') {
           navigate('/driver/dashboard');
         } else {
-          // Redirect to pending approval page
           navigate('/driver/pending-approval');
         }
-      } else if (profileData?.user_type === 'admin') {
-        // If they are an admin, redirect to admin login page
+      } else if (profileData.user_type === 'admin') {
         toast({
           title: "يرجى استخدام صفحة تسجيل دخول المشرفين",
           description: "تم اكتشاف حساب مشرف، يرجى استخدام صفحة تسجيل دخول المشرفين",
         });
-        
         navigate('/admin');
       } else {
         throw new Error('نوع المستخدم غير معروف');
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      
       toast({
         title: "فشل تسجيل الدخول",
         description: error.message || "بيانات تسجيل الدخول غير صحيحة، يرجى المحاولة مرة أخرى",
