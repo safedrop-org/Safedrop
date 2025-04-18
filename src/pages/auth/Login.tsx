@@ -1,4 +1,7 @@
-import { useState } from 'react';
+
+// Updated Login page with proper session, user, and profile handling using Supabase auth and profiles table
+
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -12,12 +15,32 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const LoginContent = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Set up auth state change listener
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,8 +48,8 @@ const LoginContent = () => {
 
     if (!email || !password) {
       toast({
-        title: "خطأ في تسجيل الدخول",
-        description: "يرجى إدخال البريد الإلكتروني وكلمة المرور",
+        title: t('loginError'),
+        description: t('pleaseEnterEmailAndPassword'),
         variant: "destructive",
       });
       setIsLoading(false);
@@ -36,8 +59,8 @@ const LoginContent = () => {
     try {
       if (email.toLowerCase() === 'admin@safedrop.com') {
         toast({
-          title: "يرجى استخدام صفحة تسجيل دخول المشرفين",
-          description: "تم اكتشاف حساب مشرف، يرجى استخدام صفحة تسجيل دخول المشرفين",
+          title: t('adminLoginRedirectTitle'),
+          description: t('adminLoginRedirectDescription'),
         });
         navigate('/admin');
         setIsLoading(false);
@@ -46,12 +69,13 @@ const LoginContent = () => {
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
       if (error) throw error;
-      if (!data.user) throw new Error("فشل في الحصول على معلومات المستخدم.");
+      if (!data.user) throw new Error(t('failedToGetUserInfo'));
 
+      // Fetch profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('user_type')
@@ -59,7 +83,7 @@ const LoginContent = () => {
         .maybeSingle();
 
       if (profileError) throw profileError;
-      if (!profileData) throw new Error("لم يتم العثور على بيانات الملف الشخصي.");
+      if (!profileData) throw new Error(t('profileDataNotFound'));
 
       if (profileData.user_type === 'customer') {
         localStorage.setItem('customerAuth', 'true');
@@ -68,8 +92,8 @@ const LoginContent = () => {
         localStorage.removeItem('adminAuth');
 
         toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في منصة سيف دروب",
+          title: t('loginSuccess'),
+          description: t('welcomeToSafedrop'),
         });
         navigate('/customer/dashboard');
       } else if (profileData.user_type === 'driver') {
@@ -80,7 +104,7 @@ const LoginContent = () => {
           .maybeSingle();
 
         if (driverError) throw driverError;
-        if (!driverData) throw new Error("لم يتم العثور على بيانات السائق.");
+        if (!driverData) throw new Error(t('driverDataNotFound'));
 
         localStorage.setItem('driverAuth', 'true');
         localStorage.setItem('userId', data.user.id);
@@ -88,8 +112,8 @@ const LoginContent = () => {
         localStorage.removeItem('adminAuth');
 
         toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في منصة سيف دروب",
+          title: t('loginSuccess'),
+          description: t('welcomeToSafedrop'),
         });
 
         if (driverData.status === 'approved') {
@@ -99,18 +123,18 @@ const LoginContent = () => {
         }
       } else if (profileData.user_type === 'admin') {
         toast({
-          title: "يرجى استخدام صفحة تسجيل دخول المشرفين",
-          description: "تم اكتشاف حساب مشرف، يرجى استخدام صفحة تسجيل دخول المشرفين",
+          title: t('adminLoginRedirectTitle'),
+          description: t('adminLoginRedirectDescription'),
         });
         navigate('/admin');
       } else {
-        throw new Error('نوع المستخدم غير معروف');
+        throw new Error(t('unknownUserType'));
       }
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
-        title: "فشل تسجيل الدخول",
-        description: error.message || "بيانات تسجيل الدخول غير صحيحة، يرجى المحاولة مرة أخرى",
+        title: t('loginFailed'),
+        description: error.message || t('invalidCredentialsTryAgain'),
         variant: "destructive",
       });
     } finally {
@@ -132,39 +156,39 @@ const LoginContent = () => {
                 دخول إلى حسابك في منصة سيف دروب
               </CardDescription>
             </CardHeader>
-            
+
             <form onSubmit={handleLogin}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">البريد الإلكتروني</Label>
+                  <Label htmlFor="email">{t('email')}</Label>
                   <div className="relative">
                     <MailIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      className="pl-10 rtl:pl-4 rtl:pr-10" 
-                      placeholder="your@email.com" 
+                    <Input
+                      id="email"
+                      type="email"
+                      className="pl-10 rtl:pl-4 rtl:pr-10"
+                      placeholder="your@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="password">كلمة المرور</Label>
+                  <Label htmlFor="password">{t('password')}</Label>
                   <div className="relative">
                     <LockIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      className="pl-10 rtl:pl-4 rtl:pr-10" 
-                      placeholder="••••••••" 
+                    <Input
+                      id="password"
+                      type="password"
+                      className="pl-10 rtl:pl-4 rtl:pr-10"
+                      placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <input
@@ -179,16 +203,16 @@ const LoginContent = () => {
                   </Link>
                 </div>
               </CardContent>
-              
+
               <CardFooter className="flex flex-col space-y-4">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
                   disabled={isLoading}
                 >
                   {isLoading ? "جاري تسجيل الدخول..." : t('login')}
                 </Button>
-                
+
                 <div className="text-center text-sm">
                   ليس لديك حساب؟{' '}
                   <div className="flex justify-center gap-2 mt-2">
@@ -220,3 +244,4 @@ const Login = () => {
 };
 
 export default Login;
+
