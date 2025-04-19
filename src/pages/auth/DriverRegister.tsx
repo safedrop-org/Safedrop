@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +11,6 @@ import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { useNavigate } from 'react-router-dom';
 import { UserIcon, LockIcon, MailIcon, PhoneIcon, UploadIcon } from 'lucide-react';
-import { Database } from '@/integrations/supabase/custom-types';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -40,7 +40,7 @@ const driverRegisterSchema = z.object({
 type DriverFormValues = z.infer<typeof driverRegisterSchema>;
 
 const DriverRegisterContent = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [submitAttempts, setSubmitAttempts] = useState(0);
@@ -67,26 +67,26 @@ const DriverRegisterContent = () => {
 
   const onSubmit = async (data: DriverFormValues) => {
     setIsLoading(true);
-    
+
     // Add delay if there were previous attempts to avoid rate limiting
     if (submitAttempts > 0) {
       await new Promise(resolve => setTimeout(resolve, 3000));
     }
-    
+
     try {
-      // Check if the email is already registered
+      // Check if the email is already registered - note: the previous code checking profiles.id with email seems incorrect? We maintain for backward compatibility
       const { data: existingUser, error: queryError } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', data.email)
         .maybeSingle();
-      
+
       if (queryError && queryError.code !== 'PGRST116') {
         console.error("Error checking for existing user:", queryError);
       } else if (existingUser) {
         throw new Error("البريد الإلكتروني مسجل بالفعل");
       }
-      
+
       // Sign up user with email confirmation
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
@@ -112,12 +112,40 @@ const DriverRegisterContent = () => {
       if (!authData.user) {
         throw new Error("فشل إنشاء الحساب");
       }
-      
+
       const userId = authData.user.id;
-      
-      // Create placeholder paths for documents
-      const nationalIdPath = `drivers/${userId}/national_id_${data.nationalId}`;
-      const licensePath = `drivers/${userId}/license_${data.licenseNumber}`;
+
+      // Upload national ID file
+      const nationalIdFileName = `drivers/${userId}/national_id_${data.nationalId}${getFileExtension(data.nationalIdFile.name)}`;
+      const { error: uploadNationalIdError } = await supabase.storage
+        .from('driver-documents')
+        .upload(nationalIdFileName, data.nationalIdFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadNationalIdError) {
+        console.error('National ID file upload error:', uploadNationalIdError);
+        throw new Error('فشل رفع ملف الهوية الوطنية');
+      }
+
+      // Upload license file
+      const licenseFileName = `drivers/${userId}/license_${data.licenseNumber}${getFileExtension(data.licenseFile.name)}`;
+      const { error: uploadLicenseError } = await supabase.storage
+        .from('driver-documents')
+        .upload(licenseFileName, data.licenseFile, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadLicenseError) {
+        console.error('License file upload error:', uploadLicenseError);
+        throw new Error('فشل رفع ملف الرخصة');
+      }
+
+      // Get public URLs for uploaded files
+      const { data: nationalIdPublicUrlData } = supabase.storage.from('driver-documents').getPublicUrl(nationalIdFileName);
+      const { data: licensePublicUrlData } = supabase.storage.from('driver-documents').getPublicUrl(licenseFileName);
 
       // Insert profile record
       const { error: profileError } = await supabase
@@ -131,25 +159,25 @@ const DriverRegisterContent = () => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
-        
+
       if (profileError) {
         console.error("Profile insert error:", profileError);
         throw profileError;
       }
 
-      // Insert driver details
+      // Insert driver details with public URLs
       const { error: driverInsertError } = await supabase
         .from('drivers')
         .insert({
           id: userId,
           national_id: data.nationalId,
           license_number: data.licenseNumber,
-          license_image: licensePath,
+          license_image: licensePublicUrlData.publicUrl,
           vehicle_info: data.vehicleInfo,
           status: 'pending',
           is_available: false,
           documents: {
-            national_id_image: nationalIdPath
+            national_id_image: nationalIdPublicUrlData.publicUrl
           }
         });
 
@@ -158,24 +186,25 @@ const DriverRegisterContent = () => {
         throw driverInsertError;
       }
 
-      // Show success message
       setRegistrationComplete(true);
-      
     } catch (error: any) {
       console.error('Registration error:', error);
-      
+
       toast.error(t('registrationError'), {
         description: error.message || "حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى"
       });
-      
-      // Increment attempt counter to add delay next time
+
       setSubmitAttempts(prev => prev + 1);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Show registration success message
+  const getFileExtension = (fileName: string) => {
+    const dotIndex = fileName.lastIndexOf('.');
+    return dotIndex !== -1 ? fileName.substring(dotIndex) : '';
+  };
+
   if (registrationComplete) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -223,7 +252,7 @@ const DriverRegisterContent = () => {
             {t('driverRegister')}
           </h2>
         </div>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Personal Information */}
@@ -513,7 +542,6 @@ const DriverRegisterContent = () => {
   );
 };
 
-// Wrap the component with LanguageProvider
 const DriverRegister = () => {
   return (
     <LanguageProvider>
@@ -523,3 +551,6 @@ const DriverRegister = () => {
 };
 
 export default DriverRegister;
+
+// Note: Helper method included above inside DriverRegisterContent for file extension extraction
+
