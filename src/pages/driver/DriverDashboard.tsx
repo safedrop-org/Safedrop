@@ -6,130 +6,236 @@ import DriverSidebar from '@/components/driver/DriverSidebar';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, MessageCircle, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { Bell, MessageSquare, AlertTriangle, CheckCircle, Clock, Star, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 const DriverDashboardContent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [accountStatus, setAccountStatus] = useState<'approved' | 'pending' | 'rejected'>('pending');
-  
-  // Sample data - in a real app this would come from an API
-  const driverStats = {
-    completedOrders: 132,
-    averageRating: 4.8,
-    totalEarnings: 8650,
-    platformCommission: 1297.50,
-    availableBalance: 7352.50
-  };
-  
-  const notifications = [
-    {
-      id: 1,
-      type: 'document',
-      message: 'رخصة القيادة ستنتهي قريبًا، يرجى تحديثها',
-      date: '2025-05-01',
-      isRead: false
-    },
-    {
-      id: 2,
-      type: 'order',
-      message: 'لديك طلب توصيل جديد في منطقة العليا',
-      date: '2025-04-16',
-      isRead: true
-    },
-    {
-      id: 3,
-      type: 'payment',
-      message: 'تم إيداع مبلغ 750 ريال في حسابك البنكي',
-      date: '2025-04-15',
-      isRead: false
-    }
-  ];
+  const { t } = useLanguage();
 
-  // Check if user is authenticated
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [driverStatus, setDriverStatus] = useState<'approved' | 'pending' | 'rejected' | 'frozen' | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
+  const [rejectionCount, setRejectionCount] = useState(0);
+  const [notifications, setNotifications] = useState<{ id: number; type: string; message: string; date: string; isRead: boolean; }[]>([]);
+  const [driverRating, setDriverRating] = useState<number>(0);
+  const [driverStats, setDriverStats] = useState({
+    completedOrders: 0,
+    totalEarnings: 0,
+    platformCommission: 0,
+    availableBalance: 0
+  });
+
+  // Fetch driver data and authentication status
   useEffect(() => {
-    const driverAuth = localStorage.getItem('driverAuth');
-    if (!driverAuth || driverAuth !== 'true') {
-      toast({
-        title: "غير مصرح بالدخول",
-        description: "يرجى تسجيل الدخول أولاً",
-        variant: "destructive",
-      });
-      navigate('/login');
-    } else {
-      setIsAuthenticated(true);
-      
-      // In a real app, we would fetch the account status from an API
-      // For now, using a random status for demonstration
-      const statuses = ['approved', 'pending', 'rejected'];
-      const randomStatus = statuses[0]; // Set to approved for demo
-      setAccountStatus(randomStatus as 'approved' | 'pending' | 'rejected');
-    }
+    const checkAuthAndData = async () => {
+      const driverAuth = localStorage.getItem('driverAuth');
+      if (!driverAuth || driverAuth !== 'true') {
+        toast({
+          title: "غير مصرح بالدخول",
+          description: "يرجى تسجيل الدخول أولاً",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+          toast({
+            title: "غير مصرح بالدخول",
+            description: "يرجى تسجيل الدخول أولاً",
+            variant: "destructive",
+          });
+          localStorage.removeItem('driverAuth');
+          navigate('/login');
+          return;
+        }
+
+        // Fetch driver info from 'drivers' table
+        const { data: driver, error } = await supabase
+          .from('drivers')
+          .select('status, rejection_reason, rating')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error || !driver) {
+          toast({
+            title: "خطأ في جلب بيانات السائق",
+            description: "يرجى التواصل مع الدعم الفني",
+            variant: 'destructive',
+          });
+          navigate('/login');
+          return;
+        }
+
+        setDriverStatus(driver.status);
+        setRejectionReason(driver.rejection_reason || null);
+        setDriverRating(driver.rating || 0);
+
+        // Handle statuses
+        if (driver.status === 'pending') {
+          navigate('/driver/pending-approval');
+          return;
+        }
+        if (driver.status === 'rejected') {
+          // Count number of rejections from localStorage, default to 1 if not stored
+          const count = Number(localStorage.getItem('driverRejectionCount')) || 1;
+          setRejectionCount(count);
+          if (count >= 2) {
+            // Frozen status
+            setDriverStatus('frozen');
+            toast({
+              title: "تم تعطيل الحساب مؤقتاً",
+              description: "تم رفض الحساب مرتين متتاليتين. يرجى التواصل مع الدعم الفني للاستفسار.",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+        if (driver.status === 'frozen') {
+          toast({
+            title: "تم تعطيل الحساب مؤقتاً",
+            description: "يرجى التواصل مع الدعم الفني للمزيد من المعلومات.",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (driver.status === 'approved') {
+          setIsAuthenticated(true);
+          // Initialize driver stats and notifications (mock or from API)
+          setDriverStats({
+            completedOrders: 132,
+            totalEarnings: 8650,
+            platformCommission: 1297.50,
+            availableBalance: 7352.50
+          });
+          setNotifications([
+            {
+              id: 1,
+              type: 'document',
+              message: 'رخصة القيادة ستنتهي قريبًا، يرجى تحديثها',
+              date: '2025-05-01',
+              isRead: false
+            },
+            {
+              id: 2,
+              type: 'order',
+              message: 'لديك طلب توصيل جديد في منطقة العليا',
+              date: '2025-04-16',
+              isRead: true
+            },
+            {
+              id: 3,
+              type: 'payment',
+              message: 'تم إيداع مبلغ 750 ريال في حسابك البنكي',
+              date: '2025-04-15',
+              isRead: false
+            }
+          ]);
+        }
+      } catch(error) {
+        console.error("Error in driver dashboard init", error);
+        toast({
+          title: "خطأ في النظام",
+          description: "حدث خطأ عند جلب بيانات الحساب",
+          variant: "destructive",
+        });
+        navigate('/login');
+      }
+    };
+    checkAuthAndData();
   }, [navigate, toast]);
 
   const renderAccountStatusBanner = () => {
-    switch(accountStatus) {
-      case 'approved':
-        return (
-          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
-            <div className="flex items-start">
-              <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
-              <div>
-                <p className="font-medium text-green-800">تم اعتماد حسابك</p>
-                <p className="text-green-700 text-sm">يمكنك الآن استقبال طلبات التوصيل والبدء في استخدام المنصة</p>
-              </div>
+    if (driverStatus === 'approved') {
+      return (
+        <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+          <div className="flex items-start">
+            <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
+            <div>
+              <p className="font-medium text-green-800">تم اعتماد حسابك</p>
+              <p className="text-green-700 text-sm">يمكنك الآن استقبال طلبات التوصيل والبدء في استخدام المنصة</p>
             </div>
           </div>
-        );
-      case 'pending':
-        return (
-          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
-            <div className="flex items-start">
-              <Clock className="h-6 w-6 text-yellow-500 mr-3" />
-              <div>
-                <p className="font-medium text-yellow-800">حسابك قيد المراجعة</p>
-                <p className="text-yellow-700 text-sm">نحن نراجع بياناتك ووثائقك، وسنعلمك عند الانتهاء من المراجعة</p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate('/driver/profile')}
-                  className="mt-2"
-                >
-                  تحديث الوثائق
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
-      case 'rejected':
-        return (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-            <div className="flex items-start">
-              <AlertTriangle className="h-6 w-6 text-red-500 mr-3" />
-              <div>
-                <p className="font-medium text-red-800">تم رفض طلبك</p>
-                <p className="text-red-700 text-sm">يرجى مراجعة الوثائق المقدمة والتأكد من صحتها واكتمالها</p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate('/driver/profile')}
-                  className="mt-2"
-                >
-                  تحديث الوثائق
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
-      default:
-        return null;
+        </div>
+      );
     }
+    if (driverStatus === 'pending') {
+      return (
+        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
+          <div className="flex items-start">
+            <Clock className="h-6 w-6 text-yellow-500 mr-3" />
+            <div>
+              <p className="font-medium text-yellow-800">حسابك قيد المراجعة</p>
+              <p className="text-yellow-700 text-sm">نحن نراجع بياناتك ووثائقك، وسنعلمك عند الانتهاء من المراجعة</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (driverStatus === 'rejected') {
+      return (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div className="flex items-start">
+            <AlertTriangle className="h-6 w-6 text-red-500 mr-3" />
+            <div>
+              <p className="font-medium text-red-800">تم رفض طلبك</p>
+              <p className="text-red-700 text-sm">
+                للأسف، تم رفض طلب انضمامك كسائق في منصة سيف دروب.
+              </p>
+              {rejectionReason && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <h3 className="font-semibold text-red-800">سبب الرفض:</h3>
+                  <p className="text-red-700 mt-2">{rejectionReason}</p>
+                </div>
+              )}
+              <p className="text-gray-600 mt-4">
+                يمكنك تعديل بياناتك وإعادة التقديم مرة واحدة.
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-2"
+                onClick={() => navigate('/driver/profile')}
+              >
+                إعادة التقديم
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (driverStatus === 'frozen') {
+      return (
+        <div className="bg-red-100 border-l-4 border-red-600 p-4 mb-6">
+          <div className="flex items-start">
+            <AlertTriangle className="h-6 w-6 text-red-600 mr-3" />
+            <div>
+              <p className="font-bold text-red-700">الحساب مجمد مؤقتاً</p>
+              <p className="mt-2 text-red-600">
+                تم رفض طلبك كسائق مرتين متتاليتين. يرجى التواصل مع الدعم الفني لتقديم اعتراض أو استفسار.
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
   };
 
-  if (!isAuthenticated) {
-    return <div className="flex justify-center items-center h-screen">جاري التحميل...</div>;
+  if (!isAuthenticated || driverStatus !== 'approved') {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-safedrop-primary mx-auto"></div>
+          <h2 className="text-2xl font-bold">{t('loading') || 'جاري التحميل...'}</h2>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -168,16 +274,14 @@ const DriverDashboardContent = () => {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">تقييمك العام</p>
+                      <p className="text-sm font-medium text-gray-500">التقييم العام</p>
                       <div className="flex items-center">
-                        <h3 className="text-2xl font-bold">{driverStats.averageRating}</h3>
+                        <h3 className="text-2xl font-bold">{driverRating.toFixed(1)}</h3>
                         <span className="text-yellow-500 ml-2">★★★★★</span>
                       </div>
                     </div>
                     <div className="bg-yellow-100 p-3 rounded-full">
-                      <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
+                      <Star className="h-6 w-6 text-yellow-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -191,9 +295,7 @@ const DriverDashboardContent = () => {
                       <h3 className="text-2xl font-bold">{driverStats.availableBalance} ر.س</h3>
                     </div>
                     <div className="bg-green-100 p-3 rounded-full">
-                      <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <DollarSign className="h-6 w-6 text-green-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -265,34 +367,33 @@ const DriverDashboardContent = () => {
               </Card>
             </div>
             
-            <div className="grid grid-cols-1 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>الدعم والمساعدة</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Button variant="outline" className="h-auto py-4 flex items-center justify-center gap-2">
-                      <MessageCircle className="h-5 w-5" />
-                      <span>تواصل مع الدعم الفني</span>
-                    </Button>
-                    <Button variant="outline" className="h-auto py-4 flex items-center justify-center gap-2">
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>الأسئلة الشائعة</span>
-                    </Button>
-                  </div>
-                  
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-500 mb-2">هل تواجه مشكلة؟</p>
-                    <Button variant="secondary" className="w-full">
-                      إبلاغ عن مشكلة
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            {/* دعم ومساعدة */}
+            <Card>
+              <CardHeader>
+                <CardTitle>الدعم والمساعدة</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button variant="outline" className="h-auto py-4 flex items-center justify-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    <span>تواصل مع الدعم الفني</span>
+                  </Button>
+                  <Button variant="outline" className="h-auto py-4 flex items-center justify-center gap-2">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>الأسئلة الشائعة</span>
+                  </Button>
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500 mb-2">هل تواجه مشكلة؟</p>
+                  <Button variant="secondary" className="w-full">
+                    إبلاغ عن مشكلة
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>
@@ -309,3 +410,4 @@ const DriverDashboard = () => {
 };
 
 export default DriverDashboard;
+

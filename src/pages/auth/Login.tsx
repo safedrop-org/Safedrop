@@ -1,4 +1,3 @@
-// Updated Login page with proper session, user, and profile handling using Supabase auth and profiles table
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -87,16 +86,60 @@ const LoginContent = () => {
         });
         navigate('/admin');
       } else {
-        localStorage.setItem('customerAuth', 'true');
-        localStorage.removeItem('driverAuth');
-        localStorage.removeItem('adminAuth');
-        toast({
-          title: t('loginSuccess'),
-          description: t('welcomeToSafedrop'),
-        });
-        navigate('/customer/dashboard');
-      }
+        // Check if user is a driver and redirect accordingly
+        // Fetch driver status
+        const { data: driverData, error: driverError } = await supabase
+          .from('drivers')
+          .select('status')
+          .eq('id', data.user.id)
+          .maybeSingle();
 
+        if (driverError) {
+          throw driverError;
+        }
+
+        if (driverData) {
+          if (driverData.status === 'approved') {
+            localStorage.setItem('driverAuth', 'true');
+            localStorage.removeItem('customerAuth');
+            localStorage.removeItem('adminAuth');
+            toast({
+              title: t('loginSuccess'),
+              description: t('welcomeToSafedrop'),
+            });
+            navigate('/driver/dashboard');
+          } else if (driverData.status === 'pending') {
+            localStorage.setItem('driverAuth', 'true');
+            localStorage.removeItem('customerAuth');
+            localStorage.removeItem('adminAuth');
+            toast({
+              title: t('pendingApprovalTitle'),
+              description: t('pendingApprovalDescription'),
+            });
+            navigate('/driver/pending-approval');
+          } else if (driverData.status === 'rejected') {
+            localStorage.setItem('driverAuth', 'true');
+            localStorage.removeItem('customerAuth');
+            localStorage.removeItem('adminAuth');
+            toast({
+              title: t('rejectedAccountTitle'),
+              description: t('rejectedAccountDescription'),
+              variant: 'destructive'
+            });
+            navigate('/driver/pending-approval');
+          }
+        } else {
+          // Default to customer if no driver data found
+          localStorage.setItem('customerAuth', 'true');
+          localStorage.removeItem('driverAuth');
+          localStorage.removeItem('adminAuth');
+          toast({
+            title: t('loginSuccess'),
+            description: t('welcomeToSafedrop'),
+          });
+          navigate('/customer/dashboard');
+        }
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
@@ -211,3 +254,4 @@ const Login = () => {
 };
 
 export default Login;
+
