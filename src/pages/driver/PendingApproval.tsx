@@ -1,11 +1,10 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Clock, LogOut, XCircle } from 'lucide-react';
+import { Clock, LogOut, XCircle, AlertTriangle } from 'lucide-react';
 
 const PendingApprovalContent = () => {
   const navigate = useNavigate();
