@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -46,7 +45,7 @@ const LoginContent = () => {
       toast({
         title: t('loginError'),
         description: t('pleaseEnterEmailAndPassword'),
-        variant: "destructive",
+        variant: 'destructive',
       });
       setIsLoading(false);
       return;
@@ -71,12 +70,19 @@ const LoginContent = () => {
       if (error) throw error;
       if (!data.user) throw new Error(t('failedToGetUserInfo'));
 
-      // Since there is no 'profiles' table or profile data, skip fetching profile
-      // Store user ID in localStorage for auth state tracking
       localStorage.setItem('userId', data.user.id);
 
-      // Determine user type based on email domain or other logic if needed, for now assume customer
-      if (email.toLowerCase().endsWith('@safedrop.com')) {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      if (profileData?.user_type === 'admin') {
         localStorage.setItem('adminAuth', 'true');
         localStorage.removeItem('customerAuth');
         localStorage.removeItem('driverAuth');
@@ -85,9 +91,11 @@ const LoginContent = () => {
           description: t('welcomeToSafedrop'),
         });
         navigate('/admin');
-      } else {
-        // Check if user is a driver and redirect accordingly
-        // Fetch driver status
+        setIsLoading(false);
+        return;
+      }
+
+      if (profileData?.user_type === 'driver') {
         const { data: driverData, error: driverError } = await supabase
           .from('drivers')
           .select('status')
@@ -108,7 +116,10 @@ const LoginContent = () => {
               description: t('welcomeToSafedrop'),
             });
             navigate('/driver/dashboard');
-          } else if (driverData.status === 'pending') {
+          } else if (
+            driverData.status === 'pending' ||
+            driverData.status === null
+          ) {
             localStorage.setItem('driverAuth', 'true');
             localStorage.removeItem('customerAuth');
             localStorage.removeItem('adminAuth');
@@ -124,12 +135,20 @@ const LoginContent = () => {
             toast({
               title: t('rejectedAccountTitle'),
               description: t('rejectedAccountDescription'),
-              variant: 'destructive'
+              variant: 'destructive',
+            });
+            navigate('/driver/pending-approval');
+          } else {
+            localStorage.setItem('driverAuth', 'true');
+            localStorage.removeItem('customerAuth');
+            localStorage.removeItem('adminAuth');
+            toast({
+              title: t('pendingApprovalTitle'),
+              description: t('pendingApprovalDescription'),
             });
             navigate('/driver/pending-approval');
           }
         } else {
-          // Default to customer if no driver data found
           localStorage.setItem('customerAuth', 'true');
           localStorage.removeItem('driverAuth');
           localStorage.removeItem('adminAuth');
@@ -139,13 +158,25 @@ const LoginContent = () => {
           });
           navigate('/customer/dashboard');
         }
+
+        setIsLoading(false);
+        return;
       }
+
+      localStorage.setItem('customerAuth', 'true');
+      localStorage.removeItem('driverAuth');
+      localStorage.removeItem('adminAuth');
+      toast({
+        title: t('loginSuccess'),
+        description: t('welcomeToSafedrop'),
+      });
+      navigate('/customer/dashboard');
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       toast({
         title: t('loginFailed'),
         description: error.message || t('invalidCredentialsTryAgain'),
-        variant: "destructive",
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -254,4 +285,3 @@ const Login = () => {
 };
 
 export default Login;
-

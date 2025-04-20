@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -69,24 +68,14 @@ const DriverRegisterContent = () => {
     setIsLoading(true);
 
     if (submitAttempts > 0) {
-      await new Promise(resolve => setTimeout(resolve, 3000)); // delay if repeated
+      await new Promise((resolve) => setTimeout(resolve, 3000));
     }
 
     try {
-      // Check if the email is already registered correctly by email
-      const { data: existingUser, error: queryError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', data.email) // This check is not ideal, better to check on email field but profile.id is UUID
-        .maybeSingle();
+      // Check if email already exists - current check on profiles.id with email is incorrect, so removed to prevent false positive
+      // Removed existingUser check due to id/email mismatch
 
-      if (queryError && queryError.code !== 'PGRST116') {
-        console.error("Error checking for existing user:", queryError);
-      } else if (existingUser) {
-        throw new Error("البريد الإلكتروني مسجل بالفعل");
-      }
-
-      // Register user with email confirmation but DO NOT sign in automatically
+      // Register user with email confirmation only, do NOT login automatically
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -95,32 +84,39 @@ const DriverRegisterContent = () => {
             first_name: data.firstName,
             last_name: data.lastName,
             phone: data.phone,
-            user_type: 'driver'
+            user_type: 'driver',
           },
-          emailRedirectTo: window.location.origin + '/email-verification'
-        }
+          emailRedirectTo: window.location.origin + '/email-verification',
+        },
       });
 
       if (signUpError) {
-        if (signUpError.message.includes("security purposes") || signUpError.code === "over_email_send_rate_limit") {
-          throw new Error("تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار قليلاً ثم المحاولة مرة أخرى");
+        if (
+          signUpError.message.includes('security purposes') ||
+          signUpError.code === 'over_email_send_rate_limit'
+        ) {
+          throw new Error(
+            'تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار قليلاً ثم المحاولة مرة أخرى'
+          );
         }
         throw signUpError;
       }
 
       if (!authData.user) {
-        throw new Error("فشل إنشاء الحساب");
+        throw new Error('فشل إنشاء الحساب');
       }
 
       const userId = authData.user.id;
 
       // Upload national ID file
-      const nationalIdFileName = `drivers/${userId}/national_id_${data.nationalId}${getFileExtension(data.nationalIdFile.name)}`;
+      const nationalIdFileName = `drivers/${userId}/national_id_${data.nationalId}${getFileExtension(
+        data.nationalIdFile.name
+      )}`;
       const { error: uploadNationalIdError } = await supabase.storage
         .from('driver-documents')
         .upload(nationalIdFileName, data.nationalIdFile, {
           cacheControl: '3600',
-          upsert: true
+          upsert: true,
         });
 
       if (uploadNationalIdError) {
@@ -129,12 +125,14 @@ const DriverRegisterContent = () => {
       }
 
       // Upload license file
-      const licenseFileName = `drivers/${userId}/license_${data.licenseNumber}${getFileExtension(data.licenseFile.name)}`;
+      const licenseFileName = `drivers/${userId}/license_${data.licenseNumber}${getFileExtension(
+        data.licenseFile.name
+      )}`;
       const { error: uploadLicenseError } = await supabase.storage
         .from('driver-documents')
         .upload(licenseFileName, data.licenseFile, {
           cacheControl: '3600',
-          upsert: true
+          upsert: true,
         });
 
       if (uploadLicenseError) {
@@ -143,65 +141,62 @@ const DriverRegisterContent = () => {
       }
 
       // Get public URLs for uploaded files
-      const { data: nationalIdPublicUrlData } = supabase.storage.from('driver-documents').getPublicUrl(nationalIdFileName);
-      const { data: licensePublicUrlData } = supabase.storage.from('driver-documents').getPublicUrl(licenseFileName);
+      const { data: nationalIdPublicUrlData } = supabase.storage
+        .from('driver-documents')
+        .getPublicUrl(nationalIdFileName);
+      const { data: licensePublicUrlData } = supabase.storage
+        .from('driver-documents')
+        .getPublicUrl(licenseFileName);
 
-      // Insert profile record - ensure user_id and user_type are saved properly
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: userId,
-          first_name: data.firstName,
-          last_name: data.lastName,
-          phone: data.phone,
-          user_type: 'driver',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+      // Insert profile record with user_type driver
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: userId,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        phone: data.phone,
+        user_type: 'driver',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
 
       if (profileError) {
-        console.error("Profile insert error:", profileError);
+        console.error('Profile insert error:', profileError);
         throw profileError;
       }
 
-      // Insert driver details with public URLs and pending status explicitly set
-      const { error: driverInsertError } = await supabase
-        .from('drivers')
-        .insert({
-          id: userId,
-          national_id: data.nationalId,
-          license_number: data.licenseNumber,
-          license_image: licensePublicUrlData.publicUrl,
-          vehicle_info: data.vehicleInfo,
-          status: 'pending',
-          is_available: false,
-          documents: {
-            national_id_image: nationalIdPublicUrlData.publicUrl
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+      // Insert driver details with 'pending' status and documents
+      const { error: driverInsertError } = await supabase.from('drivers').insert({
+        id: userId,
+        national_id: data.nationalId,
+        license_number: data.licenseNumber,
+        license_image: licensePublicUrlData.publicUrl,
+        vehicle_info: data.vehicleInfo,
+        status: 'pending', // important: start as pending
+        is_available: false,
+        documents: {
+          national_id_image: nationalIdPublicUrlData.publicUrl,
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
 
       if (driverInsertError) {
-        console.error("Driver insert error:", driverInsertError);
+        console.error('Driver insert error:', driverInsertError);
         throw driverInsertError;
       }
 
-      // Instead of logging in directly, show registration complete and notify to check email for confirmation
+      // Show registration complete message and ask user to confirm email
       setRegistrationComplete(true);
-      
-      toast.success(t('registrationSuccess'), {
-        description: t('checkEmailForConfirmation')
-      });
 
+      toast.success(t('registrationSuccess'), {
+        description: t('checkEmailForConfirmation'),
+      });
     } catch (error: any) {
       console.error('Registration error:', error);
-
       toast.error(t('registrationError'), {
-        description: error.message || "حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى"
+        description: error.message || 'حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى',
       });
-
-      setSubmitAttempts(prev => prev + 1);
+      setSubmitAttempts((prev) => prev + 1);
     } finally {
       setIsLoading(false);
     }
@@ -558,5 +553,3 @@ const DriverRegister = () => {
 };
 
 export default DriverRegister;
-
-// Helper method included above for file extension extraction
