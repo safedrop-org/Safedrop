@@ -1,6 +1,8 @@
 
 import React, { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ProtectedAdminRouteProps {
   children: ReactNode;
@@ -11,26 +13,57 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const checkAdminAuth = () => {
-      // Read adminAuth flag from localStorage
+    const checkAdmin = async () => {
+      // Check if localStorage adminAuth exists first for faster check
       const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
-
-      if (isAdminLoggedIn) {
-        setIsAuthorized(true);
-      } else {
+      if (!isAdminLoggedIn) {
         setIsAuthorized(false);
         navigate("/admin");
+        return;
       }
+
+      // Then verify session via Supabase for security
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        setIsAuthorized(false);
+        navigate("/admin");
+        return;
+      }
+
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("user_type")
+        .eq("id", session.user.id)
+        .single();
+
+      if (error || !profile || profile.user_type !== "admin") {
+        toast.error("ليس لديك صلاحية الدخول إلى هذه الصفحة.");
+        if (profile?.user_type === "customer") {
+          navigate("/customer/dashboard");
+        } else if (profile?.user_type === "driver") {
+          navigate("/driver/dashboard");
+        } else {
+          navigate("/admin");
+        }
+        setIsAuthorized(false);
+        return;
+      }
+
+      setIsAuthorized(true);
     };
 
-    checkAdminAuth();
+    checkAdmin();
   }, [navigate]);
 
-  // Render children only if authorized
   if (isAuthorized === null) {
-    // Optionally render a loading placeholder while checking auth
+    // Optionally render a spinner or loader here
     return null;
-  } else if (!isAuthorized) {
+  }
+
+  if (!isAuthorized) {
     return null;
   }
 
@@ -38,3 +71,4 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
 };
 
 export default ProtectedAdminRoute;
+
