@@ -5,7 +5,6 @@ import { useLanguage } from "@/components/ui/language-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 
 interface Driver {
   id: string;
@@ -21,44 +20,9 @@ const DriverVerification = () => {
   const { t } = useLanguage();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  // Check session and role to protect route access
-  useEffect(() => {
-    const checkAccess = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        navigate("/login");
-        return;
-      }
-      // Fetch profile user_type
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("user_type")
-        .eq("id", session.user.id)
-        .single();
-
-      if (!profile || profile.user_type !== "admin") {
-        // Not admin, redirect to relevant dashboard or login
-        if (profile?.user_type === "customer") {
-          navigate("/customer/dashboard");
-        } else if (profile?.user_type === "driver") {
-          navigate("/driver/dashboard");
-        } else {
-          navigate("/login");
-        }
-      }
-    };
-
-    checkAccess();
-  }, [navigate]);
 
   const fetchDrivers = async () => {
     setLoading(true);
-    // Fix the join to access driver details correctly
     const { data, error } = await supabase
       .from("profiles")
       .select("id, first_name, last_name, phone, user_type")
@@ -68,8 +32,6 @@ const DriverVerification = () => {
       toast.error(t("fetchDriversError"));
       console.error("Error fetching drivers:", error);
     } else if (data) {
-      // Since drivers details are in separate table, fetch statuses separately
-      // Fetch all drivers status in a batch to map them
       const driverIds = data.map(d => d.id);
       const { data: driversData, error: driversError } = await supabase
         .from("drivers")
