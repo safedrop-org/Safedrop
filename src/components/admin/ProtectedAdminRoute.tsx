@@ -14,56 +14,53 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
 
   useEffect(() => {
     const checkAdmin = async () => {
-      // Check if localStorage adminAuth exists first for faster check
+      // Check localStorage flag for adminAuth first
       const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
       if (!isAdminLoggedIn) {
-        setIsAuthorized(false);
-        navigate("/admin");
-        return;
-      }
+        // Not logged in as admin, verify Supabase session as well (for added security)
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
 
-      // Then verify session via Supabase for security
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        setIsAuthorized(false);
-        navigate("/admin");
-        return;
-      }
-
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("user_type")
-        .eq("id", session.user.id)
-        .single();
-
-      if (error || !profile || profile.user_type !== "admin") {
-        toast.error("ليس لديك صلاحية الدخول إلى هذه الصفحة.");
-        if (profile?.user_type === "customer") {
-          navigate("/customer/dashboard");
-        } else if (profile?.user_type === "driver") {
-          navigate("/driver/dashboard");
-        } else {
-          navigate("/admin");
+        if (!session) {
+          setIsAuthorized(false);
+          navigate("/login");
+          return;
         }
-        setIsAuthorized(false);
-        return;
+
+        // Fetch user profile to check user_type
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("user_type")
+          .eq("id", session.user.id)
+          .single();
+
+        if (error || !profile || profile.user_type !== "admin") {
+          toast.error("ليس لديك صلاحية الدخول إلى هذه الصفحة.");
+          if (profile?.user_type === "customer") {
+            navigate("/customer/dashboard");
+          } else if (profile?.user_type === "driver") {
+            navigate("/driver/dashboard");
+          } else {
+            navigate("/login");
+          }
+          setIsAuthorized(false);
+          return;
+        }
       }
 
+      // All checks passed
       setIsAuthorized(true);
     };
 
     checkAdmin();
   }, [navigate]);
 
+  // Render children only if authorized
   if (isAuthorized === null) {
-    // Optionally render a spinner or loader here
+    // You can render a loader here if desired while checking auth
     return null;
-  }
-
-  if (!isAuthorized) {
+  } else if (!isAuthorized) {
     return null;
   }
 
@@ -71,4 +68,3 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
 };
 
 export default ProtectedAdminRoute;
-
