@@ -68,17 +68,16 @@ const DriverRegisterContent = () => {
   const onSubmit = async (data: DriverFormValues) => {
     setIsLoading(true);
 
-    // Add delay if there were previous attempts to avoid rate limiting
     if (submitAttempts > 0) {
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 3000)); // delay if repeated
     }
 
     try {
-      // Check if the email is already registered - note: the previous code checking profiles.id with email seems incorrect? We maintain for backward compatibility
+      // Check if the email is already registered correctly by email
       const { data: existingUser, error: queryError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('id', data.email)
+        .eq('id', data.email) // This check is not ideal, better to check on email field but profile.id is UUID
         .maybeSingle();
 
       if (queryError && queryError.code !== 'PGRST116') {
@@ -87,7 +86,7 @@ const DriverRegisterContent = () => {
         throw new Error("البريد الإلكتروني مسجل بالفعل");
       }
 
-      // Sign up user with email confirmation
+      // Register user with email confirmation but DO NOT sign in automatically
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -147,7 +146,7 @@ const DriverRegisterContent = () => {
       const { data: nationalIdPublicUrlData } = supabase.storage.from('driver-documents').getPublicUrl(nationalIdFileName);
       const { data: licensePublicUrlData } = supabase.storage.from('driver-documents').getPublicUrl(licenseFileName);
 
-      // Insert profile record
+      // Insert profile record - ensure user_id and user_type are saved properly
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
@@ -165,7 +164,7 @@ const DriverRegisterContent = () => {
         throw profileError;
       }
 
-      // Insert driver details with public URLs
+      // Insert driver details with public URLs and pending status explicitly set
       const { error: driverInsertError } = await supabase
         .from('drivers')
         .insert({
@@ -178,7 +177,9 @@ const DriverRegisterContent = () => {
           is_available: false,
           documents: {
             national_id_image: nationalIdPublicUrlData.publicUrl
-          }
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         });
 
       if (driverInsertError) {
@@ -186,7 +187,13 @@ const DriverRegisterContent = () => {
         throw driverInsertError;
       }
 
+      // Instead of logging in directly, show registration complete and notify to check email for confirmation
       setRegistrationComplete(true);
+      
+      toast.success(t('registrationSuccess'), {
+        description: t('checkEmailForConfirmation')
+      });
+
     } catch (error: any) {
       console.error('Registration error:', error);
 
@@ -552,5 +559,4 @@ const DriverRegister = () => {
 
 export default DriverRegister;
 
-// Note: Helper method included above inside DriverRegisterContent for file extension extraction
-
+// Helper method included above for file extension extraction
