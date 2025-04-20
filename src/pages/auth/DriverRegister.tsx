@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { useNavigate } from 'react-router-dom';
-import { UserIcon, LockIcon, MailIcon, PhoneIcon, } from 'lucide-react';
+import { UserIcon, LockIcon, MailIcon, PhoneIcon, Calendar } from 'lucide-react';
 
 const driverRegisterSchema = z.object({
   firstName: z.string().min(2, { message: "الاسم الأول مطلوب" }),
@@ -18,6 +18,7 @@ const driverRegisterSchema = z.object({
   email: z.string().email({ message: "البريد الإلكتروني غير صالح" }),
   phone: z.string().min(10, { message: "رقم الهاتف غير صالح" }),
   password: z.string().min(8, { message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }),
+  birthDate: z.string().min(1, { message: "تاريخ الميلاد مطلوب" }),
   nationalId: z.string().min(10, { message: "رقم الهوية مطلوب" }),
   licenseNumber: z.string().min(5, { message: "رقم الرخصة مطلوب" }),
   vehicleInfo: z.object({
@@ -45,6 +46,7 @@ const DriverRegisterContent = () => {
       email: '',
       phone: '',
       password: '',
+      birthDate: '',
       nationalId: '',
       licenseNumber: '',
       vehicleInfo: {
@@ -97,13 +99,14 @@ const DriverRegisterContent = () => {
 
       const userId = authData.user.id;
 
-      // Insert profile record with user_type driver
+      // Insert profile record with user_type driver and birth_date
       const { error: profileError } = await supabase.from('profiles').insert({
         id: userId,
         first_name: data.firstName,
         last_name: data.lastName,
         phone: data.phone,
         user_type: 'driver',
+        birth_date: data.birthDate,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
@@ -243,6 +246,28 @@ const DriverRegisterContent = () => {
 
             <FormField
               control={form.control}
+              name="birthDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('birthDate')}</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <Input
+                        type="date"
+                        placeholder={t('birthDate')}
+                        className="pl-10"
+                        {...field}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
@@ -300,141 +325,140 @@ const DriverRegisterContent = () => {
                         className="pl-10"
                         {...field} 
                       />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Driver Documents */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="nationalId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('nationalId')}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder={t('nationalIdPlaceholder')} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="licenseNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('licenseNumber')}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder={t('licenseNumberPlaceholder')} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+              {/* Driver Documents */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="nationalId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('nationalId')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder={t('nationalIdPlaceholder')} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="licenseNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('licenseNumber')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder={t('licenseNumberPlaceholder')} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            {/* Vehicle Information */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="vehicleInfo.make"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('vehicleMake')}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder={t('vehicleMakePlaceholder')} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="vehicleInfo.model"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('vehicleModel')}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder={t('vehicleModelPlaceholder')} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="vehicleInfo.year"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('vehicleYear')}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        placeholder={t('vehicleYearPlaceholder')} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="vehicleInfo.plateNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('plateNumber')}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder={t('plateNumberPlaceholder')} 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+              {/* Vehicle Information */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="vehicleInfo.make"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('vehicleMake')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder={t('vehicleMakePlaceholder')} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="vehicleInfo.model"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('vehicleModel')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder={t('vehicleModelPlaceholder')} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="vehicleInfo.year"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('vehicleYear')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number"
+                          placeholder={t('vehicleYearPlaceholder')} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="vehicleInfo.plateNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('plateNumber')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder={t('plateNumberPlaceholder')} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <Button 
-              type="submit" 
-              className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-              disabled={isLoading}
+              <Button 
+                type="submit" 
+                className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
+                disabled={isLoading}
+              >
+                {isLoading ? t('registering') : t('register')}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="text-center mt-4">
+            {t('alreadyHaveAccount')}{' '}
+            <a 
+              href="/login" 
+              className="text-safedrop-gold hover:underline"
             >
-              {isLoading ? t('registering') : t('register')}
-            </Button>
-          </form>
-        </Form>
-
-        <div className="text-center mt-4">
-          {t('alreadyHaveAccount')}{' '}
-          <a 
-            href="/login" 
-            className="text-safedrop-gold hover:underline"
-          >
-            {t('login')}
-          </a>
+              {t('login')}
+            </a>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 const DriverRegister = () => {
   return (
@@ -445,4 +469,3 @@ const DriverRegister = () => {
 };
 
 export default DriverRegister;
-
