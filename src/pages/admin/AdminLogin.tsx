@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { ShieldCheckIcon, LockIcon } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
-// كلمة المرور للأدمن
 const ADMIN_PASSWORD = "SafeDrop@ibrahim2515974";
 
 const AdminLoginContent = () => {
@@ -53,9 +51,10 @@ const AdminLoginContent = () => {
           navigate('/admin/dashboard');
         }, 150);
 
+        // عند النجاح لا نكمل العملية ولا نرسل رسائل خطأ ثانية
         return;
       } else {
-        // إذا كانت كلمة المرور خاطئة - يظهر رسالة خطأ فقط ولا يظهر رسالة نجاح ثانية
+        // إذا كانت كلمة المرور خاطئة - يظهر رسالة خطأ فقط
         toast({
           title: "فشل تسجيل الدخول",
           description: "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى",
