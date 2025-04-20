@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,14 @@ const AdminLoginContent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // تحقق عند تحميل الصفحة إذا كان الأدمن مسجل دخوله
+  useEffect(() => {
+    const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+    if (isAdminLoggedIn) {
+      navigate('/admin/dashboard');
+    }
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
