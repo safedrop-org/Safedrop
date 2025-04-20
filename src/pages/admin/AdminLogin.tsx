@@ -39,13 +39,21 @@ const AdminLoginContent = () => {
         // تعيين معلومات المصادقة للمشرف في التخزين المحلي
         localStorage.setItem('adminAuth', 'true');
         localStorage.setItem('adminEmail', 'admin@safedrop.com');
-        
+
+        // إزالة أي علامات صلاحيات أخرى بعد تسجيل دخول الأدمن
+        localStorage.removeItem('customerAuth');
+        localStorage.removeItem('driverAuth');
+
         toast({
           title: "تم تسجيل الدخول بنجاح",
           description: "مرحباً بك في لوحة تحكم المشرف",
         });
-        
-        navigate('/admin/dashboard');
+
+        // ننتظر قليلاً قبل التنقل لضمان تحديث حالة التخزين بشكل متزامن
+        setTimeout(() => {
+          navigate('/admin/dashboard');
+        }, 150);
+
         return;
       } else {
         throw new Error('كلمة المرور غير صحيحة');
@@ -77,7 +85,7 @@ const AdminLoginContent = () => {
                 أدخل كلمة المرور للوصول إلى لوحة تحكم المشرف
               </CardDescription>
             </CardHeader>
-            
+
             <form onSubmit={handleLogin}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
@@ -96,7 +104,7 @@ const AdminLoginContent = () => {
                   </div>
                 </div>
               </CardContent>
-              
+
               <CardFooter>
                 <Button 
                   type="submit" 
@@ -123,3 +131,4 @@ const AdminLogin = () => {
 };
 
 export default AdminLogin;
+

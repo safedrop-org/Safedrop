@@ -13,12 +13,17 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAdmin = async () => {
       // Check if localStorage adminAuth exists first for faster check
       const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+
       if (!isAdminLoggedIn) {
-        setIsAuthorized(false);
-        navigate("/admin");
+        if (isMounted) {
+          setIsAuthorized(false);
+          navigate("/admin");
+        }
         return;
       }
 
@@ -28,8 +33,10 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        setIsAuthorized(false);
-        navigate("/admin");
+        if (isMounted) {
+          setIsAuthorized(false);
+          navigate("/admin");
+        }
         return;
       }
 
@@ -48,14 +55,22 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         } else {
           navigate("/admin");
         }
-        setIsAuthorized(false);
+        if (isMounted) {
+          setIsAuthorized(false);
+        }
         return;
       }
 
-      setIsAuthorized(true);
+      if (isMounted) {
+        setIsAuthorized(true);
+      }
     };
 
     checkAdmin();
+
+    return () => {
+      isMounted = false;
+    };
   }, [navigate]);
 
   if (isAuthorized === null) {
