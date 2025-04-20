@@ -48,7 +48,11 @@ const LoginContent = () => {
 
         if (profileError || !profile) {
           setIsLoading(false);
-          toast.error('خطأ في تحميل بيانات المستخدم.');
+          toast({
+            title: 'خطأ',
+            description: 'خطأ في تحميل بيانات المستخدم.',
+            variant: 'destructive',
+          });
           await supabase.auth.signOut();
           navigate('/login');
           return;
@@ -79,7 +83,11 @@ const LoginContent = () => {
 
           if (driverError) {
             setIsLoading(false);
-            toast.error('خطأ في تحميل بيانات السائق.');
+            toast({
+              title: 'خطأ',
+              description: 'خطأ في تحميل بيانات السائق.',
+              variant: 'destructive',
+            });
             await supabase.auth.signOut();
             navigate('/login');
             return;
@@ -101,7 +109,11 @@ const LoginContent = () => {
             localStorage.removeItem('adminAuth');
             navigate('/driver/pending-approval');
           } else if (driverData?.status === 'frozen') {
-            toast.error('تم تعطيل حسابك مؤقتًا. يرجى التواصل مع الدعم الفني.');
+            toast({
+              title: 'مشكلة بالحساب',
+              description: 'تم تعطيل حسابك مؤقتًا. يرجى التواصل مع الدعم الفني.',
+              variant: 'destructive',
+            });
             localStorage.setItem('driverAuth', 'true');
             localStorage.removeItem('customerAuth');
             localStorage.removeItem('adminAuth');
