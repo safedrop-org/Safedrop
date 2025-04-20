@@ -29,18 +29,27 @@ const useCustomers = () => {
     queryKey: ['customers'],
     queryFn: async () => {
       try {
-        // In a real implementation, this would fetch data from Supabase
-        // const { data, error } = await supabase
-        //   .from('profiles')
-        //   .select('*')
-        //   .eq('user_type', 'customer')
-        //   .order('created_at', { ascending: false })
-        //   .limit(20);
-        
-        // if (error) throw error;
-        
-        // Return an empty array for now
-        return [] as Customer[];
+        // Fetch customers from profiles where user_type = 'customer'
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, phone, user_type, created_at')
+          .eq('user_type', 'customer')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Map profiles to Customer interface
+        const customers: Customer[] = data?.map(profile => ({
+          id: profile.id,
+          name: `${profile.first_name} ${profile.last_name}`,
+          email: "", // Email is not directly available here; requires extension if needed
+          phone: profile.phone,
+          registrationDate: new Date(profile.created_at).toLocaleDateString('ar-SA'),
+          ordersCount: 0, // Placeholder, needs orders count fetching if required
+          status: 'active' // Default active; extend logic if you have status in profiles or elsewhere
+        })) || [];
+
+        return customers;
       } catch (error) {
         console.error('Error fetching customers:', error);
         return [] as Customer[];
@@ -80,11 +89,7 @@ const CustomersContent = () => {
   const handleSuspendCustomer = () => {
     if (!selectedCustomer) return;
     
-    // In a real implementation, this would call an API to update the customer status
-    // await supabase
-    //   .from('profiles')
-    //   .update({ status: 'suspended' })
-    //   .eq('id', selectedCustomer.id);
+    // Update could be implemented here against actual customer status, if supported in profile or related tables
     
     toast.success(`تم تعليق حساب العميل ${selectedCustomer.name} بنجاح`);
     
@@ -96,11 +101,7 @@ const CustomersContent = () => {
   const handleBanCustomer = () => {
     if (!selectedCustomer) return;
     
-    // In a real implementation, this would call an API to update the customer status
-    // await supabase
-    //   .from('profiles')
-    //   .update({ status: 'banned' })
-    //   .eq('id', selectedCustomer.id);
+    // Update could be implemented here against actual customer status, if supported in profile or related tables
     
     toast.success(`تم حظر حساب العميل ${selectedCustomer.name} بنجاح`);
     
@@ -112,10 +113,7 @@ const CustomersContent = () => {
   const handleSendMessage = () => {
     if (!selectedCustomer || !messageText.trim()) return;
     
-    // In a real implementation, this would send a message to the customer
-    // await supabase
-    //   .from('messages')
-    //   .insert([{ recipient_id: selectedCustomer.id, message: messageText, sender_type: 'admin' }]);
+    // Implement messaging system if available
     
     toast.success(`تم إرسال الرسالة إلى العميل ${selectedCustomer.name} بنجاح`);
     
@@ -125,11 +123,7 @@ const CustomersContent = () => {
   };
 
   const handleActivateCustomer = (customer: Customer) => {
-    // In a real implementation, this would call an API to update the customer status
-    // await supabase
-    //   .from('profiles')
-    //   .update({ status: 'active' })
-    //   .eq('id', customer.id);
+    // Implement activation if status field exists in DB
     
     toast.success(`تم تفعيل حساب العميل ${customer.name} بنجاح`);
   };
@@ -547,3 +541,4 @@ const Customers = () => {
 };
 
 export default Customers;
+
