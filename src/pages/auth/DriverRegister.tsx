@@ -165,9 +165,7 @@ const DriverRegisterContent = () => {
       // تم التسجيل بنجاح
       setRegistrationComplete(true);
 
-      toast.success(t('registrationSuccess'), {
-        description: t('checkEmailForConfirmation'),
-      });
+      toast.success(t('registrationSuccess'));
     } catch (error: any) {
       console.error('Registration error:', error);
       toast.error(t('registrationError'), {
@@ -183,30 +181,28 @@ const DriverRegisterContent = () => {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <div>
-            <img
-              src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png"
-              alt="SafeDrop Logo"
-              className="mx-auto h-20 w-auto mb-4"
-            />
-            <h2 className="text-2xl font-bold text-safedrop-primary mt-6">
-              تم التسجيل بنجاح!
-            </h2>
-            <p className="mt-4 text-gray-600">
-              شكراً لتسجيلك في سيف دروب. تم إرسال رسالة تأكيد إلى بريدك الإلكتروني.
-              يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك.
-            </p>
-            <p className="mt-4 text-gray-600">
-              بعد تأكيد بريدك الإلكتروني، سيتم مراجعة طلبك كسائق من قبل فريقنا.
-            </p>
-            <div className="mt-8">
-              <Button
-                onClick={() => navigate('/login')}
-                className="bg-safedrop-gold hover:bg-safedrop-gold/90"
-              >
-                الذهاب إلى صفحة تسجيل الدخول
-              </Button>
-            </div>
+          <img
+            src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png"
+            alt="SafeDrop Logo"
+            className="mx-auto h-20 w-auto mb-4"
+          />
+          <h2 className="text-2xl font-bold text-safedrop-primary mt-6">
+            تم التسجيل بنجاح!
+          </h2>
+          <p className="mt-4 text-gray-600">
+            شكراً لتسجيلك في سيف دروب. تم إرسال رسالة تأكيد إلى بريدك الإلكتروني.
+            يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك.
+          </p>
+          <p className="mt-4 text-gray-600">
+            بعد تأكيد بريدك الإلكتروني، سيتم مراجعة طلبك كسائق من قبل فريقنا.
+          </p>
+          <div className="mt-8">
+            <Button
+              onClick={() => navigate('/login')}
+              className="bg-safedrop-gold hover:bg-safedrop-gold/90"
+            >
+              الذهاب إلى صفحة تسجيل الدخول
+            </Button>
           </div>
         </div>
       </div>
@@ -222,9 +218,7 @@ const DriverRegisterContent = () => {
             alt="SafeDrop Logo"
             className="mx-auto h-20 w-auto mb-4"
           />
-          <h2 className="text-3xl font-bold text-safedrop-primary">
-            {t('driverRegister')}
-          </h2>
+          <h2 className="text-3xl font-bold text-safedrop-primary">{t('driverRegister')}</h2>
         </div>
 
         <Form {...form}>
@@ -240,11 +234,7 @@ const DriverRegisterContent = () => {
                     <FormControl>
                       <div className="relative">
                         <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input 
-                          placeholder={t('firstName')} 
-                          className="pl-10"
-                          {...field} 
-                        />
+                        <Input placeholder={t('firstName')} className="pl-10" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -260,11 +250,7 @@ const DriverRegisterContent = () => {
                     <FormControl>
                       <div className="relative">
                         <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input 
-                          placeholder={t('lastName')} 
-                          className="pl-10"
-                          {...field} 
-                        />
+                        <Input placeholder={t('lastName')} className="pl-10" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -282,12 +268,7 @@ const DriverRegisterContent = () => {
                   <FormControl>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input
-                        type="date"
-                        placeholder={t('birthDate')}
-                        className="pl-10"
-                        {...field}
-                      />
+                      <Input type="date" placeholder={t('birthDate')} className="pl-10" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -304,17 +285,18 @@ const DriverRegisterContent = () => {
                   <FormControl>
                     <div className="relative">
                       <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input 
-                        type="email" 
-                        placeholder={t('emailPlaceholder')} 
+                      <Input
+                        type="email"
+                        placeholder={t('emailPlaceholder')}
                         className="pl-10"
-                        {...field} 
+                        {...field}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
+            />
 
             <FormField
               control={form.control}
@@ -325,17 +307,18 @@ const DriverRegisterContent = () => {
                   <FormControl>
                     <div className="relative">
                       <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input 
-                        type="tel" 
-                        placeholder={t('phonePlaceholder')} 
+                      <Input
+                        type="tel"
+                        placeholder={t('phonePlaceholder')}
                         className="pl-10"
-                        {...field} 
+                        {...field}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
+            />
 
             <FormField
               control={form.control}
@@ -346,17 +329,13 @@ const DriverRegisterContent = () => {
                   <FormControl>
                     <div className="relative">
                       <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input 
-                        type="password" 
-                        placeholder="••••••••" 
-                        className="pl-10"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                      <Input type="password" placeholder="••••••••" className="pl-10" {...field} />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
+            />
 
             {/* Driver Documents */}
             <div className="grid grid-cols-2 gap-4">
@@ -367,10 +346,7 @@ const DriverRegisterContent = () => {
                   <FormItem>
                     <FormLabel>{t('nationalId')}</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder={t('nationalIdPlaceholder')} 
-                        {...field} 
-                      />
+                      <Input placeholder={t('nationalIdPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -383,10 +359,7 @@ const DriverRegisterContent = () => {
                   <FormItem>
                     <FormLabel>{t('licenseNumber')}</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder={t('licenseNumberPlaceholder')} 
-                        {...field} 
-                      />
+                      <Input placeholder={t('licenseNumberPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -403,10 +376,7 @@ const DriverRegisterContent = () => {
                   <FormItem>
                     <FormLabel>{t('vehicleMake')}</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder={t('vehicleMakePlaceholder')} 
-                        {...field} 
-                      />
+                      <Input placeholder={t('vehicleMakePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -419,10 +389,7 @@ const DriverRegisterContent = () => {
                   <FormItem>
                     <FormLabel>{t('vehicleModel')}</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder={t('vehicleModelPlaceholder')} 
-                        {...field} 
-                      />
+                      <Input placeholder={t('vehicleModelPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -435,11 +402,7 @@ const DriverRegisterContent = () => {
                   <FormItem>
                     <FormLabel>{t('vehicleYear')}</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number"
-                        placeholder={t('vehicleYearPlaceholder')} 
-                        {...field} 
-                      />
+                      <Input type="number" placeholder={t('vehicleYearPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -452,10 +415,7 @@ const DriverRegisterContent = () => {
                   <FormItem>
                     <FormLabel>{t('plateNumber')}</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder={t('plateNumberPlaceholder')} 
-                        {...field} 
-                      />
+                      <Input placeholder={t('plateNumberPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -475,10 +435,7 @@ const DriverRegisterContent = () => {
 
         <div className="text-center mt-4">
           {t('alreadyHaveAccount')}{' '}
-          <a
-            href="/login"
-            className="text-safedrop-gold hover:underline"
-          >
+          <a href="/login" className="text-safedrop-gold hover:underline">
             {t('login')}
           </a>
         </div>
