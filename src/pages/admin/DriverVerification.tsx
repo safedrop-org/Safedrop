@@ -58,25 +58,45 @@ const DriverVerification = () => {
 
   const fetchDrivers = async () => {
     setLoading(true);
+    // Fix the join to access driver details correctly
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name, phone, user_type, drivers(status, rejection_reason)")
+      .select("id, first_name, last_name, phone, user_type")
       .eq("user_type", "driver");
 
     if (error) {
       toast.error(t("fetchDriversError"));
-      console.error(error);
+      console.error("Error fetching drivers:", error);
     } else if (data) {
-      const combined = data.map((profile) => ({
-        id: profile.id,
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        phone: profile.phone,
-        user_type: profile.user_type,
-        status: profile.drivers?.[0]?.status ?? null,
-        rejection_reason: profile.drivers?.[0]?.rejection_reason ?? null,
-      }));
-      setDrivers(combined);
+      // Since drivers details are in separate table, fetch statuses separately
+      // Fetch all drivers status in a batch to map them
+      const driverIds = data.map(d => d.id);
+      const { data: driversData, error: driversError } = await supabase
+        .from("drivers")
+        .select("id, status, rejection_reason")
+        .in("id", driverIds);
+
+      if (driversError) {
+        toast.error(t("fetchDriversError"));
+        console.error("Error fetching drivers details:", driversError);
+        setLoading(false);
+        return;
+      }
+
+      const driversCombined = data.map((profile) => {
+        const driverDetail = driversData?.find(d => d.id === profile.id);
+        return {
+          id: profile.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          phone: profile.phone,
+          user_type: profile.user_type,
+          status: driverDetail?.status ?? null,
+          rejection_reason: driverDetail?.rejection_reason ?? null,
+        };
+      });
+
+      setDrivers(driversCombined);
     }
     setLoading(false);
   };
@@ -90,7 +110,7 @@ const DriverVerification = () => {
 
     if (error) {
       toast.error(t("updateDriverStatusError"));
-      console.error(error);
+      console.error("Error updating driver status:", error);
     } else {
       toast.success(t("updateDriverStatusSuccess"));
       await fetchDrivers();

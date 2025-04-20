@@ -63,7 +63,7 @@ const Customers = () => {
 
     if (error) {
       toast.error(t("fetchCustomersError"));
-      console.error(error);
+      console.error("Error fetching customers:", error);
     } else if (data) {
       // Data from supabase may have any type, so ensure it fits Customer interface
       const customersFormatted = data.map((cust: any) => ({
