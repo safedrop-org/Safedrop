@@ -10,9 +10,9 @@ interface Customer {
   id: string;
   first_name: string;
   last_name: string;
+  email: string | null;
   phone: string;
   created_at: string;
-  // email omitted since does not exist in profiles table
 }
 
 const Customers = () => {
@@ -33,13 +33,13 @@ const Customers = () => {
         return;
       }
       // Fetch profile user_type
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
         .select("user_type")
         .eq("id", session.user.id)
-        .maybeSingle();
+        .single();
 
-      if (profileError || !profile || profile.user_type !== "admin") {
+      if (!profile || profile.user_type !== "admin") {
         // Not admin, redirect to relevant dashboard or login
         if (profile?.user_type === "customer") {
           navigate("/customer/dashboard");
@@ -48,7 +48,6 @@ const Customers = () => {
         } else {
           navigate("/login");
         }
-        return;
       }
     };
 
@@ -59,11 +58,11 @@ const Customers = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name, phone, user_type, created_at")
+      .select("id, first_name, last_name, phone, user_type, email, created_at")
       .eq("user_type", "customer");
 
     if (error) {
-      toast.error(t("fetchCustomersError") || "حدث خطأ أثناء جلب بيانات العملاء.");
+      toast.error(t("fetchCustomersError"));
       console.error("Error fetching customers:", error);
     } else if (data) {
       // Data from supabase may have any type, so ensure it fits Customer interface
@@ -72,6 +71,7 @@ const Customers = () => {
         first_name: cust.first_name,
         last_name: cust.last_name,
         phone: cust.phone,
+        email: cust.email,
         created_at: cust.created_at,
       })) as Customer[];
       setCustomers(customersFormatted);
@@ -92,6 +92,7 @@ const Customers = () => {
             <TableHead>الاسم الأول</TableHead>
             <TableHead>اسم العائلة</TableHead>
             <TableHead>الهاتف</TableHead>
+            <TableHead>البريد الإلكتروني</TableHead>
             <TableHead>تاريخ الإنضمام</TableHead>
           </TableRow>
         </TableHeader>
@@ -101,12 +102,13 @@ const Customers = () => {
               <TableCell>{customer.first_name}</TableCell>
               <TableCell>{customer.last_name}</TableCell>
               <TableCell>{customer.phone}</TableCell>
+              <TableCell>{customer.email ?? "-"}</TableCell>
               <TableCell>{new Date(customer.created_at).toLocaleDateString()}</TableCell>
             </TableRow>
           ))}
           {customers.length === 0 && !loading && (
             <TableRow>
-              <TableCell colSpan={4} className="text-center">
+              <TableCell colSpan={5} className="text-center">
                 لا يوجد عملاء للعرض
               </TableCell>
             </TableRow>
