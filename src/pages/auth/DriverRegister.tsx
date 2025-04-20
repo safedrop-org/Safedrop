@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -81,19 +82,27 @@ const DriverRegisterContent = () => {
       });
 
       if (signUpError) {
+        // Handle rate limit or other known errors gracefully
         if (
           signUpError.message.includes('security purposes') ||
           signUpError.code === 'over_email_send_rate_limit'
         ) {
-          throw new Error(
-            'تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار قليلاً ثم المحاولة مرة أخرى'
-          );
+          toast.error('تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار قليلاً ثم المحاولة مرة أخرى');
+          setIsLoading(false);
+          return;
         }
-        throw signUpError;
+        // For other errors, show error toast but no raw error to user
+        toast.error(t('registrationError'), {
+          description: signUpError.message,
+        });
+        setIsLoading(false);
+        return;
       }
 
       if (!authData.user) {
-        throw new Error('فشل إنشاء الحساب');
+        toast.error('فشل إنشاء الحساب، يرجى المحاولة مرة أخرى');
+        setIsLoading(false);
+        return;
       }
 
       const userId = authData.user.id;
@@ -112,7 +121,11 @@ const DriverRegisterContent = () => {
 
       if (profileError) {
         console.error('Profile insert error:', profileError);
-        throw profileError;
+        toast.error(t('registrationError'), {
+          description: 'خطأ أثناء حفظ بيانات الحساب، يرجى المحاولة لاحقًا',
+        });
+        setIsLoading(false);
+        return;
       }
 
       // Insert driver details with 'pending' status but without document images (since not uploaded)
@@ -120,7 +133,10 @@ const DriverRegisterContent = () => {
         id: userId,
         national_id: data.nationalId,
         license_number: data.licenseNumber,
-        vehicle_info: data.vehicleInfo,
+        vehicle_info: {
+          ...data.vehicleInfo,
+          plateNumber: data.vehicleInfo.plateNumber // align property name casing
+        },
         status: 'pending', // important: start as pending
         is_available: false,
         created_at: new Date().toISOString(),
@@ -129,10 +145,14 @@ const DriverRegisterContent = () => {
 
       if (driverInsertError) {
         console.error('Driver insert error:', driverInsertError);
-        throw driverInsertError;
+        toast.error(t('registrationError'), {
+          description: 'خطأ أثناء حفظ بيانات السائق، يرجى المحاولة لاحقًا',
+        });
+        setIsLoading(false);
+        return;
       }
 
-      // Show registration complete message and ask user to confirm email
+      // Successful registration message
       setRegistrationComplete(true);
 
       toast.success(t('registrationSuccess'), {
@@ -469,3 +489,4 @@ const DriverRegister = () => {
 };
 
 export default DriverRegister;
+

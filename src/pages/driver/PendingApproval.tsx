@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -64,6 +63,10 @@ const PendingApprovalContent = () => {
           return;
         }
 
+        if (driver.status === 'rejected' && count < 2) {
+          setCanReapply(true);
+          return;
+        }
       } catch (error) {
         console.error("Error fetching driver status:", error);
         toast.error("حدث خطأ أثناء جلب بيانات الحساب");
@@ -79,6 +82,7 @@ const PendingApprovalContent = () => {
     await supabase.auth.signOut();
     localStorage.removeItem('driverAuth');
     localStorage.removeItem('userId');
+    localStorage.removeItem('driverRejectionCount');
     navigate('/login');
   };
 

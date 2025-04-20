@@ -37,6 +37,87 @@ const LoginContent = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      (async () => {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profileError || !profile) {
+          setIsLoading(false);
+          toast.error('خطأ في تحميل بيانات المستخدم.');
+          await supabase.auth.signOut();
+          navigate('/login');
+          return;
+        }
+
+        if (profile.user_type === 'admin') {
+          localStorage.setItem('adminAuth', 'true');
+          localStorage.removeItem('customerAuth');
+          localStorage.removeItem('driverAuth');
+          navigate('/admin/dashboard');
+          return;
+        }
+
+        if (profile.user_type === 'customer') {
+          localStorage.setItem('customerAuth', 'true');
+          localStorage.removeItem('driverAuth');
+          localStorage.removeItem('adminAuth');
+          navigate('/customer/dashboard');
+          return;
+        }
+
+        if (profile.user_type === 'driver') {
+          const { data: driverData, error: driverError } = await supabase
+            .from('drivers')
+            .select('status')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (driverError) {
+            setIsLoading(false);
+            toast.error('خطأ في تحميل بيانات السائق.');
+            await supabase.auth.signOut();
+            navigate('/login');
+            return;
+          }
+
+          if (driverData?.status === 'approved') {
+            localStorage.setItem('driverAuth', 'true');
+            localStorage.removeItem('customerAuth');
+            localStorage.removeItem('adminAuth');
+            navigate('/driver/dashboard');
+          } else if (driverData?.status === 'pending' || driverData?.status === null) {
+            localStorage.setItem('driverAuth', 'true');
+            localStorage.removeItem('customerAuth');
+            localStorage.removeItem('adminAuth');
+            navigate('/driver/pending-approval');
+          } else if (driverData?.status === 'rejected') {
+            localStorage.setItem('driverAuth', 'true');
+            localStorage.removeItem('customerAuth');
+            localStorage.removeItem('adminAuth');
+            navigate('/driver/pending-approval');
+          } else if (driverData?.status === 'frozen') {
+            toast.error('تم تعطيل حسابك مؤقتًا. يرجى التواصل مع الدعم الفني.');
+            localStorage.setItem('driverAuth', 'true');
+            localStorage.removeItem('customerAuth');
+            localStorage.removeItem('adminAuth');
+            navigate('/driver/pending-approval');
+          } else {
+            localStorage.setItem('driverAuth', 'true');
+            localStorage.removeItem('customerAuth');
+            localStorage.removeItem('adminAuth');
+            navigate('/driver/pending-approval');
+          }
+          return;
+        }
+      })();
+    }
+  }, [user, navigate, toast]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -70,107 +151,7 @@ const LoginContent = () => {
       if (error) throw error;
       if (!data.user) throw new Error(t('failedToGetUserInfo'));
 
-      localStorage.setItem('userId', data.user.id);
-
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', data.user.id)
-        .maybeSingle();
-
-      if (profileError) {
-        throw profileError;
-      }
-
-      if (profileData?.user_type === 'admin') {
-        localStorage.setItem('adminAuth', 'true');
-        localStorage.removeItem('customerAuth');
-        localStorage.removeItem('driverAuth');
-        toast({
-          title: t('loginSuccess'),
-          description: t('welcomeToSafedrop'),
-        });
-        navigate('/admin');
-        setIsLoading(false);
-        return;
-      }
-
-      if (profileData?.user_type === 'driver') {
-        const { data: driverData, error: driverError } = await supabase
-          .from('drivers')
-          .select('status')
-          .eq('id', data.user.id)
-          .maybeSingle();
-
-        if (driverError) {
-          throw driverError;
-        }
-
-        if (driverData) {
-          if (driverData.status === 'approved') {
-            localStorage.setItem('driverAuth', 'true');
-            localStorage.removeItem('customerAuth');
-            localStorage.removeItem('adminAuth');
-            toast({
-              title: t('loginSuccess'),
-              description: t('welcomeToSafedrop'),
-            });
-            navigate('/driver/dashboard');
-          } else if (
-            driverData.status === 'pending' ||
-            driverData.status === null
-          ) {
-            localStorage.setItem('driverAuth', 'true');
-            localStorage.removeItem('customerAuth');
-            localStorage.removeItem('adminAuth');
-            toast({
-              title: t('pendingApprovalTitle'),
-              description: t('pendingApprovalDescription'),
-            });
-            navigate('/driver/pending-approval');
-          } else if (driverData.status === 'rejected') {
-            localStorage.setItem('driverAuth', 'true');
-            localStorage.removeItem('customerAuth');
-            localStorage.removeItem('adminAuth');
-            toast({
-              title: t('rejectedAccountTitle'),
-              description: t('rejectedAccountDescription'),
-              variant: 'destructive',
-            });
-            navigate('/driver/pending-approval');
-          } else {
-            localStorage.setItem('driverAuth', 'true');
-            localStorage.removeItem('customerAuth');
-            localStorage.removeItem('adminAuth');
-            toast({
-              title: t('pendingApprovalTitle'),
-              description: t('pendingApprovalDescription'),
-            });
-            navigate('/driver/pending-approval');
-          }
-        } else {
-          localStorage.setItem('customerAuth', 'true');
-          localStorage.removeItem('driverAuth');
-          localStorage.removeItem('adminAuth');
-          toast({
-            title: t('loginSuccess'),
-            description: t('welcomeToSafedrop'),
-          });
-          navigate('/customer/dashboard');
-        }
-
-        setIsLoading(false);
-        return;
-      }
-
-      localStorage.setItem('customerAuth', 'true');
-      localStorage.removeItem('driverAuth');
-      localStorage.removeItem('adminAuth');
-      toast({
-        title: t('loginSuccess'),
-        description: t('welcomeToSafedrop'),
-      });
-      navigate('/customer/dashboard');
+      // The session/user state and redirect is handled by effect above
     } catch (error: any) {
       console.error('Login error:', error);
       toast({
@@ -178,7 +159,6 @@ const LoginContent = () => {
         description: error.message || t('invalidCredentialsTryAgain'),
         variant: 'destructive',
       });
-    } finally {
       setIsLoading(false);
     }
   };
