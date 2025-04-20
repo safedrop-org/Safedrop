@@ -12,6 +12,7 @@ import { LanguageProvider, useLanguage } from '@/components/ui/language-context'
 import { useNavigate } from 'react-router-dom';
 import { UserIcon, LockIcon, MailIcon, PhoneIcon, Calendar } from 'lucide-react';
 
+// تحديث مخطط التسجيل مع تعديلات صغيرة على year ليكون من نوع string لأن الحقل في vehicleInfo هو string
 const driverRegisterSchema = z.object({
   firstName: z.string().min(2, { message: "الاسم الأول مطلوب" }),
   lastName: z.string().min(2, { message: "اسم العائلة مطلوب" }),
@@ -61,12 +62,20 @@ const DriverRegisterContent = () => {
   const onSubmit = async (data: DriverFormValues) => {
     setIsLoading(true);
 
+    // تأخير بسيط متزايد في المحاولات للتقليل من المشاكل بسبب التكرار السريع
     if (submitAttempts > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000 * submitAttempts));
     }
 
     try {
-      // Register user without file uploads (files were removed)
+      // تأكد من عدم السماح بإرسال بيانات بدون البريد أو الرقم
+      if (!data.email || !data.password) {
+        toast.error('البريد الإلكتروني وكلمة المرور مطلوبان.');
+        setIsLoading(false);
+        return;
+      }
+
+      // تسجيل المستخدم
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -82,7 +91,7 @@ const DriverRegisterContent = () => {
       });
 
       if (signUpError) {
-        // Handle rate limit or other known errors gracefully
+        // التعامل مع أخطاء تجاوز الحد المسموح
         if (
           signUpError.message.includes('security purposes') ||
           signUpError.code === 'over_email_send_rate_limit'
@@ -91,7 +100,6 @@ const DriverRegisterContent = () => {
           setIsLoading(false);
           return;
         }
-        // For other errors, show error toast but no raw error to user
         toast.error(t('registrationError'), {
           description: signUpError.message,
         });
@@ -107,7 +115,7 @@ const DriverRegisterContent = () => {
 
       const userId = authData.user.id;
 
-      // Insert profile record with user_type driver and birth_date
+      // إضافة ملف للملف الشخصي مع user_type birth_date
       const { error: profileError } = await supabase.from('profiles').insert({
         id: userId,
         first_name: data.firstName,
@@ -128,16 +136,18 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      // Insert driver details with 'pending' status but without document images (since not uploaded)
+      // إضافة بيانات السائق مع الحالة "pending" بدون الصور لعدم الرفع حاليا
       const { error: driverInsertError } = await supabase.from('drivers').insert({
         id: userId,
         national_id: data.nationalId,
         license_number: data.licenseNumber,
         vehicle_info: {
-          ...data.vehicleInfo,
-          plateNumber: data.vehicleInfo.plateNumber // align property name casing
+          make: data.vehicleInfo.make,
+          model: data.vehicleInfo.model,
+          year: data.vehicleInfo.year,
+          plateNumber: data.vehicleInfo.plateNumber,
         },
-        status: 'pending', // important: start as pending
+        status: 'pending',
         is_available: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -152,7 +162,7 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      // Successful registration message
+      // تم التسجيل بنجاح
       setRegistrationComplete(true);
 
       toast.success(t('registrationSuccess'), {
@@ -174,10 +184,10 @@ const DriverRegisterContent = () => {
       <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
           <div>
-            <img 
-              src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png" 
-              alt="SafeDrop Logo" 
-              className="mx-auto h-20 w-auto mb-4" 
+            <img
+              src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png"
+              alt="SafeDrop Logo"
+              className="mx-auto h-20 w-auto mb-4"
             />
             <h2 className="text-2xl font-bold text-safedrop-primary mt-6">
               تم التسجيل بنجاح!
@@ -207,10 +217,10 @@ const DriverRegisterContent = () => {
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8">
         <div className="text-center">
-          <img 
-            src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png" 
-            alt="SafeDrop Logo" 
-            className="mx-auto h-20 w-auto mb-4" 
+          <img
+            src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png"
+            alt="SafeDrop Logo"
+            className="mx-auto h-20 w-auto mb-4"
           />
           <h2 className="text-3xl font-bold text-safedrop-primary">
             {t('driverRegister')}
@@ -300,12 +310,11 @@ const DriverRegisterContent = () => {
                         className="pl-10"
                         {...field} 
                       />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               )}
-            />
 
             <FormField
               control={form.control}
@@ -322,12 +331,11 @@ const DriverRegisterContent = () => {
                         className="pl-10"
                         {...field} 
                       />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               )}
-            />
 
             <FormField
               control={form.control}
@@ -344,12 +352,11 @@ const DriverRegisterContent = () => {
                         className="pl-10"
                         {...field} 
                       />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               )}
-            />
 
             {/* Driver Documents */}
             <div className="grid grid-cols-2 gap-4">
@@ -456,8 +463,8 @@ const DriverRegisterContent = () => {
               />
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
               disabled={isLoading}
             >
@@ -468,8 +475,8 @@ const DriverRegisterContent = () => {
 
         <div className="text-center mt-4">
           {t('alreadyHaveAccount')}{' '}
-          <a 
-            href="/login" 
+          <a
+            href="/login"
             className="text-safedrop-gold hover:underline"
           >
             {t('login')}
