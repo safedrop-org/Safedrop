@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,7 +11,6 @@ import { LanguageProvider, useLanguage } from '@/components/ui/language-context'
 import { useNavigate } from 'react-router-dom';
 import { UserIcon, LockIcon, MailIcon, PhoneIcon, Calendar } from 'lucide-react';
 
-// تحديث مخطط التسجيل مع تعديلات صغيرة على year ليكون من نوع string لأن الحقل في vehicleInfo هو string
 const driverRegisterSchema = z.object({
   firstName: z.string().min(2, { message: "الاسم الأول مطلوب" }),
   lastName: z.string().min(2, { message: "اسم العائلة مطلوب" }),
@@ -62,20 +60,17 @@ const DriverRegisterContent = () => {
   const onSubmit = async (data: DriverFormValues) => {
     setIsLoading(true);
 
-    // تأخير بسيط متزايد في المحاولات للتقليل من المشاكل بسبب التكرار السريع
     if (submitAttempts > 0) {
       await new Promise((resolve) => setTimeout(resolve, 3000 * submitAttempts));
     }
 
     try {
-      // تأكد من عدم السماح بإرسال بيانات بدون البريد أو الرقم
       if (!data.email || !data.password) {
         toast.error('البريد الإلكتروني وكلمة المرور مطلوبان.');
         setIsLoading(false);
         return;
       }
 
-      // تسجيل المستخدم
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -91,7 +86,6 @@ const DriverRegisterContent = () => {
       });
 
       if (signUpError) {
-        // التعامل مع أخطاء تجاوز الحد المسموح
         if (
           signUpError.message.includes('security purposes') ||
           signUpError.code === 'over_email_send_rate_limit'
@@ -115,7 +109,6 @@ const DriverRegisterContent = () => {
 
       const userId = authData.user.id;
 
-      // إضافة ملف للملف الشخصي مع user_type birth_date
       const { error: profileError } = await supabase.from('profiles').insert({
         id: userId,
         first_name: data.firstName,
@@ -136,7 +129,6 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      // إضافة بيانات السائق مع الحالة "pending" بدون الصور لعدم الرفع حاليا
       const { error: driverInsertError } = await supabase.from('drivers').insert({
         id: userId,
         national_id: data.nationalId,
@@ -162,7 +154,6 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      // تم التسجيل بنجاح
       setRegistrationComplete(true);
 
       toast.success(t('registrationSuccess'));
@@ -453,4 +444,3 @@ const DriverRegister = () => {
 };
 
 export default DriverRegister;
-
