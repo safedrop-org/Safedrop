@@ -5,6 +5,7 @@ import { useLanguage } from "@/components/ui/language-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface Driver {
   id: string;
@@ -20,6 +21,40 @@ const DriverVerification = () => {
   const { t } = useLanguage();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // Check session and role to protect route access
+  useEffect(() => {
+    const checkAccess = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        navigate("/login");
+        return;
+      }
+      // Fetch profile user_type
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_type")
+        .eq("id", session.user.id)
+        .single();
+
+      if (!profile || profile.user_type !== "admin") {
+        // Not admin, redirect to relevant dashboard or login
+        if (profile?.user_type === "customer") {
+          navigate("/customer/dashboard");
+        } else if (profile?.user_type === "driver") {
+          navigate("/driver/dashboard");
+        } else {
+          navigate("/login");
+        }
+      }
+    };
+
+    checkAccess();
+  }, [navigate]);
 
   const fetchDrivers = async () => {
     setLoading(true);
@@ -32,7 +67,6 @@ const DriverVerification = () => {
       toast.error(t("fetchDriversError"));
       console.error(error);
     } else if (data) {
-      // Map profile & driver info merged for easier display
       const combined = data.map((profile) => ({
         id: profile.id,
         first_name: profile.first_name,
@@ -46,10 +80,6 @@ const DriverVerification = () => {
     }
     setLoading(false);
   };
-
-  useEffect(() => {
-    fetchDrivers();
-  }, []);
 
   const updateDriverStatus = async (id: string, status: string, rejectionReason?: string) => {
     setLoading(true);
@@ -68,9 +98,13 @@ const DriverVerification = () => {
     setLoading(false);
   };
 
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">{t("manageDrivers")}</h1>
+    <div className="p-6 flex flex-col min-h-svh">
+      <h1 className="text-2xl font-bold mb-6">إدارة السائقين</h1>
       <Table>
         <TableHeader>
           <TableRow>
@@ -138,4 +172,3 @@ const DriverVerification = () => {
 };
 
 export default DriverVerification;
-
