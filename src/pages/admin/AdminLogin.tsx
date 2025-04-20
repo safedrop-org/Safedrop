@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -31,43 +32,33 @@ const AdminLoginContent = () => {
       return;
     }
 
-    try {
-      if (password === ADMIN_PASSWORD) {
-        // تعيين معلومات المصادقة للمشرف في التخزين المحلي
-        localStorage.setItem('adminAuth', 'true');
-        localStorage.setItem('adminEmail', 'admin@safedrop.com');
+    if (password === ADMIN_PASSWORD) {
+      // تعيين معلومات المصادقة للمشرف في التخزين المحلي
+      localStorage.setItem('adminAuth', 'true');
+      localStorage.setItem('adminEmail', 'admin@safedrop.com');
 
-        // إزالة أي علامات صلاحيات أخرى بعد تسجيل دخول الأدمن
-        localStorage.removeItem('customerAuth');
-        localStorage.removeItem('driverAuth');
+      // إزالة أي علامات صلاحيات أخرى بعد تسجيل دخول الأدمن
+      localStorage.removeItem('customerAuth');
+      localStorage.removeItem('driverAuth');
 
-        toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في لوحة تحكم المشرف",
-        });
+      toast({
+        title: "تم تسجيل الدخول بنجاح",
+        description: "مرحباً بك في لوحة تحكم المشرف",
+      });
 
-        // ننتظر قليلاً قبل التنقل لضمان تحديث حالة التخزين بشكل متزامن
-        setTimeout(() => {
-          navigate('/admin/dashboard');
-        }, 150);
+      // ننتظر قليلاً قبل التنقل لضمان تحديث حالة التخزين بشكل متزامن
+      setTimeout(() => {
+        navigate('/admin/dashboard');
+      }, 150);
 
-        // عند النجاح لا نكمل العملية ولا نرسل رسائل خطأ ثانية
-        return;
-      } else {
-        // إذا كانت كلمة المرور خاطئة - يظهر رسالة خطأ فقط
-        toast({
-          title: "فشل تسجيل الدخول",
-          description: "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
+      setIsLoading(false);
+      return;
+    } else {
       toast({
         title: "فشل تسجيل الدخول",
-        description: error.message || "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى",
+        description: "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
