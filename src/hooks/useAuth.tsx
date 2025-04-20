@@ -2,26 +2,26 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import type { User, Session } from '@supabase/supabase-js';
 
 export const useAuth = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Setup auth state listener first
+    // Listen for auth changes first
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Auth state changed:", session);
       setSession(session);
-      if (!session) {
-        setUser(null);
-        setProfile(null);
-        navigate("/login");
-      } else {
+
+      if (session && session.user) {
         setUser(session.user);
-        // fetch profile async after state update using timeout to avoid blocking
+
+        // Fetch profile async after state update to prevent blocking UI
         setTimeout(async () => {
           const { data, error } = await supabase
             .from("profiles")
@@ -29,19 +29,29 @@ export const useAuth = () => {
             .eq("id", session.user.id)
             .single();
 
-          if (!error && data) {
-            setProfile(data);
-          } else {
+          if (error) {
+            console.error("Error fetching profile:", error);
             setProfile(null);
+          } else {
+            setProfile(data);
           }
         }, 0);
+      } else {
+        setUser(null);
+        setProfile(null);
+
+        // Only navigate to login if not already there (avoids infinite loop)
+        if (window.location.pathname !== "/login") {
+          navigate("/login");
+        }
       }
     });
 
-    // THEN check existing session after listener setup
+    // Then fetch existing session once listener is established
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session fetched:", session);
       setSession(session);
-      if (session) {
+      if (session && session.user) {
         setUser(session.user);
         supabase
           .from("profiles")
@@ -49,10 +59,11 @@ export const useAuth = () => {
           .eq("id", session.user.id)
           .single()
           .then(({ data, error }) => {
-            if (!error && data) {
-              setProfile(data);
-            } else {
+            if (error) {
+              console.error("Error fetching profile:", error);
               setProfile(null);
+            } else {
+              setProfile(data);
             }
           });
       } else {
@@ -61,7 +72,7 @@ export const useAuth = () => {
       }
     });
 
-    // unsubscribe on unmount
+    // Cleanup subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
