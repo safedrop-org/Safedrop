@@ -9,7 +9,6 @@ interface Customer {
   id: string;
   first_name: string;
   last_name: string;
-  email: string | null;
   phone: string;
   created_at: string;
 }
@@ -23,7 +22,7 @@ const Customers = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name, phone, user_type, email, created_at")
+      .select("id, first_name, last_name, phone, user_type, created_at")
       .eq("user_type", "customer");
 
     if (error) {
@@ -35,7 +34,6 @@ const Customers = () => {
         first_name: cust.first_name,
         last_name: cust.last_name,
         phone: cust.phone,
-        email: cust.email,
         created_at: cust.created_at,
       })) as Customer[];
       setCustomers(customersFormatted);
@@ -56,7 +54,6 @@ const Customers = () => {
             <TableHead>الاسم الأول</TableHead>
             <TableHead>اسم العائلة</TableHead>
             <TableHead>الهاتف</TableHead>
-            <TableHead>البريد الإلكتروني</TableHead>
             <TableHead>تاريخ الإنضمام</TableHead>
           </TableRow>
         </TableHeader>
@@ -66,13 +63,12 @@ const Customers = () => {
               <TableCell>{customer.first_name}</TableCell>
               <TableCell>{customer.last_name}</TableCell>
               <TableCell>{customer.phone}</TableCell>
-              <TableCell>{customer.email ?? "-"}</TableCell>
               <TableCell>{new Date(customer.created_at).toLocaleDateString()}</TableCell>
             </TableRow>
           ))}
           {customers.length === 0 && !loading && (
             <TableRow>
-              <TableCell colSpan={5} className="text-center">
+              <TableCell colSpan={4} className="text-center">
                 لا يوجد عملاء للعرض
               </TableCell>
             </TableRow>
@@ -84,3 +80,4 @@ const Customers = () => {
 };
 
 export default Customers;
+
