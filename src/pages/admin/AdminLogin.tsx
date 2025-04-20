@@ -21,10 +21,11 @@ const AdminLoginContent = () => {
   // تحقق عند تحميل الصفحة إذا كان الأدمن مسجل دخوله
   useEffect(() => {
     const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
-    if (isAdminLoggedIn) {
-      // if logged in, redirect to dashboard and prevent access to login page
-      navigate('/admin/dashboard', { replace: true });
-    }
+    // Disable redirect from login page if admin is already logged in
+    // if (isAdminLoggedIn) {
+    //   // if logged in, redirect to dashboard and prevent access to login page
+    //   navigate('/admin/dashboard', { replace: true });
+    // }
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {

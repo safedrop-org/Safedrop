@@ -22,7 +22,8 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       if (!isAdminLoggedIn) {
         if (isMounted) {
           setIsAuthorized(false);
-          navigate("/admin", { replace: true });
+          // Disabled navigation here to prevent redirecting unauthorized users automatically
+          // navigate("/admin", { replace: true });
         }
         return;
       }
@@ -35,7 +36,8 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       if (!session) {
         if (isMounted) {
           setIsAuthorized(false);
-          navigate("/admin", { replace: true });
+          // Disabled navigation here to prevent redirecting unauthorized users automatically
+          // navigate("/admin", { replace: true });
         }
         return;
       }
@@ -53,7 +55,8 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         } else if (profile?.user_type === "driver") {
           navigate("/driver/dashboard", { replace: true });
         } else {
-          navigate("/admin", { replace: true });
+          // Disabled navigating to admin login page automatically
+          // navigate("/admin", { replace: true });
         }
         if (isMounted) {
           setIsAuthorized(false);
