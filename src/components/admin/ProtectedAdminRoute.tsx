@@ -22,7 +22,7 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       if (!isAdminLoggedIn) {
         if (isMounted) {
           setIsAuthorized(false);
-          navigate("/admin");
+          navigate("/admin", { replace: true });
         }
         return;
       }
@@ -35,7 +35,7 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       if (!session) {
         if (isMounted) {
           setIsAuthorized(false);
-          navigate("/admin");
+          navigate("/admin", { replace: true });
         }
         return;
       }
@@ -49,11 +49,11 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       if (error || !profile || profile.user_type !== "admin") {
         toast.error("ليس لديك صلاحية الدخول إلى هذه الصفحة.");
         if (profile?.user_type === "customer") {
-          navigate("/customer/dashboard");
+          navigate("/customer/dashboard", { replace: true });
         } else if (profile?.user_type === "driver") {
-          navigate("/driver/dashboard");
+          navigate("/driver/dashboard", { replace: true });
         } else {
-          navigate("/admin");
+          navigate("/admin", { replace: true });
         }
         if (isMounted) {
           setIsAuthorized(false);
@@ -86,4 +86,3 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
 };
 
 export default ProtectedAdminRoute;
-

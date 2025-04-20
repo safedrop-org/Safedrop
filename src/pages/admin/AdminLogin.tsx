@@ -22,7 +22,8 @@ const AdminLoginContent = () => {
   useEffect(() => {
     const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
     if (isAdminLoggedIn) {
-      navigate('/admin/dashboard');
+      // if logged in, redirect to dashboard and prevent access to login page
+      navigate('/admin/dashboard', { replace: true });
     }
   }, [navigate]);
 
@@ -56,7 +57,7 @@ const AdminLoginContent = () => {
 
       // ننتظر قليلاً قبل التنقل لضمان تحديث حالة التخزين بشكل متزامن
       setTimeout(() => {
-        navigate('/admin/dashboard');
+        navigate('/admin/dashboard', { replace: true });
       }, 150);
 
       setIsLoading(false);
