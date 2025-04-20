@@ -23,17 +23,22 @@ export const useAuth = () => {
 
         // Fetch profile async after state update to prevent blocking UI
         setTimeout(async () => {
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
+          try {
+            const { data, error } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", session.user.id)
+              .single();
 
-          if (error) {
-            console.error("Error fetching profile:", error);
+            if (error) {
+              console.error("Error fetching profile:", error);
+              setProfile(null);
+            } else {
+              setProfile(data);
+            }
+          } catch (err) {
+            console.error("Exception fetching profile:", err);
             setProfile(null);
-          } else {
-            setProfile(data);
           }
         }, 0);
       } else {
@@ -42,6 +47,7 @@ export const useAuth = () => {
 
         // Only navigate to login if not already there (avoids infinite loop)
         if (window.location.pathname !== "/login") {
+          console.log("No session detected, navigating to login");
           navigate("/login");
         }
       }
@@ -51,6 +57,7 @@ export const useAuth = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session fetched:", session);
       setSession(session);
+
       if (session && session.user) {
         setUser(session.user);
         supabase
@@ -65,6 +72,10 @@ export const useAuth = () => {
             } else {
               setProfile(data);
             }
+          })
+          .catch((err) => {
+            console.error("Exception fetching profile:", err);
+            setProfile(null);
           });
       } else {
         setUser(null);
