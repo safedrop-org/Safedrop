@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,10 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { useNavigate } from 'react-router-dom';
-import { UserIcon, LockIcon, MailIcon, PhoneIcon, UploadIcon } from 'lucide-react';
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+import { UserIcon, LockIcon, MailIcon, PhoneIcon, } from 'lucide-react';
 
 const driverRegisterSchema = z.object({
   firstName: z.string().min(2, { message: "الاسم الأول مطلوب" }),
@@ -22,12 +20,6 @@ const driverRegisterSchema = z.object({
   password: z.string().min(8, { message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }),
   nationalId: z.string().min(10, { message: "رقم الهوية مطلوب" }),
   licenseNumber: z.string().min(5, { message: "رقم الرخصة مطلوب" }),
-  nationalIdFile: z.instanceof(File)
-    .refine(file => file.size <= MAX_FILE_SIZE, { message: "الحجم الأقصى للملف 5 ميجابايت" })
-    .refine(file => ALLOWED_FILE_TYPES.includes(file.type), { message: "نوع الملف غير مسموح به" }),
-  licenseFile: z.instanceof(File)
-    .refine(file => file.size <= MAX_FILE_SIZE, { message: "الحجم الأقصى للملف 5 ميجابايت" })
-    .refine(file => ALLOWED_FILE_TYPES.includes(file.type), { message: "نوع الملف غير مسموح به" }),
   vehicleInfo: z.object({
     make: z.string().min(2, { message: "نوع السيارة مطلوب" }),
     model: z.string().min(2, { message: "موديل السيارة مطلوب" }),
@@ -72,10 +64,7 @@ const DriverRegisterContent = () => {
     }
 
     try {
-      // Check if email already exists - current check on profiles.id with email is incorrect, so removed to prevent false positive
-      // Removed existingUser check due to id/email mismatch
-
-      // Register user with email confirmation only, do NOT login automatically
+      // Register user without file uploads (files were removed)
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -108,46 +97,6 @@ const DriverRegisterContent = () => {
 
       const userId = authData.user.id;
 
-      // Upload national ID file
-      const nationalIdFileName = `drivers/${userId}/national_id_${data.nationalId}${getFileExtension(
-        data.nationalIdFile.name
-      )}`;
-      const { error: uploadNationalIdError } = await supabase.storage
-        .from('driver-documents')
-        .upload(nationalIdFileName, data.nationalIdFile, {
-          cacheControl: '3600',
-          upsert: true,
-        });
-
-      if (uploadNationalIdError) {
-        console.error('National ID file upload error:', uploadNationalIdError);
-        throw new Error('فشل رفع ملف الهوية الوطنية');
-      }
-
-      // Upload license file
-      const licenseFileName = `drivers/${userId}/license_${data.licenseNumber}${getFileExtension(
-        data.licenseFile.name
-      )}`;
-      const { error: uploadLicenseError } = await supabase.storage
-        .from('driver-documents')
-        .upload(licenseFileName, data.licenseFile, {
-          cacheControl: '3600',
-          upsert: true,
-        });
-
-      if (uploadLicenseError) {
-        console.error('License file upload error:', uploadLicenseError);
-        throw new Error('فشل رفع ملف الرخصة');
-      }
-
-      // Get public URLs for uploaded files
-      const { data: nationalIdPublicUrlData } = supabase.storage
-        .from('driver-documents')
-        .getPublicUrl(nationalIdFileName);
-      const { data: licensePublicUrlData } = supabase.storage
-        .from('driver-documents')
-        .getPublicUrl(licenseFileName);
-
       // Insert profile record with user_type driver
       const { error: profileError } = await supabase.from('profiles').insert({
         id: userId,
@@ -164,18 +113,14 @@ const DriverRegisterContent = () => {
         throw profileError;
       }
 
-      // Insert driver details with 'pending' status and documents
+      // Insert driver details with 'pending' status but without document images (since not uploaded)
       const { error: driverInsertError } = await supabase.from('drivers').insert({
         id: userId,
         national_id: data.nationalId,
         license_number: data.licenseNumber,
-        license_image: licensePublicUrlData.publicUrl,
         vehicle_info: data.vehicleInfo,
         status: 'pending', // important: start as pending
         is_available: false,
-        documents: {
-          national_id_image: nationalIdPublicUrlData.publicUrl,
-        },
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
@@ -200,11 +145,6 @@ const DriverRegisterContent = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getFileExtension = (fileName: string) => {
-    const dotIndex = fileName.lastIndexOf('.');
-    return dotIndex !== -1 ? fileName.substring(dotIndex) : '';
   };
 
   if (registrationComplete) {
@@ -403,54 +343,6 @@ const DriverRegisterContent = () => {
               />
             </div>
 
-            {/* Document File Uploads */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="nationalIdFile"
-                render={({ field: { value, onChange, ...field } }) => (
-                  <FormItem>
-                    <FormLabel>{t('nationalIdDocument')}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UploadIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input 
-                          type="file" 
-                          accept=".jpg,.jpeg,.png,.pdf" 
-                          className="pl-10 file:mr-4 file:rounded-full file:border-0 file:bg-safedrop-gold/10 file:px-4 file:py-2 file:text-sm file:font-semibold hover:file:bg-safedrop-gold/20"
-                          onChange={(e) => onChange(e.target.files?.[0])}
-                          {...field} 
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="licenseFile"
-                render={({ field: { value, onChange, ...field } }) => (
-                  <FormItem>
-                    <FormLabel>{t('licenseDocument')}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UploadIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input 
-                          type="file" 
-                          accept=".jpg,.jpeg,.png,.pdf" 
-                          className="pl-10 file:mr-4 file:rounded-full file:border-0 file:bg-safedrop-gold/10 file:px-4 file:py-2 file:text-sm file:font-semibold hover:file:bg-safedrop-gold/20"
-                          onChange={(e) => onChange(e.target.files?.[0])}
-                          {...field} 
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
             {/* Vehicle Information */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -553,3 +445,4 @@ const DriverRegister = () => {
 };
 
 export default DriverRegister;
+

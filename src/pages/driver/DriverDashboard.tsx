@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -28,7 +27,6 @@ const DriverDashboardContent = () => {
     availableBalance: 0
   });
 
-  // Fetch driver data and authentication status
   useEffect(() => {
     const checkAuthAndData = async () => {
       const driverAuth = localStorage.getItem('driverAuth');
@@ -56,7 +54,6 @@ const DriverDashboardContent = () => {
           return;
         }
 
-        // Fetch driver info from 'drivers' table
         const { data: driver, error } = await supabase
           .from('drivers')
           .select('status, rejection_reason, rating')
@@ -77,17 +74,14 @@ const DriverDashboardContent = () => {
         setRejectionReason(driver.rejection_reason || null);
         setDriverRating(driver.rating || 0);
 
-        // Handle statuses
         if (driver.status === 'pending') {
           navigate('/driver/pending-approval');
           return;
         }
         if (driver.status === 'rejected') {
-          // Count number of rejections from localStorage, default to 1 if not stored
           const count = Number(localStorage.getItem('driverRejectionCount')) || 1;
           setRejectionCount(count);
           if (count >= 2) {
-            // Frozen status
             setDriverStatus('frozen');
             toast({
               title: "تم تعطيل الحساب مؤقتاً",
@@ -107,7 +101,6 @@ const DriverDashboardContent = () => {
         }
         if (driver.status === 'approved') {
           setIsAuthenticated(true);
-          // Initialize driver stats and notifications (mock or from API)
           setDriverStats({
             completedOrders: 132,
             totalEarnings: 8650,
@@ -367,7 +360,6 @@ const DriverDashboardContent = () => {
               </Card>
             </div>
             
-            {/* دعم ومساعدة */}
             <Card>
               <CardHeader>
                 <CardTitle>الدعم والمساعدة</CardTitle>
@@ -410,4 +402,3 @@ const DriverDashboard = () => {
 };
 
 export default DriverDashboard;
-

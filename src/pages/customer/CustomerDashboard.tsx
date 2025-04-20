@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -15,7 +14,6 @@ const CustomerDashboardContent = () => {
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check if user is authenticated
   useEffect(() => {
     const customerAuth = localStorage.getItem('customerAuth');
     if (!customerAuth || customerAuth !== 'true') {
