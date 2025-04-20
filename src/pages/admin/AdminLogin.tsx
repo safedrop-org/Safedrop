@@ -34,7 +34,6 @@ const AdminLoginContent = () => {
     }
 
     try {
-      // تحقق من كلمة المرور فقط
       if (password === ADMIN_PASSWORD) {
         // تعيين معلومات المصادقة للمشرف في التخزين المحلي
         localStorage.setItem('adminAuth', 'true');
@@ -56,7 +55,12 @@ const AdminLoginContent = () => {
 
         return;
       } else {
-        throw new Error('كلمة المرور غير صحيحة');
+        // إذا كانت كلمة المرور خاطئة - يظهر رسالة خطأ فقط ولا يظهر رسالة نجاح ثانية
+        toast({
+          title: "فشل تسجيل الدخول",
+          description: "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       toast({
@@ -92,11 +96,11 @@ const AdminLoginContent = () => {
                   <Label htmlFor="password">كلمة المرور</Label>
                   <div className="relative">
                     <LockIcon className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      className="pr-10" 
-                      placeholder="••••••••" 
+                    <Input
+                      id="password"
+                      type="password"
+                      className="pr-10"
+                      placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -106,8 +110,8 @@ const AdminLoginContent = () => {
               </CardContent>
 
               <CardFooter>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
                   disabled={isLoading}
                 >
@@ -131,4 +135,3 @@ const AdminLogin = () => {
 };
 
 export default AdminLogin;
-
