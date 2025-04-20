@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ShieldCheckIcon, LockIcon } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
+// كلمة المرور للأدمن
 const ADMIN_PASSWORD = "SafeDrop@ibrahim2515974";
 
 const AdminLoginContent = () => {
@@ -17,16 +18,6 @@ const AdminLoginContent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  // تحقق عند تحميل الصفحة إذا كان الأدمن مسجل دخوله
-  useEffect(() => {
-    const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
-    // Disable redirect from login page if admin is already logged in
-    // if (isAdminLoggedIn) {
-    //   // if logged in, redirect to dashboard and prevent access to login page
-    //   navigate('/admin/dashboard', { replace: true });
-    // }
-  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,33 +33,30 @@ const AdminLoginContent = () => {
       return;
     }
 
-    if (password === ADMIN_PASSWORD) {
-      // تعيين معلومات المصادقة للمشرف في التخزين المحلي
-      localStorage.setItem('adminAuth', 'true');
-      localStorage.setItem('adminEmail', 'admin@safedrop.com');
-
-      // إزالة أي علامات صلاحيات أخرى بعد تسجيل دخول الأدمن
-      localStorage.removeItem('customerAuth');
-      localStorage.removeItem('driverAuth');
-
-      toast({
-        title: "تم تسجيل الدخول بنجاح",
-        description: "مرحباً بك في لوحة تحكم المشرف",
-      });
-
-      // ننتظر قليلاً قبل التنقل لضمان تحديث حالة التخزين بشكل متزامن
-      setTimeout(() => {
-        navigate('/admin/dashboard', { replace: true });
-      }, 150);
-
-      setIsLoading(false);
-      return;
-    } else {
+    try {
+      // تحقق من كلمة المرور فقط
+      if (password === ADMIN_PASSWORD) {
+        // تعيين معلومات المصادقة للمشرف في التخزين المحلي
+        localStorage.setItem('adminAuth', 'true');
+        localStorage.setItem('adminEmail', 'admin@safedrop.com');
+        
+        toast({
+          title: "تم تسجيل الدخول بنجاح",
+          description: "مرحباً بك في لوحة تحكم المشرف",
+        });
+        
+        navigate('/admin/dashboard');
+        return;
+      } else {
+        throw new Error('كلمة المرور غير صحيحة');
+      }
+    } catch (error: any) {
       toast({
         title: "فشل تسجيل الدخول",
-        description: "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى",
+        description: error.message || "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };
@@ -89,18 +77,18 @@ const AdminLoginContent = () => {
                 أدخل كلمة المرور للوصول إلى لوحة تحكم المشرف
               </CardDescription>
             </CardHeader>
-
+            
             <form onSubmit={handleLogin}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">كلمة المرور</Label>
                   <div className="relative">
                     <LockIcon className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <Input
-                      id="password"
-                      type="password"
-                      className="pr-10"
-                      placeholder="••••••••"
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      className="pr-10" 
+                      placeholder="••••••••" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -108,10 +96,10 @@ const AdminLoginContent = () => {
                   </div>
                 </div>
               </CardContent>
-
+              
               <CardFooter>
-                <Button
-                  type="submit"
+                <Button 
+                  type="submit" 
                   className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
                   disabled={isLoading}
                 >

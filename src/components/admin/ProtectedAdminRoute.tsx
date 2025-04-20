@@ -13,18 +13,12 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
-
     const checkAdmin = async () => {
       // Check if localStorage adminAuth exists first for faster check
       const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
-
       if (!isAdminLoggedIn) {
-        if (isMounted) {
-          setIsAuthorized(false);
-          // Disabled navigation here to prevent redirecting unauthorized users automatically
-          // navigate("/admin", { replace: true });
-        }
+        setIsAuthorized(false);
+        navigate("/admin");
         return;
       }
 
@@ -34,11 +28,8 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        if (isMounted) {
-          setIsAuthorized(false);
-          // Disabled navigation here to prevent redirecting unauthorized users automatically
-          // navigate("/admin", { replace: true });
-        }
+        setIsAuthorized(false);
+        navigate("/admin");
         return;
       }
 
@@ -51,29 +42,20 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       if (error || !profile || profile.user_type !== "admin") {
         toast.error("ليس لديك صلاحية الدخول إلى هذه الصفحة.");
         if (profile?.user_type === "customer") {
-          navigate("/customer/dashboard", { replace: true });
+          navigate("/customer/dashboard");
         } else if (profile?.user_type === "driver") {
-          navigate("/driver/dashboard", { replace: true });
+          navigate("/driver/dashboard");
         } else {
-          // Disabled navigating to admin login page automatically
-          // navigate("/admin", { replace: true });
+          navigate("/admin");
         }
-        if (isMounted) {
-          setIsAuthorized(false);
-        }
+        setIsAuthorized(false);
         return;
       }
 
-      if (isMounted) {
-        setIsAuthorized(true);
-      }
+      setIsAuthorized(true);
     };
 
     checkAdmin();
-
-    return () => {
-      isMounted = false;
-    };
   }, [navigate]);
 
   if (isAuthorized === null) {
@@ -89,3 +71,4 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
 };
 
 export default ProtectedAdminRoute;
+
