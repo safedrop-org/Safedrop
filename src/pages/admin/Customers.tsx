@@ -24,7 +24,8 @@ const Customers = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name, phone, user_type, email")
+      .select("id, first_name, last_name, phone, user_type, email, created_at")  // Added created_at here
+
       .eq("user_type", "customer");
 
     if (error) {
@@ -36,7 +37,7 @@ const Customers = () => {
     setLoading(false);
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchCustomers();
   }, []);
 
