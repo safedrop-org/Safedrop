@@ -6,7 +6,6 @@ import type { User, Session } from '@supabase/supabase-js';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any>(null);
   const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
 
@@ -20,31 +19,8 @@ export const useAuth = () => {
 
       if (session && session.user) {
         setUser(session.user);
-
-        // Fetch profile async after state update to prevent blocking UI
-        setTimeout(async () => {
-          try {
-            const { data, error } = await supabase
-              .from("profiles")
-              .select("*")
-              .eq("id", session.user.id)
-              .single();
-
-            if (error) {
-              console.error("Error fetching profile:", error);
-              setProfile(null);
-            } else {
-              setProfile(data);
-            }
-          } catch (err) {
-            console.error("Exception fetching profile:", err);
-            setProfile(null);
-          }
-        }, 0);
       } else {
         setUser(null);
-        setProfile(null);
-
         // Only navigate to login if not already there (avoids infinite loop)
         if (window.location.pathname !== "/login") {
           console.log("No session detected, navigating to login");
@@ -54,33 +30,14 @@ export const useAuth = () => {
     });
 
     // Then fetch existing session once listener is established
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session fetched:", session);
       setSession(session);
 
       if (session && session.user) {
         setUser(session.user);
-
-        try {
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
-
-          if (error) {
-            console.error("Error fetching profile:", error);
-            setProfile(null);
-          } else {
-            setProfile(data);
-          }
-        } catch (err) {
-          console.error("Exception fetching profile:", err);
-          setProfile(null);
-        }
       } else {
         setUser(null);
-        setProfile(null);
       }
     });
 
@@ -90,5 +47,5 @@ export const useAuth = () => {
     };
   }, [navigate]);
 
-  return { user, profile, session };
+  return { user, session };
 };
