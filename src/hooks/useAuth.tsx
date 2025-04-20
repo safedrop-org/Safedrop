@@ -54,29 +54,30 @@ export const useAuth = () => {
     });
 
     // Then fetch existing session once listener is established
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log("Initial session fetched:", session);
       setSession(session);
 
       if (session && session.user) {
         setUser(session.user);
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single()
-          .then(({ data, error }) => {
-            if (error) {
-              console.error("Error fetching profile:", error);
-              setProfile(null);
-            } else {
-              setProfile(data);
-            }
-          })
-          .catch((err) => {
-            console.error("Exception fetching profile:", err);
+
+        try {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .single();
+
+          if (error) {
+            console.error("Error fetching profile:", error);
             setProfile(null);
-          });
+          } else {
+            setProfile(data);
+          }
+        } catch (err) {
+          console.error("Exception fetching profile:", err);
+          setProfile(null);
+        }
       } else {
         setUser(null);
         setProfile(null);
