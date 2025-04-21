@@ -67,5 +67,26 @@ export const useAuth = () => {
     }
   };
 
-  return { user, session, loading, signOut, checkUserProfile };
+  // Check driver status to handle driver-specific flows
+  const checkDriverStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('drivers')
+        .select('status, rejection_reason')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error checking driver status:", error);
+        return null;
+      }
+      
+      return data;
+    } catch (err) {
+      console.error("Exception when checking driver status:", err);
+      return null;
+    }
+  };
+
+  return { user, session, loading, signOut, checkUserProfile, checkDriverStatus };
 };

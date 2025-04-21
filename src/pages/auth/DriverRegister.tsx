@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { useNavigate } from 'react-router-dom';
 import { UserIcon, LockIcon, MailIcon, PhoneIcon, Calendar } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 const driverRegisterSchema = z.object({
   firstName: z.string().min(2, { message: "الاسم الأول مطلوب" }),
@@ -38,6 +39,7 @@ const DriverRegisterContent = () => {
   const [submitAttempts, setSubmitAttempts] = useState(0);
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [showDebugConsole, setShowDebugConsole] = useState(false);
 
   const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverRegisterSchema),
@@ -69,6 +71,21 @@ const DriverRegisterContent = () => {
 
     try {
       console.log("Registration data:", data);
+      const rawData = {
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            phone: data.phone,
+            user_type: 'driver',
+          },
+          emailRedirectTo: window.location.origin + '/email-verification',
+        },
+      };
+      
+      console.log("Sending auth data:", rawData);
 
       // Step 1: Sign up user with Supabase Auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -89,7 +106,16 @@ const DriverRegisterContent = () => {
         console.error('Auth signup error:', signUpError);
         setDebugInfo({
           stage: 'auth_signup',
-          error: signUpError
+          error: signUpError,
+          request: {
+            email: data.email,
+            user_metadata: {
+              first_name: data.firstName,
+              last_name: data.lastName,
+              phone: data.phone,
+              user_type: 'driver',
+            }
+          }
         });
         
         if (signUpError.message.includes('security purposes') || signUpError.code === 'over_email_send_rate_limit') {
@@ -108,7 +134,8 @@ const DriverRegisterContent = () => {
         console.error('No user data returned from signup');
         setDebugInfo({
           stage: 'auth_signup',
-          error: 'No user data returned'
+          error: 'No user data returned',
+          response: authData
         });
         toast.error('فشل إنشاء الحساب، يرجى المحاولة مرة أخرى');
         setIsLoading(false);
@@ -119,28 +146,27 @@ const DriverRegisterContent = () => {
       const userId = authData.user.id;
 
       // Step 2: Create profile entry
-      const { data: profileData, error: profileError } = await supabase
+      const profileData = {
+        id: userId,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        phone: data.phone,
+        user_type: 'driver',
+      };
+      
+      console.log("Creating profile with data:", profileData);
+
+      const { data: insertedProfileData, error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          id: userId,
-          first_name: data.firstName,
-          last_name: data.lastName,
-          phone: data.phone,
-          user_type: 'driver',
-        });
+        .insert(profileData)
+        .select();
 
       if (profileError) {
         console.error('Profile insert error:', profileError);
         setDebugInfo({
           stage: 'profile_insert',
           error: profileError,
-          attempted_data: {
-            id: userId,
-            first_name: data.firstName,
-            last_name: data.lastName,
-            phone: data.phone,
-            user_type: 'driver',
-          }
+          attempted_data: profileData
         });
         
         toast.error('خطأ أثناء حفظ بيانات الحساب، يرجى المحاولة لاحقًا');
@@ -148,43 +174,36 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      console.log("Profile created successfully");
+      console.log("Profile created successfully:", insertedProfileData);
 
       // Step 3: Create driver entry
-      const { data: driverData, error: driverInsertError } = await supabase
+      const driverData = {
+        id: userId,
+        national_id: data.nationalId,
+        license_number: data.licenseNumber,
+        vehicle_info: {
+          make: data.vehicleInfo.make,
+          model: data.vehicleInfo.model,
+          year: data.vehicleInfo.year,
+          plateNumber: data.vehicleInfo.plateNumber,
+        },
+        status: 'pending',
+        is_available: false,
+      };
+      
+      console.log("Creating driver record with data:", driverData);
+
+      const { data: driverInsertData, error: driverInsertError } = await supabase
         .from('drivers')
-        .insert({
-          id: userId,
-          national_id: data.nationalId,
-          license_number: data.licenseNumber,
-          vehicle_info: {
-            make: data.vehicleInfo.make,
-            model: data.vehicleInfo.model,
-            year: data.vehicleInfo.year,
-            plateNumber: data.vehicleInfo.plateNumber,
-          },
-          status: 'pending',
-          is_available: false,
-        });
+        .insert(driverData)
+        .select();
 
       if (driverInsertError) {
         console.error('Driver insert error:', driverInsertError);
         setDebugInfo({
           stage: 'driver_insert',
           error: driverInsertError,
-          attempted_data: {
-            id: userId,
-            national_id: data.nationalId,
-            license_number: data.licenseNumber,
-            vehicle_info: {
-              make: data.vehicleInfo.make,
-              model: data.vehicleInfo.model,
-              year: data.vehicleInfo.year,
-              plateNumber: data.vehicleInfo.plateNumber,
-            },
-            status: 'pending',
-            is_available: false,
-          }
+          attempted_data: driverData
         });
         
         toast.error('خطأ أثناء حفظ بيانات السائق، يرجى المحاولة لاحقًا');
@@ -192,7 +211,7 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      console.log("Driver data created successfully");
+      console.log("Driver data created successfully:", driverInsertData);
       setRegistrationComplete(true);
 
       toast.success(t('registrationSuccess'));
@@ -254,6 +273,42 @@ const DriverRegisterContent = () => {
           <h2 className="text-3xl font-bold text-safedrop-primary">{t('driverRegister')}</h2>
         </div>
 
+        <div className="flex justify-end mb-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowDebugConsole(!showDebugConsole)}
+            className="text-xs"
+          >
+            {showDebugConsole ? 'إخفاء وضع المطور' : 'وضع المطور'}
+          </Button>
+        </div>
+
+        {showDebugConsole && (
+          <div className="bg-gray-800 text-green-400 rounded-md p-4 mb-4 overflow-auto max-h-48 text-xs">
+            <p>▶️ وضع المطور: هذه المعلومات تساعد في تشخيص المشكلات</p>
+            <p>📡 API URL: {supabase.supabaseUrl}</p>
+            <p>🖥️ تطبيق ويب: {window.location.origin}</p>
+            {debugInfo && (
+              <>
+                <p className="font-bold mt-2">⚠️ آخر خطأ:</p>
+                <p>المرحلة: {debugInfo.stage}</p>
+                <pre className="whitespace-pre-wrap overflow-x-auto">
+                  {JSON.stringify(debugInfo.error, null, 2)}
+                </pre>
+                {debugInfo.attempted_data && (
+                  <>
+                    <p className="font-bold mt-1">البيانات المرسلة:</p>
+                    <pre className="whitespace-pre-wrap overflow-x-auto">
+                      {JSON.stringify(debugInfo.attempted_data, null, 2)}
+                    </pre>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
         {debugInfo && (
           <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
             <h3 className="text-red-800 font-medium">معلومات تشخيص الخطأ:</h3>
@@ -266,6 +321,16 @@ const DriverRegisterContent = () => {
                   {JSON.stringify(debugInfo.attempted_data, null, 2)}
                 </pre>
               </details>
+            )}
+            {debugInfo.stage === 'profile_insert' && (
+              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                <p className="text-sm text-yellow-800 font-medium">معلومات مفيدة للتصحيح:</p>
+                <ul className="list-disc list-inside text-xs text-yellow-700 mt-1">
+                  <li>تأكد من أن حقول الجدول profiles تتطابق مع البيانات المرسلة</li>
+                  <li>تأكد من أن سياسات RLS مفعلة بشكل صحيح</li>
+                  <li>قد تكون هناك مشكلة في الربط بين المستخدم والملف الشخصي</li>
+                </ul>
+              </div>
             )}
           </div>
         )}
