@@ -35,7 +35,7 @@ const LoginContent = () => {
     }
 
     try {
-      // إذا كان البريد الإلكتروني هو بريد المشرف، قم بتوجيهه إلى صفحة تسجيل دخول المشرف
+      // If email is admin email, redirect to admin login page
       if (email.toLowerCase() === 'admin@safedrop.com') {
         toast({
           title: t('adminLoginRedirectTitle'),
@@ -46,7 +46,7 @@ const LoginContent = () => {
         return;
       }
 
-      // تسجيل الدخول باستخدام البريد الإلكتروني وكلمة المرور
+      // Sign in with email and password
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -82,83 +82,119 @@ const LoginContent = () => {
         throw new Error(t('failedToGetUserInfo'));
       }
 
-      // التحقق من وجود ملف تعريف للمستخدم
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', data.user.id)
-        .maybeSingle();
+      try {
+        // Retrieve user profile with better error handling
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('id', data.user.id)
+          .maybeSingle();
 
-      if (profileError) {
-        console.error("Error fetching profile:", profileError);
-        toast({
-          title: 'خطأ في استرداد ملف المستخدم',
-          description: 'حدث خطأ أثناء استرداد معلومات المستخدم. يرجى المحاولة مرة أخرى.',
-          variant: 'destructive',
-        });
-        // تسجيل الخروج لأن هناك مشكلة في الحصول على الملف الشخصي
-        await supabase.auth.signOut();
-        setIsLoading(false);
-        return;
-      }
-
-      if (!profile) {
-        // لا يوجد ملف تعريف للمستخدم، قم بإنشاء ملف تعريف مؤقت أو توجيه المستخدم لإنشاء ملف تعريف
-        toast({
-          title: 'ملف تعريف المستخدم غير موجود',
-          description: 'يرجى التسجيل أولاً لإنشاء حساب قبل تسجيل الدخول.',
-          variant: 'destructive',
-        });
-        // تسجيل الخروج حتى يتمكن المستخدم من التسجيل بشكل صحيح
-        await supabase.auth.signOut();
-        setIsLoading(false);
-        return;
-      }
-
-      // إعادة توجيه المستخدم بناءً على نوع المستخدم
-      if (profile) {
-        // تخزين معلومات المصادقة في التخزين المحلي
-        if (profile.user_type === 'admin') {
-          localStorage.setItem('adminAuth', 'true');
-          localStorage.removeItem('customerAuth');
-          localStorage.removeItem('driverAuth');
-          navigate('/admin/dashboard');
-        } else if (profile.user_type === 'customer') {
-          localStorage.setItem('customerAuth', 'true');
-          localStorage.removeItem('driverAuth');
-          localStorage.removeItem('adminAuth');
-          navigate('/customer/dashboard');
-        } else if (profile.user_type === 'driver') {
-          // التحقق من حالة السائق
-          const { data: driverData } = await supabase
-            .from('drivers')
-            .select('status')
-            .eq('id', data.user.id)
-            .maybeSingle();
-
-          localStorage.setItem('driverAuth', 'true');
-          localStorage.removeItem('customerAuth');
-          localStorage.removeItem('adminAuth');
-
-          if (driverData?.status === 'approved') {
-            navigate('/driver/dashboard');
-          } else {
-            // إذا لم تكن الحالة معتمدة (معلقة أو مرفوضة أو مجمدة)
-            if (driverData?.status === 'frozen') {
-              toast({
-                title: 'مشكلة بالحساب',
-                description: 'تم تعطيل حسابك مؤقتًا. يرجى التواصل مع الدعم الفني.',
-                variant: 'destructive',
-              });
-            }
-            navigate('/driver/pending-approval');
-          }
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          toast({
+            title: 'خطأ في استرداد ملف المستخدم',
+            description: 'حدث خطأ أثناء استرداد معلومات المستخدم. يرجى المحاولة مرة أخرى.',
+            variant: 'destructive',
+          });
+          // Log out user due to profile retrieval issue
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
         }
 
+        console.log("Profile data:", profile);
+        
+        if (!profile) {
+          // No user profile found, suggest registration
+          toast({
+            title: 'ملف تعريف المستخدم غير موجود',
+            description: 'يرجى التسجيل أولاً لإنشاء حساب قبل تسجيل الدخول.',
+            variant: 'destructive',
+          });
+          // Sign out so user can register properly
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+
+        // Redirect based on user type
+        if (profile) {
+          // Store auth info in localStorage
+          if (profile.user_type === 'admin') {
+            localStorage.setItem('adminAuth', 'true');
+            localStorage.removeItem('customerAuth');
+            localStorage.removeItem('driverAuth');
+            navigate('/admin/dashboard');
+          } else if (profile.user_type === 'customer') {
+            localStorage.setItem('customerAuth', 'true');
+            localStorage.removeItem('driverAuth');
+            localStorage.removeItem('adminAuth');
+            navigate('/customer/dashboard');
+          } else if (profile.user_type === 'driver') {
+            // Check driver status
+            try {
+              const { data: driverData, error: driverError } = await supabase
+                .from('drivers')
+                .select('status')
+                .eq('id', data.user.id)
+                .maybeSingle();
+
+              if (driverError) {
+                console.error("Error fetching driver status:", driverError);
+                toast({
+                  title: 'خطأ في استرداد بيانات السائق',
+                  description: 'حدث خطأ أثناء استرداد معلومات السائق. يرجى المحاولة مرة أخرى.',
+                  variant: 'destructive',
+                });
+                await supabase.auth.signOut();
+                setIsLoading(false);
+                return;
+              }
+
+              localStorage.setItem('driverAuth', 'true');
+              localStorage.removeItem('customerAuth');
+              localStorage.removeItem('adminAuth');
+
+              if (driverData?.status === 'approved') {
+                navigate('/driver/dashboard');
+              } else {
+                // If status is not approved (pending, rejected, frozen)
+                if (driverData?.status === 'frozen') {
+                  toast({
+                    title: 'مشكلة بالحساب',
+                    description: 'تم تعطيل حسابك مؤقتًا. يرجى التواصل مع الدعم الفني.',
+                    variant: 'destructive',
+                  });
+                }
+                navigate('/driver/pending-approval');
+              }
+            } catch (err) {
+              console.error("Exception when checking driver status:", err);
+              toast({
+                title: 'خطأ غير متوقع',
+                description: 'حدث خطأ غير متوقع أثناء استرداد بيانات السائق.',
+                variant: 'destructive',
+              });
+              await supabase.auth.signOut();
+              setIsLoading(false);
+              return;
+            }
+          }
+
+          toast({
+            title: t('loginSuccess'),
+            description: t('welcomeBack'),
+          });
+        }
+      } catch (err) {
+        console.error("Exception during profile handling:", err);
         toast({
-          title: t('loginSuccess'),
-          description: t('welcomeBack'),
+          title: 'خطأ غير متوقع',
+          description: 'حدث خطأ غير متوقع أثناء معالجة ملف المستخدم.',
+          variant: 'destructive',
         });
+        await supabase.auth.signOut();
       }
     } catch (error: any) {
       console.error('Login error:', error);

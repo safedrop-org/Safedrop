@@ -11,7 +11,7 @@ export const useAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 1. أولاً: تعيين مستمع لتغييرات حالة المصادقة
+    // 1. First: Set up the auth state listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -21,7 +21,7 @@ export const useAuth = () => {
       setLoading(false);
     });
 
-    // 2. ثم: جلب الجلسة الحالية بعد إنشاء المستمع
+    // 2. Then: Fetch the current session after setting up the listener
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session fetched:", session);
       setSession(session);
@@ -29,13 +29,13 @@ export const useAuth = () => {
       setLoading(false);
     });
 
-    // تنظيف الاشتراك عند إزالة المكون
+    // Clean up subscription when component unmounts
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  // إضافة وظيفة تسجيل الخروج
+  // Sign out function
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -43,20 +43,26 @@ export const useAuth = () => {
     navigate('/login');
   };
 
-  // إضافة وظيفة للتحقق من وجود ملف تعريف للمستخدم
+  // Check user profile with error handling
   const checkUserProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-    
-    if (error) {
-      console.error("Error checking user profile:", error);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error checking user profile:", error);
+        return null;
+      }
+      
+      console.log("Profile check result:", data);
+      return data;
+    } catch (err) {
+      console.error("Exception when checking profile:", err);
       return null;
     }
-    
-    return data;
   };
 
   return { user, session, loading, signOut, checkUserProfile };
