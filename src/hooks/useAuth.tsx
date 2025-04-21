@@ -7,45 +7,33 @@ import type { User, Session } from '@supabase/supabase-js';
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Listen for auth changes first
+    // أولاً: تعيين مستمع لتغييرات حالة المصادقة
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log("Auth state changed:", session);
       setSession(session);
-
-      if (session && session.user) {
-        setUser(session.user);
-      } else {
-        setUser(null);
-        // Only navigate to login if not already there (avoids infinite loop)
-        if (window.location.pathname !== "/login") {
-          console.log("No session detected, navigating to login");
-          navigate("/login");
-        }
-      }
+      setUser(session?.user || null);
+      setLoading(false);
     });
 
-    // Then fetch existing session once listener is established
+    // ثم: جلب الجلسة الحالية بعد إنشاء المستمع
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session fetched:", session);
       setSession(session);
-
-      if (session && session.user) {
-        setUser(session.user);
-      } else {
-        setUser(null);
-      }
+      setUser(session?.user || null);
+      setLoading(false);
     });
 
-    // Cleanup subscription on unmount
+    // تنظيف الاشتراك عند إزالة المكون
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
-  return { user, session };
+  return { user, session, loading };
 };

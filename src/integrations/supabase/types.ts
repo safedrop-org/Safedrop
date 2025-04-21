@@ -9,7 +9,218 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      complaint_responses: {
+        Row: {
+          admin_id: string | null
+          complaint_id: string
+          created_at: string | null
+          id: string
+          response: string
+        }
+        Insert: {
+          admin_id?: string | null
+          complaint_id: string
+          created_at?: string | null
+          id?: string
+          response: string
+        }
+        Update: {
+          admin_id?: string | null
+          complaint_id?: string
+          created_at?: string | null
+          id?: string
+          response?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_responses_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      complaints: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          order_id: string | null
+          status: string | null
+          subject: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          order_id?: string | null
+          status?: string | null
+          subject: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          order_id?: string | null
+          status?: string | null
+          subject?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      drivers: {
+        Row: {
+          created_at: string | null
+          documents: Json | null
+          id: string
+          is_available: boolean | null
+          license_image: string | null
+          license_number: string
+          location: Json | null
+          national_id: string
+          rating: number | null
+          rejection_reason: string | null
+          status: string | null
+          updated_at: string | null
+          vehicle_info: Json
+        }
+        Insert: {
+          created_at?: string | null
+          documents?: Json | null
+          id: string
+          is_available?: boolean | null
+          license_image?: string | null
+          license_number: string
+          location?: Json | null
+          national_id: string
+          rating?: number | null
+          rejection_reason?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vehicle_info: Json
+        }
+        Update: {
+          created_at?: string | null
+          documents?: Json | null
+          id?: string
+          is_available?: boolean | null
+          license_image?: string | null
+          license_number?: string
+          location?: Json | null
+          national_id?: string
+          rating?: number | null
+          rejection_reason?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vehicle_info?: Json
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          actual_delivery_time: string | null
+          actual_pickup_time: string | null
+          commission_rate: number | null
+          created_at: string | null
+          customer_id: string
+          driver_id: string | null
+          driver_payout: number | null
+          dropoff_location: Json
+          estimated_distance: number | null
+          estimated_duration: number | null
+          id: string
+          notes: string | null
+          payment_method: string | null
+          payment_status: string | null
+          pickup_location: Json
+          price: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_delivery_time?: string | null
+          actual_pickup_time?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          customer_id: string
+          driver_id?: string | null
+          driver_payout?: number | null
+          dropoff_location: Json
+          estimated_distance?: number | null
+          estimated_duration?: number | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pickup_location: Json
+          price?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_delivery_time?: string | null
+          actual_pickup_time?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          customer_id?: string
+          driver_id?: string | null
+          driver_payout?: number | null
+          dropoff_location?: Json
+          estimated_distance?: number | null
+          estimated_duration?: number | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pickup_location?: Json
+          price?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          profile_image: string | null
+          updated_at: string | null
+          user_type: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          profile_image?: string | null
+          updated_at?: string | null
+          user_type: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          profile_image?: string | null
+          updated_at?: string | null
+          user_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

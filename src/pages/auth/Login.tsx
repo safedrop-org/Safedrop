@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -17,119 +17,8 @@ const LoginContent = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [session, setSession] = useState(null);
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      (async () => {
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (profileError || !profile) {
-          setIsLoading(false);
-          toast({
-            title: 'خطأ',
-            description: 'خطأ في تحميل بيانات المستخدم.',
-            variant: 'destructive',
-          });
-          await supabase.auth.signOut();
-          navigate('/login');
-          return;
-        }
-
-        if (profile.user_type === 'admin') {
-          localStorage.setItem('adminAuth', 'true');
-          localStorage.removeItem('customerAuth');
-          localStorage.removeItem('driverAuth');
-          navigate('/admin/dashboard');
-          return;
-        }
-
-        if (profile.user_type === 'customer') {
-          localStorage.setItem('customerAuth', 'true');
-          localStorage.removeItem('driverAuth');
-          localStorage.removeItem('adminAuth');
-          navigate('/customer/dashboard');
-          return;
-        }
-
-        if (profile.user_type === 'driver') {
-          const { data: driverData, error: driverError } = await supabase
-            .from('drivers')
-            .select('status')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          if (driverError) {
-            setIsLoading(false);
-            toast({
-              title: 'خطأ',
-              description: 'خطأ في تحميل بيانات السائق.',
-              variant: 'destructive',
-            });
-            await supabase.auth.signOut();
-            navigate('/login');
-            return;
-          }
-
-          if (driverData?.status === 'approved') {
-            localStorage.setItem('driverAuth', 'true');
-            localStorage.removeItem('customerAuth');
-            localStorage.removeItem('adminAuth');
-            navigate('/driver/dashboard');
-          } else if (driverData?.status === 'pending' || driverData?.status === null) {
-            localStorage.setItem('driverAuth', 'true');
-            localStorage.removeItem('customerAuth');
-            localStorage.removeItem('adminAuth');
-            navigate('/driver/pending-approval');
-          } else if (driverData?.status === 'rejected') {
-            localStorage.setItem('driverAuth', 'true');
-            localStorage.removeItem('customerAuth');
-            localStorage.removeItem('adminAuth');
-            navigate('/driver/pending-approval');
-          } else if (driverData?.status === 'frozen') {
-            toast({
-              title: 'مشكلة بالحساب',
-              description: 'تم تعطيل حسابك مؤقتًا. يرجى التواصل مع الدعم الفني.',
-              variant: 'destructive',
-            });
-            localStorage.setItem('driverAuth', 'true');
-            localStorage.removeItem('customerAuth');
-            localStorage.removeItem('adminAuth');
-            navigate('/driver/pending-approval');
-          } else {
-            localStorage.setItem('driverAuth', 'true');
-            localStorage.removeItem('customerAuth');
-            localStorage.removeItem('adminAuth');
-            navigate('/driver/pending-approval');
-          }
-          return;
-        }
-      })();
-    }
-  }, [user, navigate, toast]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,6 +35,7 @@ const LoginContent = () => {
     }
 
     try {
+      // إذا كان البريد الإلكتروني هو بريد المشرف، قم بتوجيهه إلى صفحة تسجيل دخول المشرف
       if (email.toLowerCase() === 'admin@safedrop.com') {
         toast({
           title: t('adminLoginRedirectTitle'),
@@ -156,22 +46,100 @@ const LoginContent = () => {
         return;
       }
 
+      // تسجيل الدخول باستخدام البريد الإلكتروني وكلمة المرور
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
-      if (!data.user) throw new Error(t('failedToGetUserInfo'));
+      if (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
+      
+      if (!data.user) {
+        throw new Error(t('failedToGetUserInfo'));
+      }
 
-      // The session/user state and redirect is handled by effect above
+      // إعادة توجيه المستخدم بناءً على نوع المستخدم
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profile) {
+        // تخزين معلومات المصادقة في التخزين المحلي
+        if (profile.user_type === 'admin') {
+          localStorage.setItem('adminAuth', 'true');
+          localStorage.removeItem('customerAuth');
+          localStorage.removeItem('driverAuth');
+          navigate('/admin/dashboard');
+        } else if (profile.user_type === 'customer') {
+          localStorage.setItem('customerAuth', 'true');
+          localStorage.removeItem('driverAuth');
+          localStorage.removeItem('adminAuth');
+          navigate('/customer/dashboard');
+        } else if (profile.user_type === 'driver') {
+          // التحقق من حالة السائق
+          const { data: driverData } = await supabase
+            .from('drivers')
+            .select('status')
+            .eq('id', data.user.id)
+            .maybeSingle();
+
+          localStorage.setItem('driverAuth', 'true');
+          localStorage.removeItem('customerAuth');
+          localStorage.removeItem('adminAuth');
+
+          if (driverData?.status === 'approved') {
+            navigate('/driver/dashboard');
+          } else {
+            // إذا لم تكن الحالة معتمدة (معلقة أو مرفوضة أو مجمدة)
+            if (driverData?.status === 'frozen') {
+              toast({
+                title: 'مشكلة بالحساب',
+                description: 'تم تعطيل حسابك مؤقتًا. يرجى التواصل مع الدعم الفني.',
+                variant: 'destructive',
+              });
+            }
+            navigate('/driver/pending-approval');
+          }
+        }
+      } else {
+        // إذا لم يتم العثور على ملف تعريف، قم بتسجيل خروج المستخدم
+        await supabase.auth.signOut();
+        throw new Error('لم يتم العثور على ملف تعريف المستخدم');
+      }
+
+      toast({
+        title: t('loginSuccess'),
+        description: t('welcomeBack'),
+      });
     } catch (error: any) {
       console.error('Login error:', error);
-      toast({
-        title: t('loginFailed'),
-        description: error.message || t('invalidCredentialsTryAgain'),
-        variant: 'destructive',
-      });
+      
+      // رسائل خطأ محددة للحالات المختلفة
+      if (error.message === 'Email not confirmed') {
+        toast({
+          title: 'البريد الإلكتروني غير مؤكد',
+          description: 'يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك',
+          variant: 'destructive',
+        });
+      } else if (error.message === 'Invalid login credentials') {
+        toast({
+          title: t('loginFailed'),
+          description: 'بيانات الدخول غير صحيحة، يرجى التحقق من البريد الإلكتروني وكلمة المرور',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: t('loginFailed'),
+          description: error.message || t('invalidCredentialsTryAgain'),
+          variant: 'destructive',
+        });
+      }
+    } finally {
       setIsLoading(false);
     }
   };
