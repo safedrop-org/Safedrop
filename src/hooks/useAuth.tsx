@@ -11,7 +11,7 @@ export const useAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // أولاً: تعيين مستمع لتغييرات حالة المصادقة
+    // 1. أولاً: تعيين مستمع لتغييرات حالة المصادقة
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -21,7 +21,7 @@ export const useAuth = () => {
       setLoading(false);
     });
 
-    // ثم: جلب الجلسة الحالية بعد إنشاء المستمع
+    // 2. ثم: جلب الجلسة الحالية بعد إنشاء المستمع
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Initial session fetched:", session);
       setSession(session);
@@ -35,5 +35,29 @@ export const useAuth = () => {
     };
   }, []);
 
-  return { user, session, loading };
+  // إضافة وظيفة تسجيل الخروج
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    navigate('/login');
+  };
+
+  // إضافة وظيفة للتحقق من وجود ملف تعريف للمستخدم
+  const checkUserProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (error) {
+      console.error("Error checking user profile:", error);
+      return null;
+    }
+    
+    return data;
+  };
+
+  return { user, session, loading, signOut, checkUserProfile };
 };

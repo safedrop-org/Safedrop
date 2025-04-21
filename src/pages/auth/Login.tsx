@@ -54,20 +54,68 @@ const LoginContent = () => {
 
       if (error) {
         console.error('Login error:', error);
-        throw error;
+        
+        if (error.message === 'Email not confirmed') {
+          toast({
+            title: 'البريد الإلكتروني غير مؤكد',
+            description: 'يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك',
+            variant: 'destructive',
+          });
+        } else if (error.message === 'Invalid login credentials') {
+          toast({
+            title: t('loginFailed'),
+            description: 'بيانات الدخول غير صحيحة، يرجى التحقق من البريد الإلكتروني وكلمة المرور',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: t('loginFailed'),
+            description: error.message || t('invalidCredentialsTryAgain'),
+            variant: 'destructive',
+          });
+        }
+        setIsLoading(false);
+        return;
       }
       
       if (!data.user) {
         throw new Error(t('failedToGetUserInfo'));
       }
 
-      // إعادة توجيه المستخدم بناءً على نوع المستخدم
-      const { data: profile } = await supabase
+      // التحقق من وجود ملف تعريف للمستخدم
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('user_type')
         .eq('id', data.user.id)
-        .single();
+        .maybeSingle();
 
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        toast({
+          title: 'خطأ في استرداد ملف المستخدم',
+          description: 'حدث خطأ أثناء استرداد معلومات المستخدم. يرجى المحاولة مرة أخرى.',
+          variant: 'destructive',
+        });
+        // تسجيل الخروج لأن هناك مشكلة في الحصول على الملف الشخصي
+        await supabase.auth.signOut();
+        setIsLoading(false);
+        return;
+      }
+
+      if (!profile) {
+        // لا يوجد ملف تعريف للمستخدم، قم بإنشاء ملف تعريف مؤقت أو توجيه المستخدم لإنشاء ملف تعريف
+        toast({
+          title: 'ملف تعريف المستخدم غير موجود',
+          description: 'يرجى التسجيل أولاً لإنشاء حساب قبل تسجيل الدخول.',
+          variant: 'destructive',
+        });
+        // تسجيل الخروج حتى يتمكن المستخدم من التسجيل بشكل صحيح
+        await supabase.auth.signOut();
+        setIsLoading(false);
+        return;
+      }
+
+      // إعادة توجيه المستخدم بناءً على نوع المستخدم
       if (profile) {
         // تخزين معلومات المصادقة في التخزين المحلي
         if (profile.user_type === 'admin') {
@@ -106,39 +154,20 @@ const LoginContent = () => {
             navigate('/driver/pending-approval');
           }
         }
-      } else {
-        // إذا لم يتم العثور على ملف تعريف، قم بتسجيل خروج المستخدم
-        await supabase.auth.signOut();
-        throw new Error('لم يتم العثور على ملف تعريف المستخدم');
-      }
 
-      toast({
-        title: t('loginSuccess'),
-        description: t('welcomeBack'),
-      });
+        toast({
+          title: t('loginSuccess'),
+          description: t('welcomeBack'),
+        });
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       
-      // رسائل خطأ محددة للحالات المختلفة
-      if (error.message === 'Email not confirmed') {
-        toast({
-          title: 'البريد الإلكتروني غير مؤكد',
-          description: 'يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك',
-          variant: 'destructive',
-        });
-      } else if (error.message === 'Invalid login credentials') {
-        toast({
-          title: t('loginFailed'),
-          description: 'بيانات الدخول غير صحيحة، يرجى التحقق من البريد الإلكتروني وكلمة المرور',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: t('loginFailed'),
-          description: error.message || t('invalidCredentialsTryAgain'),
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: 'فشل تسجيل الدخول',
+        description: error.message || 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
