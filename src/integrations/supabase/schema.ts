@@ -1,3 +1,4 @@
+
 export const createProfilesTableSql = `
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -6,6 +7,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   phone text NOT NULL,
   address text,
   profile_image text,
+  birth_date date,
   user_type text CHECK (user_type IN ('customer', 'driver', 'admin')) NOT NULL,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()

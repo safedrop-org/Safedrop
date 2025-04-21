@@ -80,6 +80,7 @@ const DriverRegisterContent = () => {
             last_name: data.lastName,
             phone: data.phone,
             user_type: 'driver',
+            birth_date: data.birthDate,
           },
           emailRedirectTo: window.location.origin + '/email-verification',
         },
@@ -97,6 +98,7 @@ const DriverRegisterContent = () => {
             last_name: data.lastName,
             phone: data.phone,
             user_type: 'driver',
+            birth_date: data.birthDate,
           },
           emailRedirectTo: window.location.origin + '/email-verification',
         },
@@ -114,6 +116,7 @@ const DriverRegisterContent = () => {
               last_name: data.lastName,
               phone: data.phone,
               user_type: 'driver',
+              birth_date: data.birthDate,
             }
           }
         });
@@ -152,6 +155,7 @@ const DriverRegisterContent = () => {
         last_name: data.lastName,
         phone: data.phone,
         user_type: 'driver',
+        birth_date: data.birthDate,
       };
       
       console.log("Creating profile with data:", profileData);

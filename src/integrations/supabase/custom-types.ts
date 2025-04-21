@@ -4,6 +4,7 @@ export interface IProfile {
   first_name: string;
   last_name: string;
   phone: string;
+  birth_date?: string;
   address?: string;
   profile_image?: string;
   created_at: string;
@@ -22,7 +23,7 @@ export interface IDriver {
     year: string;
     plateNumber: string;
   };
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'frozen';
   rejection_reason?: string;
   rating?: number;
   is_available: boolean;
@@ -45,7 +46,7 @@ export interface Database {
         Insert: Omit<IDriver, 'rating' | 'is_available' | 'status'> & { 
           rating?: number; 
           is_available?: boolean;
-          status?: 'pending' | 'approved' | 'rejected';
+          status?: 'pending' | 'approved' | 'rejected' | 'frozen';
         };
         Update: Partial<Omit<IDriver, 'id'>>;
       };
