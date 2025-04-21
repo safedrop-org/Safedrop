@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { useNavigate } from 'react-router-dom';
-import { UserIcon, LockIcon, MailIcon, PhoneIcon, Calendar } from 'lucide-react';
+import { UserIcon, LockIcon, MailIcon, PhoneIcon, Calendar, IdCardIcon, CreditCardIcon, CarIcon } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
 const driverRegisterSchema = z.object({
@@ -71,23 +71,7 @@ const DriverRegisterContent = () => {
 
     try {
       console.log("Registration data:", data);
-      const rawData = {
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            first_name: data.firstName,
-            last_name: data.lastName,
-            phone: data.phone,
-            user_type: 'driver',
-            birth_date: data.birthDate,
-          },
-          emailRedirectTo: window.location.origin + '/email-verification',
-        },
-      };
       
-      console.log("Sending auth data:", rawData);
-
       // Step 1: Sign up user with Supabase Auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
@@ -180,7 +164,7 @@ const DriverRegisterContent = () => {
 
       console.log("Profile created successfully:", insertedProfileData);
 
-      // Step 3: Create driver entry
+      // Step 3: Create driver entry with all required fields
       const driverData = {
         id: userId,
         national_id: data.nationalId,
@@ -291,7 +275,6 @@ const DriverRegisterContent = () => {
         {showDebugConsole && (
           <div className="bg-gray-800 text-green-400 rounded-md p-4 mb-4 overflow-auto max-h-48 text-xs">
             <p>▶️ وضع المطور: هذه المعلومات تساعد في تشخيص المشكلات</p>
-            {/* Fix: Use the hardcoded URL from client.ts instead of accessing the protected property */}
             <p>📡 API URL: https://lawatugvcjmrbxzgjfqm.supabase.co</p>
             <p>🖥️ تطبيق ويب: {window.location.origin}</p>
             {debugInfo && (
