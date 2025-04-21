@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -83,118 +82,74 @@ const LoginContent = () => {
       }
 
       try {
-        // Retrieve user profile with better error handling
-        const { data: profile, error: profileError } = await supabase
+        // Retrieve user profile but don't block login if it fails
+        const { data: profile } = await supabase
           .from('profiles')
           .select('user_type')
           .eq('id', data.user.id)
           .maybeSingle();
 
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          toast({
-            title: 'خطأ في استرداد ملف المستخدم',
-            description: 'حدث خطأ أثناء استرداد معلومات المستخدم. يرجى المحاولة مرة أخرى.',
-            variant: 'destructive',
-          });
-          // Log out user due to profile retrieval issue
-          await supabase.auth.signOut();
-          setIsLoading(false);
-          return;
-        }
-
         console.log("Profile data:", profile);
         
-        if (!profile) {
-          // No user profile found, suggest registration
-          toast({
-            title: 'ملف تعريف المستخدم غير موجود',
-            description: 'يرجى التسجيل أولاً لإنشاء حساب قبل تسجيل الدخول.',
-            variant: 'destructive',
-          });
-          // Sign out so user can register properly
-          await supabase.auth.signOut();
-          setIsLoading(false);
-          return;
-        }
-
-        // Redirect based on user type
-        if (profile) {
-          // Store auth info in localStorage
-          if (profile.user_type === 'admin') {
-            localStorage.setItem('adminAuth', 'true');
-            localStorage.removeItem('customerAuth');
-            localStorage.removeItem('driverAuth');
-            navigate('/admin/dashboard');
-          } else if (profile.user_type === 'customer') {
-            localStorage.setItem('customerAuth', 'true');
-            localStorage.removeItem('driverAuth');
-            localStorage.removeItem('adminAuth');
-            navigate('/customer/dashboard');
-          } else if (profile.user_type === 'driver') {
-            // Check driver status
+        // Set authentication state based on profile if available, default to customer otherwise
+        if (profile?.user_type === 'admin') {
+          localStorage.setItem('adminAuth', 'true');
+          localStorage.removeItem('customerAuth');
+          localStorage.removeItem('driverAuth');
+          navigate('/admin/dashboard');
+        } else if (profile?.user_type === 'driver') {
+          localStorage.setItem('driverAuth', 'true');
+          localStorage.removeItem('customerAuth');
+          localStorage.removeItem('adminAuth');
+          
+          // Check driver status if profile exists
+          if (profile) {
             try {
-              const { data: driverData, error: driverError } = await supabase
+              const { data: driverData } = await supabase
                 .from('drivers')
                 .select('status')
                 .eq('id', data.user.id)
                 .maybeSingle();
 
-              if (driverError) {
-                console.error("Error fetching driver status:", driverError);
-                toast({
-                  title: 'خطأ في استرداد بيانات السائق',
-                  description: 'حدث خطأ أثناء استرداد معلومات السائق. يرجى المحاولة مرة أخرى.',
-                  variant: 'destructive',
-                });
-                await supabase.auth.signOut();
-                setIsLoading(false);
-                return;
-              }
-
-              localStorage.setItem('driverAuth', 'true');
-              localStorage.removeItem('customerAuth');
-              localStorage.removeItem('adminAuth');
-
+              // Navigate based on driver status if available
               if (driverData?.status === 'approved') {
                 navigate('/driver/dashboard');
               } else {
-                // If status is not approved (pending, rejected, frozen)
-                if (driverData?.status === 'frozen') {
-                  toast({
-                    title: 'مشكلة بالحساب',
-                    description: 'تم تعطيل حسابك مؤقتًا. يرجى التواصل مع الدعم الفني.',
-                    variant: 'destructive',
-                  });
-                }
                 navigate('/driver/pending-approval');
               }
             } catch (err) {
               console.error("Exception when checking driver status:", err);
-              toast({
-                title: 'خطأ غير متوقع',
-                description: 'حدث خطأ غير متوقع أثناء استرداد بيانات السائق.',
-                variant: 'destructive',
-              });
-              await supabase.auth.signOut();
-              setIsLoading(false);
-              return;
+              // Default to pending approval page if error checking status
+              navigate('/driver/pending-approval');
             }
+          } else {
+            // Default to dashboard if no profile
+            navigate('/driver/dashboard');
           }
-
-          toast({
-            title: t('loginSuccess'),
-            description: t('welcomeBack'),
-          });
+        } else {
+          // Default to customer for any other user_type or if profile doesn't exist
+          localStorage.setItem('customerAuth', 'true');
+          localStorage.removeItem('driverAuth');
+          localStorage.removeItem('adminAuth');
+          navigate('/customer/dashboard');
         }
+
+        toast({
+          title: t('loginSuccess'),
+          description: t('welcomeBack'),
+        });
       } catch (err) {
         console.error("Exception during profile handling:", err);
+        // Even if profile check fails, continue to customer dashboard
+        localStorage.setItem('customerAuth', 'true');
+        localStorage.removeItem('driverAuth');
+        localStorage.removeItem('adminAuth');
+        navigate('/customer/dashboard');
+        
         toast({
-          title: 'خطأ غير متوقع',
-          description: 'حدث خطأ غير متوقع أثناء معالجة ملف المستخدم.',
-          variant: 'destructive',
+          title: t('loginSuccess'),
+          description: t('welcomeBack'),
         });
-        await supabase.auth.signOut();
       }
     } catch (error: any) {
       console.error('Login error:', error);

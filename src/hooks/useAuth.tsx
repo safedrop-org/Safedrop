@@ -40,10 +40,13 @@ export const useAuth = () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
+    localStorage.removeItem('adminAuth');
+    localStorage.removeItem('customerAuth');
+    localStorage.removeItem('driverAuth');
     navigate('/login');
   };
 
-  // Check user profile with error handling
+  // Check user profile without throwing errors
   const checkUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -57,7 +60,6 @@ export const useAuth = () => {
         return null;
       }
       
-      console.log("Profile check result:", data);
       return data;
     } catch (err) {
       console.error("Exception when checking profile:", err);
