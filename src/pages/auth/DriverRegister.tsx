@@ -287,7 +287,8 @@ const DriverRegisterContent = () => {
         {showDebugConsole && (
           <div className="bg-gray-800 text-green-400 rounded-md p-4 mb-4 overflow-auto max-h-48 text-xs">
             <p>▶️ وضع المطور: هذه المعلومات تساعد في تشخيص المشكلات</p>
-            <p>📡 API URL: {supabase.supabaseUrl}</p>
+            {/* Fix: Use the hardcoded URL from client.ts instead of accessing the protected property */}
+            <p>📡 API URL: https://lawatugvcjmrbxzgjfqm.supabase.co</p>
             <p>🖥️ تطبيق ويب: {window.location.origin}</p>
             {debugInfo && (
               <>
