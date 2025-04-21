@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,6 +37,7 @@ const DriverRegisterContent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [submitAttempts, setSubmitAttempts] = useState(0);
   const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverRegisterSchema),
@@ -59,18 +61,16 @@ const DriverRegisterContent = () => {
 
   const onSubmit = async (data: DriverFormValues) => {
     setIsLoading(true);
+    setDebugInfo(null);
 
     if (submitAttempts > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 3000 * submitAttempts));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     try {
-      if (!data.email || !data.password) {
-        toast.error('البريد الإلكتروني وكلمة المرور مطلوبان.');
-        setIsLoading(false);
-        return;
-      }
+      console.log("Registration data:", data);
 
+      // Step 1: Sign up user with Supabase Auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -86,82 +86,124 @@ const DriverRegisterContent = () => {
       });
 
       if (signUpError) {
-        if (
-          signUpError.message.includes('security purposes') ||
-          signUpError.code === 'over_email_send_rate_limit'
-        ) {
-          toast.error('تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار قليلاً ثم المحاولة مرة أخرى');
-          setIsLoading(false);
-          return;
-        }
-        toast.error(t('registrationError'), {
-          description: signUpError.message,
+        console.error('Auth signup error:', signUpError);
+        setDebugInfo({
+          stage: 'auth_signup',
+          error: signUpError
         });
+        
+        if (signUpError.message.includes('security purposes') || signUpError.code === 'over_email_send_rate_limit') {
+          toast.error('تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار قليلاً ثم المحاولة مرة أخرى');
+        } else if (signUpError.message.includes('already registered')) {
+          toast.error('البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول');
+        } else {
+          toast.error('خطأ أثناء إنشاء الحساب: ' + signUpError.message);
+        }
+        
         setIsLoading(false);
         return;
       }
 
       if (!authData.user) {
+        console.error('No user data returned from signup');
+        setDebugInfo({
+          stage: 'auth_signup',
+          error: 'No user data returned'
+        });
         toast.error('فشل إنشاء الحساب، يرجى المحاولة مرة أخرى');
         setIsLoading(false);
         return;
       }
 
+      console.log("User created successfully:", authData.user.id);
       const userId = authData.user.id;
 
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: userId,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        phone: data.phone,
-        user_type: 'driver',
-        birth_date: data.birthDate,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
+      // Step 2: Create profile entry
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          phone: data.phone,
+          user_type: 'driver',
+        });
 
       if (profileError) {
         console.error('Profile insert error:', profileError);
-        toast.error(t('registrationError'), {
-          description: 'خطأ أثناء حفظ بيانات الحساب، يرجى المحاولة لاحقًا',
+        setDebugInfo({
+          stage: 'profile_insert',
+          error: profileError,
+          attempted_data: {
+            id: userId,
+            first_name: data.firstName,
+            last_name: data.lastName,
+            phone: data.phone,
+            user_type: 'driver',
+          }
         });
+        
+        toast.error('خطأ أثناء حفظ بيانات الحساب، يرجى المحاولة لاحقًا');
         setIsLoading(false);
         return;
       }
 
-      const { error: driverInsertError } = await supabase.from('drivers').insert({
-        id: userId,
-        national_id: data.nationalId,
-        license_number: data.licenseNumber,
-        vehicle_info: {
-          make: data.vehicleInfo.make,
-          model: data.vehicleInfo.model,
-          year: data.vehicleInfo.year,
-          plateNumber: data.vehicleInfo.plateNumber,
-        },
-        status: 'pending',
-        is_available: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
+      console.log("Profile created successfully");
+
+      // Step 3: Create driver entry
+      const { data: driverData, error: driverInsertError } = await supabase
+        .from('drivers')
+        .insert({
+          id: userId,
+          national_id: data.nationalId,
+          license_number: data.licenseNumber,
+          vehicle_info: {
+            make: data.vehicleInfo.make,
+            model: data.vehicleInfo.model,
+            year: data.vehicleInfo.year,
+            plateNumber: data.vehicleInfo.plateNumber,
+          },
+          status: 'pending',
+          is_available: false,
+        });
 
       if (driverInsertError) {
         console.error('Driver insert error:', driverInsertError);
-        toast.error(t('registrationError'), {
-          description: 'خطأ أثناء حفظ بيانات السائق، يرجى المحاولة لاحقًا',
+        setDebugInfo({
+          stage: 'driver_insert',
+          error: driverInsertError,
+          attempted_data: {
+            id: userId,
+            national_id: data.nationalId,
+            license_number: data.licenseNumber,
+            vehicle_info: {
+              make: data.vehicleInfo.make,
+              model: data.vehicleInfo.model,
+              year: data.vehicleInfo.year,
+              plateNumber: data.vehicleInfo.plateNumber,
+            },
+            status: 'pending',
+            is_available: false,
+          }
         });
+        
+        toast.error('خطأ أثناء حفظ بيانات السائق، يرجى المحاولة لاحقًا');
         setIsLoading(false);
         return;
       }
 
+      console.log("Driver data created successfully");
       setRegistrationComplete(true);
 
       toast.success(t('registrationSuccess'));
     } catch (error: any) {
       console.error('Registration error:', error);
-      toast.error(t('registrationError'), {
-        description: error.message || 'حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى',
+      setDebugInfo({
+        stage: 'unexpected_error',
+        error: error
       });
+      
+      toast.error('حدث خطأ غير متوقع أثناء التسجيل، يرجى المحاولة مرة أخرى');
       setSubmitAttempts((prev) => prev + 1);
     } finally {
       setIsLoading(false);
@@ -211,6 +253,22 @@ const DriverRegisterContent = () => {
           />
           <h2 className="text-3xl font-bold text-safedrop-primary">{t('driverRegister')}</h2>
         </div>
+
+        {debugInfo && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+            <h3 className="text-red-800 font-medium">معلومات تشخيص الخطأ:</h3>
+            <p className="text-red-700 text-sm mt-1">المرحلة: {debugInfo.stage}</p>
+            <p className="text-red-700 text-sm mt-1">رسالة الخطأ: {debugInfo.error?.message || JSON.stringify(debugInfo.error)}</p>
+            {debugInfo.attempted_data && (
+              <details className="mt-2">
+                <summary className="text-red-700 text-sm cursor-pointer">عرض البيانات المرسلة</summary>
+                <pre className="text-xs bg-red-100 p-2 mt-1 rounded overflow-auto">
+                  {JSON.stringify(debugInfo.attempted_data, null, 2)}
+                </pre>
+              </details>
+            )}
+          </div>
+        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
