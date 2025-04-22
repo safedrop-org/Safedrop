@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -40,6 +40,20 @@ const DriverRegisterContent = () => {
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [showDebugConsole, setShowDebugConsole] = useState(false);
+  const [waitTime, setWaitTime] = useState(0);
+
+  // Countdown timer for rate limit
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (waitTime > 0) {
+      timer = setTimeout(() => {
+        setWaitTime(waitTime - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [waitTime]);
 
   const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverRegisterSchema),
@@ -61,16 +75,66 @@ const DriverRegisterContent = () => {
     }
   });
 
+  // Function to handle rate limit error
+  const handleRateLimitError = () => {
+    // Set a 60 second wait time
+    setWaitTime(60);
+    toast.error('تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار دقيقة واحدة قبل المحاولة مرة أخرى');
+  };
+
+  // Check if user's email already exists
+  const checkEmailExists = async (email: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false
+        }
+      });
+      
+      // If it attempts to send an OTP, the email exists
+      if (!error) {
+        return true;
+      }
+      
+      // If the error is about user not found, then email doesn't exist
+      if (error.message.includes('not found')) {
+        return false;
+      }
+      
+      // For rate limit errors, don't consider this conclusive
+      return null;
+    } catch (error) {
+      console.error("Error checking email existence:", error);
+      return null;
+    }
+  };
+
   const onSubmit = async (data: DriverFormValues) => {
+    // If there's a wait time active, prevent submission
+    if (waitTime > 0) {
+      toast.error(`يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى`);
+      return;
+    }
+
     setIsLoading(true);
     setDebugInfo(null);
 
+    // Add a delay between submission attempts to reduce rate limiting issues
     if (submitAttempts > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
     try {
       console.log("Registration data:", data);
+      
+      // Pre-check if the email exists to give better feedback
+      const emailExists = await checkEmailExists(data.email);
+      if (emailExists === true) {
+        toast.error('البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول');
+        setIsLoading(false);
+        return;
+      }
       
       // Step 1: Sign up user with Supabase Auth
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
@@ -105,8 +169,10 @@ const DriverRegisterContent = () => {
           }
         });
         
-        if (signUpError.message.includes('security purposes') || signUpError.code === 'over_email_send_rate_limit') {
-          toast.error('تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار قليلاً ثم المحاولة مرة أخرى');
+        if (signUpError.message.includes('rate limit') || 
+            signUpError.message.toLowerCase().includes('email rate limit exceeded') || 
+            signUpError.code === 'over_email_send_rate_limit') {
+          handleRateLimitError();
         } else if (signUpError.message.includes('already registered')) {
           toast.error('البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول');
         } else {
@@ -260,6 +326,14 @@ const DriverRegisterContent = () => {
           />
           <h2 className="text-3xl font-bold text-safedrop-primary">{t('driverRegister')}</h2>
         </div>
+
+        {waitTime > 0 && (
+          <div className="bg-amber-50 border border-amber-300 rounded-md p-4 mb-4 text-center">
+            <h3 className="text-amber-800 font-medium">يرجى الانتظار قبل المحاولة مرة أخرى</h3>
+            <p className="text-amber-700 mt-1">الوقت المتبقي: {waitTime} ثانية</p>
+            <p className="text-amber-600 text-sm mt-1">تم تجاوز الحد المسموح لمحاولات التسجيل. يرجى الانتظار قليلاً.</p>
+          </div>
+        )}
 
         <div className="flex justify-end mb-2">
           <Button 
@@ -528,7 +602,7 @@ const DriverRegisterContent = () => {
             <Button
               type="submit"
               className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-              disabled={isLoading}
+              disabled={isLoading || waitTime > 0}
             >
               {isLoading ? t('registering') : t('register')}
             </Button>
