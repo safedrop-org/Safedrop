@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,15 +9,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { useNavigate } from 'react-router-dom';
-import { UserIcon, LockIcon, MailIcon, PhoneIcon, Calendar, IdCardIcon, CreditCardIcon, CarIcon } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
+import { UserIcon, LockIcon, MailIcon, PhoneIcon, Calendar } from 'lucide-react';
 
 const driverRegisterSchema = z.object({
   firstName: z.string().min(2, { message: "الاسم الأول مطلوب" }),
   lastName: z.string().min(2, { message: "اسم العائلة مطلوب" }),
   email: z.string().email({ message: "البريد الإلكتروني غير صالح" }),
   phone: z.string().min(10, { message: "رقم الهاتف غير صالح" }),
-  password: z.string().min(8, { message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }),
+  password: z.string().min(8, { message: "كلمة المرور يجب أ�� تكون 8 أحرف على الأقل" }),
   birthDate: z.string().min(1, { message: "تاريخ الميلاد مطلوب" }),
   nationalId: z.string().min(10, { message: "رقم الهوية مطلوب" }),
   licenseNumber: z.string().min(5, { message: "رقم الرخصة مطلوب" }),
@@ -35,6 +33,7 @@ type DriverFormValues = z.infer<typeof driverRegisterSchema>;
 const DriverRegisterContent = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+
   const [isLoading, setIsLoading] = useState(false);
   const [submitAttempts, setSubmitAttempts] = useState(0);
   const [registrationComplete, setRegistrationComplete] = useState(false);
@@ -42,7 +41,6 @@ const DriverRegisterContent = () => {
   const [showDebugConsole, setShowDebugConsole] = useState(false);
   const [waitTime, setWaitTime] = useState(0);
 
-  // Countdown timer for rate limit
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (waitTime > 0) {
@@ -75,43 +73,26 @@ const DriverRegisterContent = () => {
     }
   });
 
-  // Function to handle rate limit error
   const handleRateLimitError = () => {
-    // Set a 60 second wait time
     setWaitTime(60);
     toast.error('تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار دقيقة واحدة قبل المحاولة مرة أخرى');
   };
 
-  // Check if user's email already exists
   const checkEmailExists = async (email: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
-        options: {
-          shouldCreateUser: false
-        }
+        options: { shouldCreateUser: false }
       });
-      
-      // If it attempts to send an OTP, the email exists
-      if (!error) {
-        return true;
-      }
-      
-      // If the error is about user not found, then email doesn't exist
-      if (error.message.includes('not found')) {
-        return false;
-      }
-      
-      // For rate limit errors, don't consider this conclusive
+      if (!error) return true;
+      if (error.message.includes('not found')) return false;
       return null;
-    } catch (error) {
-      console.error("Error checking email existence:", error);
+    } catch {
       return null;
     }
   };
 
   const onSubmit = async (data: DriverFormValues) => {
-    // If there's a wait time active, prevent submission
     if (waitTime > 0) {
       toast.error(`يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى`);
       return;
@@ -119,24 +100,18 @@ const DriverRegisterContent = () => {
 
     setIsLoading(true);
     setDebugInfo(null);
-
-    // Add a delay between submission attempts to reduce rate limiting issues
     if (submitAttempts > 0) {
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
     try {
-      console.log("Registration data:", data);
-      
-      // Pre-check if the email exists to give better feedback
       const emailExists = await checkEmailExists(data.email);
       if (emailExists === true) {
         toast.error('البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول');
         setIsLoading(false);
         return;
       }
-      
-      // Step 1: Sign up user with Supabase Auth
+
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -153,52 +128,26 @@ const DriverRegisterContent = () => {
       });
 
       if (signUpError) {
-        console.error('Auth signup error:', signUpError);
-        setDebugInfo({
-          stage: 'auth_signup',
-          error: signUpError,
-          request: {
-            email: data.email,
-            user_metadata: {
-              first_name: data.firstName,
-              last_name: data.lastName,
-              phone: data.phone,
-              user_type: 'driver',
-              birth_date: data.birthDate,
-            }
-          }
-        });
-        
-        if (signUpError.message.includes('rate limit') || 
-            signUpError.message.toLowerCase().includes('email rate limit exceeded') || 
-            signUpError.code === 'over_email_send_rate_limit') {
+        setDebugInfo({ stage: 'auth_signup', error: signUpError });
+        if (signUpError.message.includes('rate limit') || signUpError.message.toLowerCase().includes('email rate limit exceeded') || signUpError.code === 'over_email_send_rate_limit') {
           handleRateLimitError();
         } else if (signUpError.message.includes('already registered')) {
           toast.error('البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول');
         } else {
           toast.error('خطأ أثناء إنشاء الحساب: ' + signUpError.message);
         }
-        
         setIsLoading(false);
         return;
       }
 
       if (!authData.user) {
-        console.error('No user data returned from signup');
-        setDebugInfo({
-          stage: 'auth_signup',
-          error: 'No user data returned',
-          response: authData
-        });
+        setDebugInfo({ stage: 'auth_signup', error: 'No user data returned', response: authData });
         toast.error('فشل إنشاء الحساب، يرجى المحاولة مرة أخرى');
         setIsLoading(false);
         return;
       }
-
-      console.log("User created successfully:", authData.user.id);
       const userId = authData.user.id;
 
-      // Step 2: Create profile entry
       const profileData = {
         id: userId,
         first_name: data.firstName,
@@ -207,30 +156,18 @@ const DriverRegisterContent = () => {
         user_type: 'driver',
         birth_date: data.birthDate,
       };
-      
-      console.log("Creating profile with data:", profileData);
 
-      const { data: insertedProfileData, error: profileError } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
-        .insert(profileData)
-        .select();
+        .insert(profileData);
 
       if (profileError) {
-        console.error('Profile insert error:', profileError);
-        setDebugInfo({
-          stage: 'profile_insert',
-          error: profileError,
-          attempted_data: profileData
-        });
-        
+        setDebugInfo({ stage: 'profile_insert', error: profileError, attempted_data: profileData });
         toast.error('خطأ أثناء حفظ بيانات الحساب، يرجى المحاولة لاحقًا');
         setIsLoading(false);
         return;
       }
 
-      console.log("Profile created successfully:", insertedProfileData);
-
-      // Step 3: Create driver entry with all required fields
       const driverData = {
         id: userId,
         national_id: data.nationalId,
@@ -244,38 +181,22 @@ const DriverRegisterContent = () => {
         status: 'pending',
         is_available: false,
       };
-      
-      console.log("Creating driver record with data:", driverData);
 
-      const { data: driverInsertData, error: driverInsertError } = await supabase
+      const { error: driverInsertError } = await supabase
         .from('drivers')
-        .insert(driverData)
-        .select();
+        .insert(driverData);
 
       if (driverInsertError) {
-        console.error('Driver insert error:', driverInsertError);
-        setDebugInfo({
-          stage: 'driver_insert',
-          error: driverInsertError,
-          attempted_data: driverData
-        });
-        
+        setDebugInfo({ stage: 'driver_insert', error: driverInsertError, attempted_data: driverData });
         toast.error('خطأ أثناء حفظ بيانات السائق، يرجى المحاولة لاحقًا');
         setIsLoading(false);
         return;
       }
 
-      console.log("Driver data created successfully:", driverInsertData);
       setRegistrationComplete(true);
-
       toast.success(t('registrationSuccess'));
     } catch (error: any) {
-      console.error('Registration error:', error);
-      setDebugInfo({
-        stage: 'unexpected_error',
-        error: error
-      });
-      
+      setDebugInfo({ stage: 'unexpected_error', error });
       toast.error('حدث خطأ غير متوقع أثناء التسجيل، يرجى المحاولة مرة أخرى');
       setSubmitAttempts((prev) => prev + 1);
     } finally {
@@ -399,7 +320,6 @@ const DriverRegisterContent = () => {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Personal Information */}
             <div className="flex gap-4">
               <FormField
                 control={form.control}
@@ -513,7 +433,6 @@ const DriverRegisterContent = () => {
               )}
             />
 
-            {/* Driver Documents */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -543,7 +462,6 @@ const DriverRegisterContent = () => {
               />
             </div>
 
-            {/* Vehicle Information */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
