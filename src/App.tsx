@@ -29,8 +29,14 @@ import Complaints from "./pages/admin/Complaints";
 import Settings from "./pages/admin/Settings";
 
 // Customer Pages
-import CustomerDashboard from "./pages/customer/CustomerDashboard";
+import CustomerHome from "./pages/customer/CustomerHome";
+import CreateOrder from "./pages/customer/CreateOrder";
+import MyOrders from "./pages/customer/MyOrders";
+import Billing from "./pages/customer/Billing";
 import CustomerProfile from "./pages/customer/CustomerProfile";
+import Support from "./pages/customer/Support";
+import Feedback from "./pages/customer/Feedback";
+import Logout from "./pages/customer/Logout";
 
 // Driver Pages
 import DriverDashboard from "./pages/driver/DriverDashboard";
@@ -124,8 +130,14 @@ const App = () => (
             />
 
             {/* Customer Routes */}
-            <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+            <Route path="/customer/dashboard" element={<CustomerHome />} />
+            <Route path="/customer/create-order" element={<CreateOrder />} />
+            <Route path="/customer/orders" element={<MyOrders />} />
+            <Route path="/customer/billing" element={<Billing />} />
             <Route path="/customer/profile" element={<CustomerProfile />} />
+            <Route path="/customer/support" element={<Support />} />
+            <Route path="/customer/feedback" element={<Feedback />} />
+            <Route path="/customer/logout" element={<Logout />} />
 
             {/* Driver Routes */}
             <Route path="/driver/dashboard" element={<DriverDashboard />} />
