@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -23,57 +24,87 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userType, setUserType] = useState<string | null>(null);
   
   useEffect(() => {
+    console.log("Auth Provider initialized");
+    
     // 1. First: Set up the auth state listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      setUser(session?.user || null);
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log("Auth state changed:", event, newSession?.user?.id);
+      setSession(newSession);
+      setUser(newSession?.user || null);
       
-      if (session?.user) {
-        // Get user type from profile
-        const { data } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('id', session.user.id)
-          .single();
-          
-        setUserType(data?.user_type || null);
+      if (newSession?.user) {
+        console.log("Getting user type for:", newSession.user.id);
+        // Fetch user type after confirming we have a logged-in user
+        setTimeout(async () => {
+          try {
+            const { data } = await supabase
+              .from('profiles')
+              .select('user_type')
+              .eq('id', newSession.user.id)
+              .single();
+              
+            console.log("User type from profile:", data?.user_type);
+            setUserType(data?.user_type || null);
+          } catch (error) {
+            console.error("Error fetching user type:", error);
+          } finally {
+            setLoading(false);
+          }
+        }, 0);
       } else {
         setUserType(null);
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     // 2. Then: Fetch the current session after setting up the listener
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user || null);
-      
-      if (session?.user) {
-        // Get user type from profile
-        const { data } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('id', session.user.id)
-          .single();
-          
-        setUserType(data?.user_type || null);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log("Initial session fetched:", currentSession?.user?.id);
+        
+        setSession(currentSession);
+        setUser(currentSession?.user || null);
+        
+        if (currentSession?.user) {
+          console.log("Getting initial user type for:", currentSession.user.id);
+          // Fetch user type
+          const { data } = await supabase
+            .from('profiles')
+            .select('user_type')
+            .eq('id', currentSession.user.id)
+            .single();
+            
+          console.log("Initial user type from profile:", data?.user_type);
+          setUserType(data?.user_type || null);
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
-    });
+    };
+    
+    initializeAuth();
 
     // Clean up subscription when component unmounts
     return () => {
+      console.log("Cleaning up auth subscription");
       subscription.unsubscribe();
     };
   }, []);
 
   // Sign out function
   const signOut = async () => {
-    await supabase.auth.signOut();
+    console.log("Signing out user");
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error("Error signing out:", error);
+    }
+    
     setUser(null);
     setSession(null);
     setUserType(null);
@@ -123,6 +154,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return null;
     }
   };
+
+  console.log("Auth context state:", { user: user?.id, userType, isLoggedIn: !!session });
 
   return (
     <AuthContext.Provider 

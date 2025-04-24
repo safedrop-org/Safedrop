@@ -39,9 +39,15 @@ import PendingApproval from './pages/driver/PendingApproval';
 
 // Protected Routes
 const ProtectedRoute = ({ children }) => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, loading } = useAuth();
+  
+  if (loading) {
+    // You could return a loading spinner here
+    return <div className="flex items-center justify-center min-h-screen">جاري التحميل...</div>;
+  }
   
   if (!isLoggedIn) {
+    console.log("Not logged in, redirecting to login");
     return <Navigate to="/login" />;
   }
   
@@ -49,12 +55,18 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const ProtectedCustomerRoute = ({ children }) => {
-  const { isLoggedIn, userType } = useAuth();
+  const { isLoggedIn, userType, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">جاري التحميل...</div>;
+  }
   
   if (!isLoggedIn) {
+    console.log("Not logged in, redirecting to login");
     return <Navigate to="/login" />;
   }
   
+  console.log("User type in protected customer route:", userType);
   if (userType !== 'customer') {
     if (userType === 'driver') {
       return <Navigate to="/driver/dashboard" />;
@@ -69,9 +81,9 @@ const ProtectedCustomerRoute = ({ children }) => {
 };
 
 const ProtectedDriverRoute = ({ children }) => {
-  const { isLoggedIn, userType, user } = useAuth();
+  const { isLoggedIn, userType, user, loading } = useAuth();
   const [driverStatus, setDriverStatus] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
+  const [statusLoading, setStatusLoading] = React.useState(true);
   
   React.useEffect(() => {
     const checkDriverStatus = async () => {
@@ -84,26 +96,31 @@ const ProtectedDriverRoute = ({ children }) => {
             .maybeSingle();
           
           if (!error && data) {
+            console.log("Driver status found:", data.status);
             setDriverStatus(data.status);
+          } else {
+            console.error("Error or no data for driver status:", error);
           }
         } catch (err) {
-          console.error("Error checking driver status:", err);
+          console.error("Exception checking driver status:", err);
         }
       }
-      setLoading(false);
+      setStatusLoading(false);
     };
     
     checkDriverStatus();
   }, [isLoggedIn, userType, user]);
   
-  if (loading) {
-    return null; // or a loading spinner
+  if (loading || statusLoading) {
+    return <div className="flex items-center justify-center min-h-screen">جاري التحميل...</div>;
   }
   
   if (!isLoggedIn) {
+    console.log("Not logged in, redirecting to login");
     return <Navigate to="/login" />;
   }
   
+  console.log("User type in protected driver route:", userType);
   if (userType !== 'driver') {
     if (userType === 'customer') {
       return <Navigate to="/customer/dashboard" />;
@@ -118,12 +135,18 @@ const ProtectedDriverRoute = ({ children }) => {
 };
 
 const ProtectedAdminRoute = ({ children }) => {
-  const { isLoggedIn, userType } = useAuth();
+  const { isLoggedIn, userType, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">جاري التحميل...</div>;
+  }
   
   if (!isLoggedIn) {
+    console.log("Not logged in, redirecting to admin login");
     return <Navigate to="/admin" />;
   }
   
+  console.log("User type in protected admin route:", userType);
   if (userType !== 'admin') {
     if (userType === 'customer') {
       return <Navigate to="/customer/dashboard" />;

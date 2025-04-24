@@ -11,15 +11,82 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LockIcon, MailIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/components/auth/AuthContext';
 
 const LoginContent = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Redirect if already logged in
+  useEffect(() => {
+    console.log("User in login page:", user);
+    if (user) {
+      redirectBasedOnProfile(user.id);
+    }
+  }, [user]);
+
+  const redirectBasedOnProfile = async (userId) => {
+    try {
+      console.log("Checking profile for user:", userId);
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', userId)
+        .maybeSingle();
+        
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return;
+      }
+      
+      console.log("Found profile:", profile);
+      
+      if (profile?.user_type === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (profile?.user_type === 'driver') {
+        checkDriverStatus(userId);
+      } else {
+        // Default to customer
+        navigate('/customer/dashboard');
+      }
+    } catch (err) {
+      console.error("Error checking profile:", err);
+    }
+  };
+
+  const checkDriverStatus = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('drivers')
+        .select('status')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error checking driver status:", error);
+        navigate('/driver/pending-approval');
+        return;
+      }
+      
+      console.log("Driver status:", data);
+      
+      if (data?.status === 'approved') {
+        navigate('/driver/dashboard');
+      } else {
+        navigate('/driver/pending-approval');
+      }
+    } catch (err) {
+      console.error("Error checking driver status:", err);
+      navigate('/driver/pending-approval');
+    }
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -51,7 +118,7 @@ const LoginContent = () => {
         
         if (error.message === 'Email not confirmed') {
           toast.error('البريد الإلكتروني غير مؤكد، يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك');
-        } else if (error.message === 'Invalid login credentials') {
+        } else if (error.message.includes('Invalid login')) {
           toast.error('بيانات الدخول غير صحيحة، يرجى التحقق من البريد الإلكتروني وكلمة المرور');
         } else {
           toast.error(error.message || 'حدث خطأ أثناء تسجيل الدخول');
@@ -61,85 +128,20 @@ const LoginContent = () => {
       }
       
       if (!data.user) {
-        throw new Error('فشل الحصول على معلومات المستخدم');
+        toast.error('فشل الحصول على معلومات المستخدم');
+        setIsLoading(false);
+        return;
       }
 
       console.log('Login successful, user:', data.user);
       console.log('Session:', data.session);
-
-      try {
-        // Retrieve user profile
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('id', data.user.id)
-          .maybeSingle();
-
-        console.log("Profile data:", profile);
-        
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          toast.error('خطأ في جلب بيانات الملف الشخصي');
-          setIsLoading(false);
-          return;
-        }
-        
-        toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
-        
-        // Set authentication state based on profile if available, default to customer otherwise
-        if (profile?.user_type === 'admin') {
-          localStorage.setItem('adminAuth', 'true');
-          localStorage.removeItem('customerAuth');
-          localStorage.removeItem('driverAuth');
-          navigate('/admin/dashboard');
-        } else if (profile?.user_type === 'driver') {
-          localStorage.setItem('driverAuth', 'true');
-          localStorage.removeItem('customerAuth');
-          localStorage.removeItem('adminAuth');
-          
-          // Check driver status if profile exists
-          try {
-            const { data: driverData, error: driverError } = await supabase
-              .from('drivers')
-              .select('status')
-              .eq('id', data.user.id)
-              .maybeSingle();
-
-            if (driverError) {
-              console.error("Error fetching driver status:", driverError);
-              toast.error('خطأ في جلب بيانات السائق');
-              setIsLoading(false);
-              return;
-            }
-
-            console.log("Driver data:", driverData);
-
-            // Navigate based on driver status if available
-            if (driverData?.status === 'approved') {
-              navigate('/driver/dashboard');
-            } else {
-              navigate('/driver/pending-approval');
-            }
-          } catch (err) {
-            console.error("Exception when checking driver status:", err);
-            // Default to pending approval page if error checking status
-            navigate('/driver/pending-approval');
-          }
-        } else {
-          // Default to customer for any other user_type or if profile doesn't exist
-          localStorage.setItem('customerAuth', 'true');
-          localStorage.removeItem('driverAuth');
-          localStorage.removeItem('adminAuth');
-          navigate('/customer/dashboard');
-        }
-      } catch (err) {
-        console.error("Exception during profile handling:", err);
-        toast.error('حدث خطأ أثناء معالجة بيانات الملف الشخصي');
-        setIsLoading(false);
-      }
-    } catch (error: any) {
-      console.error('Login error:', error);
       
+      toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
+      
+      // Auth state change listener should handle the redirect
+      // The redirectBasedOnProfile function will be called from the useEffect
+    } catch (error) {
+      console.error('Login exception:', error);
       toast.error('فشل تسجيل الدخول: ' + (error.message || 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.'));
       setIsLoading(false);
     }
@@ -198,6 +200,8 @@ const LoginContent = () => {
                       type="checkbox"
                       id="remember"
                       className="w-4 h-4 text-safedrop-gold border-gray-300 rounded focus:ring-safedrop-gold"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
                     />
                     <Label htmlFor="remember" className="text-sm">تذكرني</Label>
                   </div>
