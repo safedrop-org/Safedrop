@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -37,7 +36,11 @@ const PendingApprovalContent = () => {
 
         if (roleError || !roleData) {
           console.error("Error fetching driver role:", roleError);
-          toast.error("لم يتم العثور على دور السائق");
+          toast({
+            title: "خطأ",
+            description: "لم يتم العثور على دور السائق",
+            variant: "destructive"
+          });
           navigate('/login');
           return;
         }
@@ -208,14 +211,13 @@ const PendingApprovalContent = () => {
             className="w-full mt-4"
             onClick={handleSignOut}
           >
-            تسجيل الخروج
+            تسج��ل الخروج
           </Button>
         </div>
       </div>
     );
   }
 
-  // Default: Pending status
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-4">
       <div className="max-w-md w-full space-y-8 bg-white shadow-xl rounded-xl p-8 text-center">
