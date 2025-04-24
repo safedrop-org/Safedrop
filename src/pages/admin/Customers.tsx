@@ -4,6 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useLanguage } from "@/components/ui/language-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -17,6 +19,7 @@ const Customers = () => {
   const { t } = useLanguage();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -45,9 +48,31 @@ const Customers = () => {
     fetchCustomers();
   }, []);
 
+  // Filter customers based on search query
+  const filteredCustomers = customers.filter((customer) => {
+    if (!searchQuery) return true;
+    
+    const fullName = `${customer.first_name} ${customer.last_name}`.toLowerCase();
+    const phone = customer.phone?.toLowerCase() || '';
+    const query = searchQuery.toLowerCase();
+    
+    return fullName.includes(query) || phone.includes(query);
+  });
+
   return (
     <div className="p-6 flex flex-col min-h-svh">
       <h1 className="text-2xl font-bold mb-6">إدارة العملاء</h1>
+      
+      <div className="relative mb-6">
+        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input 
+          placeholder="بحث عن عميل..." 
+          className="pr-9" 
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+      </div>
+      
       <Table>
         <TableHeader>
           <TableRow>
@@ -58,7 +83,7 @@ const Customers = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {customers.map((customer) => (
+          {filteredCustomers.map((customer) => (
             <TableRow key={customer.id}>
               <TableCell>{customer.first_name}</TableCell>
               <TableCell>{customer.last_name}</TableCell>
@@ -66,10 +91,17 @@ const Customers = () => {
               <TableCell>{new Date(customer.created_at).toLocaleDateString()}</TableCell>
             </TableRow>
           ))}
-          {customers.length === 0 && !loading && (
+          {filteredCustomers.length === 0 && !loading && (
             <TableRow>
               <TableCell colSpan={4} className="text-center">
                 لا يوجد عملاء للعرض
+              </TableCell>
+            </TableRow>
+          )}
+          {loading && (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center">
+                جاري تحميل البيانات...
               </TableCell>
             </TableRow>
           )}
@@ -80,4 +112,3 @@ const Customers = () => {
 };
 
 export default Customers;
-

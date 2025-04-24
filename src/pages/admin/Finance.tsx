@@ -2,9 +2,10 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Download, DollarSign, Users, Truck, TrendingUp } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DollarSign, TrendingUp, Truck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 // مكون البطاقة المالية
 const StatCard = ({ title, value, icon, description, textColor = "text-gray-600" }) => (
@@ -25,17 +26,51 @@ const StatCard = ({ title, value, icon, description, textColor = "text-gray-600"
 );
 
 const Finance = () => {
-  const [timeRange, setTimeRange] = useState("شهري");
+  const [timeRange, setTimeRange] = useState("monthly");
   
-  // بيانات مالية تجريبية - يمكن استبدالها بالبيانات الفعلية من قاعدة البيانات
-  const financialData = {
-    totalRevenue: "145,250 ر.س",
-    commissions: "21,787 ر.س",
-    platformProfit: "18,350 ر.س",
-    driverProfit: "123,463 ر.س",
-    dailyChart: [],
-    monthlyChart: [],
-    yearlyChart: []
+  // استخدام React Query لجلب البيانات المالية من قاعدة البيانات
+  const { data: financialData, isLoading } = useQuery({
+    queryKey: ["financial-summary", timeRange],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_financial_summary', {
+          period_type: timeRange
+        });
+        
+        if (error) throw error;
+        return data || {
+          total_revenue: 0,
+          commissions: 0,
+          platform_profit: 0,
+          driver_profit: 0
+        };
+      } catch (error) {
+        console.error('Error fetching financial data:', error);
+        return {
+          total_revenue: 0,
+          commissions: 0,
+          platform_profit: 0,
+          driver_profit: 0
+        };
+      }
+    }
+  });
+
+  // تنسيق الأرقام كعملة
+  const formatCurrency = (value) => {
+    if (value === undefined || value === null) return "0 ر.س";
+    return `${value.toLocaleString()} ر.س`;
+  };
+
+  // تحديد فترة العرض بالعربية
+  const getPeriodText = () => {
+    switch (timeRange) {
+      case "daily": return "اليوم";
+      case "weekly": return "هذا الأسبوع";
+      case "monthly": return "هذا الشهر";
+      case "yearly": return "هذه السنة";
+      default: return "هذا الشهر";
+    }
   };
 
   return (
@@ -48,45 +83,41 @@ const Finance = () => {
               <SelectValue placeholder="اختر الفترة" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="يومي">يومي</SelectItem>
-              <SelectItem value="شهري">شهري</SelectItem>
-              <SelectItem value="سنوي">سنوي</SelectItem>
+              <SelectItem value="daily">يومي</SelectItem>
+              <SelectItem value="monthly">شهري</SelectItem>
+              <SelectItem value="yearly">سنوي</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" className="gap-2">
-            <Download size={16} />
-            تصدير التقرير
-          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard
           title="إجمالي المبالغ المستلمة"
-          value={financialData.totalRevenue}
+          value={isLoading ? "جاري التحميل..." : formatCurrency(financialData?.total_revenue)}
           icon={<DollarSign size={20} />}
-          description={`${timeRange}`}
+          description={getPeriodText()}
           textColor="text-green-600"
         />
         <StatCard
           title="إجمالي العمولات (15٪)"
-          value={financialData.commissions}
+          value={isLoading ? "جاري التحميل..." : formatCurrency(financialData?.commissions)}
           icon={<TrendingUp size={20} />}
-          description={`${timeRange}`}
+          description={getPeriodText()}
           textColor="text-blue-600"
         />
         <StatCard
           title="أرباح المنصة"
-          value={financialData.platformProfit}
+          value={isLoading ? "جاري التحميل..." : formatCurrency(financialData?.platform_profit)}
           icon={<DollarSign size={20} />}
-          description={`${timeRange}`}
+          description={getPeriodText()}
           textColor="text-purple-600"
         />
         <StatCard
           title="الأرباح المستحقة للسائقين"
-          value={financialData.driverProfit}
+          value={isLoading ? "جاري التحميل..." : formatCurrency(financialData?.driver_profit)}
           icon={<Truck size={20} />}
-          description={`${timeRange}`}
+          description={getPeriodText()}
           textColor="text-orange-600"
         />
       </div>

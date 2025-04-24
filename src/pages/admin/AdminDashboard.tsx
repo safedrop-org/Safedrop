@@ -719,6 +719,12 @@ const AdminDashboardContent = () => {
     return <div className="flex justify-center items-center h-screen">جاري التحميل...</div>;
   }
   
+  // تنسيق الأرقام كعملة
+  const formatCurrency = (value: number) => {
+    if (value === undefined || value === null) return "0 ر.س";
+    return `${value.toLocaleString()} ر.س`;
+  };
+  
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
@@ -821,7 +827,7 @@ const AdminDashboardContent = () => {
                               <p className="text-sm text-gray-500">إجمالي المبالغ المستلمة</p>
                               <h3 className="text-2xl font-bold">
                                 {isLoadingFinancial ? "..." : 
-                                 `${financialData?.total_revenue?.toLocaleString()} ر.س`}
+                                 formatCurrency(financialData?.total_revenue || 0)}
                               </h3>
                             </div>
                             <div className="p-3 bg-green-100 rounded-full">
@@ -838,7 +844,7 @@ const AdminDashboardContent = () => {
                               <p className="text-sm text-gray-500">إجمالي العمولات</p>
                               <h3 className="text-2xl font-bold">
                                 {isLoadingFinancial ? "..." :
-                                 `${financialData?.commissions?.toLocaleString()} ر.س`}
+                                 formatCurrency(financialData?.commissions || 0)}
                               </h3>
                             </div>
                             <div className="p-3 bg-blue-100 rounded-full">
@@ -855,7 +861,7 @@ const AdminDashboardContent = () => {
                               <p className="text-sm text-gray-500">أرباح المنصة</p>
                               <h3 className="text-2xl font-bold">
                                 {isLoadingFinancial ? "..." :
-                                 `${financialData?.platform_profit?.toLocaleString()} ر.س`}
+                                 formatCurrency(financialData?.platform_profit || 0)}
                               </h3>
                             </div>
                             <div className="p-3 bg-violet-100 rounded-full">
@@ -872,7 +878,7 @@ const AdminDashboardContent = () => {
                               <p className="text-sm text-gray-500">مستحقات السائقين</p>
                               <h3 className="text-2xl font-bold">
                                 {isLoadingFinancial ? "..." :
-                                 `${financialData?.driver_profit?.toLocaleString()} ر.س`}
+                                 formatCurrency(financialData?.driver_profit || 0)}
                               </h3>
                             </div>
                             <div className="p-3 bg-amber-100 rounded-full">
@@ -904,8 +910,8 @@ const AdminDashboardContent = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <Tabs defaultValue="applications">
-                      <TabsList className="mb-4">
+                    <Tabs defaultValue="applications" dir="rtl">
+                      <TabsList className="mb-4 justify-end">
                         <TabsTrigger value="applications">طلبات الانضمام</TabsTrigger>
                         <TabsTrigger value="active">السائقين النشطين</TabsTrigger>
                         <TabsTrigger value="suspended">السائقين المعلقين</TabsTrigger>
@@ -943,476 +949,4 @@ const AdminDashboardContent = () => {
                                           قبول
                                         </Button>
                                         <Button size="sm" variant="destructive" onClick={() => handleRejectDriver(driver.id)}>
-                                          <UserXIcon className="h-4 w-4 mr-1" />
-                                          رفض
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>)}
-                              </TableBody>
-                            </Table>
-                          </div>}
-                      </TabsContent>
-                      
-                      <TabsContent value="active">
-                        {isLoadingApprovedDrivers ? <div className="text-center py-8">جاري تحميل البيانات...</div> : approvedDrivers.length === 0 ? <div className="text-center py-8 text-gray-500">
-                            <TruckIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                            لا يوجد سائقين نشطين حاليًا
-                          </div> : <div className="overflow-x-auto">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>الاسم</TableHead>
-                                  <TableHead>البريد الإلكتروني</TableHead>
-                                  <TableHead>رقم الهاتف</TableHead>
-                                  <TableHead>نوع السيارة</TableHead>
-                                  <TableHead>التقييم</TableHead>
-                                  <TableHead>الإجراءات</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {approvedDrivers.filter((driver: any) => !driver.profiles?.status || driver.profiles?.status === 'active').filter((driver: any) => {
-                              if (!searchQuery) return true;
-                              const fullName = `${driver.profiles?.first_name} ${driver.profiles?.last_name}`.toLowerCase();
-                              const email = driver.profiles?.email?.toLowerCase() || '';
-                              const phone = driver.profiles?.phone || '';
-                              const query = searchQuery.toLowerCase();
-                              return fullName.includes(query) || email.includes(query) || phone.includes(query);
-                            }).map((driver: any) => <TableRow key={driver.id}>
-                                      <TableCell className="font-medium">
-                                        {driver.profiles?.first_name} {driver.profiles?.last_name}
-                                      </TableCell>
-                                      <TableCell>{driver.profiles?.email}</TableCell>
-                                      <TableCell>{driver.profiles?.phone}</TableCell>
-                                      <TableCell>
-                                        {driver.vehicle_info?.make} {driver.vehicle_info?.model}
-                                      </TableCell>
-                                      <TableCell>
-                                        {driver.rating ? <span>{driver.rating} / 5</span> : <span className="text-gray-400">لا يوجد تقييم</span>}
-                                      </TableCell>
-                                      <TableCell>
-                                        <div className="flex gap-2">
-                                          <Button variant="outline" size="sm">
-                                            <Eye className="h-4 w-4 mr-1" />
-                                            عرض
-                                          </Button>
-                                          <Button variant="outline" size="sm" className="text-amber-600 border-amber-600 hover:bg-amber-50" onClick={() => handleSuspendUser(driver.profiles?.id, 'driver')}>
-                                            تعليق
-                                          </Button>
-                                          <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50" onClick={() => handleBanUser(driver.profiles?.id, 'driver')}>
-                                            حظر
-                                          </Button>
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>)}
-                              </TableBody>
-                            </Table>
-                          </div>}
-                      </TabsContent>
-                      
-                      <TabsContent value="suspended">
-                        {isLoadingSuspendedDrivers ? <div className="text-center py-8">جاري تحميل البيانات...</div> : suspendedDrivers.length === 0 ? <div className="text-center py-8 text-gray-500">
-                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                            لا يوجد سائقين معلقين حاليًا
-                          </div> : <div className="overflow-x-auto">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>الاسم</TableHead>
-                                  <TableHead>البريد الإلكتروني</TableHead>
-                                  <TableHead>رقم الهاتف</TableHead>
-                                  <TableHead>الحالة</TableHead>
-                                  <TableHead>الإجراءات</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {suspendedDrivers.map((driver: any) => <TableRow key={driver.id}>
-                                    <TableCell className="font-medium">
-                                      {driver.profiles?.first_name} {driver.profiles?.last_name}
-                                    </TableCell>
-                                    <TableCell>{driver.profiles?.email}</TableCell>
-                                    <TableCell>{driver.profiles?.phone}</TableCell>
-                                    <TableCell>
-                                      <span className={`px-2 py-1 text-xs rounded-full ${driver.profiles?.status === 'suspended' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
-                                        {driver.profiles?.status === 'suspended' ? 'معلق' : 'محظور'}
-                                      </span>
-                                    </TableCell>
-                                    <TableCell>
-                                      <div className="flex gap-2">
-                                        <Button variant="outline" size="sm" className="text-green-600 border-green-600 hover:bg-green-50" onClick={() => handleActivateUser(driver.profiles?.id, 'driver')}>
-                                          <UserCheckIcon className="h-4 w-4 mr-1" />
-                                          إعادة تنشيط
-                                        </Button>
-                                      </div>
-                                    </TableCell>
-                                  </TableRow>)}
-                              </TableBody>
-                            </Table>
-                          </div>}
-                      </TabsContent>
-                    </Tabs>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              {/* Customers Tab */}
-              <TabsContent value="customers" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <div className="flex flex-wrap justify-between items-center">
-                      <CardTitle className="text-xl">إدارة العملاء</CardTitle>
-                      <div className="relative w-full md:w-64">
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input 
-                          placeholder="بحث عن عميل..." 
-                          className="pr-9" 
-                          value={searchQuery}
-                          onChange={e => setSearchQuery(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>الاسم</TableHead>
-                            <TableHead>البريد الإلكتروني</TableHead>
-                            <TableHead>رقم الهاتف</TableHead>
-                            <TableHead>تاريخ التسجيل</TableHead>
-                            <TableHead>الحالة</TableHead>
-                            <TableHead>الإجراءات</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {isLoadingCustomersList ? <TableRow>
-                              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                                جاري تحميل بيانات العملاء...
-                              </TableCell>
-                            </TableRow> : customersList.length === 0 ? <TableRow>
-                              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                                <UsersIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                                لا يوجد عملاء مسجلين حاليًا
-                              </TableCell>
-                            </TableRow> : customersList.filter((customer: any) => {
-                          if (!searchQuery) return true;
-                          const fullName = `${customer.first_name} ${customer.last_name}`.toLowerCase();
-                          const email = customer.email?.toLowerCase() || '';
-                          const phone = customer.phone || '';
-                          const query = searchQuery.toLowerCase();
-                          return fullName.includes(query) || email.includes(query) || phone.includes(query);
-                        }).map((customer: any) => <TableRow key={customer.id}>
-                                  <TableCell className="font-medium">{customer.first_name} {customer.last_name}</TableCell>
-                                  <TableCell>{customer.email}</TableCell>
-                                  <TableCell>{customer.phone}</TableCell>
-                                  <TableCell>{new Date(customer.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                                  <TableCell>
-                                    <span className={`px-2 py-1 text-xs rounded-full ${!customer.status || customer.status === 'active' ? 'bg-green-100 text-green-800' : customer.status === 'suspended' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
-                                      {!customer.status || customer.status === 'active' ? 'نشط' : customer.status === 'suspended' ? 'معلق' : 'محظور'}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex gap-2">
-                                      <Button variant="outline" size="sm">
-                                        <Eye className="h-4 w-4 mr-1" />
-                                        عرض
-                                      </Button>
-                                      {!customer.status || customer.status === 'active' ? <>
-                                          <Button variant="outline" size="sm" className="text-amber-600 border-amber-600 hover:bg-amber-50" onClick={() => handleSuspendUser(customer.id, 'customer')}>
-                                            تعليق
-                                          </Button>
-                                          <Button variant="outline" size="sm" className="text-red-600 border-red-600 hover:bg-red-50" onClick={() => handleBanUser(customer.id, 'customer')}>
-                                            حظر
-                                          </Button>
-                                        </> : <Button variant="outline" size="sm" className="text-green-600 border-green-600 hover:bg-green-50" onClick={() => handleActivateUser(customer.id, 'customer')}>
-                                          إعادة تنشيط
-                                        </Button>}
-                                      <Button variant="destructive" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>
-                                        حذف
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </TableRow>)}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              {/* Orders Tab */}
-              <TabsContent value="orders" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <div className="flex flex-wrap justify-between items-center">
-                      <CardTitle className="text-xl">مراجعة الطلبات</CardTitle>
-                      <div className="flex gap-2">
-                        <div className="relative">
-                          <SearchIcon className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                          <Input placeholder="بحث برقم الطلب..." className="pl-9 pr-4 w-[250px]" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-                        </div>
-                        <Select defaultValue="all">
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="فلترة حسب الحالة" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">جميع الطلبات</SelectItem>
-                            <SelectItem value="active">طلبات نشطة</SelectItem>
-                            <SelectItem value="completed">طلبات مكتملة</SelectItem>
-                            <SelectItem value="cancelled">طلبات ملغاة</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>رقم الطلب</TableHead>
-                            <TableHead>العميل</TableHead>
-                            <TableHead>السائق</TableHead>
-                            <TableHead>المبلغ</TableHead>
-                            <TableHead>التاريخ</TableHead>
-                            <TableHead>الحالة</TableHead>
-                            <TableHead>الإجراءات</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {isLoadingOrdersList ? <TableRow>
-                              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                                جاري تحميل بيانات الطلبات...
-                              </TableCell>
-                            </TableRow> : orders.length === 0 ? <TableRow>
-                              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                                <PackageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                                لا توجد طلبات مسجلة حاليًا
-                              </TableCell>
-                            </TableRow> : orders.filter((order: any) => {
-                          if (!searchQuery) return true;
-                          return order.id.toLowerCase().includes(searchQuery.toLowerCase());
-                        }).map((order: any) => <TableRow key={order.id}>
-                                  <TableCell className="font-medium">#{order.id.substring(0, 8)}</TableCell>
-                                  <TableCell>{order.customer?.first_name} {order.customer?.last_name}</TableCell>
-                                  <TableCell>{order.driver?.first_name} {order.driver?.last_name}</TableCell>
-                                  <TableCell>{order.price} ريال</TableCell>
-                                  <TableCell>{new Date(order.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                                  <TableCell>
-                                    <span className={`px-2 py-1 text-xs rounded-full ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : order.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : order.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                      {order.status === 'pending' ? 'قيد الانتظار' : order.status === 'in_progress' ? 'قيد التنفيذ' : order.status === 'completed' ? 'مكتمل' : 'ملغي'}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Button variant="outline" size="sm">
-                                      <Eye className="h-4 w-4 mr-1" />
-                                      عرض التفاصيل
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>)}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              {/* Settings Tab - New */}
-              <TabsContent value="settings" className="space-y-4">
-                <Tabs defaultValue="commission">
-                  <TabsList className="mb-4">
-                    <TabsTrigger value="commission">العمولة</TabsTrigger>
-                    <TabsTrigger value="language">اللغة</TabsTrigger>
-                    <TabsTrigger value="terms">الشروط والأحكام</TabsTrigger>
-                    <TabsTrigger value="complaints">الشكاوى والدعم</TabsTrigger>
-                  </TabsList>
-                  
-                  {/* Commission Settings */}
-                  <TabsContent value="commission">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>إعدادات العمولة</CardTitle>
-                        <CardDescription>تعديل نسبة العمولة المطبقة على الطلبات</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="settings-commission-rate">نسبة العمولة (%)</Label>
-                          <div className="flex gap-2">
-                            <Input id="settings-commission-rate" type="number" min="1" max="50" value={selectedCommissionRate} onChange={e => setSelectedCommissionRate(parseInt(e.target.value) || 15)} className="w-full" />
-                            <Button onClick={handleUpdateCommissionRate}>تحديث</Button>
-                          </div>
-                          <p className="text-sm text-gray-500">
-                            النسبة الحالية: {selectedCommissionRate}%
-                          </p>
-                        </div>
-                        
-                        <div className="pt-4 border-t">
-                          <h4 className="font-medium mb-2">تفاصيل تطبيق العمولة</h4>
-                          <ul className="space-y-1 text-sm text-gray-600">
-                            <li>• تطبق العمولة على إجمالي قيمة الطلب</li>
-                            <li>• يتم خصم العمولة تلقائياً من مستحقات السائق</li>
-                            <li>• يمكن تعديل النسبة في أي وقت</li>
-                          </ul>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                  
-                  {/* Language Settings */}
-                  <TabsContent value="language">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>إعدادات اللغة</CardTitle>
-                        <CardDescription>تحديد لغة واجهة التطبيق</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4 space-x-reverse">
-                              <Globe className="h-5 w-5 text-safedrop-primary" />
-                              <div>
-                                <h4 className="font-medium">اللغة العربية</h4>
-                                <p className="text-sm text-gray-500">تفعيل اللغة العربية كلغة افتراضية</p>
-                              </div>
-                            </div>
-                            <Button variant={systemLanguage === 'ar' ? 'default' : 'outline'} onClick={() => handleUpdateSystemLanguage('ar')}>
-                              {systemLanguage === 'ar' ? 'مفعلة' : 'تفعيل'}
-                            </Button>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4 space-x-reverse">
-                              <Globe className="h-5 w-5 text-safedrop-primary" />
-                              <div>
-                                <h4 className="font-medium">اللغة الإنجليزية</h4>
-                                <p className="text-sm text-gray-500">تفعيل اللغة الإنجليزية كلغة افتراضية</p>
-                              </div>
-                            </div>
-                            <Button variant={systemLanguage === 'en' ? 'default' : 'outline'} onClick={() => handleUpdateSystemLanguage('en')}>
-                              {systemLanguage === 'en' ? 'مفعلة' : 'تفعيل'}
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                  
-                  {/* Terms & Privacy Settings */}
-                  <TabsContent value="terms">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>شروط الاستخدام</CardTitle>
-                          <CardDescription>تعديل شروط استخدام التطبيق</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="terms-of-service">شروط الاستخدام</Label>
-                            <textarea id="terms-of-service" rows={10} value={termsOfService} onChange={e => setTermsOfService(e.target.value)} className="w-full border border-gray-300 p-2 rounded-md" placeholder="أدخل شروط استخدام التطبيق هنا..."></textarea>
-                          </div>
-                          <Button onClick={handleUpdateTermsOfService}>حفظ التغييرات</Button>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>سياسة الخصوصية</CardTitle>
-                          <CardDescription>تعديل سياسة خصوصية التطبيق</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="privacy-policy">سياسة الخصوصية</Label>
-                            <textarea id="privacy-policy" rows={10} value={privacyPolicy} onChange={e => setPrivacyPolicy(e.target.value)} className="w-full border border-gray-300 p-2 rounded-md" placeholder="أدخل سياسة خصوصية التطبيق هنا..."></textarea>
-                          </div>
-                          <Button onClick={handleUpdatePrivacyPolicy}>حفظ التغييرات</Button>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </TabsContent>
-                  
-                  {/* Complaints Tab */}
-                  <TabsContent value="complaints">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex flex-wrap justify-between items-center">
-                          <CardTitle className="text-xl">إدارة الشكاوى والدعم</CardTitle>
-                          <div className="flex gap-2">
-                            <Select defaultValue="all">
-                              <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="فلترة حسب الحالة" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="all">جميع الشكاوى</SelectItem>
-                                <SelectItem value="pending">قيد الانتظار</SelectItem>
-                                <SelectItem value="in-progress">قيد المعالجة</SelectItem>
-                                <SelectItem value="resolved">تم الحل</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {isLoadingComplaints ? <div className="text-center py-8">جاري تحميل البيانات...</div> : complaints.length === 0 ? <div className="text-center py-8 text-gray-500">
-                              <MessageSquareIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                              لا توجد شكاوى حالياً
-                            </div> : complaints.map(complaint => <Card key={complaint.id}>
-                                <CardContent className="pt-6">
-                                  <div className="flex flex-col md:flex-row justify-between">
-                                    <div className="space-y-2 mb-4 md:mb-0">
-                                      <div className="flex items-center gap-2">
-                                        <h3 className="text-lg font-medium">{complaint.subject}</h3>
-                                        <span className={`px-2 py-1 text-xs rounded-full ${complaint.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : complaint.status === 'in-progress' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-                                          {complaint.status === 'pending' ? 'قيد الانتظار' : complaint.status === 'in-progress' ? 'قيد المعالجة' : 'تم الحل'}
-                                        </span>
-                                      </div>
-                                      <p className="text-sm text-gray-600">من: {complaint.userName} ({complaint.userType === 'customer' ? 'عميل' : 'سائق'})</p>
-                                      <p className="text-sm text-gray-500">تاريخ التقديم: {new Date(complaint.createdAt).toLocaleDateString('ar-SA')}</p>
-                                      <p className="mt-2 text-gray-700">{complaint.content}</p>
-                                    </div>
-                                    
-                                    <div className="flex flex-wrap gap-2">
-                                      <Button variant="outline" size="sm">
-                                        <MessageSquareIcon className="h-4 w-4 mr-1" />
-                                        الرد
-                                      </Button>
-                                      {complaint.status === 'pending' && <Button variant="outline" size="sm" onClick={() => handleProcessComplaint(complaint.id)}>
-                                          <UserCogIcon className="h-4 w-4 mr-1" />
-                                          بدء المعالجة
-                                        </Button>}
-                                      {complaint.status !== 'resolved' && <Button variant="outline" size="sm" onClick={() => handleResolveComplaint(complaint.id)}>
-                                          <Check className="h-4 w-4 mr-1" />
-                                          حل الشكوى
-                                        </Button>}
-                                      <Button variant="outline" size="sm" onClick={() => handleSuspendUser(complaint.userId, complaint.userType)}>
-                                        <AlertTriangleIcon className="h-4 w-4 mr-1" />
-                                        تعليق الحساب
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>)}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-};
-
-const AdminDashboard = () => {
-  return (
-    <LanguageProvider>
-      <AdminDashboardContent />
-    </LanguageProvider>
-  );
-};
-
-export default AdminDashboard;
+                                          <UserXIcon className="h-
