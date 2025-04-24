@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLanguage } from "@/components/ui/language-context";
@@ -53,16 +54,44 @@ const DriverVerification = () => {
   const fetchDrivers = async () => {
     setLoading(true);
     try {
-      // First, fetch profiles
-      const { data: profilesData, error: profilesError } = await supabase
+      console.log("Fetching drivers...");
+      
+      // First, check for role-based drivers (new approach)
+      const { data: roleMappings, error: roleError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "driver");
+        
+      if (roleError) {
+        console.error("Error fetching driver roles:", roleError);
+      }
+      
+      // Get the IDs of users with the driver role
+      const driverRoleIds = roleMappings ? roleMappings.map(r => r.user_id) : [];
+      console.log("Found users with driver role:", driverRoleIds.length);
+      
+      // Then, fetch profiles - both with user_type=driver and those with driver roles
+      let profilesQuery = supabase
         .from("profiles")
-        .select("id, first_name, last_name, phone, user_type, email")
-        .eq("user_type", "driver");
+        .select("id, first_name, last_name, phone, user_type, email");
+      
+      if (driverRoleIds.length > 0) {
+        // Include both user_type=driver AND users with driver role
+        profilesQuery = profilesQuery.or(`user_type.eq.driver,id.in.(${driverRoleIds.join(',')})`);
+      } else {
+        // Only filter by user_type if no driver roles found
+        profilesQuery = profilesQuery.eq("user_type", "driver");
+      }
+      
+      const { data: profilesData, error: profilesError } = await profilesQuery;
 
       if (profilesError) throw profilesError;
+      
+      console.log("Profiles data fetched:", profilesData?.length || 0);
 
-      if (!profilesData) {
+      if (!profilesData || profilesData.length === 0) {
         setDrivers([]);
+        setLoading(false);
         return;
       }
 
@@ -75,6 +104,8 @@ const DriverVerification = () => {
         .in("id", driverIds);
 
       if (driversError) throw driversError;
+      
+      console.log("Driver status data fetched:", driversData?.length || 0);
 
       // Create a map for quick lookup of driver status
       const driverStatusMap = {};
@@ -91,7 +122,8 @@ const DriverVerification = () => {
           status: driverStatusMap[profile.id] ?? "pending",
         };
       });
-
+      
+      console.log("Combined driver data:", driversCombined.length);
       setDrivers(driversCombined);
     } catch (error) {
       console.error("Error fetching drivers:", error);

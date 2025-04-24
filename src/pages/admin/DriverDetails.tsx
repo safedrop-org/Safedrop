@@ -52,6 +52,8 @@ const DriverDetails = () => {
         return;
       }
       
+      console.log("Fetching driver details for ID:", id);
+      
       // Get profile data
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
@@ -59,7 +61,12 @@ const DriverDetails = () => {
         .eq("id", id)
         .single();
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        throw profileError;
+      }
+      
+      console.log("Profile data fetched:", profileData);
       
       // Get driver-specific data
       const { data: driverData, error: driverError } = await supabase
@@ -69,26 +76,39 @@ const DriverDetails = () => {
         .maybeSingle();
       
       if (driverError && driverError.code !== 'PGRST116') {
+        console.error("Driver error:", driverError);
         throw driverError;
       }
       
-      let userEmail = null;
-      try {
-        const { data: userData } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("id", id)
-          .single();
-        userEmail = userData?.email;
-      } catch (e) {
-        console.log("Could not fetch user email:", e);
+      console.log("Driver data fetched:", driverData);
+      
+      // Get email from profiles table since it might be stored there
+      let userEmail = profileData?.email || null;
+      
+      if (!userEmail) {
+        try {
+          // Try fetching from auth.users via profiles
+          const { data: userData } = await supabase
+            .from("profiles")
+            .select("email")
+            .eq("id", id)
+            .single();
+          userEmail = userData?.email;
+          console.log("Email fetched separately:", userEmail);
+        } catch (e) {
+          console.error("Could not fetch user email:", e);
+        }
       }
       
-      setDriver({
+      // Combine the data, making sure we don't overwrite profile data with undefined driver data
+      const combinedData = {
         ...profileData,
         ...(driverData || {}),
         email: userEmail || profileData?.email,
-      });
+      };
+      
+      console.log("Combined driver data:", combinedData);
+      setDriver(combinedData);
     } catch (error) {
       console.error("Error fetching driver details:", error);
       toast.error("خطأ في جلب بيانات السائق");
