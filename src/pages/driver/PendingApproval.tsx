@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Button } from '@/components/ui/button';
-import { Clock, AlertTriangle, XCircle } from 'lucide-react';
+import { Clock, AlertTriangle, XCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
@@ -16,11 +16,13 @@ const PendingApprovalContent = () => {
     status: string;
     rejection_reason?: string | null;
   } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchDriverStatus = async () => {
       if (!user?.id) return;
 
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('drivers')
         .select('status, rejection_reason')
@@ -29,21 +31,76 @@ const PendingApprovalContent = () => {
 
       if (error) {
         console.error('Error fetching driver status:', error);
+        setIsLoading(false);
         return;
       }
 
       setDriverStatus(data);
+      setIsLoading(false);
+      
+      // Auto-redirect if approved
+      if (data?.status === 'approved') {
+        navigate('/driver/dashboard');
+      }
     };
 
     fetchDriverStatus();
-  }, [user]);
+    
+    // Set up interval to check status
+    const interval = setInterval(fetchDriverStatus, 10000); // Every 10 seconds
+    
+    return () => clearInterval(interval);
+  }, [user, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
   };
+  
+  const handleRefresh = () => {
+    window.location.reload();
+  };
 
-  if (driverStatus?.status === 'rejected') {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-4">
+        <div className="max-w-md w-full space-y-8 bg-white shadow-xl rounded-xl p-8 text-center">
+          <div className="animate-pulse flex justify-center">
+            <div className="h-16 w-16 bg-gray-200 rounded-full"></div>
+          </div>
+          <div className="h-6 bg-gray-200 rounded"></div>
+          <div className="h-24 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (driverStatus?.status === "approved") {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-4">
+        <div className="max-w-md w-full space-y-8 bg-white shadow-xl rounded-xl p-8 text-center">
+          <div className="flex justify-center">
+            <CheckCircle className="h-16 w-16 text-green-500" />
+          </div>
+          
+          <div className="bg-green-50 border-l-4 border-green-500 p-4 my-6 text-right">
+            <p className="font-bold text-green-800">تمت الموافقة على طلبك</p>
+            <p className="text-green-700 mt-2">يمكنك الآن استخدام تطبيق سائق سيف دروب!</p>
+          </div>
+          
+          <Button 
+            variant="default"
+            className="w-full mt-4"
+            onClick={() => navigate("/driver/dashboard")}
+          >
+            الذهاب إلى لوحة التحكم
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (driverStatus?.status === "rejected") {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-4">
         <div className="max-w-md w-full space-y-8 bg-white shadow-xl rounded-xl p-8 text-center">
@@ -53,7 +110,7 @@ const PendingApprovalContent = () => {
 
           <div className="bg-red-50 border-l-4 border-red-500 p-4 my-6 text-right">
             <p className="font-bold text-red-800">تم رفض طلبك</p>
-            <p className="text-red-700 mt-2">{driverStatus.rejection_reason}</p>
+            <p className="text-red-700 mt-2">{driverStatus.rejection_reason || "لم يتم تحديد سبب للرفض"}</p>
           </div>
 
           <div className="space-y-4 mt-4">
@@ -135,7 +192,7 @@ const PendingApprovalContent = () => {
           <Button 
             variant="outline" 
             className="w-full flex items-center justify-center gap-2 text-safedrop-primary border-safedrop-primary hover:bg-safedrop-primary/10"
-            onClick={() => window.location.reload()}
+            onClick={handleRefresh}
           >
             <AlertTriangle className="h-4 w-4" />
             <span>تحديث الصفحة</span>

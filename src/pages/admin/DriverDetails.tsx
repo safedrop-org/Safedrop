@@ -88,18 +88,43 @@ const DriverDetails = () => {
     
     setProcessingAction(true);
     try {
-      const { error } = await supabase
+      // First check if driver record exists
+      const { data: existingDriver } = await supabase
         .from("drivers")
-        .update({ status: "approved", rejection_reason: null })
-        .eq("id", driver.id);
-      
-      if (error) throw error;
+        .select("id")
+        .eq("id", driver.id)
+        .maybeSingle();
+        
+      if (existingDriver) {
+        // Update existing driver record
+        const { error } = await supabase
+          .from("drivers")
+          .update({ status: "approved", rejection_reason: null })
+          .eq("id", driver.id);
+        
+        if (error) throw error;
+      } else {
+        // Insert new driver record with approved status
+        const { error } = await supabase
+          .from("drivers")
+          .insert({
+            id: driver.id,
+            status: "approved",
+            national_id: driver.national_id || "",
+            license_number: driver.license_number || "",
+            vehicle_info: driver.vehicle_info || { make: "", model: "", year: "", plateNumber: "" }
+          });
+          
+        if (error) throw error;
+      }
       
       toast.success("تم قبول السائق بنجاح");
-      setDriver({...driver, status: "approved"});
+      
+      // Update local state
+      setDriver(prevDriver => prevDriver ? {...prevDriver, status: "approved"} : null);
       
       // Navigate back after a short delay
-      setTimeout(() => navigate("/admin/driver-verification"), 1500);
+      setTimeout(() => navigate("/admin/driver-verification"), 1000);
     } catch (error) {
       console.error("Error approving driver:", error);
       toast.error("حدث خطأ أثناء قبول السائق");

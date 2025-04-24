@@ -29,6 +29,7 @@ const DriverVerification = () => {
   const navigate = useNavigate();
 
   const fetchDrivers = async () => {
+    console.log("Fetching drivers...");
     setLoading(true);
     try {
       // First, fetch profiles
@@ -75,6 +76,7 @@ const DriverVerification = () => {
         };
       });
 
+      console.log("Fetched drivers:", driversCombined);
       setDrivers(driversCombined);
     } catch (error) {
       console.error("Error fetching drivers:", error);
@@ -89,14 +91,15 @@ const DriverVerification = () => {
     navigate(`/admin/driver-details/${driverId}`);
   };
 
+  // Initial fetch
   useEffect(() => {
     fetchDrivers();
   }, []);
 
-  // Add an effect to refresh data when route changes (coming back from details)
+  // Add an effect to refresh data when returning from other pages
   useEffect(() => {
-    // This will reload driver data when the component is mounted or re-focused
     const handleFocus = () => {
+      console.log("Window focused - refreshing driver data");
       fetchDrivers();
     };
 
@@ -133,6 +136,7 @@ const DriverVerification = () => {
         <Tabs value={currentTab} onValueChange={(value) => {
           setCurrentTab(value);
           // Refresh data when changing tabs
+          console.log("Tab changed to:", value);
           fetchDrivers();
         }}>
           <TabsList>
