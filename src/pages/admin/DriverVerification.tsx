@@ -84,14 +84,14 @@ const DriverVerification = () => {
     }
   };
 
-  useEffect(() => {
-    fetchDrivers();
-  }, []);
-
-  // Add the missing function to navigate to driver details
+  // Function to navigate to driver details
   const navigateToDriverDetails = (driverId: string) => {
     navigate(`/admin/driver-details/${driverId}`);
   };
+
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
 
   const filteredDrivers = drivers.filter(driver => {
     const matchesStatus = currentTab === "all" || driver.status === currentTab;

@@ -189,12 +189,12 @@ const DriverDetails = () => {
             <div className="space-y-3">
               <div>
                 <span className="font-bold">الاسم الأول: </span>
-                <span>{driver.first_name}</span>
+                <span>{driver.first_name || "غير متوفر"}</span>
               </div>
               
               <div>
                 <span className="font-bold">اسم العائلة: </span>
-                <span>{driver.last_name}</span>
+                <span>{driver.last_name || "غير متوفر"}</span>
               </div>
               
               <div>
@@ -204,7 +204,7 @@ const DriverDetails = () => {
               
               <div>
                 <span className="font-bold">رقم الهاتف: </span>
-                <span>{driver.phone}</span>
+                <span>{driver.phone || "غير متوفر"}</span>
               </div>
               
               <div>
