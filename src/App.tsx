@@ -34,6 +34,8 @@ import SettingsWithSidebar from './pages/admin/SettingsWithSidebar';
 
 // Driver Pages
 import DriverDashboard from './pages/driver/DriverDashboard';
+import DriverOrders from './pages/driver/DriverOrders';
+import PendingApproval from './pages/driver/PendingApproval';
 
 // Protected Routes
 const ProtectedRoute = ({ children }) => {
@@ -118,6 +120,8 @@ const App = () => {
             }
           >
             <Route path="dashboard" element={<DriverDashboard />} />
+            <Route path="orders" element={<DriverOrders />} />
+            <Route path="pending-approval" element={<PendingApproval />} />
           </Route>
         </Routes>
       </Router>

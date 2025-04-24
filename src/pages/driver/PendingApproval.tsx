@@ -1,218 +1,88 @@
-import { useEffect, useState } from 'react';
+
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { Clock, LogOut, XCircle, AlertTriangle } from 'lucide-react';
+import { Clock, AlertTriangle } from 'lucide-react';
 
 const PendingApprovalContent = () => {
-  const navigate = useNavigate();
   const { t } = useLanguage();
-  const [loading, setLoading] = useState(true);
-  const [driverStatus, setDriverStatus] = useState<'pending' | 'approved' | 'rejected' | 'frozen' | null>(null);
-  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
-  const [rejectionCount, setRejectionCount] = useState(0);
-  const [canReapply, setCanReapply] = useState(true);
-
-  useEffect(() => {
-    const checkDriverStatus = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!session) {
-          navigate('/login');
-          return;
-        }
-
-        const { data: driver, error } = await supabase
-          .from('drivers')
-          .select('status, rejection_reason')
-          .eq('id', session.user.id)
-          .single();
-
-        if (error || !driver) {
-          toast.error("حدث خطأ أثناء جلب بيانات الحساب");
-          navigate('/login');
-          return;
-        }
-
-        setDriverStatus(driver.status);
-        setRejectionReason(driver.rejection_reason || null);
-
-        // Fetch rejection count from localStorage
-        const count = Number(localStorage.getItem('driverRejectionCount')) || 0;
-        setRejectionCount(count);
-
-        if (driver.status === 'approved') {
-          navigate('/driver/dashboard');
-          return;
-        }
-
-        if (driver.status === 'frozen') {
-          toast.error('تم تعطيل حسابك مؤقتًا بسبب رفض مرتين متتاليتين. يرجى التواصل مع الدعم.');
-          setCanReapply(false);
-          return;
-        }
-
-        if (driver.status === 'rejected' && count >= 2) {
-          // Freeze account due to rejection count
-          setDriverStatus('frozen');
-          toast.error('تم تعطيل حسابك مؤقتًا بسبب رفض مرتين متتاليتين. يرجى التواصل مع الدعم.');
-          setCanReapply(false);
-          return;
-        }
-
-        if (driver.status === 'rejected' && count < 2) {
-          setCanReapply(true);
-          return;
-        }
-      } catch (error) {
-        console.error("Error fetching driver status:", error);
-        toast.error("حدث خطأ أثناء جلب بيانات الحساب");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkDriverStatus();
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('driverAuth');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('driverRejectionCount');
-    navigate('/login');
-  };
-
-  const handleReapply = () => {
-    if (!canReapply) return;
-    // Allow reapply once after rejection, increment count
-    const newCount = rejectionCount + 1;
-    localStorage.setItem('driverRejectionCount', newCount.toString());
-    navigate('/driver/profile');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-safedrop-primary mx-auto"></div>
-          <h2 className="text-2xl font-bold">جاري التحميل...</h2>
-        </div>
-      </div>
-    );
-  }
-
-  if (driverStatus === 'pending') {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
+  const navigate = useNavigate();
+  
+  return (
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-4">
+      <div className="max-w-md w-full space-y-8 bg-white shadow-xl rounded-xl p-8 text-center">
+        <div className="flex justify-center">
           <img 
             src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png" 
             alt="SafeDrop Logo" 
-            className="mx-auto h-20 w-auto mb-4" 
+            className="h-20" 
           />
-          <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto">
-            <Clock className="h-8 w-8 text-yellow-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-safedrop-primary mt-4">طلبك قيد المراجعة</h2>
-          <p className="text-gray-600 mt-4">
-            شكراً لتسجيلك كسائق في منصة سيف دروب. طلبك قيد المراجعة حالياً من قبل فريق الإدارة.
-            سيتم إشعارك عبر البريد الإلكتروني بمجرد الموافقة على طلبك.
-          </p>
-          <div className="mt-8">
-            <Button 
-              onClick={handleLogout} 
-              className="bg-safedrop-gold hover:bg-safedrop-gold/90"
-            >
-              تسجيل الخروج
-            </Button>
-          </div>
         </div>
-      </div>
-    );
-  }
-
-  if (driverStatus === 'rejected') {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <img 
-            src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png" 
-            alt="SafeDrop Logo" 
-            className="mx-auto h-20 w-auto mb-4" 
-          />
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-            <XCircle className="h-8 w-8 text-red-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-red-600 mt-4">تم رفض طلبك</h2>
-          <p className="text-gray-600 mt-4">
-            للأسف، تم رفض طلب انضمامك كسائق في منصة سيف دروب.
-          </p>
-          {rejectionReason && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <h3 className="font-semibold text-red-800">سبب الرفض:</h3>
-              <p className="text-red-700 mt-2">{rejectionReason}</p>
+        
+        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 my-6 text-right">
+          <div className="flex items-start">
+            <Clock className="h-6 w-6 text-yellow-500 ml-3" />
+            <div>
+              <p className="font-bold text-yellow-800">حسابك قيد المراجعة</p>
+              <p className="text-yellow-700 mt-2">
+                شكرًا لتسجيلك في منصة سيف دروب. يرجى العلم أن طلبك قيد المراجعة من قبل الإدارة.
+                سيتم إشعارك عبر البريد الإلكتروني فور الانتهاء من مراجعة حسابك.
+              </p>
             </div>
-          )}
-          <p className="text-gray-600 mt-4">يمكنك تعديل بياناتك وإعادة التقديم مرة واحدة فقط.</p>
-          {canReapply && (
-            <Button onClick={handleReapply} className="bg-safedrop-gold hover:bg-safedrop-gold/90 mt-4">
-              إعادة التقديم
-            </Button>
-          )}
-          {!canReapply && (
-            <p className="mt-4 text-red-600 font-semibold">
-              لا يمكنك إعادة التقديم مرة أخرى. يرجى التواصل مع الدعم الفني.
-            </p>
-          )}
-          <div className="mt-6">
-            <Button 
-              onClick={handleLogout} 
-              className="bg-gray-200 text-gray-700 hover:bg-gray-300 w-full"
-              variant="outline"
-            >
-              تسجيل الخروج
-            </Button>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (driverStatus === 'frozen') {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <img 
-            src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png" 
-            alt="SafeDrop Logo" 
-            className="mx-auto h-20 w-auto mb-4" 
-          />
-          <div className="w-16 h-16 bg-red-200 rounded-full flex items-center justify-center mx-auto">
-            <AlertTriangle className="h-8 w-8 text-red-700" />
+        
+        <h2 className="text-2xl font-bold text-gray-800 mt-6">ماذا يحدث الآن؟</h2>
+        
+        <div className="space-y-4 mt-4">
+          <div className="flex items-start">
+            <div className="w-8 h-8 bg-safedrop-primary rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+              1
+            </div>
+            <p className="mr-4 text-right">يقوم فريقنا بمراجعة المعلومات والوثائق التي قمت بتقديمها</p>
           </div>
-          <h2 className="text-2xl font-bold text-red-800 mt-4">الحساب مجمد مؤقتاً</h2>
-          <p className="text-red-700 mt-4 px-4">
-            تم رفض طلبك كسائق مرتين متتاليتين. يرجى التواصل مع الدعم الفني لتقديم اعتراض أو استفسار.
-          </p>
-          <div className="mt-6">
-            <Button 
-              onClick={handleLogout} 
-              className="bg-gray-200 text-gray-700 hover:bg-gray-300 w-full"
-              variant="outline"
-            >
-              تسجيل الخروج
-            </Button>
+          
+          <div className="flex items-start">
+            <div className="w-8 h-8 bg-safedrop-primary rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+              2
+            </div>
+            <p className="mr-4 text-right">قد يستغرق هذا ما بين 1-3 أيام عمل</p>
+          </div>
+          
+          <div className="flex items-start">
+            <div className="w-8 h-8 bg-safedrop-primary rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+              3
+            </div>
+            <p className="mr-4 text-right">سيتم إرسال إشعار إليك فور الموافقة على حسابك أو في حال احتجنا إلى معلومات إضافية</p>
           </div>
         </div>
+        
+        <div className="mt-8 space-y-4">
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={() => navigate('/')}
+          >
+            العودة للصفحة الرئيسية
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-center gap-2 text-safedrop-primary border-safedrop-primary hover:bg-safedrop-primary/10"
+            onClick={() => window.location.reload()}
+          >
+            <AlertTriangle className="h-4 w-4" />
+            <span>تحديث الصفحة</span>
+          </Button>
+        </div>
+        
+        <div className="mt-6 text-sm text-gray-500">
+          <p>إذا كان لديك أي استفسار، يرجى التواصل مع <a href="mailto:support@safedrop.com" className="text-safedrop-gold hover:underline">فريق الدعم</a></p>
+        </div>
       </div>
-    );
-  }
-
-  return null; // Should not reach here
+    </div>
+  );
 };
 
 const PendingApproval = () => {
