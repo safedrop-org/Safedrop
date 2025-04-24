@@ -56,7 +56,6 @@ const AdminDashboardContent = () => {
     driversPayout: 0
   });
 
-  // Fetch users count
   const {
     data: customersCount = 0,
     isLoading: isLoadingCustomers,
@@ -84,7 +83,6 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch drivers count
   const {
     data: driversCount = 0,
     isLoading: isLoadingDrivers,
@@ -112,7 +110,6 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch orders count
   const {
     data: ordersCount = 0,
     isLoading: isLoadingOrders,
@@ -140,7 +137,6 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch driver applications
   const {
     data: driverApplications = [],
     isLoading: isLoadingApplications,
@@ -179,7 +175,6 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch approved drivers
   const {
     data: approvedDrivers = [],
     isLoading: isLoadingApprovedDrivers,
@@ -223,7 +218,6 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch suspended drivers
   const {
     data: suspendedDrivers = [],
     isLoading: isLoadingSuspendedDrivers,
@@ -266,7 +260,6 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch complaints
   const {
     data: complaints = [],
     isLoading: isLoadingComplaints,
@@ -309,7 +302,6 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch orders
   const {
     data: orders = [],
     isLoading: isLoadingOrdersList,
@@ -346,7 +338,6 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch customers list
   const {
     data: customersList = [],
     isLoading: isLoadingCustomersList,
@@ -373,7 +364,6 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch system settings
   const {
     data: systemSettings,
     isLoading: isLoadingSettings
@@ -390,28 +380,23 @@ const AdminDashboardContent = () => {
           return null;
         }
 
-        // Convert array to object with key/value pairs
         const settings: Record<string, any> = {};
         (data || []).forEach(item => {
           settings[item.key] = item.value;
         });
 
-        // Set commission rate if exists
         if (settings.commission_rate) {
           setSelectedCommissionRate(parseInt(settings.commission_rate));
         }
 
-        // Set language if exists
         if (settings.system_language) {
           setSystemLanguage(settings.system_language);
         }
 
-        // Set privacy policy if exists
         if (settings.privacy_policy) {
           setPrivacyPolicy(settings.privacy_policy);
         }
 
-        // Set terms of service if exists
         if (settings.terms_of_service) {
           setTermsOfService(settings.terms_of_service);
         }
@@ -423,7 +408,6 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Updated financial data fetching using the new database function
   const {
     data: financialData,
     isLoading: isLoadingFinancial
@@ -455,7 +439,6 @@ const AdminDashboardContent = () => {
   });
   
   useEffect(() => {
-    // Update financial summary when data is loaded
     if (financialData) {
       setFinancialSummary({
         totalRevenue: financialData.total_revenue || 0,
@@ -467,7 +450,6 @@ const AdminDashboardContent = () => {
   }, [financialData]);
   
   useEffect(() => {
-    // Check if admin is authenticated
     const adminAuth = localStorage.getItem('adminAuth');
     if (!adminAuth || adminAuth !== 'true') {
       navigate('/admin');
@@ -483,7 +465,6 @@ const AdminDashboardContent = () => {
   
   const handleUpdateCommissionRate = async () => {
     try {
-      // In a real app, this would update the commission rate in the database
       const {
         error
       } = await supabase.from('system_settings').upsert({
@@ -699,9 +680,6 @@ const AdminDashboardContent = () => {
   
   const handleDeleteCustomer = async (userId: string) => {
     try {
-      // إذا كان هناك طلبات مرتبطة بالعميل، فقد نحتاج إلى تحديث حالتها أو إزالتها أيضًا
-
-      // حذف العميل
       const {
         error
       } = await supabase.from('profiles').delete().eq('id', userId);
@@ -719,7 +697,6 @@ const AdminDashboardContent = () => {
     return <div className="flex justify-center items-center h-screen">جاري التحميل...</div>;
   }
   
-  // تنسيق الأرقام كعملة
   const formatCurrency = (value: number) => {
     if (value === undefined || value === null) return "0 ر.س";
     return `${value.toLocaleString()} ر.س`;
@@ -742,7 +719,6 @@ const AdminDashboardContent = () => {
 
         <main className="flex-1 overflow-auto p-4">
           <div className="max-w-7xl mx-auto">
-            {/* Key Statistics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <Card>
                 <CardHeader className="pb-2">
@@ -799,7 +775,6 @@ const AdminDashboardContent = () => {
                 <TabsTrigger value="settings">الإعدادات</TabsTrigger>
               </TabsList>
               
-              {/* Financial Summary Tab */}
               <TabsContent value="financial" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -892,7 +867,6 @@ const AdminDashboardContent = () => {
                 </Card>
               </TabsContent>
               
-              {/* Drivers Tab */}
               <TabsContent value="drivers" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -903,9 +877,11 @@ const AdminDashboardContent = () => {
                           <SearchIcon className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                           <Input placeholder="بحث عن سائق..." className="pl-9 pr-4 w-[250px]" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                         </div>
-                        {driverApplications && driverApplications.some((driver: any) => driver.status === 'rejected') && <Button variant="destructive" size="sm" onClick={handleDeleteRejectedApplications} className="whitespace-nowrap">
+                        {driverApplications && driverApplications.some((driver: any) => driver.status === 'rejected') && (
+                          <Button variant="destructive" size="sm" onClick={handleDeleteRejectedApplications} className="whitespace-nowrap">
                             حذف الطلبات المرفوضة
-                          </Button>}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
@@ -918,10 +894,15 @@ const AdminDashboardContent = () => {
                       </TabsList>
                       
                       <TabsContent value="applications">
-                        {isLoadingApplications ? <div className="text-center py-8">جاري تحميل البيانات...</div> : driverApplications.length === 0 ? <div className="text-center py-8 text-gray-500">
+                        {isLoadingApplications ? (
+                          <div className="text-center py-8">جاري تحميل البيانات...</div>
+                        ) : driverApplications.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
                             <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                             لا توجد طلبات انضمام جديدة
-                          </div> : <div className="overflow-x-auto">
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
                             <Table>
                               <TableHeader>
                                 <TableRow>
@@ -933,7 +914,8 @@ const AdminDashboardContent = () => {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {driverApplications.map((driver: any) => <TableRow key={driver.id}>
+                                {driverApplications.map((driver: any) => (
+                                  <TableRow key={driver.id}>
                                     <TableCell className="font-medium">
                                       {driver.profiles?.first_name} {driver.profiles?.last_name}
                                     </TableCell>
@@ -949,4 +931,596 @@ const AdminDashboardContent = () => {
                                           قبول
                                         </Button>
                                         <Button size="sm" variant="destructive" onClick={() => handleRejectDriver(driver.id)}>
-                                          <UserXIcon className="h-
+                                          <UserXIcon className="h-4 w-4 mr-1" />
+                                          رفض
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="active">
+                        {isLoadingApprovedDrivers ? (
+                          <div className="text-center py-8">جاري تحميل البيانات...</div>
+                        ) : approvedDrivers.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            لا توجد سائقين نشطين
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>الاسم</TableHead>
+                                  <TableHead>رقم الهوية</TableHead>
+                                  <TableHead>رقم الرخصة</TableHead>
+                                  <TableHead>معلومات السيارة</TableHead>
+                                  <TableHead>الإجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {approvedDrivers.map((driver: any) => (
+                                  <TableRow key={driver.id}>
+                                    <TableCell className="font-medium">
+                                      {driver.profiles?.first_name} {driver.profiles?.last_name}
+                                    </TableCell>
+                                    <TableCell>{driver.national_id}</TableCell>
+                                    <TableCell>{driver.license_number}</TableCell>
+                                    <TableCell>
+                                      {driver.vehicle_info?.make} {driver.vehicle_info?.model} ({driver.vehicle_info?.year})
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleSuspendUser(driver.id, 'driver')} className="bg-red-600 hover:bg-red-700">
+                                          <ShieldIcon className="h-4 w-4 mr-1" />
+                                          تعليق
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleBanUser(driver.id, 'driver')} className="bg-red-600 hover:bg-red-700">
+                                          <BanIcon className="h-4 w-4 mr-1" />
+                                          حظر
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleActivateUser(driver.id, 'driver')} className="bg-green-600 hover:bg-green-700">
+                                          <Eye className="h-4 w-4 mr-1" />
+                                          تنشيط
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="suspended">
+                        {isLoadingSuspendedDrivers ? (
+                          <div className="text-center py-8">جاري تحميل البيانات...</div>
+                        ) : suspendedDrivers.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            لا توجد سائقين معلقين
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>الاسم</TableHead>
+                                  <TableHead>رقم الهوية</TableHead>
+                                  <TableHead>رقم الرخصة</TableHead>
+                                  <TableHead>معلومات السيارة</TableHead>
+                                  <TableHead>الإجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {suspendedDrivers.map((driver: any) => (
+                                  <TableRow key={driver.id}>
+                                    <TableCell className="font-medium">
+                                      {driver.profiles?.first_name} {driver.profiles?.last_name}
+                                    </TableCell>
+                                    <TableCell>{driver.national_id}</TableCell>
+                                    <TableCell>{driver.license_number}</TableCell>
+                                    <TableCell>
+                                      {driver.vehicle_info?.make} {driver.vehicle_info?.model} ({driver.vehicle_info?.year})
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleSuspendUser(driver.id, 'driver')} className="bg-red-600 hover:bg-red-700">
+                                          <ShieldIcon className="h-4 w-4 mr-1" />
+                                          تعليق
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleBanUser(driver.id, 'driver')} className="bg-red-600 hover:bg-red-700">
+                                          <BanIcon className="h-4 w-4 mr-1" />
+                                          حظر
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleActivateUser(driver.id, 'driver')} className="bg-green-600 hover:bg-green-700">
+                                          <Eye className="h-4 w-4 mr-1" />
+                                          تنشيط
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="customers" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-wrap justify-between items-center">
+                      <CardTitle className="text-xl">إدارة العملاء</CardTitle>
+                      <div className="flex gap-2 items-center">
+                        <div className="relative">
+                          <SearchIcon className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                          <Input placeholder="بحث عن عميل..." className="pl-9 pr-4 w-[250px]" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="applications" dir="rtl">
+                      <TabsList className="mb-4 justify-end">
+                        <TabsTrigger value="applications">طلبات الانضمام</TabsTrigger>
+                        <TabsTrigger value="active">العملاء النشطين</TabsTrigger>
+                        <TabsTrigger value="suspended">العملاء المعلقين</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="applications">
+                        {isLoadingCustomersList ? (
+                          <div className="text-center py-8">جاري تحميل البيانات...</div>
+                        ) : customersList.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            لا توجد طلبات انضمام جديدة
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>الاسم</TableHead>
+                                  <TableHead>رقم الهوية</TableHead>
+                                  <TableHead>رقم الهاتف</TableHead>
+                                  <TableHead>الإجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {customersList.map((customer: any) => (
+                                  <TableRow key={customer.id}>
+                                    <TableCell className="font-medium">
+                                      {customer.profiles?.first_name} {customer.profiles?.last_name}
+                                    </TableCell>
+                                    <TableCell>{customer.national_id}</TableCell>
+                                    <TableCell>{customer.phone}</TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleSuspendUser(customer.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <ShieldIcon className="h-4 w-4 mr-1" />
+                                          تعليق
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleBanUser(customer.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <BanIcon className="h-4 w-4 mr-1" />
+                                          حظر
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleActivateUser(customer.id, 'customer')} className="bg-green-600 hover:bg-green-700">
+                                          <Eye className="h-4 w-4 mr-1" />
+                                          تنشيط
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="active">
+                        {isLoadingCustomersList ? (
+                          <div className="text-center py-8">جاري تحميل البيانات...</div>
+                        ) : customersList.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            لا توجد عملاء نشطين
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>الاسم</TableHead>
+                                  <TableHead>رقم الهوية</TableHead>
+                                  <TableHead>رقم الهاتف</TableHead>
+                                  <TableHead>الإجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {customersList.map((customer: any) => (
+                                  <TableRow key={customer.id}>
+                                    <TableCell className="font-medium">
+                                      {customer.profiles?.first_name} {customer.profiles?.last_name}
+                                    </TableCell>
+                                    <TableCell>{customer.national_id}</TableCell>
+                                    <TableCell>{customer.phone}</TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleSuspendUser(customer.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <ShieldIcon className="h-4 w-4 mr-1" />
+                                          تعليق
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleBanUser(customer.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <BanIcon className="h-4 w-4 mr-1" />
+                                          حظر
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleActivateUser(customer.id, 'customer')} className="bg-green-600 hover:bg-green-700">
+                                          <Eye className="h-4 w-4 mr-1" />
+                                          تنشيط
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="suspended">
+                        {isLoadingCustomersList ? (
+                          <div className="text-center py-8">جاري تحميل البيانات...</div>
+                        ) : customersList.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            لا توجد عملاء معلقين
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>الاسم</TableHead>
+                                  <TableHead>رقم الهوية</TableHead>
+                                  <TableHead>رقم الهاتف</TableHead>
+                                  <TableHead>الإجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {customersList.map((customer: any) => (
+                                  <TableRow key={customer.id}>
+                                    <TableCell className="font-medium">
+                                      {customer.profiles?.first_name} {customer.profiles?.last_name}
+                                    </TableCell>
+                                    <TableCell>{customer.national_id}</TableCell>
+                                    <TableCell>{customer.phone}</TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleSuspendUser(customer.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <ShieldIcon className="h-4 w-4 mr-1" />
+                                          تعليق
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleBanUser(customer.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <BanIcon className="h-4 w-4 mr-1" />
+                                          حظر
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleActivateUser(customer.id, 'customer')} className="bg-green-600 hover:bg-green-700">
+                                          <Eye className="h-4 w-4 mr-1" />
+                                          تنشيط
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="orders" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-wrap justify-between items-center">
+                      <CardTitle className="text-xl">إدارة الطلبات</CardTitle>
+                      <div className="flex gap-2 items-center">
+                        <div className="relative">
+                          <SearchIcon className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                          <Input placeholder="بحث عن طلب..." className="pl-9 pr-4 w-[250px]" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="applications" dir="rtl">
+                      <TabsList className="mb-4 justify-end">
+                        <TabsTrigger value="applications">طلبات الانضمام</TabsTrigger>
+                        <TabsTrigger value="active">الطلبات النشطين</TabsTrigger>
+                        <TabsTrigger value="suspended">الطلبات المعلقين</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="applications">
+                        {isLoadingOrdersList ? (
+                          <div className="text-center py-8">جاري تحميل البيانات...</div>
+                        ) : orders.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            لا توجد طلبات انضمام جديدة
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>الاسم</TableHead>
+                                  <TableHead>رقم الهوية</TableHead>
+                                  <TableHead>رقم الرخصة</TableHead>
+                                  <TableHead>معلومات السيارة</TableHead>
+                                  <TableHead>الإجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {orders.map((order: any) => (
+                                  <TableRow key={order.id}>
+                                    <TableCell className="font-medium">
+                                      {order.customer?.first_name} {order.customer?.last_name}
+                                    </TableCell>
+                                    <TableCell>{order.driver?.first_name} {order.driver?.last_name}</TableCell>
+                                    <TableCell>
+                                      {order.customer?.first_name} {order.customer?.last_name}
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleSuspendUser(order.customer?.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <ShieldIcon className="h-4 w-4 mr-1" />
+                                          تعليق
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleBanUser(order.customer?.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <BanIcon className="h-4 w-4 mr-1" />
+                                          حظر
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleActivateUser(order.customer?.id, 'customer')} className="bg-green-600 hover:bg-green-700">
+                                          <Eye className="h-4 w-4 mr-1" />
+                                          تنشيط
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="active">
+                        {isLoadingOrdersList ? (
+                          <div className="text-center py-8">جاري تحميل البيانات...</div>
+                        ) : orders.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            لا توجد طلبات نشطين
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>الاسم</TableHead>
+                                  <TableHead>رقم الهوية</TableHead>
+                                  <TableHead>رقم الرخصة</TableHead>
+                                  <TableHead>معلومات السيارة</TableHead>
+                                  <TableHead>الإجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {orders.map((order: any) => (
+                                  <TableRow key={order.id}>
+                                    <TableCell className="font-medium">
+                                      {order.customer?.first_name} {order.customer?.last_name}
+                                    </TableCell>
+                                    <TableCell>{order.driver?.first_name} {order.driver?.last_name}</TableCell>
+                                    <TableCell>
+                                      {order.customer?.first_name} {order.customer?.last_name}
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleSuspendUser(order.customer?.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <ShieldIcon className="h-4 w-4 mr-1" />
+                                          تعليق
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleBanUser(order.customer?.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <BanIcon className="h-4 w-4 mr-1" />
+                                          حظر
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleActivateUser(order.customer?.id, 'customer')} className="bg-green-600 hover:bg-green-700">
+                                          <Eye className="h-4 w-4 mr-1" />
+                                          تنشيط
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="suspended">
+                        {isLoadingOrdersList ? (
+                          <div className="text-center py-8">جاري تحميل البيانات...</div>
+                        ) : orders.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            لا توجد طلبات معلقين
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>الاسم</TableHead>
+                                  <TableHead>رقم الهوية</TableHead>
+                                  <TableHead>رقم الرخصة</TableHead>
+                                  <TableHead>معلومات السيارة</TableHead>
+                                  <TableHead>الإجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {orders.map((order: any) => (
+                                  <TableRow key={order.id}>
+                                    <TableCell className="font-medium">
+                                      {order.customer?.first_name} {order.customer?.last_name}
+                                    </TableCell>
+                                    <TableCell>{order.driver?.first_name} {order.driver?.last_name}</TableCell>
+                                    <TableCell>
+                                      {order.customer?.first_name} {order.customer?.last_name}
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleSuspendUser(order.customer?.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <ShieldIcon className="h-4 w-4 mr-1" />
+                                          تعليق
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleBanUser(order.customer?.id, 'customer')} className="bg-red-600 hover:bg-red-700">
+                                          <BanIcon className="h-4 w-4 mr-1" />
+                                          حظر
+                                        </Button>
+                                        <Button size="sm" onClick={() => handleActivateUser(order.customer?.id, 'customer')} className="bg-green-600 hover:bg-green-700">
+                                          <Eye className="h-4 w-4 mr-1" />
+                                          تنشيط
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="settings" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-wrap justify-between items-center">
+                      <CardTitle className="text-xl">إعدادات النظام</CardTitle>
+                      <div className="flex gap-2 items-center">
+                        <div className="relative">
+                          <SearchIcon className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                          <Input placeholder="بحث عن إعدادات..." className="pl-9 pr-4 w-[250px]" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="applications" dir="rtl">
+                      <TabsList className="mb-4 justify-end">
+                        <TabsTrigger value="applications">إعدادات النظام</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="applications">
+                        <div className="flex flex-wrap gap-4">
+                          <div className="w-full">
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor="commission-rate">نسبة العمولة</Label>
+                              <Select value={selectedCommissionRate} onValueChange={value => setSelectedCommissionRate(parseInt(value))}>
+                                <SelectTrigger className="w-[180px]">
+                                  <SelectValue placeholder="اختر نسبة العمولة" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="15">15%</SelectItem>
+                                  <SelectItem value="20">20%</SelectItem>
+                                  <SelectItem value="25">25%</SelectItem>
+                                  <SelectItem value="30">30%</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <Button variant="outline" onClick={handleUpdateCommissionRate}>
+                              تحديث
+                            </Button>
+                          </div>
+                          
+                          <div className="w-full">
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor="system-language">لغة النظام</Label>
+                              <Select value={systemLanguage} onValueChange={value => handleUpdateSystemLanguage(value)}>
+                                <SelectTrigger className="w-[180px]">
+                                  <SelectValue placeholder="اختر اللغة" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="ar">العربية</SelectItem>
+                                  <SelectItem value="en">الإنجليزية</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <Button variant="outline" onClick={handleUpdateSystemLanguage}>
+                              تحديث
+                            </Button>
+                          </div>
+                          
+                          <div className="w-full">
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor="privacy-policy">سياسة الخصوصية</Label>
+                              <Input placeholder="أدخل سياسة الخصوصية" className="w-full" value={privacyPolicy} onChange={e => setPrivacyPolicy(e.target.value)} />
+                            </div>
+                            <Button variant="outline" onClick={handleUpdatePrivacyPolicy}>
+                              تحديث
+                            </Button>
+                          </div>
+                          
+                          <div className="w-full">
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor="terms-of-service">شروط الاستخدام</Label>
+                              <Input placeholder="أدخل شروط الاستخدام" className="w-full" value={termsOfService} onChange={e => setTermsOfService(e.target.value)} />
+                            </div>
+                            <Button variant="outline" onClick={handleUpdateTermsOfService}>
+                              تحديث
+                            </Button>
+                          </div>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+const AdminDashboard = () => {
+  return (
+    <LanguageProvider>
+      <AdminDashboardContent />
+    </LanguageProvider>
+  );
+};
+
+export default AdminDashboard;
