@@ -1,31 +1,43 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { MapPin, Package, Truck, FileText, Clock, DollarSign } from 'lucide-react';
+import { Package, Truck, Clock, DollarSign } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import LocationInput from '@/components/maps/LocationInput';
+import DistanceDisplay from '@/components/maps/DistanceDisplay';
+import { useGoogleMaps } from '@/hooks/useGoogleMaps';
+
+interface LocationType {
+  address: string;
+  details?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+}
 
 const CreateOrder = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { isLoaded, calculateDistance, geocodeAddress } = useGoogleMaps();
+  
   const [submitting, setSubmitting] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [distance, setDistance] = useState<number | null>(null);
+  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
   
   const [formData, setFormData] = useState({
-    pickupAddress: '',
-    pickupDetails: '',
-    dropoffAddress: '',
-    dropoffDetails: '',
+    pickupLocation: { address: '', details: '' } as LocationType,
+    dropoffLocation: { address: '', details: '' } as LocationType,
     packageDetails: '',
     notes: ''
   });
-
-  const [estimatedPrice, setEstimatedPrice] = useState(null);
 
   useEffect(() => {
     if (!user) {
@@ -34,7 +46,21 @@ const CreateOrder = () => {
     }
   }, [user, navigate]);
 
-  const handleChange = (e) => {
+  const handlePickupLocationChange = (location: LocationType) => {
+    setFormData(prev => ({ ...prev, pickupLocation: location }));
+    // Reset calculated values when location changes
+    setDistance(null);
+    setCalculatedPrice(null);
+  };
+
+  const handleDropoffLocationChange = (location: LocationType) => {
+    setFormData(prev => ({ ...prev, dropoffLocation: location }));
+    // Reset calculated values when location changes
+    setDistance(null);
+    setCalculatedPrice(null);
+  };
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -42,15 +68,62 @@ const CreateOrder = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const calculatePrice = (distanceInKm: number): number => {
+    // Base price: 10 SAR minimum
+    const basePrice = 10;
+    
+    // 1.5 SAR per km after first 2 km
+    const additionalDistance = Math.max(0, distanceInKm - 2);
+    const additionalCost = additionalDistance * 1.5;
+    
+    return basePrice + additionalCost;
+  };
+
+  const handleCalculateDistance = async () => {
+    if (!formData.pickupLocation.coordinates || !formData.dropoffLocation.coordinates) {
+      toast.error('يرجى تحديد مواقع الاستلام والتوصيل أولاً');
+      return;
+    }
+
+    setIsCalculating(true);
+
+    try {
+      const distanceKm = await calculateDistance(
+        formData.pickupLocation.address, 
+        formData.dropoffLocation.address
+      );
+
+      if (distanceKm !== null) {
+        setDistance(distanceKm);
+        const price = calculatePrice(distanceKm);
+        setCalculatedPrice(price);
+        toast.success('تم حساب المسافة والتكلفة بنجاح');
+      } else {
+        toast.error('لم نتمكن من حساب المسافة بين الموقعين');
+      }
+    } catch (error) {
+      console.error('Error calculating distance:', error);
+      toast.error('حدث خطأ أثناء حساب المسافة');
+    } finally {
+      setIsCalculating(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!user) {
       toast.error('يرجى تسجيل الدخول أولاً');
       return;
     }
 
-    if (!formData.pickupAddress || !formData.dropoffAddress) {
-      toast.error('يرجى تعبئة عناوين الاستلام والتسليم');
+    if (!formData.pickupLocation.coordinates || !formData.dropoffLocation.coordinates) {
+      toast.error('يرجى تحديد مواقع الاستلام والتوصيل أولاً');
+      return;
+    }
+
+    if (!calculatedPrice || !distance) {
+      toast.error('يرجى حساب التكلفة قبل إرسال الطلب');
       return;
     }
 
@@ -60,17 +133,20 @@ const CreateOrder = () => {
         .from('orders')
         .insert({
           customer_id: user.id,
-          pickup_location: { 
-            address: formData.pickupAddress,
-            details: formData.pickupDetails
+          pickup_location: {
+            address: formData.pickupLocation.address,
+            details: formData.pickupLocation.details,
+            coordinates: formData.pickupLocation.coordinates
           },
           dropoff_location: {
-            address: formData.dropoffAddress,
-            details: formData.dropoffDetails
+            address: formData.dropoffLocation.address,
+            details: formData.dropoffLocation.details,
+            coordinates: formData.dropoffLocation.coordinates
           },
+          estimated_distance: distance,
           notes: formData.notes,
           status: 'pending',
-          price: estimatedPrice || null,
+          price: calculatedPrice,
         })
         .select();
 
@@ -86,22 +162,6 @@ const CreateOrder = () => {
     }
   };
 
-  const calculateEstimatedPrice = () => {
-    if (!formData.pickupAddress || !formData.dropoffAddress) {
-      toast.error('يرجى إدخال عناوين الاستلام والتسليم لحساب التكلفة التقديرية');
-      return;
-    }
-
-    setLoading(true);
-    setTimeout(() => {
-      const basePrice = 20;
-      const randomFactor = Math.random() * 30 + 10;
-      setEstimatedPrice(Math.round(basePrice + randomFactor));
-      setLoading(false);
-      toast.success('تم حساب التكلفة التقديرية');
-    }, 1000);
-  };
-
   return (
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
@@ -111,65 +171,27 @@ const CreateOrder = () => {
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center">
-                <MapPin className="h-5 w-5 ml-2 text-safedrop-gold" />
-                معلومات الاستلام
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="pickupAddress" className="block mb-1 font-medium text-gray-700">عنوان الاستلام *</label>
-                  <Input
-                    id="pickupAddress"
-                    name="pickupAddress"
-                    placeholder="أدخل عنوان الاستلام التفصيلي"
-                    value={formData.pickupAddress}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="pickupDetails" className="block mb-1 font-medium text-gray-700">تفاصيل إضافية</label>
-                  <Textarea
-                    id="pickupDetails"
-                    name="pickupDetails"
-                    placeholder="تفاصيل أخرى مثل رقم المبنى، الطابق، علامات مميزة"
-                    rows={3}
-                    value={formData.pickupDetails}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
+              <LocationInput 
+                label="معلومات الاستلام *"
+                placeholder="أدخل عنوان الاستلام التفصيلي"
+                detailsPlaceholder="تفاصيل أخرى مثل رقم المبنى، الطابق، علامات مميزة"
+                value={formData.pickupLocation}
+                onChange={handlePickupLocationChange}
+                isLoaded={isLoaded}
+                geocodeAddress={geocodeAddress}
+              />
             </Card>
             
             <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4 flex items-center">
-                <MapPin className="h-5 w-5 ml-2 text-safedrop-gold" />
-                معلومات التوصيل
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="dropoffAddress" className="block mb-1 font-medium text-gray-700">عنوان التوصيل *</label>
-                  <Input
-                    id="dropoffAddress"
-                    name="dropoffAddress"
-                    placeholder="أدخل عنوان التوصيل التفصيلي"
-                    value={formData.dropoffAddress}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="dropoffDetails" className="block mb-1 font-medium text-gray-700">تفاصيل إضافية</label>
-                  <Textarea
-                    id="dropoffDetails"
-                    name="dropoffDetails"
-                    placeholder="تفاصيل أخرى مثل رقم المبنى، الطابق، علامات مميزة"
-                    rows={3}
-                    value={formData.dropoffDetails}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
+              <LocationInput 
+                label="معلومات التوصيل *"
+                placeholder="أدخل عنوان التوصيل التفصيلي"
+                detailsPlaceholder="تفاصيل أخرى مثل رقم المبنى، الطابق، علامات مميزة"
+                value={formData.dropoffLocation}
+                onChange={handleDropoffLocationChange}
+                isLoaded={isLoaded}
+                geocodeAddress={geocodeAddress}
+              />
             </Card>
           </div>
           
@@ -187,7 +209,7 @@ const CreateOrder = () => {
                   placeholder="وصف المحتويات، الحجم، الوزن التقريبي"
                   rows={3}
                   value={formData.packageDetails}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
                 />
               </div>
               <div>
@@ -198,7 +220,7 @@ const CreateOrder = () => {
                   placeholder="أي تعليمات خاصة للسائق"
                   rows={3}
                   value={formData.notes}
-                  onChange={handleChange}
+                  onChange={handleTextChange}
                 />
               </div>
             </div>
@@ -207,45 +229,34 @@ const CreateOrder = () => {
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
               <DollarSign className="h-5 w-5 ml-2 text-safedrop-gold" />
-              التكلفة والدفع
+              حساب المسافة والتكلفة
             </h2>
             
-            <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
-              <div className="flex-1">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={calculateEstimatedPrice}
-                  disabled={loading || !formData.pickupAddress || !formData.dropoffAddress}
-                >
-                  {loading ? (
-                    <>
-                      <Clock className="mr-2 h-4 w-4 animate-spin" />
-                      جاري الحساب...
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="mr-2 h-4 w-4" />
-                      حساب التكلفة التقديرية
-                    </>
-                  )}
-                </Button>
-              </div>
-              
-              <div className="flex-1">
-                {estimatedPrice !== null && (
-                  <div className="bg-safedrop-primary/10 p-4 rounded-lg text-center">
-                    <p className="text-sm text-gray-600 mb-1">التكلفة التقديرية:</p>
-                    <p className="text-2xl font-bold text-safedrop-primary">{estimatedPrice} ريال</p>
-                  </div>
+            <div className="flex flex-col space-y-4">
+              <Button 
+                type="button" 
+                onClick={handleCalculateDistance}
+                disabled={isCalculating || !formData.pickupLocation.coordinates || !formData.dropoffLocation.coordinates}
+                className="w-full md:w-auto"
+              >
+                {isCalculating ? (
+                  <>
+                    <Clock className="mr-2 h-4 w-4 animate-spin" />
+                    جاري الحساب...
+                  </>
+                ) : (
+                  <>
+                    <Clock className="mr-2 h-4 w-4" />
+                    حساب المسافة والتكلفة
+                  </>
                 )}
-              </div>
-            </div>
-            
-            <div className="border-t pt-4">
-              <p className="text-sm text-gray-500 mb-2">ملاحظة: التكلفة النهائية قد تختلف عن التكلفة التقديرية.</p>
-              <p className="text-sm text-gray-500">الدفع يتم عند التوصيل أو عبر التطبيق بعد تأكيد الطلب.</p>
+              </Button>
+              
+              <DistanceDisplay 
+                distance={distance} 
+                price={calculatedPrice} 
+                isCalculating={isCalculating} 
+              />
             </div>
           </Card>
           
@@ -260,7 +271,7 @@ const CreateOrder = () => {
             <Button 
               type="submit" 
               className="bg-safedrop-gold hover:bg-safedrop-gold/90 gap-2"
-              disabled={submitting}
+              disabled={submitting || !calculatedPrice}
             >
               {submitting ? (
                 <>
