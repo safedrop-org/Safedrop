@@ -7,6 +7,7 @@ import { Clock, AlertTriangle, XCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
+import { toast } from "@/hooks/use-toast";
 
 const PendingApprovalContent = () => {
   const { t } = useLanguage();
@@ -90,7 +91,10 @@ const PendingApprovalContent = () => {
       }
       
       setDriverStatus(data);
-      toast.success("تم تحديث الحالة بنجاح");
+      toast({
+        title: "تم التحديث",
+        description: "تم تحديث الحالة بنجاح",
+      });
       
       if (data?.status === 'approved') {
         navigate('/driver/dashboard');
