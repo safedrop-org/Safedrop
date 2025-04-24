@@ -1,12 +1,12 @@
 
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
-import { AuthProvider, useAuth } from '@/components/auth/AuthContext'; // Fixed import path with @ alias
+import { AuthProvider, useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Toaster } from 'sonner'; // Replace ToastContainer with Toaster
+import { Toaster } from 'sonner';
 
 // Public Pages
-import Home from './pages/Index'; // Use existing Index.tsx as Home
+import Home from './pages/Index';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import Login from './pages/auth/Login';
@@ -19,7 +19,7 @@ import DriverRegister from './pages/auth/DriverRegister';
 // Customer Pages
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 import Logout from './pages/customer/Logout';
-import Profile from './pages/customer/CustomerProfile'; // Use existing CustomerProfile.tsx as Profile
+import Profile from './pages/customer/CustomerProfile';
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -40,22 +40,101 @@ import PendingApproval from './pages/driver/PendingApproval';
 // Protected Routes
 const ProtectedRoute = ({ children }) => {
   const { isLoggedIn } = useAuth();
-  return isLoggedIn ? <>{children}</> : <Navigate to="/login" />;
+  
+  if (!isLoggedIn) {
+    return <Navigate to="/login" />;
+  }
+  
+  return <>{children}</>;
 };
 
 const ProtectedCustomerRoute = ({ children }) => {
   const { isLoggedIn, userType } = useAuth();
-  return isLoggedIn && userType === 'customer' ? <>{children}</> : <Navigate to="/login" />;
+  
+  if (!isLoggedIn) {
+    return <Navigate to="/login" />;
+  }
+  
+  if (userType !== 'customer') {
+    if (userType === 'driver') {
+      return <Navigate to="/driver/dashboard" />;
+    } else if (userType === 'admin') {
+      return <Navigate to="/admin/dashboard" />;
+    } else {
+      return <Navigate to="/login" />;
+    }
+  }
+  
+  return <>{children}</>;
 };
 
 const ProtectedDriverRoute = ({ children }) => {
-  const { isLoggedIn, userType } = useAuth();
-  return isLoggedIn && userType === 'driver' ? <>{children}</> : <Navigate to="/login" />;
+  const { isLoggedIn, userType, user } = useAuth();
+  const [driverStatus, setDriverStatus] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  
+  React.useEffect(() => {
+    const checkDriverStatus = async () => {
+      if (isLoggedIn && userType === 'driver' && user) {
+        try {
+          const { data, error } = await supabase
+            .from('drivers')
+            .select('status')
+            .eq('id', user.id)
+            .maybeSingle();
+          
+          if (!error && data) {
+            setDriverStatus(data.status);
+          }
+        } catch (err) {
+          console.error("Error checking driver status:", err);
+        }
+      }
+      setLoading(false);
+    };
+    
+    checkDriverStatus();
+  }, [isLoggedIn, userType, user]);
+  
+  if (loading) {
+    return null; // or a loading spinner
+  }
+  
+  if (!isLoggedIn) {
+    return <Navigate to="/login" />;
+  }
+  
+  if (userType !== 'driver') {
+    if (userType === 'customer') {
+      return <Navigate to="/customer/dashboard" />;
+    } else if (userType === 'admin') {
+      return <Navigate to="/admin/dashboard" />;
+    } else {
+      return <Navigate to="/login" />;
+    }
+  }
+  
+  return <>{children}</>;
 };
 
 const ProtectedAdminRoute = ({ children }) => {
   const { isLoggedIn, userType } = useAuth();
-  return isLoggedIn && userType === 'admin' ? <>{children}</> : <Navigate to="/admin" />;
+  
+  if (!isLoggedIn) {
+    return <Navigate to="/admin" />;
+  }
+  
+  if (userType !== 'admin') {
+    if (userType === 'customer') {
+      return <Navigate to="/customer/dashboard" />;
+    } else if (userType === 'driver') {
+      return <Navigate to="/driver/dashboard" />;
+    } else {
+      return <Navigate to="/admin" />;
+    }
+  }
+  
+  return <>{children}</>;
 };
 
 const AppContent = () => {

@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
-import { useNavigate } from 'react-router-dom';
-import { UserIcon, LockIcon, MailIcon, PhoneIcon } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { UserIcon, LockIcon, MailIcon, PhoneIcon, CheckCircle2 } from 'lucide-react';
 
 // Validation schema
 const customerRegisterSchema = z.object({
@@ -27,6 +27,7 @@ const CustomerRegisterContent = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerRegisterSchema),
@@ -52,25 +53,68 @@ const CustomerRegisterContent = () => {
             last_name: data.lastName,
             phone: data.phone,
             user_type: 'customer'
-          }
+          },
+          emailRedirectTo: window.location.origin + '/customer/dashboard',
         }
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        throw signUpError;
+      }
 
-      toast.success(t('registrationSuccess'), {
-        description: t('registrationSuccessDescription')
-      });
+      // Create profile record
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: authData.user?.id,
+          first_name: data.firstName,
+          last_name: data.lastName, 
+          phone: data.phone,
+          user_type: 'customer'
+        });
 
-      navigate('/');
+      if (profileError) {
+        console.error("Error creating profile:", profileError);
+        toast.error("حدث خطأ أثناء إنشاء الملف الشخصي");
+        setIsLoading(false);
+        return;
+      }
+
+      setRegistrationComplete(true);
+      
     } catch (error: any) {
       toast.error(t('registrationError'), {
         description: error.message
       });
-    } finally {
       setIsLoading(false);
     }
   };
+
+  if (registrationComplete) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
+          <div className="mx-auto flex items-center justify-center">
+            <CheckCircle2 className="h-16 w-16 text-green-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-safedrop-primary">
+            تم إنشاء حسابك بنجاح!
+          </h2>
+          <p className="mt-2 text-gray-600">
+            لقد تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك قبل تسجيل الدخول.
+          </p>
+          <div className="mt-6">
+            <Button 
+              onClick={() => navigate('/login')} 
+              className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
+            >
+              الذهاب إلى صفحة تسجيل الدخول
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -209,12 +253,12 @@ const CustomerRegisterContent = () => {
 
         <div className="text-center mt-4">
           {t('alreadyHaveAccount')}{' '}
-          <a 
-            href="/login" 
+          <Link 
+            to="/login" 
             className="text-safedrop-gold hover:underline"
           >
             {t('login')}
-          </a>
+          </Link>
         </div>
       </div>
     </div>

@@ -79,7 +79,12 @@ const LoginContent = () => {
         
         if (profileError) {
           console.error("Error fetching profile:", profileError);
+          toast.error('خطأ في جلب بيانات الملف الشخصي');
+          setIsLoading(false);
+          return;
         }
+        
+        toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
         
         // Set authentication state based on profile if available, default to customer otherwise
         if (profile?.user_type === 'admin') {
@@ -102,6 +107,9 @@ const LoginContent = () => {
 
             if (driverError) {
               console.error("Error fetching driver status:", driverError);
+              toast.error('خطأ في جلب بيانات السائق');
+              setIsLoading(false);
+              return;
             }
 
             console.log("Driver data:", driverData);
@@ -124,23 +132,15 @@ const LoginContent = () => {
           localStorage.removeItem('adminAuth');
           navigate('/customer/dashboard');
         }
-
-        toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
       } catch (err) {
         console.error("Exception during profile handling:", err);
-        // Even if profile check fails, continue to customer dashboard
-        localStorage.setItem('customerAuth', 'true');
-        localStorage.removeItem('driverAuth');
-        localStorage.removeItem('adminAuth');
-        navigate('/customer/dashboard');
-        
-        toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
+        toast.error('حدث خطأ أثناء معالجة بيانات الملف الشخصي');
+        setIsLoading(false);
       }
     } catch (error: any) {
       console.error('Login error:', error);
       
       toast.error('فشل تسجيل الدخول: ' + (error.message || 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.'));
-    } finally {
       setIsLoading(false);
     }
   };
