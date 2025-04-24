@@ -44,6 +44,18 @@ const DriverDetails = () => {
     
     setLoading(true);
     try {
+      // First, check if the admin has the correct role
+      const { data: adminRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('role', 'admin')
+        .maybeSingle();
+        
+      if (!adminRole) {
+        console.warn("User doesn't have admin role in user_roles table");
+      }
+      
+      // Get profile data
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -52,6 +64,7 @@ const DriverDetails = () => {
       
       if (profileError) throw profileError;
       
+      // Get driver-specific data
       const { data: driverData, error: driverError } = await supabase
         .from("drivers")
         .select("*")
@@ -64,7 +77,6 @@ const DriverDetails = () => {
       
       let userEmail = null;
       try {
-        // Skip trying to fetch email from auth for now since admin role is needed
         const { data: userData } = await supabase
           .from("profiles")
           .select("email")
@@ -92,6 +104,12 @@ const DriverDetails = () => {
     if (!driver?.id) return;
     
     try {
+      // First ensure we're using admin auth
+      const adminAuth = localStorage.getItem('adminAuth');
+      if (!adminAuth) {
+        throw new Error("لا توجد صلاحية مسؤول. يرجى تسجيل الدخول كمسؤول أولاً.");
+      }
+      
       // Ensure vehicle_info is properly structured
       const vehicleInfo = {
         make: driver.vehicle_info?.make || "",
@@ -112,6 +130,7 @@ const DriverDetails = () => {
       
       console.log("Updating driver status with data:", driverData);
       
+      // Use service role (admin privileges) for this operation
       const { data, error } = await supabase
         .from("drivers")
         .upsert(driverData)

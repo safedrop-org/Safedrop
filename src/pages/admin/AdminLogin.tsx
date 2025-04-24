@@ -55,36 +55,33 @@ const AdminLoginContent = () => {
               user_type: 'admin',
               email: 'admin@safedrop.com'
             });
+        }
+        
+        // التحقق من وجود دور المشرف وإضافته إذا لم يكن موجوداً
+        try {
+          // نتحقق أولاً من وجود دور المشرف
+          const { data: existingRole } = await supabase
+            .from('user_roles')
+            .select('id')
+            .eq('user_id', 'admin')
+            .eq('role', 'admin')
+            .maybeSingle();
             
-          // التحقق من وجود دور المشرف وإضافته إذا لم يكن موجوداً
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            // نتحقق أولاً من وجود دور المشرف
-            const { data: existingRole } = await supabase
+          // إذا لم يكن هناك دور مشرف موجود، قم بإنشائه
+          if (!existingRole) {
+            const { error: roleError } = await supabase
               .from('user_roles')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('role', 'admin')
-              .maybeSingle();
+              .insert({
+                user_id: 'admin',
+                role: 'admin'
+              });
               
-            // إذا لم يكن هناك دور مشرف موجود، قم بإنشائه
-            if (!existingRole) {
-              const { error: roleError } = await supabase
-                .from('user_roles')
-                .insert({
-                  user_id: user.id,
-                  role: 'admin'
-                });
-                
-              if (roleError) {
-                console.error('Error assigning admin role:', roleError);
-              }
+            if (roleError) {
+              console.error('Error assigning admin role:', roleError);
             }
           }
-          
-          console.log('Admin profile and role created');
-        } else {
-          console.log('Admin profile already exists');
+        } catch (roleError) {
+          console.error('Error checking/creating admin role:', roleError);
         }
         
         toast.success("تم تسجيل الدخول بنجاح. مرحباً بك في لوحة تحكم المشرف");
