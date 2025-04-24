@@ -96,8 +96,8 @@ const DriverDetails = () => {
       if (error) throw error;
       
       toast.success("تم قبول السائق بنجاح");
-      // Refresh data
-      fetchDriverDetails();
+      setDriver({...driver, status: "approved"});
+      
       // Navigate back after a short delay
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
     } catch (error) {

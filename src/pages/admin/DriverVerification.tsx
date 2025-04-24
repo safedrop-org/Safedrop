@@ -93,6 +93,20 @@ const DriverVerification = () => {
     fetchDrivers();
   }, []);
 
+  // Add an effect to refresh data when route changes (coming back from details)
+  useEffect(() => {
+    // This will reload driver data when the component is mounted or re-focused
+    const handleFocus = () => {
+      fetchDrivers();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
   const filteredDrivers = drivers.filter(driver => {
     const matchesStatus = currentTab === "all" || driver.status === currentTab;
     const matchesSearch = !searchEmail || 
@@ -116,7 +130,11 @@ const DriverVerification = () => {
           />
         </div>
 
-        <Tabs value={currentTab} onValueChange={setCurrentTab}>
+        <Tabs value={currentTab} onValueChange={(value) => {
+          setCurrentTab(value);
+          // Refresh data when changing tabs
+          fetchDrivers();
+        }}>
           <TabsList>
             <TabsTrigger value="pending">قيد المراجعة</TabsTrigger>
             <TabsTrigger value="approved">مقبول</TabsTrigger>
