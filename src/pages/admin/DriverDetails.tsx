@@ -8,6 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Check, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface DriverDetails {
   id: string;
@@ -36,6 +37,8 @@ const DriverDetails = () => {
   const [driver, setDriver] = useState<DriverDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [processingAction, setProcessingAction] = useState(false);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const fetchDriverDetails = async () => {
     if (!id) return;
@@ -62,7 +65,7 @@ const DriverDetails = () => {
         throw driverError;
       }
       
-      // Get email from auth.users
+      // Get email from auth.users - this will now be silently handled if it fails
       let userEmail = null;
       try {
         const { data: authUserData } = await supabase.auth.admin.getUserById(id);
@@ -89,63 +92,59 @@ const DriverDetails = () => {
     
     setProcessingAction(true);
     try {
-      console.log("Approving driver with ID:", driver.id);
-      
-      // Check or create driver record
-      const { data: existingDriver, error: fetchError } = await supabase
+      // Check if driver record exists
+      const { data: existingDriver, error: checkError } = await supabase
         .from("drivers")
         .select("id")
         .eq("id", driver.id)
         .maybeSingle();
-        
-      if (fetchError) {
-        console.error("Error fetching driver record:", fetchError);
-        throw fetchError;
+      
+      if (checkError) {
+        console.error("Error checking driver existence:", checkError);
       }
       
+      // Create driver data object
+      const driverData = {
+        status: "approved",
+        rejection_reason: null,
+        national_id: driver.national_id || "",
+        license_number: driver.license_number || "",
+        vehicle_info: driver.vehicle_info || { 
+          make: "", 
+          model: "", 
+          year: "", 
+          plateNumber: "" 
+        }
+      };
+      
+      let result;
+      
       if (!existingDriver) {
-        // Create a new driver record if it doesn't exist
-        const { error: insertError } = await supabase
+        // Insert new record
+        console.log("Creating new driver record:", { id: driver.id, ...driverData });
+        result = await supabase
           .from("drivers")
-          .insert({
-            id: driver.id,
-            status: "approved",
-            national_id: driver.national_id || "",
-            license_number: driver.license_number || "",
-            vehicle_info: driver.vehicle_info || { 
-              make: "", 
-              model: "", 
-              year: "", 
-              plateNumber: "" 
-            }
-          });
-        
-        if (insertError) {
-          console.error("Error creating driver record:", insertError);
-          throw insertError;
-        }
+          .insert({ id: driver.id, ...driverData });
       } else {
-        // Update existing driver record
-        const { error } = await supabase
+        // Update existing record
+        console.log("Updating existing driver:", { id: driver.id, ...driverData });
+        result = await supabase
           .from("drivers")
-          .update({ 
-            status: "approved", 
-            rejection_reason: null 
-          })
+          .update(driverData)
           .eq("id", driver.id);
-        
-        if (error) {
-          console.error("Error updating driver status:", error);
-          throw error;
-        }
+      }
+
+      if (result.error) {
+        console.error("Error saving driver data:", result.error);
+        throw result.error;
       }
       
       toast.success("تم قبول السائق بنجاح");
       
       // Update local state
-      setDriver(prevDriver => prevDriver ? {...prevDriver, status: "approved"} : null);
+      setDriver(prev => prev ? { ...prev, status: "approved", rejection_reason: null } : null);
       
-      // Navigate back after a short delay
+      // Navigate back after a delay
       setTimeout(() => navigate("/admin/driver-verification"), 1000);
     } catch (error) {
       console.error("Error approving driver:", error);
@@ -155,79 +154,76 @@ const DriverDetails = () => {
     }
   };
 
+  const openRejectDialog = () => {
+    setShowRejectDialog(true);
+  };
+
+  const closeRejectDialog = () => {
+    setShowRejectDialog(false);
+    setRejectionReason("");
+  };
+
   const rejectDriver = async () => {
     if (!driver?.id) return;
     
     setProcessingAction(true);
     try {
-      console.log("Rejecting driver with ID:", driver.id);
-      
-      // Check or create driver record
-      const { data: existingDriver, error: fetchError } = await supabase
+      // Check if driver record exists
+      const { data: existingDriver, error: checkError } = await supabase
         .from("drivers")
         .select("id")
         .eq("id", driver.id)
         .maybeSingle();
-        
-      if (fetchError) {
-        console.error("Error fetching driver record:", fetchError);
-        throw fetchError;
+      
+      if (checkError) {
+        console.error("Error checking driver existence:", checkError);
       }
+
+      // Create driver data object with rejection reason
+      const driverData = {
+        status: "rejected",
+        rejection_reason: rejectionReason || "تم الرفض بواسطة المسؤول",
+        national_id: driver.national_id || "",
+        license_number: driver.license_number || "",
+        vehicle_info: driver.vehicle_info || { 
+          make: "", 
+          model: "", 
+          year: "", 
+          plateNumber: "" 
+        }
+      };
+      
+      let result;
       
       if (!existingDriver) {
-        // Create a new driver record if it doesn't exist
-        const { error: insertError } = await supabase
+        // Insert new record
+        console.log("Creating new driver record with rejected status:", { id: driver.id, ...driverData });
+        result = await supabase
           .from("drivers")
-          .insert({
-            id: driver.id,
-            status: "rejected",
-            national_id: driver.national_id || "",
-            license_number: driver.license_number || "",
-            vehicle_info: driver.vehicle_info || { 
-              make: "", 
-              model: "", 
-              year: "", 
-              plateNumber: "" 
-            }
-          });
-        
-        if (insertError) {
-          console.error("Error creating driver record:", insertError);
-          throw insertError;
-        }
+          .insert({ id: driver.id, ...driverData });
       } else {
-        // Update existing driver record
-        const { error } = await supabase
+        // Update existing record
+        console.log("Updating existing driver with rejected status:", { id: driver.id, ...driverData });
+        result = await supabase
           .from("drivers")
-          .update({ status: "rejected" })
+          .update(driverData)
           .eq("id", driver.id);
-        
-        if (error) {
-          console.error("Error updating driver status:", error);
-          throw error;
-        }
+      }
+
+      if (result.error) {
+        console.error("Error rejecting driver:", result.error);
+        throw result.error;
       }
       
-      // Update user metadata in auth
-      try {
-        const { error: authError } = await supabase.auth.admin.updateUserById(
-          driver.id,
-          { app_metadata: { status: 'rejected' } }
-        );
-        
-        if (authError) {
-          console.error("Could not update user metadata:", authError);
-        }
-      } catch (e) {
-        console.error("Error updating user account:", e);
-      }
+      // Close dialog
+      setShowRejectDialog(false);
       
       toast.success("تم رفض السائق بنجاح");
       
       // Update local state
-      setDriver(prevDriver => prevDriver ? {...prevDriver, status: "rejected"} : null);
+      setDriver(prev => prev ? { ...prev, status: "rejected", rejection_reason: rejectionReason } : null);
       
-      // Navigate back after a short delay
+      // Navigate back after a delay
       setTimeout(() => navigate("/admin/driver-verification"), 1000);
     } catch (error) {
       console.error("Error rejecting driver:", error);
@@ -373,13 +369,48 @@ const DriverDetails = () => {
           
           <Button 
             variant="destructive"
-            onClick={rejectDriver}
+            onClick={openRejectDialog}
             disabled={processingAction || driver.status === "rejected"}
           >
             <X size={16} className="ml-1" /> رفض
           </Button>
         </CardFooter>
       </Card>
+      
+      {/* Rejection Dialog */}
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent className="max-w-md text-right">
+          <DialogHeader>
+            <DialogTitle className="text-center">رفض طلب السائق</DialogTitle>
+            <DialogDescription className="text-center">
+              الرجاء كتابة سبب الرفض ليتم إبلاغ السائق به
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <Textarea
+              placeholder="سبب الرفض"
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              rows={4}
+              className="text-right"
+            />
+          </div>
+          
+          <DialogFooter className="flex sm:justify-center gap-2">
+            <Button variant="outline" onClick={closeRejectDialog}>
+              إلغاء
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={rejectDriver}
+              disabled={processingAction}
+            >
+              {processingAction ? "جاري المعالجة..." : "تأكيد الرفض"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
