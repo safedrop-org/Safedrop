@@ -34,15 +34,21 @@ const PendingApprovalContent = () => {
           .eq('role', 'driver')
           .maybeSingle();
 
-        if (roleError || !roleData) {
+        if (roleError) {
           console.error("Error fetching driver role:", roleError);
           toast({
             title: "خطأ",
-            description: "لم يتم العثور على دور السائق",
+            description: "حدث خطأ أثناء التحقق من دور السائق",
             variant: "destructive"
           });
-          navigate('/login');
+          setIsLoading(false);
           return;
+        }
+
+        if (!roleData) {
+          console.log("No driver role found, but will continue checking driver status");
+          // Instead of redirecting immediately, we'll still check if they have driver data
+          // as they might be a driver added before we implemented roles
         }
 
         // Fetch driver data
@@ -55,6 +61,13 @@ const PendingApprovalContent = () => {
         if (error) {
           console.error('Error fetching driver status:', error);
           setError("حدث خطأ أثناء التحقق من حالة طلبك");
+          setIsLoading(false);
+          return;
+        }
+
+        if (!data) {
+          console.error('No driver data found for user:', user.id);
+          setError("لم يتم العثور على بيانات السائق");
           setIsLoading(false);
           return;
         }
@@ -211,7 +224,7 @@ const PendingApprovalContent = () => {
             className="w-full mt-4"
             onClick={handleSignOut}
           >
-            تسج��ل الخروج
+            تسجيل الخروج
           </Button>
         </div>
       </div>

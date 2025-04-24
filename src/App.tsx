@@ -75,19 +75,34 @@ const ProtectedDriverRoute = ({ children }) => {
   
   React.useEffect(() => {
     const checkDriverStatus = async () => {
-      if (isLoggedIn && userType === 'driver' && user) {
+      if (isLoggedIn && user) {
         try {
-          const { data, error } = await supabase
-            .from('drivers')
-            .select('status')
-            .eq('id', user.id)
+          // First check if the user has a driver role
+          const { data: roleData, error: roleError } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .eq('role', 'driver')
             .maybeSingle();
+            
+          const isDriver = !roleError && roleData;
           
-          if (!error && data) {
-            console.log("Driver status found:", data.status);
-            setDriverStatus(data.status);
+          // If user has driver role or user_type is driver, check driver status
+          if (isDriver || userType === 'driver') {
+            const { data, error } = await supabase
+              .from('drivers')
+              .select('status')
+              .eq('id', user.id)
+              .maybeSingle();
+            
+            if (!error && data) {
+              console.log("Driver status found:", data.status);
+              setDriverStatus(data.status);
+            } else {
+              console.error("Error or no data for driver status:", error);
+            }
           } else {
-            console.error("Error or no data for driver status:", error);
+            console.log("User is not a driver");
           }
         } catch (err) {
           console.error("Exception checking driver status:", err);
@@ -108,8 +123,12 @@ const ProtectedDriverRoute = ({ children }) => {
     return <Navigate to="/login" />;
   }
   
-  console.log("User type in protected driver route:", userType);
-  if (userType !== 'driver') {
+  // If userType is not 'driver', but user has driver records, treat them as a driver
+  const hasDriverData = driverStatus !== null;
+  const effectiveUserType = hasDriverData ? 'driver' : userType;
+  
+  console.log("User type in protected driver route:", effectiveUserType, "Driver status:", driverStatus);
+  if (effectiveUserType !== 'driver' && !hasDriverData) {
     if (userType === 'customer') {
       return <Navigate to="/customer/dashboard" />;
     } else if (userType === 'admin') {
