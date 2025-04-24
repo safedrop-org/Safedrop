@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,6 @@ import { ShieldCheckIcon, LockIcon } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { supabase } from '@/integrations/supabase/client';
 
-// كلمة المرور للأدمن
 const ADMIN_PASSWORD = "SafeDrop@ibrahim2515974";
 
 const AdminLoginContent = () => {
@@ -29,16 +29,14 @@ const AdminLoginContent = () => {
     }
 
     try {
-      // تحقق من كلمة المرور فقط
       if (password === ADMIN_PASSWORD) {
-        // تعيين معلومات المصادقة للمشرف في التخزين المحلي
+        // تخزين معلومات المصادقة للأدمن
         localStorage.setItem('adminAuth', 'true');
         localStorage.setItem('adminEmail', 'admin@safedrop.com');
         
-        // إنشاء حساب المشرف في قاعدة البيانات إذا لم يكن موجودًا
         const email = 'admin@safedrop.com';
         
-        // تحقق مما إذا كان المستخدم موجودًا بالفعل
+        // التحقق من وجود المستخدم في قاعدة البيانات
         const { data: existingUser } = await supabase
           .from('profiles')
           .select('id')
@@ -46,7 +44,7 @@ const AdminLoginContent = () => {
           .maybeSingle();
           
         if (!existingUser) {
-          // إنشاء بروفايل للمشرف
+          // إنشاء حساب المشرف في قاعدة البيانات
           await supabase
             .from('profiles')
             .insert({
@@ -58,18 +56,30 @@ const AdminLoginContent = () => {
               email: 'admin@safedrop.com'
             });
             
-          console.log('Admin profile created');
+          // التحقق من وجود دور المشرف وإضافته إذا لم يكن موجوداً
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { error: roleError } = await supabase
+              .from('user_roles')
+              .insert({
+                user_id: user.id,
+                role: 'admin'
+              })
+              .onConflict('user_id, role')
+              .ignore();
+              
+            if (roleError) {
+              console.error('Error assigning admin role:', roleError);
+            }
+          }
+          
+          console.log('Admin profile and role created');
         } else {
           console.log('Admin profile already exists');
         }
         
-        // Additional verification for admin login
-        const { data: { user } } = await supabase.auth.getUser();
-        console.log('Current User ID:', user?.id);
-        
         toast.success("تم تسجيل الدخول بنجاح. مرحباً بك في لوحة تحكم المشرف");
         
-        // التأخير قليلاً قبل التوجيه
         setTimeout(() => {
           navigate('/admin/dashboard');
         }, 500);
