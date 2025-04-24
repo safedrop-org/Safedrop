@@ -26,6 +26,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     console.log("Auth Provider initialized");
     
+    // 检查管理员登录状态
+    const checkAdminAuth = () => {
+      const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+      if (isAdminLoggedIn) {
+        console.log('Admin is logged in via localStorage');
+        setUserType('admin');
+        // No need to set user/session for admin auth
+      }
+      return isAdminLoggedIn;
+    };
+    
     // 1. First: Set up the auth state listener
     const {
       data: { subscription },
@@ -33,6 +44,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Auth state changed:", event, newSession?.user?.id);
       setSession(newSession);
       setUser(newSession?.user || null);
+      
+      // Check admin auth first
+      const isAdminLoggedIn = checkAdminAuth();
+      if (isAdminLoggedIn) {
+        setLoading(false);
+        return;
+      }
       
       if (newSession?.user) {
         console.log("Getting user type for:", newSession.user.id);
@@ -62,6 +80,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // 2. Then: Fetch the current session after setting up the listener
     const initializeAuth = async () => {
       try {
+        // Check admin auth first
+        const isAdminLoggedIn = checkAdminAuth();
+        if (isAdminLoggedIn) {
+          setLoading(false);
+          return;
+        }
+        
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         console.log("Initial session fetched:", currentSession?.user?.id);
         
@@ -109,6 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setUserType(null);
     localStorage.removeItem('adminAuth');
+    localStorage.removeItem('adminEmail');
     localStorage.removeItem('customerAuth');
     localStorage.removeItem('driverAuth');
   };
@@ -155,7 +181,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  console.log("Auth context state:", { user: user?.id, userType, isLoggedIn: !!session });
+  // Check for admin auth in localStorage on each render
+  useEffect(() => {
+    const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+    if (isAdminLoggedIn && userType !== 'admin') {
+      setUserType('admin');
+    }
+  }, [userType]);
+
+  console.log("Auth context state:", { user: user?.id, userType, isLoggedIn: !!session || userType === 'admin' });
 
   return (
     <AuthContext.Provider 
@@ -163,7 +197,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user, 
         session, 
         loading, 
-        isLoggedIn: !!session, 
+        isLoggedIn: !!session || userType === 'admin', 
         userType,
         signOut,
         checkUserProfile,

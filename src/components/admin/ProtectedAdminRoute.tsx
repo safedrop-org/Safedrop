@@ -14,17 +14,30 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
 
   useEffect(() => {
     const checkAdmin = async () => {
-      // Check localStorage flag for adminAuth first
-      const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
-      if (!isAdminLoggedIn) {
-        // Not logged in as admin, verify Supabase session as well (for added security)
+      try {
+        console.log("Checking admin authorization");
+        
+        // Check localStorage flag for adminAuth first
+        const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+        console.log("Admin logged in from localStorage:", isAdminLoggedIn);
+        
+        if (isAdminLoggedIn) {
+          console.log("Admin is authorized via localStorage");
+          setIsAuthorized(true);
+          return;
+        }
+
+        // Not logged in as admin via localStorage, verify Supabase session
         const {
           data: { session },
         } = await supabase.auth.getSession();
 
+        console.log("Session from Supabase:", session?.user?.id);
+
         if (!session) {
+          console.log("No session found, redirecting to login");
           setIsAuthorized(false);
-          navigate("/login");
+          navigate("/admin");
           return;
         }
 
@@ -35,22 +48,36 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
           .eq("id", session.user.id)
           .single();
 
+        console.log("Profile data:", profile);
+        
+        if (error) {
+          console.error("Error fetching profile:", error);
+        }
+
         if (error || !profile || profile.user_type !== "admin") {
+          console.log("User is not an admin, redirecting");
           toast.error("ليس لديك صلاحية الدخول إلى هذه الصفحة.");
+          
           if (profile?.user_type === "customer") {
             navigate("/customer/dashboard");
           } else if (profile?.user_type === "driver") {
             navigate("/driver/dashboard");
           } else {
-            navigate("/login");
+            navigate("/admin");
           }
+          
           setIsAuthorized(false);
           return;
         }
-      }
 
-      // All checks passed
-      setIsAuthorized(true);
+        // All checks passed
+        console.log("Admin is authorized via Supabase");
+        setIsAuthorized(true);
+      } catch (error) {
+        console.error("Error checking admin:", error);
+        setIsAuthorized(false);
+        navigate("/admin");
+      }
     };
 
     checkAdmin();
@@ -58,8 +85,8 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
 
   // Render children only if authorized
   if (isAuthorized === null) {
-    // You can render a loader here if desired while checking auth
-    return null;
+    // You can render a loader here while checking auth
+    return <div className="flex items-center justify-center min-h-screen">جاري التحقق...</div>;
   } else if (!isAuthorized) {
     return null;
   }

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from 'sonner';
 import { ShieldCheckIcon, LockIcon } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
+import { supabase } from '@/integrations/supabase/client';
 
 // كلمة المرور للأدمن
 const ADMIN_PASSWORD = "SafeDrop@ibrahim2515974";
@@ -35,14 +36,44 @@ const AdminLoginContent = () => {
         localStorage.setItem('adminAuth', 'true');
         localStorage.setItem('adminEmail', 'admin@safedrop.com');
         
+        // إنشاء حساب المشرف في قاعدة البيانات إذا لم يكن موجودًا
+        const email = 'admin@safedrop.com';
+        
+        // تحقق مما إذا كان المستخدم موجودًا بالفعل
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', 'admin')
+          .maybeSingle();
+          
+        if (!existingUser) {
+          // إنشاء بروفايل للمشرف
+          await supabase
+            .from('profiles')
+            .insert({
+              id: 'admin',
+              first_name: 'Admin',
+              last_name: 'User',
+              phone: '+966000000000',
+              user_type: 'admin'
+            });
+            
+          console.log('Admin profile created');
+        } else {
+          console.log('Admin profile already exists');
+        }
+        
         toast.success("تم تسجيل الدخول بنجاح. مرحباً بك في لوحة تحكم المشرف");
         
-        navigate('/admin/dashboard');
-        return;
+        // التأخير قليلاً قبل التوجيه
+        setTimeout(() => {
+          navigate('/admin/dashboard');
+        }, 500);
       } else {
         throw new Error('كلمة المرور غير صحيحة');
       }
     } catch (error: any) {
+      console.error('Login error:', error);
       toast.error(error.message || "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى");
     } finally {
       setIsLoading(false);

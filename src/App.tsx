@@ -1,8 +1,5 @@
-
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
-import { AuthProvider, useAuth } from '@/components/auth/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Toaster } from 'sonner';
 
 // Public Pages
@@ -37,23 +34,12 @@ import DriverDashboard from './pages/driver/DriverDashboard';
 import DriverOrders from './pages/driver/DriverOrders';
 import PendingApproval from './pages/driver/PendingApproval';
 
-// Protected Routes
-const ProtectedRoute = ({ children }) => {
-  const { isLoggedIn, loading } = useAuth();
-  
-  if (loading) {
-    // You could return a loading spinner here
-    return <div className="flex items-center justify-center min-h-screen">جاري التحميل...</div>;
-  }
-  
-  if (!isLoggedIn) {
-    console.log("Not logged in, redirecting to login");
-    return <Navigate to="/login" />;
-  }
-  
-  return <>{children}</>;
-};
+// Auth Components
+import { useAuth } from '@/components/auth/AuthContext';
+import ProtectedAdminRoute from '@/components/admin/ProtectedAdminRoute';
+import { supabase } from '@/integrations/supabase/client';
 
+// Protected Routes for Customer
 const ProtectedCustomerRoute = ({ children }) => {
   const { isLoggedIn, userType, loading } = useAuth();
   
@@ -80,6 +66,7 @@ const ProtectedCustomerRoute = ({ children }) => {
   return <>{children}</>;
 };
 
+// Protected Routes for Driver
 const ProtectedDriverRoute = ({ children }) => {
   const { isLoggedIn, userType, user, loading } = useAuth();
   const [driverStatus, setDriverStatus] = React.useState(null);
@@ -134,36 +121,10 @@ const ProtectedDriverRoute = ({ children }) => {
   return <>{children}</>;
 };
 
-const ProtectedAdminRoute = ({ children }) => {
-  const { isLoggedIn, userType, loading } = useAuth();
-  
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">جاري التحميل...</div>;
-  }
-  
-  if (!isLoggedIn) {
-    console.log("Not logged in, redirecting to admin login");
-    return <Navigate to="/admin" />;
-  }
-  
-  console.log("User type in protected admin route:", userType);
-  if (userType !== 'admin') {
-    if (userType === 'customer') {
-      return <Navigate to="/customer/dashboard" />;
-    } else if (userType === 'driver') {
-      return <Navigate to="/driver/dashboard" />;
-    } else {
-      return <Navigate to="/admin" />;
-    }
-  }
-  
-  return <>{children}</>;
-};
-
 const AppContent = () => {
   const { user } = useAuth();
   
-  useEffect(() => {
+  React.useEffect(() => {
     // Log auth state for debugging
     console.log("Auth state in App:", { user });
   }, [user]);
@@ -201,7 +162,7 @@ const AppContent = () => {
           <Route path="logout" element={<Logout />} />
         </Route>
 
-        {/* Admin Routes */}
+        {/* Admin Routes - Using ProtectedAdminRoute component */}
         <Route 
           path="/admin/dashboard" 
           element={
