@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/components/auth/AuthContext'; // Updated import path
+import { useAuth } from '@/components/auth/AuthContext'; // Fixed import path with @ alias
 import { supabase } from '@/integrations/supabase/client';
 import { Toaster } from 'sonner'; // Replace ToastContainer with Toaster
 
