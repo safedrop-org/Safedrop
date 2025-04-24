@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,13 +124,8 @@ const DriverDetails = () => {
     
     setProcessingAction(true);
     try {
-      console.log("Rejecting driver:", driver.id, permanent ? "permanently" : "with message:", rejectionReason);
-      
       if (permanent) {
-        // Completely reject the driver
-        console.log("Performing complete rejection");
-        
-        // First delete from drivers table
+        // Delete from drivers table first
         const { error: driverError } = await supabase
           .from("drivers")
           .delete()
@@ -153,30 +147,17 @@ const DriverDetails = () => {
           throw profileError;
         }
         
-        // Finally delete from auth.users if we have access (this might fail without admin rights)
-        try {
-          const { error: authError } = await supabase.auth.admin.deleteUser(driver.id);
-          if (authError) {
-            console.error("Error deleting auth user (this is expected without admin rights):", authError);
-          }
-        } catch (e) {
-          console.log("Could not delete auth user (this is expected without admin rights):", e);
-        }
-        
         toast.success("تم حذف حساب السائق بشكل نهائي");
       } else {
-        // Just reject with a message
-        console.log("Rejecting with message:", rejectionReason);
-        
         const { error } = await supabase
           .from("drivers")
-          .update({ status: "rejected", rejection_reason: rejectionReason })
+          .update({ 
+            status: "rejected", 
+            rejection_reason: rejectionReason 
+          })
           .eq("id", driver.id);
         
-        if (error) {
-          console.error("Error updating driver status:", error);
-          throw error;
-        }
+        if (error) throw error;
         
         toast.success("تم رفض السائق مع إرسال رسالة");
         setRejectionDialogOpen(false);

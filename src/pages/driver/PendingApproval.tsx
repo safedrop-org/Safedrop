@@ -3,12 +3,77 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Button } from '@/components/ui/button';
-import { Clock, AlertTriangle } from 'lucide-react';
+import { Clock, AlertTriangle, XCircle } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
 
 const PendingApprovalContent = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  
+  const { user, signOut } = useAuth();
+  const [driverStatus, setDriverStatus] = useState<{
+    status: string;
+    rejection_reason?: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchDriverStatus = async () => {
+      if (!user?.id) return;
+
+      const { data, error } = await supabase
+        .from('drivers')
+        .select('status, rejection_reason')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching driver status:', error);
+        return;
+      }
+
+      setDriverStatus(data);
+    };
+
+    fetchDriverStatus();
+  }, [user]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
+
+  if (driverStatus?.status === 'rejected') {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-4">
+        <div className="max-w-md w-full space-y-8 bg-white shadow-xl rounded-xl p-8 text-center">
+          <div className="flex justify-center">
+            <XCircle className="h-16 w-16 text-red-500" />
+          </div>
+
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 my-6 text-right">
+            <p className="font-bold text-red-800">تم رفض طلبك</p>
+            <p className="text-red-700 mt-2">{driverStatus.rejection_reason}</p>
+          </div>
+
+          <div className="space-y-4 mt-4">
+            <p className="text-gray-600">
+              يمكنك إنشاء حساب جديد مع الأخذ بعين الاعتبار الملاحظات المذكورة أعلاه.
+            </p>
+          </div>
+
+          <Button 
+            variant="destructive"
+            className="w-full mt-4"
+            onClick={handleSignOut}
+          >
+            تسجيل الخروج
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-4">
       <div className="max-w-md w-full space-y-8 bg-white shadow-xl rounded-xl p-8 text-center">
