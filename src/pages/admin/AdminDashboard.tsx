@@ -419,7 +419,7 @@ const AdminDashboardContent = () => {
     }
   });
 
-  // Fetch financial data
+  // Updated financial data fetching using the new database function
   const {
     data: financialData,
     isLoading: isLoadingFinancial
@@ -427,78 +427,41 @@ const AdminDashboardContent = () => {
     queryKey: ['financial-data', dateRange],
     queryFn: async () => {
       try {
-        // This would be a real API call to get financial data based on dateRange
-        const today = new Date();
-        let startDate;
-        switch (dateRange) {
-          case 'today':
-            startDate = new Date(today);
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case 'week':
-            startDate = new Date(today);
-            startDate.setDate(today.getDate() - 7);
-            break;
-          case 'month':
-            startDate = new Date(today);
-            startDate.setMonth(today.getMonth() - 1);
-            break;
-          case 'year':
-            startDate = new Date(today);
-            startDate.setFullYear(today.getFullYear() - 1);
-            break;
-          default:
-            startDate = new Date(today);
-            startDate.setMonth(today.getMonth() - 1);
-        }
-
-        // Convert dates to ISO strings for Supabase
-        const startDateString = startDate.toISOString();
-        const endDateString = today.toISOString();
-
-        // Get orders within the date range
-        const {
-          data: ordersInRange,
-          error
-        } = await supabase.from('orders').select('price, commission_rate, driver_payout').gte('created_at', startDateString).lte('created_at', endDateString);
-        if (error) {
-          console.error('Error fetching financial data:', error);
-          return {
-            totalRevenue: 0,
-            commissions: 0,
-            platformProfit: 0,
-            driversPayout: 0
-          };
-        }
-
-        // Calculate financial metrics
-        const totalRevenue = ordersInRange?.reduce((sum, order) => sum + (order.price || 0), 0) || 0;
-        const commissions = ordersInRange?.reduce((sum, order) => sum + (order.price || 0) * (order.commission_rate || 0.15) / 100, 0) || 0;
-        const driversPayout = ordersInRange?.reduce((sum, order) => sum + (order.driver_payout || 0), 0) || 0;
-        const platformProfit = commissions;
-        return {
-          totalRevenue,
-          commissions,
-          platformProfit,
-          driversPayout
+        const { data, error } = await supabase.rpc('get_financial_summary', {
+          period_type: dateRange
+        });
+        
+        if (error) throw error;
+        return data || {
+          total_revenue: 0,
+          commissions: 0,
+          platform_profit: 0,
+          driver_profit: 0
         };
       } catch (error) {
         console.error('Error fetching financial data:', error);
         return {
-          totalRevenue: 0,
+          total_revenue: 0,
           commissions: 0,
-          platformProfit: 0,
-          driversPayout: 0
+          platform_profit: 0,
+          driver_profit: 0
         };
       }
     }
   });
+  
   useEffect(() => {
     // Update financial summary when data is loaded
     if (financialData) {
-      setFinancialSummary(financialData);
+      setFinancialSummary({
+        totalRevenue: financialData.total_revenue || 0,
+        commissions: financialData.commissions || 0,
+        platformProfit: financialData.platform_profit || 0,
+        driversPayout: financialData.driver_profit || 0
+      });
     }
   }, [financialData]);
+  
   useEffect(() => {
     // Check if admin is authenticated
     const adminAuth = localStorage.getItem('adminAuth');
@@ -508,14 +471,12 @@ const AdminDashboardContent = () => {
       setIsAdmin(true);
     }
   }, [navigate]);
+  
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
     navigate('/admin');
   };
-  const handleExportReport = (format: 'csv' | 'pdf' | 'excel') => {
-    // In a real app, this would generate and download the report
-    toast.success(`تم تصدير التقرير بصيغة ${format}`);
-  };
+  
   const handleUpdateCommissionRate = async () => {
     try {
       // In a real app, this would update the commission rate in the database
@@ -533,6 +494,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث نسبة العمولة');
     }
   };
+  
   const handleUpdateSystemLanguage = async (language: string) => {
     try {
       const {
@@ -550,6 +512,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث لغة النظام');
     }
   };
+  
   const handleUpdatePrivacyPolicy = async () => {
     try {
       const {
@@ -566,6 +529,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث سياسة الخصوصية');
     }
   };
+  
   const handleUpdateTermsOfService = async () => {
     try {
       const {
@@ -582,6 +546,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث شروط الاستخدام');
     }
   };
+  
   const handleApproveDriver = async (driverId: string) => {
     try {
       const {
@@ -599,6 +564,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء قبول السائق');
     }
   };
+  
   const handleRejectDriver = async (driverId: string) => {
     try {
       const {
@@ -616,6 +582,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء رفض السائق');
     }
   };
+  
   const handleDeleteRejectedApplications = async () => {
     try {
       const {
@@ -630,6 +597,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء حذف طلبات الإنضمام المرفوضة');
     }
   };
+  
   const handleSuspendUser = async (userId: string, userType: UserType) => {
     try {
       const {
@@ -650,6 +618,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تعليق الحساب');
     }
   };
+  
   const handleBanUser = async (userId: string, userType: UserType) => {
     try {
       const {
@@ -670,6 +639,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء حظر الحساب');
     }
   };
+  
   const handleActivateUser = async (userId: string, userType: UserType) => {
     try {
       const {
@@ -690,6 +660,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تنشيط الحساب');
     }
   };
+  
   const handleResolveComplaint = async (complaintId: string) => {
     try {
       const {
@@ -705,6 +676,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث حالة الشكوى');
     }
   };
+  
   const handleProcessComplaint = async (complaintId: string) => {
     try {
       const {
@@ -720,6 +692,7 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث حالة الشكوى');
     }
   };
+  
   const handleDeleteCustomer = async (userId: string) => {
     try {
       // إذا كان هناك طلبات مرتبطة بالعميل، فقد نحتاج إلى تحديث حالتها أو إزالتها أيضًا
@@ -737,10 +710,13 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء حذف العميل');
     }
   };
+  
   if (!isAdmin) {
     return <div className="flex justify-center items-center h-screen">جاري التحميل...</div>;
   }
-  return <div className="flex h-screen bg-gray-50">
+  
+  return (
+    <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
       
       <div className="flex-1 flex flex-col overflow-auto">
@@ -819,98 +795,88 @@ const AdminDashboardContent = () => {
                   <CardHeader>
                     <div className="flex flex-wrap justify-between items-center">
                       <CardTitle className="text-xl">الملخص المالي</CardTitle>
-                      <div className="flex gap-2">
-                        <Select value={dateRange} onValueChange={value => setDateRange(value as DateRange)}>
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="اختر الفترة" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="today">اليوم</SelectItem>
-                            <SelectItem value="week">آخر أسبوع</SelectItem>
-                            <SelectItem value="month">آخر شهر</SelectItem>
-                            <SelectItem value="year">آخر سنة</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        
-                        <div className="flex gap-2">
-                          
-                          
-                          
-                        </div>
-                      </div>
+                      <Select value={dateRange} onValueChange={value => setDateRange(value as DateRange)}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="اختر الفترة" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="today">اليوم</SelectItem>
+                          <SelectItem value="week">آخر أسبوع</SelectItem>
+                          <SelectItem value="month">آخر شهر</SelectItem>
+                          <SelectItem value="year">آخر سنة</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Financial Statistics */}
-                      <div className="space-y-4">
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <p className="text-sm text-gray-500">إجمالي المبالغ المستلمة</p>
-                                <h3 className="text-2xl font-bold">
-                                  {isLoadingFinancial ? <span className="text-gray-400">...</span> : `${financialSummary.totalRevenue.toLocaleString()} ريال`}
-                                </h3>
-                              </div>
-                              <div className="p-3 bg-green-100 rounded-full">
-                                <DollarSign className="h-6 w-6 text-green-600" />
-                              </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-sm text-gray-500">إجمالي المبالغ المستلمة</p>
+                              <h3 className="text-2xl font-bold">
+                                {isLoadingFinancial ? "..." : 
+                                 `${financialData?.total_revenue?.toLocaleString()} ر.س`}
+                              </h3>
                             </div>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <p className="text-sm text-gray-500">إجمالي العمولات (15%)</p>
-                                <h3 className="text-2xl font-bold">
-                                  {isLoadingFinancial ? <span className="text-gray-400">...</span> : `${financialSummary.commissions.toLocaleString()} ريال`}
-                                </h3>
-                              </div>
-                              <div className="p-3 bg-blue-100 rounded-full">
-                                <BarChart2Icon className="h-6 w-6 text-blue-600" />
-                              </div>
+                            <div className="p-3 bg-green-100 rounded-full">
+                              <DollarSign className="h-6 w-6 text-green-600" />
                             </div>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <p className="text-sm text-gray-500">أرباح المنصة</p>
-                                <h3 className="text-2xl font-bold">
-                                  {isLoadingFinancial ? <span className="text-gray-400">...</span> : `${financialSummary.platformProfit.toLocaleString()} ريال`}
-                                </h3>
-                              </div>
-                              <div className="p-3 bg-violet-100 rounded-full">
-                                <LineChart className="h-6 w-6 text-violet-600" />
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card>
-                          <CardContent className="pt-6">
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <p className="text-sm text-gray-500">الأرباح المستحقة للسائقين</p>
-                                <h3 className="text-2xl font-bold">
-                                  {isLoadingFinancial ? <span className="text-gray-400">...</span> : `${financialSummary.driversPayout.toLocaleString()} ريال`}
-                                </h3>
-                              </div>
-                              <div className="p-3 bg-amber-100 rounded-full">
-                                <TruckIcon className="h-6 w-6 text-amber-600" />
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                       
-                      {/* Commission Settings */}
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-sm text-gray-500">إجمالي العمولات</p>
+                              <h3 className="text-2xl font-bold">
+                                {isLoadingFinancial ? "..." :
+                                 `${financialData?.commissions?.toLocaleString()} ر.س`}
+                              </h3>
+                            </div>
+                            <div className="p-3 bg-blue-100 rounded-full">
+                              <BarChart2Icon className="h-6 w-6 text-blue-600" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                       
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-sm text-gray-500">أرباح المنصة</p>
+                              <h3 className="text-2xl font-bold">
+                                {isLoadingFinancial ? "..." :
+                                 `${financialData?.platform_profit?.toLocaleString()} ر.س`}
+                              </h3>
+                            </div>
+                            <div className="p-3 bg-violet-100 rounded-full">
+                              <LineChart className="h-6 w-6 text-violet-600" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-sm text-gray-500">مستحقات السائقين</p>
+                              <h3 className="text-2xl font-bold">
+                                {isLoadingFinancial ? "..." :
+                                 `${financialData?.driver_profit?.toLocaleString()} ر.س`}
+                              </h3>
+                            </div>
+                            <div className="p-3 bg-amber-100 rounded-full">
+                              <TruckIcon className="h-6 w-6 text-amber-600" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </CardContent>
                 </Card>
@@ -1091,14 +1057,14 @@ const AdminDashboardContent = () => {
                   <CardHeader>
                     <div className="flex flex-wrap justify-between items-center">
                       <CardTitle className="text-xl">إدارة العملاء</CardTitle>
-                      <div className="flex gap-2">
-                        <div className="relative">
-                          <SearchIcon className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                          <Input placeholder="بحث عن عميل..." className="pl-9 pr-4 w-[250px]" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-                        </div>
-                        <Button variant="outline" size="icon">
-                          <FilterIcon className="h-4 w-4" />
-                        </Button>
+                      <div className="relative w-full md:w-64">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input 
+                          placeholder="بحث عن عميل..." 
+                          className="pr-9" 
+                          value={searchQuery}
+                          onChange={e => setSearchQuery(e.target.value)}
+                        />
                       </div>
                     </div>
                   </CardHeader>
@@ -1433,11 +1399,16 @@ const AdminDashboardContent = () => {
           </div>
         </main>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 const AdminDashboard = () => {
-  return <LanguageProvider>
+  return (
+    <LanguageProvider>
       <AdminDashboardContent />
-    </LanguageProvider>;
+    </LanguageProvider>
+  );
 };
+
 export default AdminDashboard;

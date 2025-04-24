@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLanguage } from "@/components/ui/language-context";
@@ -56,7 +55,6 @@ const DriverVerification = () => {
     try {
       console.log("Fetching drivers...");
       
-      // First, check for role-based drivers (new approach)
       const { data: roleMappings, error: roleError } = await supabase
         .from("user_roles")
         .select("user_id")
@@ -66,20 +64,16 @@ const DriverVerification = () => {
         console.error("Error fetching driver roles:", roleError);
       }
       
-      // Get the IDs of users with the driver role
       const driverRoleIds = roleMappings ? roleMappings.map(r => r.user_id) : [];
       console.log("Found users with driver role:", driverRoleIds.length);
       
-      // Then, fetch profiles - both with user_type=driver and those with driver roles
       let profilesQuery = supabase
         .from("profiles")
         .select("id, first_name, last_name, phone, user_type, email");
       
       if (driverRoleIds.length > 0) {
-        // Include both user_type=driver AND users with driver role
         profilesQuery = profilesQuery.or(`user_type.eq.driver,id.in.(${driverRoleIds.join(',')})`);
       } else {
-        // Only filter by user_type if no driver roles found
         profilesQuery = profilesQuery.eq("user_type", "driver");
       }
       
@@ -97,7 +91,6 @@ const DriverVerification = () => {
 
       const driverIds = profilesData.map(d => d.id);
       
-      // Fetch driver details
       const { data: driversData, error: driversError } = await supabase
         .from("drivers")
         .select("id, status")
@@ -107,7 +100,6 @@ const DriverVerification = () => {
       
       console.log("Driver status data fetched:", driversData?.length || 0);
 
-      // Create a map for quick lookup of driver status
       const driverStatusMap = {};
       if (driversData) {
         driversData.forEach(driver => {
@@ -115,7 +107,6 @@ const DriverVerification = () => {
         });
       }
 
-      // Combine all data - using emails directly from profiles
       const driversCombined = profilesData.map((profile) => {
         return {
           ...profile,
@@ -133,13 +124,11 @@ const DriverVerification = () => {
     }
   };
 
-  // Initialize data fetching
   useEffect(() => {
     fetchDriverStatusCategories();
     fetchDrivers();
   }, []);
 
-  // Add an effect to refresh data when returning from other pages
   useEffect(() => {
     const handleFocus = () => {
       console.log("Window focused - refreshing driver data");
@@ -164,7 +153,6 @@ const DriverVerification = () => {
     navigate(`/admin/driver-details/${driverId}`);
   };
 
-  // Function to get status badge color
   const getStatusBadgeColor = (status: string) => {
     const category = statusCategories.find(cat => cat.name === status);
     return category ? category.color : "gray";
@@ -187,23 +175,22 @@ const DriverVerification = () => {
       
       <div className="mb-6">
         <div className="relative w-full max-w-sm mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
             type="text"
             placeholder="البحث بالبريد الإلكتروني..."
             value={searchEmail}
             onChange={(e) => setSearchEmail(e.target.value)}
-            className="pl-10 w-full"
+            className="pr-10 w-full"
           />
         </div>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab}>
-          <TabsList>
-            {[...statusCategories, { name: "all", display_name_ar: "الكل" }].map(status => (
-              <TabsTrigger key={status.name} value={status.name}>
-                {status.display_name_ar}
-              </TabsTrigger>
-            ))}
+          <TabsList className="flex justify-end space-x-2 space-x-reverse">
+            <TabsTrigger value="pending">في الانتظار</TabsTrigger>
+            <TabsTrigger value="approved">مقبول</TabsTrigger>
+            <TabsTrigger value="rejected">مرفوض</TabsTrigger>
+            <TabsTrigger value="all">الكل</TabsTrigger>
           </TabsList>
           
           <TabsContent value={currentTab}>

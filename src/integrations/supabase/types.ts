@@ -152,6 +152,54 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          driver_id: string | null
+          id: string
+          order_id: string | null
+          status: string
+          transaction_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          driver_id?: string | null
+          id?: string
+          order_id?: string | null
+          status: string
+          transaction_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          driver_id?: string | null
+          id?: string
+          order_id?: string | null
+          status?: string
+          transaction_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_transactions_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           actual_delivery_time: string | null
@@ -286,6 +334,15 @@ export type Database = {
       get_current_user_type: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_financial_summary: {
+        Args: { period_type: string }
+        Returns: {
+          total_revenue: number
+          commissions: number
+          platform_profit: number
+          driver_profit: number
+        }[]
       }
       has_role: {
         Args: { role: Database["public"]["Enums"]["app_role"] }
