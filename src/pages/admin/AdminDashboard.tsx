@@ -947,3 +947,317 @@ const AdminDashboardContent = () => {
                           <div className="text-center py-8 text-gray-500">
                             <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                             لا توجد سائقين
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>الاسم</TableHead>
+                                  <TableHead>رقم الهوية</TableHead>
+                                  <TableHead>رقم الرخصة</TableHead>
+                                  <TableHead>معلومات السيارة</TableHead>
+                                  <TableHead>الإجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {approvedDrivers.map((driver: any) => (
+                                  <TableRow key={driver.id}>
+                                    <TableCell className="font-medium">
+                                      {driver.profiles?.first_name} {driver.profiles?.last_name}
+                                    </TableCell>
+                                    <TableCell>{driver.national_id}</TableCell>
+                                    <TableCell>{driver.license_number}</TableCell>
+                                    <TableCell>
+                                      {driver.vehicle_info?.make} {driver.vehicle_info?.model} ({driver.vehicle_info?.year})
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleApproveDriver(driver.id)} className="bg-green-600 hover:bg-green-700">
+                                          <UserCheckIcon className="h-4 w-4 mr-1" />
+                                          قبول
+                                        </Button>
+                                        <Button size="sm" variant="destructive" onClick={() => handleRejectDriver(driver.id)}>
+                                          <UserXIcon className="h-4 w-4 mr-1" />
+                                          رفض
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="suspended">
+                        {isLoadingSuspendedDrivers ? (
+                          <div className="text-center py-8">جاري تحميل البيانات...</div>
+                        ) : suspendedDrivers.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                            لا يوجد سائقين معلقين
+                          </div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>الاسم</TableHead>
+                                  <TableHead>رقم الهوية</TableHead>
+                                  <TableHead>رقم الرخصة</TableHead>
+                                  <TableHead>معلومات السيارة</TableHead>
+                                  <TableHead>الإجراءات</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {suspendedDrivers.map((driver: any) => (
+                                  <TableRow key={driver.id}>
+                                    <TableCell className="font-medium">
+                                      {driver.profiles?.first_name} {driver.profiles?.last_name}
+                                    </TableCell>
+                                    <TableCell>{driver.national_id}</TableCell>
+                                    <TableCell>{driver.license_number}</TableCell>
+                                    <TableCell>
+                                      {driver.vehicle_info?.make} {driver.vehicle_info?.model} ({driver.vehicle_info?.year})
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex gap-2">
+                                        <Button size="sm" onClick={() => handleApproveDriver(driver.id)} className="bg-green-600 hover:bg-green-700">
+                                          <UserCheckIcon className="h-4 w-4 mr-1" />
+                                          قبول
+                                        </Button>
+                                        <Button size="sm" variant="destructive" onClick={() => handleRejectDriver(driver.id)}>
+                                          <UserXIcon className="h-4 w-4 mr-1" />
+                                          رفض
+                                        </Button>
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="customers">
+                {isLoadingCustomersList ? (
+                  <div className="text-center py-8">جاري تحميل البيانات...</div>
+                ) : customersList.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    لا يوجد عملاء
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>الاسم</TableHead>
+                          <TableHead>رقم الهوية</TableHead>
+                          <TableHead>رقم الهاتف</TableHead>
+                          <TableHead>الإجراءات</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {customersList.map((customer: any) => (
+                          <TableRow key={customer.id}>
+                            <TableCell className="font-medium">
+                              {customer.profiles?.first_name} {customer.profiles?.last_name}
+                            </TableCell>
+                            <TableCell>{customer.national_id}</TableCell>
+                            <TableCell>{customer.profiles?.phone}</TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => handleActivateUser(customer.id, 'customer')} className="bg-green-600 hover:bg-green-700">
+                                  <Check className="h-4 w-4 mr-1" />
+                                  تنشيط
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => handleSuspendUser(customer.id, 'customer')}>
+                                  <Ban className="h-4 w-4 mr-1" />
+                                  تعليق
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => handleBanUser(customer.id, 'customer')}>
+                                  <ShieldIcon className="h-4 w-4 mr-1" />
+                                  حظر
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="orders">
+                {isLoadingOrdersList ? (
+                  <div className="text-center py-8">جاري تحميل البيانات...</div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                    لا يوجد طلبات
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>الاسم</TableHead>
+                          <TableHead>رقم الهوية</TableHead>
+                          <TableHead>رقم الهاتف</TableHead>
+                          <TableHead>الإجراءات</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {orders.map((order: any) => (
+                          <TableRow key={order.id}>
+                            <TableCell className="font-medium">
+                              {order.customer?.first_name} {order.customer?.last_name}
+                            </TableCell>
+                            <TableCell>{order.customer?.national_id}</TableCell>
+                            <TableCell>{order.customer?.phone}</TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => handleApproveDriver(order.driver?.id)} className="bg-green-600 hover:bg-green-700">
+                                  <UserCheckIcon className="h-4 w-4 mr-1" />
+                                  قبول
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => handleRejectDriver(order.driver?.id)}>
+                                  <UserXIcon className="h-4 w-4 mr-1" />
+                                  رفض
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="settings">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-xl">إعدادات النظام</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="commissions" className="w-full">
+                      <TabsList className="mb-6">
+                        <TabsTrigger value="commissions">العمولات</TabsTrigger>
+                        <TabsTrigger value="language">اللغة</TabsTrigger>
+                        <TabsTrigger value="privacy">سياسة الخصوصية</TabsTrigger>
+                        <TabsTrigger value="terms">شروط الاستخدام</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="commissions">
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="commission-rate">نسبة العمولة (%)</Label>
+                            <div className="flex items-center gap-4 mt-1">
+                              <Input 
+                                id="commission-rate" 
+                                type="number" 
+                                min="0"
+                                max="100"
+                                value={selectedCommissionRate.toString()}
+                                onChange={e => setSelectedCommissionRate(Number(e.target.value))}
+                                className="w-[100px]"
+                              />
+                              <Button onClick={handleUpdateCommissionRate}>
+                                <Check className="h-4 w-4 mr-2" />
+                                حفظ
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="language">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label>لغة النظام</Label>
+                            <div className="flex gap-4">
+                              <Button 
+                                variant={systemLanguage === 'ar' ? 'default' : 'outline'} 
+                                onClick={() => handleUpdateSystemLanguage('ar')}
+                              >
+                                العربية
+                              </Button>
+                              <Button 
+                                variant={systemLanguage === 'en' ? 'default' : 'outline'}
+                                onClick={() => handleUpdateSystemLanguage('en')}
+                              >
+                                English
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="privacy">
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="privacy-policy">سياسة الخصوصية</Label>
+                            <Input 
+                              id="privacy-policy" 
+                              type="text"
+                              value={privacyPolicy}
+                              onChange={e => setPrivacyPolicy(e.target.value)}
+                              className="w-full"
+                            />
+                            <Button onClick={handleUpdatePrivacyPolicy}>
+                              <Check className="h-4 w-4 mr-2" />
+                              حفظ
+                            </Button>
+                          </div>
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="terms">
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="terms-of-service">شروط الاستخدام</Label>
+                            <Input 
+                              id="terms-of-service" 
+                              type="text"
+                              value={termsOfService}
+                              onChange={e => setTermsOfService(e.target.value)}
+                              className="w-full"
+                            />
+                            <Button onClick={handleUpdateTermsOfService}>
+                              <Check className="h-4 w-4 mr-2" />
+                              حفظ
+                            </Button>
+                          </div>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+const AdminDashboard = () => {
+  return (
+    <LanguageProvider>
+      <AdminDashboardContent />
+    </LanguageProvider>
+  );
+};
+
+export default AdminDashboard;
