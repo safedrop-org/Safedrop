@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -35,7 +36,7 @@ import DriverOrders from './pages/driver/DriverOrders';
 import PendingApproval from './pages/driver/PendingApproval';
 
 // Auth Components
-import { useAuth } from '@/components/auth/AuthContext';
+import { useAuth, AuthProvider } from '@/components/auth/AuthContext';
 import ProtectedAdminRoute from '@/components/admin/ProtectedAdminRoute';
 import { supabase } from '@/integrations/supabase/client';
 
