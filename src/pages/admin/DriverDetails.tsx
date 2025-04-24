@@ -44,15 +44,12 @@ const DriverDetails = () => {
     
     setLoading(true);
     try {
-      // First, check if the admin has the correct role
-      const { data: adminRole } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('role', 'admin')
-        .maybeSingle();
-        
-      if (!adminRole) {
-        console.warn("User doesn't have admin role in user_roles table");
+      // Verify admin privileges
+      const isAdmin = localStorage.getItem('adminAuth') === 'true';
+      if (!isAdmin) {
+        toast.error("لا توجد صلاحية مسؤول. يرجى تسجيل الدخول كمسؤول أولاً.");
+        navigate('/admin/login');
+        return;
       }
       
       // Get profile data
@@ -110,6 +107,15 @@ const DriverDetails = () => {
         throw new Error("لا توجد صلاحية مسؤول. يرجى تسجيل الدخول كمسؤول أولاً.");
       }
       
+      console.log("Attempting to update driver status to:", status);
+      
+      // Fetch admin user ID from localStorage to use for authentication check
+      const adminEmail = localStorage.getItem('adminEmail');
+      
+      if (!adminEmail) {
+        throw new Error("معلومات المسؤول غير متوفرة. يرجى إعادة تسجيل الدخول.");
+      }
+      
       // Ensure vehicle_info is properly structured
       const vehicleInfo = {
         make: driver.vehicle_info?.make || "",
@@ -118,49 +124,51 @@ const DriverDetails = () => {
         plateNumber: driver.vehicle_info?.plateNumber || ""
       };
       
-      // Prepare driver data with all required fields
-      const driverData = {
+      // First try the update using a direct insert with specific columns
+      const updateData = {
         id: driver.id,
         status: status,
-        rejection_reason: rejectionReason,
+        rejection_reason: rejectionReason || null,
         national_id: driver.national_id || "",
         license_number: driver.license_number || "",
         vehicle_info: vehicleInfo
       };
       
-      console.log("Updating driver status with data:", driverData);
+      console.log("Updating driver data:", updateData);
       
-      // Use service role (admin privileges) for this operation
+      // Attempt the update
       const { data, error } = await supabase
         .from("drivers")
-        .upsert(driverData)
-        .select();
-        
-      if (error) {
-        console.error("Error saving driver status:", error);
-        throw error;
-      }
-      
-      console.log("Update response:", data);
-      
-      // Verify the update by fetching the latest data
-      const { data: verifyData, error: verifyError } = await supabase
-        .from("drivers")
-        .select("status, rejection_reason")
+        .update({
+          status: status,
+          rejection_reason: rejectionReason
+        })
         .eq("id", driver.id)
-        .single();
+        .select();
+      
+      if (error) {
+        console.error("Error updating driver status:", error);
         
-      if (verifyError) {
-        console.error("Error verifying update:", verifyError);
-      } else {
-        console.log("Verified status after update:", verifyData);
-        if (verifyData.status !== status) {
-          console.warn("Status mismatch after update! Expected:", status, "Got:", verifyData.status);
+        // If update fails, try upsert as a fallback
+        console.log("Trying upsert as fallback...");
+        
+        const { data: upsertData, error: upsertError } = await supabase
+          .from("drivers")
+          .upsert(updateData)
+          .select();
+          
+        if (upsertError) {
+          console.error("Upsert fallback also failed:", upsertError);
+          throw new Error(`فشل في تحديث حالة السائق. ${upsertError.message}`);
         }
+        
+        console.log("Upsert succeeded:", upsertData);
+        return upsertData;
       }
       
-      return true;
-    } catch (error) {
+      console.log("Update succeeded:", data);
+      return data;
+    } catch (error: any) {
       console.error("Driver status update failed:", error);
       throw error;
     }
@@ -180,9 +188,9 @@ const DriverDetails = () => {
       
       // Navigate back after a short delay
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error approving driver:", error);
-      toast.error("فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
+      toast.error(error.message || "فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
     } finally {
       setProcessingAction(false);
     }
@@ -209,9 +217,9 @@ const DriverDetails = () => {
       
       // Navigate back after a short delay
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error rejecting driver:", error);
-      toast.error("فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
+      toast.error(error.message || "فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
     } finally {
       setProcessingAction(false);
     }

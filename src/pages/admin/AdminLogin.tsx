@@ -30,6 +30,8 @@ const AdminLoginContent = () => {
 
     try {
       if (password === ADMIN_PASSWORD) {
+        console.log("Admin password verified");
+        
         // تخزين معلومات المصادقة للأدمن
         localStorage.setItem('adminAuth', 'true');
         localStorage.setItem('adminEmail', 'admin@safedrop.com');
@@ -44,8 +46,9 @@ const AdminLoginContent = () => {
           .maybeSingle();
           
         if (!existingUser) {
+          console.log("Creating admin profile...");
           // إنشاء حساب المشرف في قاعدة البيانات
-          await supabase
+          const { error: profileError } = await supabase
             .from('profiles')
             .insert({
               id: 'admin',
@@ -55,10 +58,19 @@ const AdminLoginContent = () => {
               user_type: 'admin',
               email: 'admin@safedrop.com'
             });
+            
+          if (profileError) {
+            console.error("Error creating admin profile:", profileError);
+          } else {
+            console.log("Admin profile created successfully");
+          }
+        } else {
+          console.log("Admin profile already exists");
         }
         
         // التحقق من وجود دور المشرف وإضافته إذا لم يكن موجوداً
         try {
+          console.log("Checking admin role...");
           // نتحقق أولاً من وجود دور المشرف
           const { data: existingRole } = await supabase
             .from('user_roles')
@@ -69,6 +81,7 @@ const AdminLoginContent = () => {
             
           // إذا لم يكن هناك دور مشرف موجود، قم بإنشائه
           if (!existingRole) {
+            console.log("Creating admin role...");
             const { error: roleError } = await supabase
               .from('user_roles')
               .insert({
@@ -78,7 +91,11 @@ const AdminLoginContent = () => {
               
             if (roleError) {
               console.error('Error assigning admin role:', roleError);
+            } else {
+              console.log("Admin role created successfully");
             }
+          } else {
+            console.log("Admin role already exists");
           }
         } catch (roleError) {
           console.error('Error checking/creating admin role:', roleError);
