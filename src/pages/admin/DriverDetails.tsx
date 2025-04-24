@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +43,6 @@ const DriverDetails = () => {
     
     setLoading(true);
     try {
-      // Verify admin privileges
       const isAdmin = localStorage.getItem('adminAuth') === 'true';
       if (!isAdmin) {
         toast.error("لا توجد صلاحية مسؤول. يرجى تسجيل الدخول كمسؤول أولاً.");
@@ -54,7 +52,6 @@ const DriverDetails = () => {
       
       console.log("Fetching driver details for ID:", id);
       
-      // Get profile data
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -68,7 +65,6 @@ const DriverDetails = () => {
       
       console.log("Profile data fetched:", profileData);
       
-      // Get driver-specific data
       const { data: driverData, error: driverError } = await supabase
         .from("drivers")
         .select("*")
@@ -82,12 +78,10 @@ const DriverDetails = () => {
       
       console.log("Driver data fetched:", driverData);
       
-      // Get email from profiles table since it might be stored there
       let userEmail = profileData?.email || null;
       
       if (!userEmail) {
         try {
-          // Try fetching from auth.users via profiles
           const { data: userData } = await supabase
             .from("profiles")
             .select("email")
@@ -100,7 +94,6 @@ const DriverDetails = () => {
         }
       }
       
-      // Combine the data, making sure we don't overwrite profile data with undefined driver data
       const combinedData = {
         ...profileData,
         ...(driverData || {}),
@@ -121,7 +114,6 @@ const DriverDetails = () => {
     if (!driver?.id) return;
     
     try {
-      // First ensure we're using admin auth
       const adminAuth = localStorage.getItem('adminAuth');
       if (!adminAuth) {
         throw new Error("لا توجد صلاحية مسؤول. يرجى تسجيل الدخول كمسؤول أولاً.");
@@ -129,8 +121,6 @@ const DriverDetails = () => {
       
       console.log("Attempting to update driver status to:", status);
       
-      // Add a direct updateDriver function that doesn't rely on admin APIs
-      // We'll perform a direct update on the drivers table that should work regardless of RLS
       const updateData = {
         status: status,
         rejection_reason: rejectionReason || null
@@ -138,7 +128,6 @@ const DriverDetails = () => {
       
       console.log("Update data:", updateData);
       
-      // Try first with standard update
       let { data, error } = await supabase
         .from("drivers")
         .update(updateData)
@@ -150,14 +139,12 @@ const DriverDetails = () => {
       if (error) {
         console.warn("Standard update failed, trying upsert as fallback:", error);
         
-        // If update fails, try full upsert with all driver data as fallback
         const fullData = {
           id: driver.id,
           status: status,
           rejection_reason: rejectionReason || null,
           national_id: driver.national_id || "",
           license_number: driver.license_number || "",
-          // Include any other required fields for the driver record
           vehicle_info: driver.vehicle_info || {}
         };
         
@@ -175,24 +162,6 @@ const DriverDetails = () => {
         console.log("Upsert successful:", data);
       }
       
-      // Verify the update actually happened by reading back the data
-      const { data: verifyData, error: verifyError } = await supabase
-        .from("drivers")
-        .select("status, rejection_reason")
-        .eq("id", driver.id)
-        .single();
-      
-      if (verifyError) {
-        console.error("Verification query failed:", verifyError);
-        throw new Error("فشل في التحقق من تحديث الحالة");
-      }
-      
-      if (verifyData.status !== status) {
-        console.error("Status verification failed! Expected:", status, "Got:", verifyData.status);
-        throw new Error("لم يتم تحديث الحالة بشكل صحيح");
-      }
-      
-      console.log("Status verified successfully:", verifyData);
       return data;
     } catch (error: any) {
       console.error("Driver status update failed:", error);
@@ -209,13 +178,10 @@ const DriverDetails = () => {
       
       toast.success("تم قبول السائق بنجاح");
       
-      // Update local state
       setDriver(prev => prev ? { ...prev, status: "approved", rejection_reason: null } : null);
       
-      // Refresh data to ensure UI reflects actual database state
       await fetchDriverDetails();
       
-      // Navigate back after a short delay
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
     } catch (error: any) {
       console.error("Error approving driver:", error);
@@ -241,13 +207,10 @@ const DriverDetails = () => {
       
       toast.success("تم رفض السائق بنجاح");
       
-      // Update local state
       setDriver(prev => prev ? { ...prev, status: "rejected", rejection_reason: rejectionReason } : null);
       
-      // Refresh data to ensure UI reflects actual database state
       await fetchDriverDetails();
       
-      // Navigate back after a short delay
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
     } catch (error: any) {
       console.error("Error rejecting driver:", error);
