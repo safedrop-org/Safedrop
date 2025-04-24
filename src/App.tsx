@@ -4,21 +4,20 @@ import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-
 import { useAuth } from '@/components/auth/AuthContext'; // Updated import path
 import { supabase } from '@/integrations/supabase/client';
 import { Toaster } from 'sonner'; // Replace ToastContainer with Toaster
-// Remove ReactToastify import
 
 // Public Pages
-import Home from './pages/Home';
+import Home from './pages/Index'; // Use existing Index.tsx as Home
 import About from './pages/About';
 import Contact from './pages/Contact';
-import Login from './pages/Login';
+import Login from './pages/auth/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
-import Pricing from './pages/Pricing';
+import Pricing from './pages/Services'; // Use existing Services.tsx as Pricing
 
 // Customer Pages
 import CustomerDashboard from './pages/customer/CustomerDashboard';
 import Logout from './pages/customer/Logout';
-import Profile from './pages/customer/Profile';
+import Profile from './pages/customer/CustomerProfile'; // Use existing CustomerProfile.tsx as Profile
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -74,7 +73,11 @@ const App = () => {
           {/* Customer Routes */}
           <Route 
             path="/customer" 
-            element={<ProtectedCustomerRoute><Outlet /></ProtectedCustomerRoute>}
+            element={
+              <ProtectedCustomerRoute>
+                <Outlet />
+              </ProtectedCustomerRoute>
+            }
           >
             <Route path="dashboard" element={<CustomerDashboard />} />
             <Route path="profile" element={<Profile />} />
@@ -84,7 +87,11 @@ const App = () => {
           {/* Admin Routes */}
           <Route 
             path="/admin" 
-            element={<ProtectedAdminRoute><Outlet /></ProtectedAdminRoute>}
+            element={
+              <ProtectedAdminRoute>
+                <Outlet />
+              </ProtectedAdminRoute>
+            }
           >
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="customers" element={<CustomersWithSidebar />} />
@@ -95,7 +102,11 @@ const App = () => {
           {/* Driver Routes */}
           <Route 
             path="/driver" 
-            element={<ProtectedRoute><Outlet /></ProtectedRoute>}
+            element={
+              <ProtectedRoute>
+                <Outlet />
+              </ProtectedRoute>
+            }
           >
             <Route path="dashboard" element={<DriverDashboard />} />
           </Route>
@@ -107,4 +118,3 @@ const App = () => {
 };
 
 export default App;
-
