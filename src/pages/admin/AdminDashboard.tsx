@@ -45,9 +45,7 @@ interface Complaint {
 
 const AdminDashboardContent = () => {
   const navigate = useNavigate();
-  const {
-    t
-  } = useLanguage();
+  const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange>('month');
   const [searchQuery, setSearchQuery] = useState('');
@@ -320,15 +318,7 @@ const AdminDashboardContent = () => {
           data,
           error
         } = await supabase.from('orders').select(`
-            *,
-            customer:customer_id (
-              first_name,
-              last_name
-            ),
-            driver:driver_id (
-              first_name,
-              last_name
-            )
+            *,\n            customer:customer_id (\n              first_name,\n              last_name\n            ),\n            driver:driver_id (\n              first_name,\n              last_name\n            )
           `).order('created_at', {
           ascending: false
         }).limit(20);
