@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface DriverDetails {
   id: string;
@@ -55,7 +56,7 @@ const DriverDetails = () => {
         .from("drivers")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
       
       if (driverError && driverError.code !== 'PGRST116') {
         throw driverError;
@@ -88,6 +89,8 @@ const DriverDetails = () => {
     
     setProcessingAction(true);
     try {
+      console.log("Approving driver with ID:", driver.id);
+      
       // First check if driver record exists
       const { data: existingDriver } = await supabase
         .from("drivers")
@@ -96,14 +99,21 @@ const DriverDetails = () => {
         .maybeSingle();
         
       if (existingDriver) {
+        console.log("Found existing driver record, updating status");
         // Update existing driver record
         const { error } = await supabase
           .from("drivers")
           .update({ status: "approved", rejection_reason: null })
           .eq("id", driver.id);
         
-        if (error) throw error;
+        if (error) {
+          console.error("Error updating driver status:", error);
+          throw error;
+        }
+        
+        console.log("Driver status updated successfully");
       } else {
+        console.log("No existing driver record, creating new one");
         // Insert new driver record with approved status
         const { error } = await supabase
           .from("drivers")
@@ -115,7 +125,12 @@ const DriverDetails = () => {
             vehicle_info: driver.vehicle_info || { make: "", model: "", year: "", plateNumber: "" }
           });
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error creating driver record:", error);
+          throw error;
+        }
+        
+        console.log("New driver record created with approved status");
       }
       
       toast.success("تم قبول السائق بنجاح");
@@ -138,35 +153,41 @@ const DriverDetails = () => {
     
     setProcessingAction(true);
     try {
-      // Delete from drivers table first
-      const { error: driverError } = await supabase
+      console.log("Rejecting driver with ID:", driver.id);
+      
+      // First update the driver status to rejected if it exists
+      const { error: updateError } = await supabase
         .from("drivers")
-        .delete()
+        .update({ status: "rejected" })
         .eq("id", driver.id);
       
-      if (driverError) {
-        console.error("Error deleting driver record:", driverError);
-        throw driverError;
+      if (updateError && updateError.code !== 'PGRST404') {
+        console.error("Error updating driver status:", updateError);
+        throw updateError;
       }
       
-      // Then delete from profiles table
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", driver.id);
-      
-      if (profileError) {
-        console.error("Error deleting profile record:", profileError);
-        throw profileError;
+      // Try to disable the user account instead of deleting
+      try {
+        // This requires admin rights
+        const { error: authError } = await supabase.auth.admin.updateUserById(
+          driver.id,
+          { banned: true }
+        );
+        
+        if (authError) {
+          console.error("Could not disable user account:", authError);
+        }
+      } catch (e) {
+        console.error("Error disabling user account:", e);
       }
       
-      toast.success("تم حذف حساب السائق بشكل نهائي");
+      toast.success("تم رفض السائق بنجاح");
       
-      // Wait a moment to ensure the toast is visible
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Update local state
+      setDriver(prevDriver => prevDriver ? {...prevDriver, status: "rejected"} : null);
       
-      // Navigate back after showing the success toast
-      navigate("/admin/driver-verification");
+      // Navigate back after a short delay
+      setTimeout(() => navigate("/admin/driver-verification"), 1000);
     } catch (error) {
       console.error("Error rejecting driver:", error);
       toast.error("حدث خطأ أثناء رفض السائق");
@@ -314,7 +335,7 @@ const DriverDetails = () => {
             onClick={rejectDriver}
             disabled={processingAction}
           >
-            <X size={16} className="ml-1" /> رفض تام
+            <X size={16} className="ml-1" /> رفض
           </Button>
         </CardFooter>
       </Card>

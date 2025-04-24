@@ -5,7 +5,7 @@ import { useLanguage } from "@/components/ui/language-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Eye, Search } from "lucide-react";
+import { Eye, Search, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -55,10 +55,23 @@ const DriverVerification = () => {
 
       if (driversError) throw driversError;
 
+      // Create a map for quick lookup of driver status
+      const driverStatusMap = {};
+      if (driversData) {
+        driversData.forEach(driver => {
+          driverStatusMap[driver.id] = driver.status;
+        });
+      }
+
       // Fetch emails from auth (this will work if you have admin rights)
       const emailPromises = driverIds.map(async (id) => {
-        const { data: userData } = await supabase.auth.admin.getUserById(id);
-        return { id, email: userData?.user?.email };
+        try {
+          const { data: userData } = await supabase.auth.admin.getUserById(id);
+          return { id, email: userData?.user?.email };
+        } catch (err) {
+          console.error(`Error fetching email for user ${id}:`, err);
+          return { id, email: null };
+        }
       });
 
       const emailResults = await Promise.all(emailPromises);
@@ -68,11 +81,10 @@ const DriverVerification = () => {
 
       // Combine all data
       const driversCombined = profilesData.map((profile) => {
-        const driverDetail = driversData?.find(d => d.id === profile.id);
         return {
           ...profile,
           email: emailMap[profile.id],
-          status: driverDetail?.status ?? "pending",
+          status: driverStatusMap[profile.id] ?? "pending",
         };
       });
 
@@ -119,7 +131,18 @@ const DriverVerification = () => {
 
   return (
     <div className="p-6 flex flex-col min-h-svh">
-      <h1 className="text-2xl font-bold mb-6">إدارة السائقين</h1>
+      <div className="flex justify-between mb-6">
+        <h1 className="text-2xl font-bold">إدارة السائقين</h1>
+        <Button 
+          variant="outline" 
+          onClick={fetchDrivers} 
+          disabled={loading}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          تحديث البيانات
+        </Button>
+      </div>
       
       <div className="mb-6">
         <div className="relative w-full max-w-sm mb-4">
