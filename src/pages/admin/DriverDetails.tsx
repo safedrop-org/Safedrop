@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,16 +88,19 @@ const DriverDetails = () => {
     
     setProcessingAction(true);
     try {
+      // First check if driver record exists
       const { data: existingDriver, error: checkError } = await supabase
         .from("drivers")
-        .select("id")
+        .select("id, status")
         .eq("id", driver.id)
         .maybeSingle();
       
       if (checkError) {
         console.error("Error checking driver existence:", checkError);
+        throw new Error("فشل في التحقق من وجود السائق في قاعدة البيانات");
       }
       
+      // Prepare driver data
       const driverData = {
         status: "approved",
         rejection_reason: null,
@@ -112,6 +116,7 @@ const DriverDetails = () => {
       
       let result;
       
+      // Create or update the driver record
       if (!existingDriver) {
         console.log("Creating new driver record:", { id: driver.id, ...driverData });
         result = await supabase
@@ -127,17 +132,19 @@ const DriverDetails = () => {
 
       if (result.error) {
         console.error("Error saving driver data:", result.error);
-        throw result.error;
+        throw new Error("حدث خطأ أثناء حفظ بيانات السائق");
       }
       
       toast.success("تم قبول السائق بنجاح");
       
+      // Update local state
       setDriver(prev => prev ? { ...prev, status: "approved", rejection_reason: null } : null);
       
-      setTimeout(() => navigate("/admin/driver-verification"), 1000);
+      // Navigate back after a short delay
+      setTimeout(() => navigate("/admin/driver-verification"), 1500);
     } catch (error) {
       console.error("Error approving driver:", error);
-      toast.error("حدث خطأ أثناء قبول السائق");
+      toast.error(error.message || "حدث خطأ أثناء قبول السائق");
     } finally {
       setProcessingAction(false);
     }
@@ -146,21 +153,29 @@ const DriverDetails = () => {
   const rejectDriver = async () => {
     if (!driver?.id) return;
     
+    if (!rejectionReason.trim()) {
+      toast.error("يرجى كتابة سبب الرفض");
+      return;
+    }
+    
     setProcessingAction(true);
     try {
+      // First check if driver record exists
       const { data: existingDriver, error: checkError } = await supabase
         .from("drivers")
-        .select("id")
+        .select("id, status")
         .eq("id", driver.id)
         .maybeSingle();
       
       if (checkError) {
         console.error("Error checking driver existence:", checkError);
+        throw new Error("فشل في التحقق من وجود السائق في قاعدة البيانات");
       }
 
+      // Prepare driver data
       const driverData = {
         status: "rejected",
-        rejection_reason: rejectionReason || "تم الرفض بواسطة المسؤول",
+        rejection_reason: rejectionReason,
         national_id: driver.national_id || "",
         license_number: driver.license_number || "",
         vehicle_info: driver.vehicle_info || { 
@@ -173,6 +188,7 @@ const DriverDetails = () => {
       
       let result;
       
+      // Create or update the driver record
       if (!existingDriver) {
         console.log("Creating new driver record with rejected status:", { id: driver.id, ...driverData });
         result = await supabase
@@ -188,19 +204,21 @@ const DriverDetails = () => {
 
       if (result.error) {
         console.error("Error rejecting driver:", result.error);
-        throw result.error;
+        throw new Error("حدث خطأ أثناء رفض السائق");
       }
       
       setShowRejectDialog(false);
       
       toast.success("تم رفض السائق بنجاح");
       
+      // Update local state
       setDriver(prev => prev ? { ...prev, status: "rejected", rejection_reason: rejectionReason } : null);
       
-      setTimeout(() => navigate("/admin/driver-verification"), 1000);
+      // Navigate back after a short delay
+      setTimeout(() => navigate("/admin/driver-verification"), 1500);
     } catch (error) {
       console.error("Error rejecting driver:", error);
-      toast.error("حدث خطأ أثناء رفض السائق");
+      toast.error(error.message || "حدث خطأ أثناء رفض السائق");
     } finally {
       setProcessingAction(false);
     }

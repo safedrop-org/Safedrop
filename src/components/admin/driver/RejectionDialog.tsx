@@ -57,7 +57,7 @@ export const RejectionDialog = ({
           <Button 
             variant="destructive" 
             onClick={onConfirm}
-            disabled={processing}
+            disabled={processing || !rejectionReason.trim()}
           >
             {processing ? "جاري المعالجة..." : "تأكيد الرفض"}
           </Button>
