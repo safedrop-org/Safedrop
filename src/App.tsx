@@ -20,10 +20,15 @@ import Logout from './pages/customer/Logout';
 import Profile from './pages/customer/CustomerProfile'; // Use existing CustomerProfile.tsx as Profile
 
 // Admin Pages
+import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CustomersWithSidebar from './pages/admin/CustomersWithSidebar';
 import DriverVerificationWithSidebar from './pages/admin/DriverVerificationWithSidebar';
 import DriverDetailsWithSidebar from './pages/admin/DriverDetailsWithSidebar';
+import FinanceWithSidebar from './pages/admin/FinanceWithSidebar';
+import OrdersWithSidebar from './pages/admin/OrdersWithSidebar';
+import ComplaintsWithSidebar from './pages/admin/ComplaintsWithSidebar';
+import SettingsWithSidebar from './pages/admin/SettingsWithSidebar';
 
 // Driver Pages
 import DriverDashboard from './pages/driver/DriverDashboard';
@@ -70,6 +75,9 @@ const App = () => {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="*" element={<NotFound />} />
 
+          {/* Admin Login Route */}
+          <Route path="/admin" element={<AdminLogin />} />
+
           {/* Customer Routes */}
           <Route 
             path="/customer" 
@@ -85,19 +93,14 @@ const App = () => {
           </Route>
 
           {/* Admin Routes */}
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedAdminRoute>
-                <Outlet />
-              </ProtectedAdminRoute>
-            }
-          >
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="customers" element={<CustomersWithSidebar />} />
-            <Route path="driver-verification" element={<DriverVerificationWithSidebar />} />
-            <Route path="driver-details/:id" element={<DriverDetailsWithSidebar />} />
-          </Route>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/customers" element={<CustomersWithSidebar />} />
+          <Route path="/admin/driver-verification" element={<DriverVerificationWithSidebar />} />
+          <Route path="/admin/driver-details/:id" element={<DriverDetailsWithSidebar />} />
+          <Route path="/admin/finance" element={<FinanceWithSidebar />} />
+          <Route path="/admin/orders" element={<OrdersWithSidebar />} />
+          <Route path="/admin/complaints" element={<ComplaintsWithSidebar />} />
+          <Route path="/admin/settings" element={<SettingsWithSidebar />} />
 
           {/* Driver Routes */}
           <Route 

@@ -25,7 +25,7 @@ const AdminSidebar = () => {
     {
       icon: <TruckIcon className="h-5 w-5" />,
       label: "إدارة السائقين",
-      path: "/admin/drivers"
+      path: "/admin/driver-verification"
     },
     {
       icon: <UsersIcon className="h-5 w-5" />,

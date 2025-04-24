@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { ShieldCheckIcon, LockIcon } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
@@ -16,7 +16,6 @@ const AdminLoginContent = () => {
   const { t } = useLanguage();
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -24,11 +23,7 @@ const AdminLoginContent = () => {
     setIsLoading(true);
 
     if (!password) {
-      toast({
-        title: "خطأ في تسجيل الدخول",
-        description: "يرجى إدخال كلمة المرور",
-        variant: "destructive",
-      });
+      toast.error("يرجى إدخال كلمة المرور");
       setIsLoading(false);
       return;
     }
@@ -40,10 +35,7 @@ const AdminLoginContent = () => {
         localStorage.setItem('adminAuth', 'true');
         localStorage.setItem('adminEmail', 'admin@safedrop.com');
         
-        toast({
-          title: "تم تسجيل الدخول بنجاح",
-          description: "مرحباً بك في لوحة تحكم المشرف",
-        });
+        toast.success("تم تسجيل الدخول بنجاح. مرحباً بك في لوحة تحكم المشرف");
         
         navigate('/admin/dashboard');
         return;
@@ -51,11 +43,7 @@ const AdminLoginContent = () => {
         throw new Error('كلمة المرور غير صحيحة');
       }
     } catch (error: any) {
-      toast({
-        title: "فشل تسجيل الدخول",
-        description: error.message || "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى",
-        variant: "destructive",
-      });
+      toast.error(error.message || "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى");
     } finally {
       setIsLoading(false);
     }
