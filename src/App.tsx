@@ -1,15 +1,24 @@
 
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { useAuth } from './components/auth/AuthContext';
-import { supabase } from './integrations/supabase/client';
-import { ToastContainer } from 'sonner';
-import 'react-toastify/dist/ReactToastify.css';
+import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@/components/auth/AuthContext'; // Updated import path
+import { supabase } from '@/integrations/supabase/client';
+import { Toaster } from 'sonner'; // Replace ToastContainer with Toaster
+// Remove ReactToastify import
 
 // Public Pages
+import Home from './pages/Home';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import NotFound from './pages/NotFound';
+import Pricing from './pages/Pricing';
+
+// Customer Pages
+import CustomerDashboard from './pages/customer/CustomerDashboard';
+import Logout from './pages/customer/Logout';
+import Profile from './pages/customer/Profile';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -19,14 +28,6 @@ import DriverDetailsWithSidebar from './pages/admin/DriverDetailsWithSidebar';
 
 // Driver Pages
 import DriverDashboard from './pages/driver/DriverDashboard';
-
-const Home = () => <div>Home Page</div>;
-const Login = () => <div>Login Page</div>;
-const Register = () => <div>Register Page</div>;
-const Pricing = () => <div>Pricing Page</div>;
-const CustomerDashboard = () => <div>Customer Dashboard</div>;
-const Profile = () => <div>Profile Page</div>;
-const Logout = () => <div>Logout Page</div>;
 
 // Protected Routes
 const ProtectedRoute = ({ children }) => {
@@ -100,9 +101,10 @@ const App = () => {
           </Route>
         </Routes>
       </Router>
-      <ToastContainer position="bottom-right" />
+      <Toaster position="bottom-right" />
     </>
   );
 };
 
 export default App;
+
