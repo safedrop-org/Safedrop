@@ -3,26 +3,29 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthContext";
 
-export const useOrders = () => {
+export const useDriverRatings = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['orders', user?.id],
+    queryKey: ['driver_ratings', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data: orders, error } = await supabase
-        .from('orders')
+      const { data: ratings, error } = await supabase
+        .from('driver_ratings')
         .select(`
           *,
-          customer:profiles(first_name, last_name),
-          driver:profiles(first_name, last_name)
+          order:orders(
+            id,
+            pickup_location,
+            dropoff_location,
+            driver:profiles(first_name, last_name)
+          )
         `)
-        .eq('customer_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return orders;
+      return ratings;
     },
     enabled: !!user
   });
