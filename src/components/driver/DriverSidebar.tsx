@@ -103,7 +103,7 @@ const DriverSidebar = () => {
         <Button 
           onClick={handleLogout} 
           variant="outline" 
-          className="w-full text-white border-white/20 hover:bg-white/10 hover:text-white flex items-center gap-2"
+          className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
         >
           <LogOut className="h-4 w-4" />
           <span>تسجيل الخروج</span>

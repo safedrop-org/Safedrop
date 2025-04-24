@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,96 +8,62 @@ import { Badge } from '@/components/ui/badge';
 import DriverSidebar from '@/components/driver/DriverSidebar';
 import { PhoneIcon, MapPinIcon, ClockIcon, CheckIcon, XIcon, AlertTriangleIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { useOrders } from '@/hooks/useOrders';
+import { useAuth } from '@/hooks/useAuth';
 
 const DriverOrdersContent = () => {
   const { t } = useLanguage();
   const [isAvailable, setIsAvailable] = useState(true);
-  
-  const availableOrders = [
-    {
-      id: "12351",
-      pickup: "الرياض، حي العليا",
-      dropoff: "الرياض، حي الورود",
-      distance: "15 كم",
-      price: "110 ريال",
-      time: "15 دقيقة"
-    },
-    {
-      id: "12352",
-      pickup: "الرياض، حي الرحمانية",
-      dropoff: "الرياض، حي المروج",
-      distance: "8 كم",
-      price: "75 ريال",
-      time: "10 دقائق"
-    }
-  ];
-  
-  const currentOrders = [
-    {
-      id: "12350",
-      customer: "خالد أحمد",
-      phone: "0512345678",
-      pickup: "الرياض، حي الملقا",
-      dropoff: "الرياض، حي النخيل",
-      price: "120 ريال",
-      status: "قيد التوصيل",
-      time: "2025-04-15 14:30"
-    }
-  ];
-  
-  const orderHistory = [
-    {
-      id: "12345",
-      date: "2025-04-01",
-      customer: "محمد سعيد",
-      pickup: "الرياض، حي الملقا",
-      dropoff: "الرياض، حي النخيل",
-      price: "120 ريال",
-      rating: 5
-    },
-    {
-      id: "12346",
-      date: "2025-03-25",
-      customer: "سارة محمد",
-      pickup: "الرياض، حي العليا",
-      dropoff: "الرياض، حي الورود",
-      price: "95 ريال",
-      rating: 4
-    },
-    {
-      id: "12347",
-      date: "2025-03-20",
-      customer: "عبدالله خالد",
-      pickup: "الرياض، حي النزهة",
-      dropoff: "الرياض، حي الياسمين",
-      price: "85 ريال",
-      rating: 5
-    },
-    {
-      id: "12348",
-      date: "2025-03-15",
-      customer: "فاطمة سعد",
-      pickup: "الرياض، حي الشفا",
-      dropoff: "الرياض، حي الحمراء",
-      price: "130 ريال",
-      rating: 4
-    }
-  ];
+  const { user } = useAuth();
+  const { data: orders, isLoading, error } = useOrders();
 
-  const handleAcceptOrder = (id: string) => {
-    toast.success(`تم قبول الطلب رقم ${id} بنجاح`);
+  const availableOrders = orders?.filter(order => !order.driver_id) ?? [];
+  const currentOrders = orders?.filter(order => 
+    order.driver_id === user?.id && 
+    order.status !== 'completed' && 
+    order.status !== 'cancelled'
+  ) ?? [];
+  const orderHistory = orders?.filter(order => 
+    order.driver_id === user?.id && 
+    (order.status === 'completed' || order.status === 'cancelled')
+  ) ?? [];
+
+  const handleAcceptOrder = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ driver_id: user?.id, status: 'accepted' })
+        .eq('id', id);
+      
+      if (error) throw error;
+      toast.success(`تم قبول الطلب رقم ${id} بنجاح`);
+    } catch (err) {
+      console.error('Error accepting order:', err);
+      toast.error('حدث خطأ أثناء قبول الطلب');
+    }
   };
 
-  const handleCompleteOrder = (id: string) => {
-    toast.success(`تم توصيل الطلب رقم ${id} بنجاح`);
-  };
-
-  const handleCancelOrder = (id: string) => {
-    toast.error(`تم إلغاء الطلب رقم ${id}`);
+  const handleCompleteOrder = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'completed', actual_delivery_time: new Date().toISOString() })
+        .eq('id', id);
+      
+      if (error) throw error;
+      toast.success(`تم توصيل الطلب رقم ${id} بنجاح`);
+    } catch (err) {
+      console.error('Error completing order:', err);
+      toast.error('حدث خطأ أثناء تحديث حالة الطلب');
+    }
   };
 
   const handleContactCustomer = (phone: string) => {
     toast.info(`جاري الاتصال بالعميل: ${phone}`);
+  };
+
+  const handleCancelOrder = (id: string) => {
+    toast.error(`تم إلغاء الطلب رقم ${id}`);
   };
 
   return (
@@ -368,7 +333,6 @@ const DriverOrdersContent = () => {
   );
 };
 
-// Wrap the component with LanguageProvider
 const DriverOrders = () => {
   return (
     <LanguageProvider>
