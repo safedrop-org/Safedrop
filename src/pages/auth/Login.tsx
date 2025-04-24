@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -47,11 +46,13 @@ const LoginContent = () => {
       console.log("Found profile:", profile);
       
       if (profile?.user_type === 'admin') {
+        localStorage.setItem('adminAuth', 'true');
         navigate('/admin/dashboard');
       } else if (profile?.user_type === 'driver') {
+        localStorage.setItem('driverAuth', 'true');
         checkDriverStatus(userId);
-      } else {
-        // Default to customer
+      } else if (profile?.user_type === 'customer') {
+        localStorage.setItem('customerAuth', 'true');
         navigate('/customer/dashboard');
       }
     } catch (err) {

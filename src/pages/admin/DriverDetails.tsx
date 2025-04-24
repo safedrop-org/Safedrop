@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,17 +68,19 @@ const DriverDetails = () => {
         throw driverError;
       }
       
-      // Fetch user email from auth.users via a function or API endpoint
-      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(id);
-      
-      if (userError) {
-        console.error("Error fetching user data:", userError);
+      // Get email from auth.users (this will be null in most cases as we don't have access to auth.users)
+      let userEmail = null;
+      try {
+        const { data: authUserData } = await supabase.auth.admin.getUserById(id);
+        userEmail = authUserData?.user?.email;
+      } catch (e) {
+        console.log("Could not fetch user email from auth:", e);
       }
       
       setDriver({
         ...profileData,
         ...(driverData || {}),
-        email: userData?.user?.email,
+        email: userEmail || profileData?.email,
       });
     } catch (error) {
       console.error("Error fetching driver details:", error);
@@ -122,15 +125,22 @@ const DriverDetails = () => {
     
     setProcessingAction(true);
     try {
+      console.log("Rejecting driver:", driver.id, permanent ? "permanently" : "with message:", rejectionReason);
+      
       if (permanent) {
-        // Delete the user completely
+        // Completely reject the driver
+        console.log("Performing complete rejection");
+        
         // First delete from drivers table
         const { error: driverError } = await supabase
           .from("drivers")
           .delete()
           .eq("id", driver.id);
         
-        if (driverError) throw driverError;
+        if (driverError) {
+          console.error("Error deleting driver record:", driverError);
+          throw driverError;
+        }
         
         // Then delete from profiles table
         const { error: profileError } = await supabase
@@ -138,25 +148,39 @@ const DriverDetails = () => {
           .delete()
           .eq("id", driver.id);
         
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error("Error deleting profile record:", profileError);
+          throw profileError;
+        }
         
-        // Finally delete from auth.users through admin API
-        const { error: authError } = await supabase.auth.admin.deleteUser(driver.id);
-        
-        if (authError) throw authError;
+        // Finally delete from auth.users if we have access (this might fail without admin rights)
+        try {
+          const { error: authError } = await supabase.auth.admin.deleteUser(driver.id);
+          if (authError) {
+            console.error("Error deleting auth user (this is expected without admin rights):", authError);
+          }
+        } catch (e) {
+          console.log("Could not delete auth user (this is expected without admin rights):", e);
+        }
         
         toast.success("تم حذف حساب السائق بشكل نهائي");
       } else {
         // Just reject with a message
+        console.log("Rejecting with message:", rejectionReason);
+        
         const { error } = await supabase
           .from("drivers")
           .update({ status: "rejected", rejection_reason: rejectionReason })
           .eq("id", driver.id);
         
-        if (error) throw error;
+        if (error) {
+          console.error("Error updating driver status:", error);
+          throw error;
+        }
         
         toast.success("تم رفض السائق مع إرسال رسالة");
         setRejectionDialogOpen(false);
+        setRejectionReason("");
       }
       
       // Navigate back after a short delay

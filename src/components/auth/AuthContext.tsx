@@ -64,6 +64,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .single();
               
             console.log("User type from profile:", data?.user_type);
+            
+            // Store authentication flags in localStorage based on user type
+            if (data?.user_type === 'customer') {
+              localStorage.setItem('customerAuth', 'true');
+            } else if (data?.user_type === 'driver') {
+              localStorage.setItem('driverAuth', 'true');
+            }
+            
             setUserType(data?.user_type || null);
           } catch (error) {
             console.error("Error fetching user type:", error);
@@ -103,6 +111,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .single();
             
           console.log("Initial user type from profile:", data?.user_type);
+          
+          // Set localStorage flags based on user type
+          if (data?.user_type === 'customer') {
+            localStorage.setItem('customerAuth', 'true');
+          } else if (data?.user_type === 'driver') {
+            localStorage.setItem('driverAuth', 'true');
+          }
+          
           setUserType(data?.user_type || null);
         }
       } catch (error) {

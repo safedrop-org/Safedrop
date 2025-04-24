@@ -119,6 +119,15 @@ const ProtectedDriverRoute = ({ children }) => {
     }
   }
   
+  // Check driver status to see if they should be directed to pending approval
+  if (driverStatus === 'pending' || driverStatus === 'rejected') {
+    const currentPath = window.location.pathname;
+    if (currentPath !== '/driver/pending-approval') {
+      console.log("Driver pending/rejected, redirecting to pending approval page");
+      return <Navigate to="/driver/pending-approval" />;
+    }
+  }
+  
   return <>{children}</>;
 };
 
@@ -230,6 +239,7 @@ const AppContent = () => {
         />
 
         {/* Driver Routes */}
+        <Route path="/driver/pending-approval" element={<PendingApproval />} /> {/* Make this public to avoid redirect loops */}
         <Route 
           path="/driver" 
           element={
@@ -240,7 +250,6 @@ const AppContent = () => {
         >
           <Route path="dashboard" element={<DriverDashboard />} />
           <Route path="orders" element={<DriverOrders />} />
-          <Route path="pending-approval" element={<PendingApproval />} />
         </Route>
       </Routes>
       <Toaster position="bottom-right" />
