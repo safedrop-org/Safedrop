@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { UserIcon, CarIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const RegisterContent = () => {
   const { t } = useLanguage();
@@ -44,10 +45,10 @@ const RegisterContent = () => {
             
             <CardFooter className="flex justify-center">
               <Button 
+                asChild
                 className="bg-safedrop-gold hover:bg-safedrop-gold/90 w-full"
-                onClick={() => window.location.href = '/customer/register'}
               >
-                تسجيل كعميل
+                <Link to="/register/customer">تسجيل كعميل</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -70,10 +71,10 @@ const RegisterContent = () => {
             
             <CardFooter className="flex justify-center">
               <Button 
+                asChild
                 className="bg-safedrop-gold hover:bg-safedrop-gold/90 w-full"
-                onClick={() => window.location.href = '/driver/register'}
               >
-                تسجيل كسائق
+                <Link to="/register/driver">تسجيل كسائق</Link>
               </Button>
             </CardFooter>
           </Card>
@@ -82,9 +83,9 @@ const RegisterContent = () => {
         <div className="mt-8 text-center">
           <p className="text-gray-600">
             لديك حساب بالفعل؟{' '}
-            <a href="/login" className="text-safedrop-gold hover:underline">
+            <Link to="/login" className="text-safedrop-gold hover:underline">
               تسجيل الدخول
-            </a>
+            </Link>
           </p>
         </div>
       </div>

@@ -12,7 +12,9 @@ import Contact from './pages/Contact';
 import Login from './pages/auth/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
-import Pricing from './pages/Services'; // Use existing Services.tsx as Pricing
+import Services from './pages/Services';
+import CustomerRegister from './pages/auth/CustomerRegister';
+import DriverRegister from './pages/auth/DriverRegister';
 
 // Customer Pages
 import CustomerDashboard from './pages/customer/CustomerDashboard';
@@ -72,8 +74,12 @@ const App = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/services" element={<Services />} />
           <Route path="*" element={<NotFound />} />
+          
+          {/* Registration Routes */}
+          <Route path="/register/customer" element={<CustomerRegister />} />
+          <Route path="/register/driver" element={<DriverRegister />} />
 
           {/* Admin Login Route */}
           <Route path="/admin" element={<AdminLogin />} />
