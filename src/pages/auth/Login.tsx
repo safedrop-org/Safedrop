@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -8,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { LockIcon, MailIcon } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 const LoginContent = () => {
@@ -17,29 +18,23 @@ const LoginContent = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     if (!email || !password) {
-      toast({
-        title: t('loginError'),
-        description: t('pleaseEnterEmailAndPassword'),
-        variant: 'destructive',
-      });
+      toast.error('يرجى إدخال البريد الإلكتروني وكلمة المرور');
       setIsLoading(false);
       return;
     }
 
     try {
+      console.log('Attempting login with:', email);
+      
       // If email is admin email, redirect to admin login page
       if (email.toLowerCase() === 'admin@safedrop.com') {
-        toast({
-          title: t('adminLoginRedirectTitle'),
-          description: t('adminLoginRedirectDescription'),
-        });
+        toast.info('يرجى استخدام صفحة تسجيل دخول المسؤول');
         navigate('/admin');
         setIsLoading(false);
         return;
@@ -55,41 +50,36 @@ const LoginContent = () => {
         console.error('Login error:', error);
         
         if (error.message === 'Email not confirmed') {
-          toast({
-            title: 'البريد الإلكتروني غير مؤكد',
-            description: 'يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك',
-            variant: 'destructive',
-          });
+          toast.error('البريد الإلكتروني غير مؤكد، يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك');
         } else if (error.message === 'Invalid login credentials') {
-          toast({
-            title: t('loginFailed'),
-            description: 'بيانات الدخول غير صحيحة، يرجى التحقق من البريد الإلكتروني وكلمة المرور',
-            variant: 'destructive',
-          });
+          toast.error('بيانات الدخول غير صحيحة، يرجى التحقق من البريد الإلكتروني وكلمة المرور');
         } else {
-          toast({
-            title: t('loginFailed'),
-            description: error.message || t('invalidCredentialsTryAgain'),
-            variant: 'destructive',
-          });
+          toast.error(error.message || 'حدث خطأ أثناء تسجيل الدخول');
         }
         setIsLoading(false);
         return;
       }
       
       if (!data.user) {
-        throw new Error(t('failedToGetUserInfo'));
+        throw new Error('فشل الحصول على معلومات المستخدم');
       }
 
+      console.log('Login successful, user:', data.user);
+      console.log('Session:', data.session);
+
       try {
-        // Retrieve user profile but don't block login if it fails
-        const { data: profile } = await supabase
+        // Retrieve user profile
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('user_type')
           .eq('id', data.user.id)
           .maybeSingle();
 
         console.log("Profile data:", profile);
+        
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+        }
         
         // Set authentication state based on profile if available, default to customer otherwise
         if (profile?.user_type === 'admin') {
@@ -103,28 +93,29 @@ const LoginContent = () => {
           localStorage.removeItem('adminAuth');
           
           // Check driver status if profile exists
-          if (profile) {
-            try {
-              const { data: driverData } = await supabase
-                .from('drivers')
-                .select('status')
-                .eq('id', data.user.id)
-                .maybeSingle();
+          try {
+            const { data: driverData, error: driverError } = await supabase
+              .from('drivers')
+              .select('status')
+              .eq('id', data.user.id)
+              .maybeSingle();
 
-              // Navigate based on driver status if available
-              if (driverData?.status === 'approved') {
-                navigate('/driver/dashboard');
-              } else {
-                navigate('/driver/pending-approval');
-              }
-            } catch (err) {
-              console.error("Exception when checking driver status:", err);
-              // Default to pending approval page if error checking status
+            if (driverError) {
+              console.error("Error fetching driver status:", driverError);
+            }
+
+            console.log("Driver data:", driverData);
+
+            // Navigate based on driver status if available
+            if (driverData?.status === 'approved') {
+              navigate('/driver/dashboard');
+            } else {
               navigate('/driver/pending-approval');
             }
-          } else {
-            // Default to dashboard if no profile
-            navigate('/driver/dashboard');
+          } catch (err) {
+            console.error("Exception when checking driver status:", err);
+            // Default to pending approval page if error checking status
+            navigate('/driver/pending-approval');
           }
         } else {
           // Default to customer for any other user_type or if profile doesn't exist
@@ -134,10 +125,7 @@ const LoginContent = () => {
           navigate('/customer/dashboard');
         }
 
-        toast({
-          title: t('loginSuccess'),
-          description: t('welcomeBack'),
-        });
+        toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
       } catch (err) {
         console.error("Exception during profile handling:", err);
         // Even if profile check fails, continue to customer dashboard
@@ -146,19 +134,12 @@ const LoginContent = () => {
         localStorage.removeItem('adminAuth');
         navigate('/customer/dashboard');
         
-        toast({
-          title: t('loginSuccess'),
-          description: t('welcomeBack'),
-        });
+        toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
       }
     } catch (error: any) {
       console.error('Login error:', error);
       
-      toast({
-        title: 'فشل تسجيل الدخول',
-        description: error.message || 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.',
-        variant: 'destructive',
-      });
+      toast.error('فشل تسجيل الدخول: ' + (error.message || 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.'));
     } finally {
       setIsLoading(false);
     }

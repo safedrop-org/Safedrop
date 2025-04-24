@@ -1,7 +1,7 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/components/auth/AuthContext'; // Fixed import path with @ alias
+import { AuthProvider, useAuth } from '@/components/auth/AuthContext'; // Fixed import path with @ alias
 import { supabase } from '@/integrations/supabase/client';
 import { Toaster } from 'sonner'; // Replace ToastContainer with Toaster
 
@@ -48,85 +48,149 @@ const ProtectedCustomerRoute = ({ children }) => {
   return isLoggedIn && userType === 'customer' ? <>{children}</> : <Navigate to="/login" />;
 };
 
-const ProtectedAdminRoute = ({ children }) => {
+const ProtectedDriverRoute = ({ children }) => {
   const { isLoggedIn, userType } = useAuth();
-  return isLoggedIn && userType === 'admin' ? <>{children}</> : <Navigate to="/login" />;
+  return isLoggedIn && userType === 'driver' ? <>{children}</> : <Navigate to="/login" />;
 };
 
-const App = () => {
-  const [session, setSession] = useState(null);
+const ProtectedAdminRoute = ({ children }) => {
+  const { isLoggedIn, userType } = useAuth();
+  return isLoggedIn && userType === 'admin' ? <>{children}</> : <Navigate to="/admin" />;
+};
 
+const AppContent = () => {
+  const { user } = useAuth();
+  
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-  }, []);
+    // Log auth state for debugging
+    console.log("Auth state in App:", { user });
+  }, [user]);
 
   return (
     <>
-      <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="*" element={<NotFound />} />
-          
-          {/* Registration Routes */}
-          <Route path="/register/customer" element={<CustomerRegister />} />
-          <Route path="/register/driver" element={<DriverRegister />} />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="*" element={<NotFound />} />
+        
+        {/* Registration Routes */}
+        <Route path="/register/customer" element={<CustomerRegister />} />
+        <Route path="/register/driver" element={<DriverRegister />} />
 
-          {/* Admin Login Route */}
-          <Route path="/admin" element={<AdminLogin />} />
+        {/* Admin Login Route */}
+        <Route path="/admin" element={<AdminLogin />} />
 
-          {/* Customer Routes */}
-          <Route 
-            path="/customer" 
-            element={
-              <ProtectedCustomerRoute>
-                <Outlet />
-              </ProtectedCustomerRoute>
-            }
-          >
-            <Route path="dashboard" element={<CustomerDashboard />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="logout" element={<Logout />} />
-          </Route>
+        {/* Customer Routes */}
+        <Route 
+          path="/customer" 
+          element={
+            <ProtectedCustomerRoute>
+              <Outlet />
+            </ProtectedCustomerRoute>
+          }
+        >
+          <Route path="dashboard" element={<CustomerDashboard />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="logout" element={<Logout />} />
+        </Route>
 
-          {/* Admin Routes */}
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/customers" element={<CustomersWithSidebar />} />
-          <Route path="/admin/driver-verification" element={<DriverVerificationWithSidebar />} />
-          <Route path="/admin/driver-details/:id" element={<DriverDetailsWithSidebar />} />
-          <Route path="/admin/finance" element={<FinanceWithSidebar />} />
-          <Route path="/admin/orders" element={<OrdersWithSidebar />} />
-          <Route path="/admin/complaints" element={<ComplaintsWithSidebar />} />
-          <Route path="/admin/settings" element={<SettingsWithSidebar />} />
+        {/* Admin Routes */}
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            <ProtectedAdminRoute>
+              <AdminDashboard />
+            </ProtectedAdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/customers" 
+          element={
+            <ProtectedAdminRoute>
+              <CustomersWithSidebar />
+            </ProtectedAdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/driver-verification" 
+          element={
+            <ProtectedAdminRoute>
+              <DriverVerificationWithSidebar />
+            </ProtectedAdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/driver-details/:id" 
+          element={
+            <ProtectedAdminRoute>
+              <DriverDetailsWithSidebar />
+            </ProtectedAdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/finance" 
+          element={
+            <ProtectedAdminRoute>
+              <FinanceWithSidebar />
+            </ProtectedAdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/orders" 
+          element={
+            <ProtectedAdminRoute>
+              <OrdersWithSidebar />
+            </ProtectedAdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/complaints" 
+          element={
+            <ProtectedAdminRoute>
+              <ComplaintsWithSidebar />
+            </ProtectedAdminRoute>
+          } 
+        />
+        <Route 
+          path="/admin/settings" 
+          element={
+            <ProtectedAdminRoute>
+              <SettingsWithSidebar />
+            </ProtectedAdminRoute>
+          } 
+        />
 
-          {/* Driver Routes */}
-          <Route 
-            path="/driver" 
-            element={
-              <ProtectedRoute>
-                <Outlet />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="dashboard" element={<DriverDashboard />} />
-            <Route path="orders" element={<DriverOrders />} />
-            <Route path="pending-approval" element={<PendingApproval />} />
-          </Route>
-        </Routes>
-      </Router>
+        {/* Driver Routes */}
+        <Route 
+          path="/driver" 
+          element={
+            <ProtectedDriverRoute>
+              <Outlet />
+            </ProtectedDriverRoute>
+          }
+        >
+          <Route path="dashboard" element={<DriverDashboard />} />
+          <Route path="orders" element={<DriverOrders />} />
+          <Route path="pending-approval" element={<PendingApproval />} />
+        </Route>
+      </Routes>
       <Toaster position="bottom-right" />
     </>
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
   );
 };
 
