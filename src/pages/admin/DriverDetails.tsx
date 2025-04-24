@@ -91,46 +91,53 @@ const DriverDetails = () => {
     try {
       console.log("Approving driver with ID:", driver.id);
       
-      // First check if driver record exists
-      const { data: existingDriver } = await supabase
+      // Check or create driver record
+      const { data: existingDriver, error: fetchError } = await supabase
         .from("drivers")
         .select("id")
         .eq("id", driver.id)
         .maybeSingle();
         
-      if (existingDriver) {
-        console.log("Found existing driver record, updating status");
-        // Update existing driver record
-        const { error } = await supabase
-          .from("drivers")
-          .update({ status: "approved", rejection_reason: null })
-          .eq("id", driver.id);
-        
-        if (error) {
-          console.error("Error updating driver status:", error);
-          throw error;
-        }
-        
-        console.log("Driver status updated successfully");
-      } else {
-        console.log("No existing driver record, creating new one");
-        // Insert new driver record with approved status
-        const { error } = await supabase
+      if (fetchError) {
+        console.error("Error fetching driver record:", fetchError);
+        throw fetchError;
+      }
+      
+      if (!existingDriver) {
+        // Create a new driver record if it doesn't exist
+        const { error: insertError } = await supabase
           .from("drivers")
           .insert({
             id: driver.id,
             status: "approved",
             national_id: driver.national_id || "",
             license_number: driver.license_number || "",
-            vehicle_info: driver.vehicle_info || { make: "", model: "", year: "", plateNumber: "" }
+            vehicle_info: driver.vehicle_info || { 
+              make: "", 
+              model: "", 
+              year: "", 
+              plateNumber: "" 
+            }
           });
-          
+        
+        if (insertError) {
+          console.error("Error creating driver record:", insertError);
+          throw insertError;
+        }
+      } else {
+        // Update existing driver record
+        const { error } = await supabase
+          .from("drivers")
+          .update({ 
+            status: "approved", 
+            rejection_reason: null 
+          })
+          .eq("id", driver.id);
+        
         if (error) {
-          console.error("Error creating driver record:", error);
+          console.error("Error updating driver status:", error);
           throw error;
         }
-        
-        console.log("New driver record created with approved status");
       }
       
       toast.success("تم قبول السائق بنجاح");
@@ -155,21 +162,54 @@ const DriverDetails = () => {
     try {
       console.log("Rejecting driver with ID:", driver.id);
       
-      // Update the driver status to rejected
-      const { error: updateError } = await supabase
+      // Check or create driver record
+      const { data: existingDriver, error: fetchError } = await supabase
         .from("drivers")
-        .update({ status: "rejected" })
-        .eq("id", driver.id);
-      
-      if (updateError) {
-        console.error("Error updating driver status:", updateError);
-        throw updateError;
+        .select("id")
+        .eq("id", driver.id)
+        .maybeSingle();
+        
+      if (fetchError) {
+        console.error("Error fetching driver record:", fetchError);
+        throw fetchError;
       }
       
-      // Try to disable the user account
+      if (!existingDriver) {
+        // Create a new driver record if it doesn't exist
+        const { error: insertError } = await supabase
+          .from("drivers")
+          .insert({
+            id: driver.id,
+            status: "rejected",
+            national_id: driver.national_id || "",
+            license_number: driver.license_number || "",
+            vehicle_info: driver.vehicle_info || { 
+              make: "", 
+              model: "", 
+              year: "", 
+              plateNumber: "" 
+            }
+          });
+        
+        if (insertError) {
+          console.error("Error creating driver record:", insertError);
+          throw insertError;
+        }
+      } else {
+        // Update existing driver record
+        const { error } = await supabase
+          .from("drivers")
+          .update({ status: "rejected" })
+          .eq("id", driver.id);
+        
+        if (error) {
+          console.error("Error updating driver status:", error);
+          throw error;
+        }
+      }
+      
+      // Update user metadata in auth
       try {
-        // Instead of using the 'banned' property which doesn't exist,
-        // We'll just update the user's app_metadata to indicate rejection
         const { error: authError } = await supabase.auth.admin.updateUserById(
           driver.id,
           { app_metadata: { status: 'rejected' } }
