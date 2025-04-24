@@ -1,14 +1,12 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { DriverInfoCard } from "@/components/admin/driver/DriverInfoCard";
+import { DriverActions } from "@/components/admin/driver/DriverActions";
+import { RejectionDialog } from "@/components/admin/driver/RejectionDialog";
 
 interface DriverDetails {
   id: string;
@@ -45,7 +43,6 @@ const DriverDetails = () => {
     
     setLoading(true);
     try {
-      // Fetch profile data
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -54,7 +51,6 @@ const DriverDetails = () => {
       
       if (profileError) throw profileError;
       
-      // Fetch driver specific data
       const { data: driverData, error: driverError } = await supabase
         .from("drivers")
         .select("*")
@@ -65,7 +61,6 @@ const DriverDetails = () => {
         throw driverError;
       }
       
-      // Get email from auth.users - this will now be silently handled if it fails
       let userEmail = null;
       try {
         const { data: authUserData } = await supabase.auth.admin.getUserById(id);
@@ -92,7 +87,6 @@ const DriverDetails = () => {
     
     setProcessingAction(true);
     try {
-      // Check if driver record exists
       const { data: existingDriver, error: checkError } = await supabase
         .from("drivers")
         .select("id")
@@ -103,7 +97,6 @@ const DriverDetails = () => {
         console.error("Error checking driver existence:", checkError);
       }
       
-      // Create driver data object
       const driverData = {
         status: "approved",
         rejection_reason: null,
@@ -120,13 +113,11 @@ const DriverDetails = () => {
       let result;
       
       if (!existingDriver) {
-        // Insert new record
         console.log("Creating new driver record:", { id: driver.id, ...driverData });
         result = await supabase
           .from("drivers")
           .insert({ id: driver.id, ...driverData });
       } else {
-        // Update existing record
         console.log("Updating existing driver:", { id: driver.id, ...driverData });
         result = await supabase
           .from("drivers")
@@ -141,10 +132,8 @@ const DriverDetails = () => {
       
       toast.success("تم قبول السائق بنجاح");
       
-      // Update local state
       setDriver(prev => prev ? { ...prev, status: "approved", rejection_reason: null } : null);
       
-      // Navigate back after a delay
       setTimeout(() => navigate("/admin/driver-verification"), 1000);
     } catch (error) {
       console.error("Error approving driver:", error);
@@ -154,21 +143,11 @@ const DriverDetails = () => {
     }
   };
 
-  const openRejectDialog = () => {
-    setShowRejectDialog(true);
-  };
-
-  const closeRejectDialog = () => {
-    setShowRejectDialog(false);
-    setRejectionReason("");
-  };
-
   const rejectDriver = async () => {
     if (!driver?.id) return;
     
     setProcessingAction(true);
     try {
-      // Check if driver record exists
       const { data: existingDriver, error: checkError } = await supabase
         .from("drivers")
         .select("id")
@@ -179,7 +158,6 @@ const DriverDetails = () => {
         console.error("Error checking driver existence:", checkError);
       }
 
-      // Create driver data object with rejection reason
       const driverData = {
         status: "rejected",
         rejection_reason: rejectionReason || "تم الرفض بواسطة المسؤول",
@@ -196,13 +174,11 @@ const DriverDetails = () => {
       let result;
       
       if (!existingDriver) {
-        // Insert new record
         console.log("Creating new driver record with rejected status:", { id: driver.id, ...driverData });
         result = await supabase
           .from("drivers")
           .insert({ id: driver.id, ...driverData });
       } else {
-        // Update existing record
         console.log("Updating existing driver with rejected status:", { id: driver.id, ...driverData });
         result = await supabase
           .from("drivers")
@@ -215,15 +191,12 @@ const DriverDetails = () => {
         throw result.error;
       }
       
-      // Close dialog
       setShowRejectDialog(false);
       
       toast.success("تم رفض السائق بنجاح");
       
-      // Update local state
       setDriver(prev => prev ? { ...prev, status: "rejected", rejection_reason: rejectionReason } : null);
       
-      // Navigate back after a delay
       setTimeout(() => navigate("/admin/driver-verification"), 1000);
     } catch (error) {
       console.error("Error rejecting driver:", error);
@@ -267,150 +240,28 @@ const DriverDetails = () => {
           <CardTitle className="text-2xl text-center">تفاصيل السائق</CardTitle>
         </CardHeader>
         
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <div>
-                <span className="font-bold">الاسم الأول: </span>
-                <span>{driver.first_name || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">اسم العائلة: </span>
-                <span>{driver.last_name || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">البريد الإلكتروني: </span>
-                <span>{driver.email || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">رقم الهاتف: </span>
-                <span>{driver.phone || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">تاريخ الميلاد: </span>
-                <span>{driver.birth_date || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">العنوان: </span>
-                <span>{driver.address || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">الحالة: </span>
-                <span className={
-                  driver.status === "approved" ? "text-green-600" :
-                  driver.status === "rejected" ? "text-red-600" :
-                  driver.status === "pending" ? "text-yellow-600" :
-                  "text-gray-600"
-                }>
-                  {driver.status === "approved" ? "مقبول" :
-                   driver.status === "rejected" ? "مرفوض" :
-                   driver.status === "pending" ? "قيد المراجعة" :
-                   "غير محدد"}
-                </span>
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <div>
-                <span className="font-bold">رقم الهوية: </span>
-                <span>{driver.national_id || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">رقم الرخصة: </span>
-                <span>{driver.license_number || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">نوع السيارة: </span>
-                <span>{driver.vehicle_info?.make || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">موديل السيارة: </span>
-                <span>{driver.vehicle_info?.model || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">سنة الصنع: </span>
-                <span>{driver.vehicle_info?.year || "غير متوفر"}</span>
-              </div>
-              
-              <div>
-                <span className="font-bold">رقم اللوحة: </span>
-                <span>{driver.vehicle_info?.plateNumber || "غير متوفر"}</span>
-              </div>
-            </div>
-          </div>
-          
-          {driver.status === "rejected" && driver.rejection_reason && (
-            <Alert className="mt-4 bg-red-50 border-red-200 text-right">
-              <div className="font-bold mb-1">سبب الرفض:</div>
-              <AlertDescription>{driver.rejection_reason}</AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
+        <DriverInfoCard {...driver} />
         
-        <CardFooter className="flex justify-center gap-4 pt-4">
-          <Button 
-            variant="outline" 
-            className="bg-green-50 hover:bg-green-100 border-green-200"
-            onClick={approveDriver}
-            disabled={processingAction || driver.status === "approved"}
-          >
-            <Check size={16} className="ml-1" /> قبول
-          </Button>
-          
-          <Button 
-            variant="destructive"
-            onClick={openRejectDialog}
-            disabled={processingAction || driver.status === "rejected"}
-          >
-            <X size={16} className="ml-1" /> رفض
-          </Button>
-        </CardFooter>
+        <DriverActions 
+          status={driver.status}
+          onApprove={approveDriver}
+          onReject={() => setShowRejectDialog(true)}
+          processingAction={processingAction}
+        />
       </Card>
       
-      {/* Rejection Dialog */}
-      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent className="max-w-md text-right">
-          <DialogHeader>
-            <DialogTitle className="text-center">رفض طلب السائق</DialogTitle>
-            <DialogDescription className="text-center">
-              الرجاء كتابة سبب الرفض ليتم إبلاغ السائق به
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <Textarea
-              placeholder="سبب الرفض"
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              rows={4}
-              className="text-right"
-            />
-          </div>
-          
-          <DialogFooter className="flex sm:justify-center gap-2">
-            <Button variant="outline" onClick={closeRejectDialog}>
-              إلغاء
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={rejectDriver}
-              disabled={processingAction}
-            >
-              {processingAction ? "جاري المعالجة..." : "تأكيد الرفض"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RejectionDialog 
+        open={showRejectDialog}
+        onOpenChange={setShowRejectDialog}
+        onConfirm={rejectDriver}
+        onCancel={() => {
+          setShowRejectDialog(false);
+          setRejectionReason("");
+        }}
+        rejectionReason={rejectionReason}
+        onReasonChange={setRejectionReason}
+        processing={processingAction}
+      />
     </div>
   );
 };
