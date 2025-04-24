@@ -92,33 +92,52 @@ const DriverDetails = () => {
     if (!driver?.id) return;
     
     try {
+      // Ensure vehicle_info is properly structured
+      const vehicleInfo = {
+        make: driver.vehicle_info?.make || "",
+        model: driver.vehicle_info?.model || "",
+        year: driver.vehicle_info?.year || "",
+        plateNumber: driver.vehicle_info?.plateNumber || ""
+      };
+      
       // Prepare driver data with all required fields
       const driverData = {
         id: driver.id,
         status: status,
         rejection_reason: rejectionReason,
-        // Ensure all required fields are present to avoid null value errors
         national_id: driver.national_id || "",
         license_number: driver.license_number || "",
-        vehicle_info: driver.vehicle_info || { 
-          make: "", 
-          model: "", 
-          year: "", 
-          plateNumber: "" 
-        }
+        vehicle_info: vehicleInfo
       };
       
-      // Use upsert with onConflict to handle both insert and update cases
-      const { error } = await supabase
+      console.log("Updating driver status with data:", driverData);
+      
+      const { data, error } = await supabase
         .from("drivers")
-        .upsert(driverData, { 
-          onConflict: 'id',
-          ignoreDuplicates: false 
-        });
+        .upsert(driverData)
+        .select();
         
       if (error) {
         console.error("Error saving driver status:", error);
-        throw new Error(error.message);
+        throw error;
+      }
+      
+      console.log("Update response:", data);
+      
+      // Verify the update by fetching the latest data
+      const { data: verifyData, error: verifyError } = await supabase
+        .from("drivers")
+        .select("status, rejection_reason")
+        .eq("id", driver.id)
+        .single();
+        
+      if (verifyError) {
+        console.error("Error verifying update:", verifyError);
+      } else {
+        console.log("Verified status after update:", verifyData);
+        if (verifyData.status !== status) {
+          console.warn("Status mismatch after update! Expected:", status, "Got:", verifyData.status);
+        }
       }
       
       return true;

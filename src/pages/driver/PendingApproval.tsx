@@ -27,6 +27,8 @@ const PendingApprovalContent = () => {
       setError(null);
       
       try {
+        console.log("Fetching driver status for user ID:", user.id);
+        
         const { data, error } = await supabase
           .from('drivers')
           .select('status, rejection_reason')
@@ -40,6 +42,7 @@ const PendingApprovalContent = () => {
           return;
         }
 
+        console.log("Driver status data:", data);
         setDriverStatus(data);
         
         // Auto-redirect if approved
@@ -69,6 +72,35 @@ const PendingApprovalContent = () => {
   
   const handleRefresh = () => {
     window.location.reload();
+  };
+
+  const handleManualCheck = async () => {
+    if (!user?.id) return;
+    
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('drivers')
+        .select('status, rejection_reason')
+        .eq('id', user.id)
+        .maybeSingle();
+        
+      if (error) {
+        throw error;
+      }
+      
+      setDriverStatus(data);
+      toast.success("تم تحديث الحالة بنجاح");
+      
+      if (data?.status === 'approved') {
+        navigate('/driver/dashboard');
+      }
+    } catch (err) {
+      console.error("Error manually checking status:", err);
+      setError("فشل تحديث الحالة. يرجى المحاولة مرة أخرى");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isLoading) {
@@ -228,10 +260,11 @@ const PendingApprovalContent = () => {
           <Button 
             variant="outline" 
             className="w-full flex items-center justify-center gap-2 text-safedrop-primary border-safedrop-primary hover:bg-safedrop-primary/10"
-            onClick={handleRefresh}
+            onClick={handleManualCheck}
+            disabled={isLoading}
           >
             <AlertTriangle className="h-4 w-4" />
-            <span>تحديث الصفحة</span>
+            <span>{isLoading ? "جاري التحديث..." : "تحديث الحالة"}</span>
           </Button>
         </div>
         
