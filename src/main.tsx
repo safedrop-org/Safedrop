@@ -4,6 +4,7 @@ import App from './App.tsx'
 import './index.css'
 import { AuthProvider } from '@/components/auth/AuthContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { LanguageProvider } from '@/components/ui/language-context'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -18,7 +19,9 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <App />
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
