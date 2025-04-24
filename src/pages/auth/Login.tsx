@@ -102,8 +102,22 @@ const LoginContent = () => {
       
       // If email is admin email, redirect to admin login page
       if (email.toLowerCase() === 'admin@safedrop.com') {
-        toast.info('يرجى استخدام صفحة تسجيل دخول المسؤول');
-        navigate('/admin');
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          console.error('Login error:', error);
+          toast.error('كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى');
+          setIsLoading(false);
+          return;
+        }
+
+        // Ensure admin is redirected to dashboard
+        localStorage.setItem('adminAuth', 'true');
+        toast.success('تم تسجيل الدخول كمسؤول');
+        navigate('/admin/dashboard');
         setIsLoading(false);
         return;
       }
