@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { PhoneIcon, MapPinIcon, ClockIcon, CheckIcon, XIcon, AlertTriangleIcon }
 import { toast } from 'sonner';
 import { useOrders } from '@/hooks/useOrders';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const DriverOrdersContent = () => {
   const { t } = useLanguage();
