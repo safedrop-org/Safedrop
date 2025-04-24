@@ -1,12 +1,11 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Button } from '@/components/ui/button';
 import { Clock, AlertTriangle, XCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useState } from 'react';
 import { toast } from "@/hooks/use-toast";
 
 const PendingApprovalContent = () => {
@@ -28,8 +27,22 @@ const PendingApprovalContent = () => {
       setError(null);
       
       try {
-        console.log("Fetching driver status for user ID:", user.id);
-        
+        // Verify if user has a driver role
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'driver')
+          .maybeSingle();
+
+        if (roleError || !roleData) {
+          console.error("Error fetching driver role:", roleError);
+          toast.error("لم يتم العثور على دور السائق");
+          navigate('/login');
+          return;
+        }
+
+        // Fetch driver data
         const { data, error } = await supabase
           .from('drivers')
           .select('status, rejection_reason')

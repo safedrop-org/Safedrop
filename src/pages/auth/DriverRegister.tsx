@@ -100,18 +100,8 @@ const DriverRegisterContent = () => {
 
     setIsLoading(true);
     setDebugInfo(null);
-    if (submitAttempts > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
 
     try {
-      const emailExists = await checkEmailExists(data.email);
-      if (emailExists === true) {
-        toast.error('البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول');
-        setIsLoading(false);
-        return;
-      }
-
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -146,6 +136,7 @@ const DriverRegisterContent = () => {
         setIsLoading(false);
         return;
       }
+
       const userId = authData.user.id;
 
       const profileData = {
@@ -191,6 +182,18 @@ const DriverRegisterContent = () => {
         toast.error('خطأ أثناء حفظ بيانات السائق، يرجى المحاولة لاحقًا');
         setIsLoading(false);
         return;
+      }
+
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: 'driver'
+        });
+
+      if (roleError) {
+        console.error("Error assigning driver role:", roleError);
+        toast.warning("تم إنشاء الحساب، لكن حدثت مشكلة في تعيين الدور");
       }
 
       setRegistrationComplete(true);
