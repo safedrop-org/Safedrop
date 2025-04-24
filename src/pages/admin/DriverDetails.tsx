@@ -5,13 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X, MessageSquare } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { Check, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface DriverDetails {
-  // Profile data
   id: string;
   first_name: string;
   last_name: string;
@@ -19,8 +16,6 @@ interface DriverDetails {
   birth_date?: string;
   address?: string;
   email?: string;
-  
-  // Driver data
   national_id?: string;
   license_number?: string;
   license_image?: string;
@@ -39,8 +34,6 @@ const DriverDetails = () => {
   const navigate = useNavigate();
   const [driver, setDriver] = useState<DriverDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState("");
   const [processingAction, setProcessingAction] = useState(false);
 
   const fetchDriverDetails = async () => {
@@ -65,11 +58,10 @@ const DriverDetails = () => {
         .single();
       
       if (driverError && driverError.code !== 'PGRST116') {
-        // PGRST116 is "no rows returned" which is fine, just no driver data
         throw driverError;
       }
       
-      // Get email from auth.users (this will be null in most cases as we don't have access to auth.users)
+      // Get email from auth.users
       let userEmail = null;
       try {
         const { data: authUserData } = await supabase.auth.admin.getUserById(id);
@@ -116,66 +108,34 @@ const DriverDetails = () => {
     }
   };
 
-  const rejectDriver = async (permanent: boolean = false) => {
+  const rejectDriver = async () => {
     if (!driver?.id) return;
-    
-    if (!permanent && !rejectionReason.trim()) {
-      toast.error("يرجى إدخال سبب للرفض");
-      return;
-    }
     
     setProcessingAction(true);
     try {
-      if (permanent) {
-        // Delete from drivers table first
-        const { error: driverError } = await supabase
-          .from("drivers")
-          .delete()
-          .eq("id", driver.id);
-        
-        if (driverError) {
-          console.error("Error deleting driver record:", driverError);
-          throw driverError;
-        }
-        
-        // Then delete from profiles table
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .delete()
-          .eq("id", driver.id);
-        
-        if (profileError) {
-          console.error("Error deleting profile record:", profileError);
-          throw profileError;
-        }
-        
-        toast.success("تم حذف حساب السائق بشكل نهائي");
-      } else {
-        // Update driver status with rejection reason
-        const { error } = await supabase
-          .from("drivers")
-          .update({
-            status: "rejected",
-            rejection_reason: rejectionReason
-          })
-          .eq("id", driver.id);
-        
-        if (error) {
-          console.error("Error updating driver status:", error);
-          throw error;
-        }
-        
-        // Update local state to reflect changes
-        setDriver(prev => prev ? {
-          ...prev,
-          status: "rejected",
-          rejection_reason: rejectionReason
-        } : null);
-        
-        toast.success("تم رفض السائق مع إرسال رسالة");
-        setRejectionDialogOpen(false);
-        setRejectionReason("");
+      // Delete from drivers table first
+      const { error: driverError } = await supabase
+        .from("drivers")
+        .delete()
+        .eq("id", driver.id);
+      
+      if (driverError) {
+        console.error("Error deleting driver record:", driverError);
+        throw driverError;
       }
+      
+      // Then delete from profiles table
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", driver.id);
+      
+      if (profileError) {
+        console.error("Error deleting profile record:", profileError);
+        throw profileError;
+      }
+      
+      toast.success("تم حذف حساب السائق بشكل نهائي");
       
       // Wait a moment to ensure the toast is visible
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -325,50 +285,14 @@ const DriverDetails = () => {
           </Button>
           
           <Button 
-            variant="outline"
-            className="bg-orange-50 hover:bg-orange-100 border-orange-200"
-            onClick={() => setRejectionDialogOpen(true)}
-            disabled={processingAction || driver.status === "rejected"}
-          >
-            <MessageSquare size={16} className="ml-1" /> رفض مع رسالة
-          </Button>
-          
-          <Button 
             variant="destructive"
-            onClick={() => rejectDriver(true)}
+            onClick={rejectDriver}
             disabled={processingAction}
           >
             <X size={16} className="ml-1" /> رفض تام
           </Button>
         </CardFooter>
       </Card>
-      
-      <Dialog open={rejectionDialogOpen} onOpenChange={setRejectionDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>إدخال سبب الرفض</DialogTitle>
-            <DialogDescription>
-              سيتم إرسال هذه الرسالة إلى السائق لإعلامه بسبب رفض طلبه
-            </DialogDescription>
-          </DialogHeader>
-          
-          <Textarea
-            value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
-            placeholder="أدخل سبب الرفض هنا..."
-            className="min-h-[120px]"
-          />
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectionDialogOpen(false)} disabled={processingAction}>
-              إلغاء
-            </Button>
-            <Button onClick={() => rejectDriver(false)} disabled={processingAction || !rejectionReason.trim()}>
-              إرسال وتأكيد الرفض
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
