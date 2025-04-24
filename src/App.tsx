@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -34,6 +33,13 @@ import SettingsWithSidebar from './pages/admin/SettingsWithSidebar';
 import DriverDashboard from './pages/driver/DriverDashboard';
 import DriverOrders from './pages/driver/DriverOrders';
 import PendingApproval from './pages/driver/PendingApproval';
+import DriverRatings from './pages/driver/DriverRatings';
+import DriverProfile from './pages/driver/DriverProfile';
+import DriverVehicle from './pages/driver/DriverVehicle';
+import DriverEarnings from './pages/driver/DriverEarnings';
+import DriverNotifications from './pages/driver/DriverNotifications';
+import DriverSupport from './pages/driver/DriverSupport';
+import DriverSettings from './pages/driver/DriverSettings';
 
 // Auth Components
 import { useAuth, AuthProvider } from '@/components/auth/AuthContext';
@@ -258,7 +264,7 @@ const AppContent = () => {
         />
 
         {/* Driver Routes */}
-        <Route path="/driver/pending-approval" element={<PendingApproval />} /> {/* Make this public to avoid redirect loops */}
+        <Route path="/driver/pending-approval" element={<PendingApproval />} />
         <Route 
           path="/driver" 
           element={
@@ -269,6 +275,13 @@ const AppContent = () => {
         >
           <Route path="dashboard" element={<DriverDashboard />} />
           <Route path="orders" element={<DriverOrders />} />
+          <Route path="vehicle" element={<DriverVehicle />} />
+          <Route path="profile" element={<DriverProfile />} />
+          <Route path="ratings" element={<DriverRatings />} />
+          <Route path="earnings" element={<DriverEarnings />} />
+          <Route path="notifications" element={<DriverNotifications />} />
+          <Route path="support" element={<DriverSupport />} />
+          <Route path="settings" element={<DriverSettings />} />
         </Route>
       </Routes>
       <Toaster position="bottom-right" />

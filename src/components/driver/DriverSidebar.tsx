@@ -1,4 +1,3 @@
-
 import { LayoutDashboard, Package, Truck, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, MessageSquare } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
