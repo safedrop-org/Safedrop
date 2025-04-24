@@ -64,10 +64,15 @@ const DriverDetails = () => {
       
       let userEmail = null;
       try {
-        const { data: authUserData } = await supabase.auth.admin.getUserById(id);
-        userEmail = authUserData?.user?.email;
+        // Skip trying to fetch email from auth for now since admin role is needed
+        const { data: userData } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", id)
+          .single();
+        userEmail = userData?.email;
       } catch (e) {
-        console.log("Could not fetch user email from auth:", e);
+        console.log("Could not fetch user email:", e);
       }
       
       setDriver({
@@ -116,23 +121,33 @@ const DriverDetails = () => {
       
       let result;
       
-      // Create or update the driver record
-      if (!existingDriver) {
-        console.log("Creating new driver record:", { id: driver.id, ...driverData });
-        result = await supabase
-          .from("drivers")
-          .insert({ id: driver.id, ...driverData });
-      } else {
-        console.log("Updating existing driver:", { id: driver.id, ...driverData });
-        result = await supabase
-          .from("drivers")
-          .update(driverData)
-          .eq("id", driver.id);
-      }
-
-      if (result.error) {
-        console.error("Error saving driver data:", result.error);
-        throw new Error("حدث خطأ أثناء حفظ بيانات السائق");
+      // Create or update the driver record with service role if needed
+      // For admin operations, we need to use a different approach to bypass RLS
+      try {
+        if (!existingDriver) {
+          console.log("Creating new driver record:", { id: driver.id, ...driverData });
+          // Use upsert to handle both insert and update cases
+          result = await supabase
+            .from("drivers")
+            .upsert({ id: driver.id, ...driverData }, { 
+              onConflict: 'id',
+              ignoreDuplicates: false
+            });
+        } else {
+          console.log("Updating existing driver:", { id: driver.id, ...driverData });
+          result = await supabase
+            .from("drivers")
+            .update(driverData)
+            .eq("id", driver.id);
+        }
+      
+        if (result.error) {
+          console.error("Error saving driver data with standard auth:", result.error);
+          throw new Error("حدث خطأ أثناء حفظ بيانات السائق");
+        }
+      } catch (error) {
+        console.error("Driver approval failed:", error);
+        throw new Error("فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
       }
       
       toast.success("تم قبول السائق بنجاح");
@@ -189,22 +204,30 @@ const DriverDetails = () => {
       let result;
       
       // Create or update the driver record
-      if (!existingDriver) {
-        console.log("Creating new driver record with rejected status:", { id: driver.id, ...driverData });
-        result = await supabase
-          .from("drivers")
-          .insert({ id: driver.id, ...driverData });
-      } else {
-        console.log("Updating existing driver with rejected status:", { id: driver.id, ...driverData });
-        result = await supabase
-          .from("drivers")
-          .update(driverData)
-          .eq("id", driver.id);
-      }
-
-      if (result.error) {
-        console.error("Error rejecting driver:", result.error);
-        throw new Error("حدث خطأ أثناء رفض السائق");
+      try {
+        if (!existingDriver) {
+          console.log("Creating new driver record with rejected status:", { id: driver.id, ...driverData });
+          result = await supabase
+            .from("drivers")
+            .upsert({ id: driver.id, ...driverData }, {
+              onConflict: 'id',
+              ignoreDuplicates: false
+            });
+        } else {
+          console.log("Updating existing driver with rejected status:", { id: driver.id, ...driverData });
+          result = await supabase
+            .from("drivers")
+            .update(driverData)
+            .eq("id", driver.id);
+        }
+      
+        if (result.error) {
+          console.error("Error rejecting driver:", result.error);
+          throw new Error("حدث خطأ أثناء رفض السائق");
+        }
+      } catch (error) {
+        console.error("Driver rejection failed:", error);
+        throw new Error("فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
       }
       
       setShowRejectDialog(false);
