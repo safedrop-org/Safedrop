@@ -17,23 +17,29 @@ export const DriverActions = ({
   onReject,
   processingAction
 }: DriverActionsProps) => {
+  const isApproved = status === "approved";
+  const isRejected = status === "rejected";
+  
   return (
     <CardFooter className="flex justify-center gap-4 pt-4">
       <Button 
         variant="outline" 
-        className="bg-green-50 hover:bg-green-100 border-green-200"
+        className="bg-green-50 hover:bg-green-100 border-green-200 disabled:opacity-50"
         onClick={onApprove}
-        disabled={processingAction || status === "approved"}
+        disabled={processingAction || isApproved}
       >
-        <Check size={16} className="ml-1" /> قبول
+        <Check size={16} className="ml-1" />
+        {isApproved ? "تم القبول" : "قبول"}
       </Button>
       
       <Button 
         variant="destructive"
         onClick={onReject}
-        disabled={processingAction || status === "rejected"}
+        disabled={processingAction || isRejected}
+        className="disabled:opacity-50"
       >
-        <X size={16} className="ml-1" /> رفض
+        <X size={16} className="ml-1" />
+        {isRejected ? "تم الرفض" : "رفض"}
       </Button>
     </CardFooter>
   );
