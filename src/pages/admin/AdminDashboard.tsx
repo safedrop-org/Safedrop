@@ -14,15 +14,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { IProfile, IDriver } from '@/integrations/supabase/custom-types';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { UsersIcon, TruckIcon, PackageIcon, LogOutIcon, DollarSign, LineChart, BarChart2Icon, FileDownIcon, AlertTriangleIcon, BellIcon, UserXIcon, UserCheckIcon, SearchIcon, MoreVerticalIcon, FilterIcon, FileTextIcon, MessageSquareIcon, SettingsIcon, Check, Globe, ShieldIcon, UserCogIcon, Eye } from 'lucide-react';
+import { UsersIcon, TruckIcon, PackageIcon, LogOutIcon, DollarSign, LineChart, BarChart2Icon, AlertTriangleIcon, BellIcon, UserXIcon, UserCheckIcon, SearchIcon, MoreVerticalIcon, FilterIcon, FileTextIcon, MessageSquareIcon, SettingsIcon, Check, Globe, ShieldIcon, UserCogIcon, Eye, Search } from 'lucide-react';
+
 type DateRange = 'today' | 'week' | 'month' | 'year';
 type UserType = 'customer' | 'driver';
+
 interface FinancialSummary {
   totalRevenue: number;
   commissions: number;
   platformProfit: number;
   driversPayout: number;
 }
+
 interface Complaint {
   id: string;
   userId: string;
@@ -33,6 +36,7 @@ interface Complaint {
   status: 'pending' | 'in-progress' | 'resolved';
   createdAt: string;
 }
+
 const AdminDashboardContent = () => {
   const navigate = useNavigate();
   const {
