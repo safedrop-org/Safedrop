@@ -1,158 +1,99 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { LanguageProvider } from "@/components/ui/language-context";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { useAuth } from './components/auth/AuthContext';
+import { supabase } from './integrations/supabase/client';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Public Pages
-import Services from "./pages/Services";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-
-// Auth Pages
-import Login from "./pages/auth/Login";
-import CustomerRegister from "./pages/auth/CustomerRegister";
-import DriverRegister from "./pages/auth/DriverRegister";
-import EmailVerification from "./pages/auth/EmailVerification";
-
-// Admin Pages
-import AdminLogin from "./pages/admin/AdminLogin";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import DriverVerificationWithSidebar from "./pages/admin/DriverVerificationWithSidebar";
-import Finance from "./pages/admin/Finance";
-import CustomersWithSidebar from "./pages/admin/CustomersWithSidebar";
-import Orders from "./pages/admin/Orders";
-import Complaints from "./pages/admin/Complaints";
-import Settings from "./pages/admin/Settings";
+import Home from './pages/Home';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import NotFound from './pages/NotFound';
+import Pricing from './pages/Pricing';
 
 // Customer Pages
-import CustomerHome from "./pages/customer/CustomerHome";
-import CreateOrder from "./pages/customer/CreateOrder";
-import MyOrders from "./pages/customer/MyOrders";
-import Billing from "./pages/customer/Billing";
-import CustomerProfile from "./pages/customer/CustomerProfile";
-import Support from "./pages/customer/Support";
-import Feedback from "./pages/customer/Feedback";
-import Logout from "./pages/customer/Logout";
+import CustomerDashboard from './pages/customer/CustomerDashboard';
+import Logout from './pages/customer/Logout';
+import Profile from './pages/customer/Profile';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import CustomersWithSidebar from './pages/admin/CustomersWithSidebar';
+import DriverVerificationWithSidebar from './pages/admin/DriverVerificationWithSidebar';
+import DriverDetailsWithSidebar from './pages/admin/DriverDetailsWithSidebar';
 
 // Driver Pages
-import DriverDashboard from "./pages/driver/DriverDashboard";
-import DriverProfile from "./pages/driver/DriverProfile";
-import DriverOrders from "./pages/driver/DriverOrders";
-import DriverVehicle from "./pages/driver/DriverVehicle";
-import PendingApproval from "./pages/driver/PendingApproval";
+import DriverDashboard from './pages/driver/DriverDashboard';
 
-import ProtectedAdminRoute from "@/components/admin/ProtectedAdminRoute";
+// Protected Routes
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isLoggedIn } = useAuth();
+  return isLoggedIn ? <>{children}</> : <Navigate to="/login" />;
+};
 
-const queryClient = new QueryClient();
+const ProtectedCustomerRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isLoggedIn, userType } = useAuth();
+  return isLoggedIn && userType === 'customer' ? <>{children}</> : <Navigate to="/login" />;
+};
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <LanguageProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
+const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isLoggedIn, userType } = useAuth();
+  return isLoggedIn && userType === 'admin' ? <>{children}</> : <Navigate to="/login" />;
+};
 
-            {/* Public Pages */}
-            <Route path="/services" element={<Services />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
+const App: React.FC = () => {
+  const [session, setSession] = useState(null);
 
-            {/* Auth Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register/customer" element={<CustomerRegister />} />
-            <Route path="/register/driver" element={<DriverRegister />} />
-            <Route path="/email-verification" element={<EmailVerification />} />
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLogin />} />
-            <Route
-              path="/admin/dashboard"
-              element={
-                <ProtectedAdminRoute>
-                  <AdminDashboard />
-                </ProtectedAdminRoute>
-              }
-            />
-            <Route
-              path="/admin/drivers"
-              element={
-                <ProtectedAdminRoute>
-                  <DriverVerificationWithSidebar />
-                </ProtectedAdminRoute>
-              }
-            />
-            <Route
-              path="/admin/customers"
-              element={
-                <ProtectedAdminRoute>
-                  <CustomersWithSidebar />
-                </ProtectedAdminRoute>
-              }
-            />
-            <Route
-              path="/admin/finance"
-              element={
-                <ProtectedAdminRoute>
-                  <Finance />
-                </ProtectedAdminRoute>
-              }
-            />
-            <Route
-              path="/admin/orders"
-              element={
-                <ProtectedAdminRoute>
-                  <Orders />
-                </ProtectedAdminRoute>
-              }
-            />
-            <Route
-              path="/admin/complaints"
-              element={
-                <ProtectedAdminRoute>
-                  <Complaints />
-                </ProtectedAdminRoute>
-              }
-            />
-            <Route
-              path="/admin/settings"
-              element={
-                <ProtectedAdminRoute>
-                  <Settings />
-                </ProtectedAdminRoute>
-              }
-            />
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
 
-            {/* Customer Routes */}
-            <Route path="/customer/dashboard" element={<CustomerHome />} />
-            <Route path="/customer/create-order" element={<CreateOrder />} />
-            <Route path="/customer/orders" element={<MyOrders />} />
-            <Route path="/customer/billing" element={<Billing />} />
-            <Route path="/customer/profile" element={<CustomerProfile />} />
-            <Route path="/customer/support" element={<Support />} />
-            <Route path="/customer/feedback" element={<Feedback />} />
-            <Route path="/customer/logout" element={<Logout />} />
+  return (
+    <>
+      <Router>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="*" element={<NotFound />} />
 
-            {/* Driver Routes */}
-            <Route path="/driver/dashboard" element={<DriverDashboard />} />
-            <Route path="/driver/profile" element={<DriverProfile />} />
-            <Route path="/driver/orders" element={<DriverOrders />} />
-            <Route path="/driver/vehicle" element={<DriverVehicle />} />
-            <Route path="/driver/pending-approval" element={<PendingApproval />} />
+          {/* Customer Routes */}
+          <Route path="/customer" element={<ProtectedCustomerRoute />}>
+            <Route path="dashboard" element={<CustomerDashboard />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="logout" element={<Logout />} />
+          </Route>
 
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </LanguageProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+          {/* Admin Routes */}
+          <Route path="/admin" element={<ProtectedAdminRoute />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="customers" element={<CustomersWithSidebar />} />
+            <Route path="driver-verification" element={<DriverVerificationWithSidebar />} />
+            <Route path="driver-details/:id" element={<DriverDetailsWithSidebar />} />
+          </Route>
+
+          {/* Driver Routes */}
+          <Route path="/driver" element={<ProtectedRoute />}>
+            <Route path="dashboard" element={<DriverDashboard />} />
+          </Route>
+        </Routes>
+      </Router>
+      <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+    </>
+  );
+};
 
 export default App;

@@ -5,6 +5,8 @@ import { useLanguage } from "@/components/ui/language-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Driver {
   id: string;
@@ -20,6 +22,7 @@ const DriverVerification = () => {
   const { t } = useLanguage();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const fetchDrivers = async () => {
     setLoading(true);
@@ -80,6 +83,10 @@ const DriverVerification = () => {
     setLoading(false);
   };
 
+  const navigateToDriverDetails = (driverId: string) => {
+    navigate(`/admin/driver-details/${driverId}`);
+  };
+
   useEffect(() => {
     fetchDrivers();
   }, []);
@@ -120,21 +127,9 @@ const DriverVerification = () => {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => updateDriverStatus(driver.id, "approved")}
-                  disabled={loading || driver.status === "approved"}
+                  onClick={() => navigateToDriverDetails(driver.id)}
                 >
-                  قبول
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => {
-                    const reason = prompt("أدخل سبب الرفض") ?? "";
-                    updateDriverStatus(driver.id, "rejected", reason);
-                  }}
-                  disabled={loading || driver.status === "rejected"}
-                >
-                  رفض
+                  <Eye size={16} className="ml-1" /> عرض التفاصيل
                 </Button>
               </TableCell>
             </TableRow>
@@ -154,4 +149,3 @@ const DriverVerification = () => {
 };
 
 export default DriverVerification;
-

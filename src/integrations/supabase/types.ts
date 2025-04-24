@@ -208,7 +208,7 @@ export type Database = {
           phone: string
           profile_image?: string | null
           updated_at?: string | null
-          user_type: string
+          user_type?: string
         }
         Update: {
           address?: string | null
@@ -229,7 +229,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_type: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
