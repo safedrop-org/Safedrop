@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,7 +30,6 @@ interface DriverDetails {
     plateNumber?: string;
   };
   status?: string;
-  rejection_reason?: string;
 }
 
 const DriverDetails = () => {
@@ -280,7 +280,7 @@ const DriverDetails = () => {
             </div>
           </div>
           
-          {driver.status === "rejected" && driver.rejection_reason && (
+          {driver.status === "rejected" && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
               <div className="font-bold mb-1">سبب الرفض:</div>
               <div>{driver.rejection_reason || "لم يتم تحديد سبب"}</div>
