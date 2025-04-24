@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -29,7 +28,6 @@ const DriverDashboardContent = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // Fetch driver profile and status
   const { data: driverData, isLoading: isLoadingDriver, error: driverError } = useQuery({
     queryKey: ['driver-data', user?.id],
     queryFn: async () => {
@@ -51,13 +49,11 @@ const DriverDashboardContent = () => {
     enabled: !!user?.id
   });
 
-  // Fetch driver financial stats
   const { data: financialStats, isLoading: isLoadingFinancial } = useQuery({
     queryKey: ['driver-financial-stats', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
-      // Get completed orders count
       const { count: completedOrders, error: ordersError } = await supabase
         .from('orders')
         .select('*', { count: 'exact', head: true })
@@ -66,7 +62,6 @@ const DriverDashboardContent = () => {
       
       if (ordersError) throw ordersError;
       
-      // Get financial transactions
       const { data: transactions, error: transactionsError } = await supabase
         .from('financial_transactions')
         .select('amount, transaction_type, status')
@@ -75,7 +70,6 @@ const DriverDashboardContent = () => {
       
       if (transactionsError) throw transactionsError;
       
-      // Calculate totals
       const totalEarnings = transactions
         .filter(t => t.transaction_type === 'driver_payout')
         .reduce((sum, t) => sum + (t.amount || 0), 0);
@@ -94,7 +88,6 @@ const DriverDashboardContent = () => {
     enabled: !!user?.id
   });
 
-  // Fetch driver rating
   const { data: ratingData } = useQuery({
     queryKey: ['driver-rating', user?.id],
     queryFn: async () => {
@@ -112,14 +105,11 @@ const DriverDashboardContent = () => {
     enabled: !!user?.id
   });
 
-  // Fetch notifications
   const { data: notificationsData } = useQuery({
     queryKey: ['driver-notifications', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       
-      // In a real implementation, you would fetch notifications from a notifications table
-      // For now, we'll simulate some notifications based on document expiry dates
       const { data: driver, error } = await supabase
         .from('drivers')
         .select('documents, license_image')
@@ -130,7 +120,6 @@ const DriverDashboardContent = () => {
       
       const notifications: Notification[] = [];
       
-      // Check if license is about to expire
       if (driver?.documents?.national_id_expiry) {
         const expiryDate = new Date(driver.documents.national_id_expiry);
         const now = new Date();
@@ -163,7 +152,6 @@ const DriverDashboardContent = () => {
         }
       }
       
-      // Add some sample notifications if we don't have enough
       if (notifications.length < 3) {
         if (financialStats?.availableBalance > 0) {
           notifications.push({
