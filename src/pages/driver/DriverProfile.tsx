@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,34 +8,99 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DriverSidebar from '@/components/driver/DriverSidebar';
 import { UserIcon, FileTextIcon, ShieldIcon, UploadIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const DriverProfileContent = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: 'أحمد',
-    lastName: 'محمد',
-    email: 'ahmed@example.com',
-    phone: '0512345678',
-    address: 'الرياض، حي الملقا'
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: ''
   });
   
   const [documentData, setDocumentData] = useState({
-    nationalId: '1234567890',
-    licenseNumber: 'DL12345678',
-    nationalIdExpiry: '2026-05-15',
-    licenseExpiry: '2027-03-20'
+    nationalId: '',
+    licenseNumber: '',
+    nationalIdExpiry: '',
+    licenseExpiry: ''
   });
 
-  const handleProfileUpdate = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!user?.id) return;
+      
+      try {
+        // Fetch profile data
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) throw profileError;
+
+        // Fetch driver data
+        const { data: driverData, error: driverError } = await supabase
+          .from('drivers')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (driverError) throw driverError;
+
+        setProfileData({
+          firstName: profileData.first_name || '',
+          lastName: profileData.last_name || '',
+          email: profileData.email || '',
+          phone: profileData.phone || '',
+          address: profileData.address || ''
+        });
+
+        setDocumentData({
+          nationalId: driverData.national_id || '',
+          licenseNumber: driverData.license_number || '',
+          nationalIdExpiry: '',
+          licenseExpiry: ''
+        });
+
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        toast.error('حدث خطأ أثناء تحميل البيانات');
+      }
+    };
+
+    fetchProfileData();
+  }, [user]);
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          phone: profileData.phone,
+          address: profileData.address
+        })
+        .eq('id', user?.id);
+
+      if (profileError) throw profileError;
+      
       toast.success('تم تحديث البيانات الشخصية بنجاح');
-    }, 1000);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('حدث خطأ أثناء تحديث البيانات');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDocumentUpload = (e: React.FormEvent) => {
@@ -380,7 +444,6 @@ const DriverProfileContent = () => {
   );
 };
 
-// Wrap the component with LanguageProvider
 const DriverProfile = () => {
   return (
     <LanguageProvider>

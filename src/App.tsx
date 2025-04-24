@@ -275,7 +275,6 @@ const AppContent = () => {
         >
           <Route path="dashboard" element={<DriverDashboard />} />
           <Route path="orders" element={<DriverOrders />} />
-          <Route path="vehicle" element={<DriverVehicle />} />
           <Route path="profile" element={<DriverProfile />} />
           <Route path="ratings" element={<DriverRatings />} />
           <Route path="earnings" element={<DriverEarnings />} />

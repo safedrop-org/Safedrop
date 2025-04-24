@@ -1,22 +1,73 @@
 
+import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import DriverSidebar from '@/components/driver/DriverSidebar';
 import { DollarSign, TrendingUp, Calendar, ArrowUpRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const data = [
-  { name: 'السبت', amount: 400 },
-  { name: 'الأحد', amount: 600 },
-  { name: 'الاثنين', amount: 500 },
-  { name: 'الثلاثاء', amount: 700 },
-  { name: 'الأربعاء', amount: 800 },
-  { name: 'الخميس', amount: 1000 },
-  { name: 'الجمعة', amount: 900 },
-];
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { format } from 'date-fns';
 
 const DriverEarningsContent = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const [earnings, setEarnings] = useState<any[]>([]);
+  const [summary, setSummary] = useState({
+    today: 0,
+    weekly: 0,
+    monthly: 0
+  });
+
+  useEffect(() => {
+    const fetchEarnings = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('driver_earnings')
+          .select('*')
+          .eq('driver_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        setEarnings(data || []);
+
+        // Calculate summaries
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        const weekStart = new Date(now.setDate(now.getDate() - 7)).toISOString();
+        const monthStart = new Date(now.setDate(now.getDate() - 30)).toISOString();
+
+        const todayEarnings = data?.filter(e => e.created_at.startsWith(today))
+          .reduce((sum, e) => sum + Number(e.amount), 0);
+
+        const weeklyEarnings = data?.filter(e => e.created_at >= weekStart)
+          .reduce((sum, e) => sum + Number(e.amount), 0);
+
+        const monthlyEarnings = data?.filter(e => e.created_at >= monthStart)
+          .reduce((sum, e) => sum + Number(e.amount), 0);
+
+        setSummary({
+          today: todayEarnings,
+          weekly: weeklyEarnings,
+          monthly: monthlyEarnings
+        });
+
+      } catch (error) {
+        console.error('Error fetching earnings:', error);
+      }
+    };
+
+    fetchEarnings();
+  }, [user]);
+
+  // Prepare chart data
+  const chartData = earnings.slice(0, 7).map(earning => ({
+    name: format(new Date(earning.created_at), 'dd/MM'),
+    amount: Number(earning.amount)
+  })).reverse();
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -37,15 +88,11 @@ const DriverEarningsContent = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-500">الأرباح اليوم</p>
-                      <p className="text-2xl font-bold mt-1">900 ريال</p>
+                      <p className="text-2xl font-bold mt-1">{summary.today} ريال</p>
                     </div>
                     <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
                       <DollarSign className="h-6 w-6 text-green-600" />
                     </div>
-                  </div>
-                  <div className="flex items-center mt-4 text-green-600">
-                    <ArrowUpRight className="h-4 w-4" />
-                    <span className="text-sm mr-1">15% زيادة عن أمس</span>
                   </div>
                 </CardContent>
               </Card>
@@ -55,15 +102,11 @@ const DriverEarningsContent = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-500">الأرباح هذا الأسبوع</p>
-                      <p className="text-2xl font-bold mt-1">4,900 ريال</p>
+                      <p className="text-2xl font-bold mt-1">{summary.weekly} ريال</p>
                     </div>
                     <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
                       <TrendingUp className="h-6 w-6 text-blue-600" />
                     </div>
-                  </div>
-                  <div className="flex items-center mt-4 text-blue-600">
-                    <ArrowUpRight className="h-4 w-4" />
-                    <span className="text-sm mr-1">10% زيادة عن الأسبوع الماضي</span>
                   </div>
                 </CardContent>
               </Card>
@@ -73,15 +116,11 @@ const DriverEarningsContent = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-500">الأرباح هذا الشهر</p>
-                      <p className="text-2xl font-bold mt-1">19,200 ريال</p>
+                      <p className="text-2xl font-bold mt-1">{summary.monthly} ريال</p>
                     </div>
                     <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
                       <Calendar className="h-6 w-6 text-purple-600" />
                     </div>
-                  </div>
-                  <div className="flex items-center mt-4 text-purple-600">
-                    <ArrowUpRight className="h-4 w-4" />
-                    <span className="text-sm mr-1">20% زيادة عن الشهر الماضي</span>
                   </div>
                 </CardContent>
               </Card>
@@ -94,7 +133,7 @@ const DriverEarningsContent = () => {
               <CardContent>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data}>
+                    <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
@@ -112,13 +151,17 @@ const DriverEarningsContent = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[...Array(5)].map((_, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border-b last:border-0">
+                  {earnings.slice(0, 5).map((earning) => (
+                    <div key={earning.id} className="flex items-center justify-between p-4 border-b last:border-0">
                       <div>
-                        <p className="font-medium">طلب #{1234 + index}</p>
-                        <p className="text-sm text-gray-500">اليوم 10:30 ص</p>
+                        <p className="font-medium">طلب #{earning.order_id}</p>
+                        <p className="text-sm text-gray-500">
+                          {format(new Date(earning.created_at), 'dd/MM/yyyy HH:mm')}
+                        </p>
                       </div>
-                      <span className="text-green-600 font-medium">+150 ريال</span>
+                      <span className="text-green-600 font-medium">
+                        +{earning.amount} ريال
+                      </span>
                     </div>
                   ))}
                 </div>

@@ -1,11 +1,61 @@
 
+import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import DriverSidebar from '@/components/driver/DriverSidebar';
 import { Star } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { format } from 'date-fns';
 
 const DriverRatingsContent = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const [ratings, setRatings] = useState<any[]>([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [ratingStats, setRatingStats] = useState([0, 0, 0, 0, 0]);
+
+  useEffect(() => {
+    const fetchRatings = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('driver_ratings')
+          .select(`
+            *,
+            orders (
+              customer_id,
+              pickup_location,
+              dropoff_location
+            )
+          `)
+          .eq('driver_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        setRatings(data || []);
+
+        // Calculate average rating
+        if (data && data.length > 0) {
+          const avg = data.reduce((acc, curr) => acc + curr.rating, 0) / data.length;
+          setAverageRating(Number(avg.toFixed(1)));
+
+          // Calculate rating stats
+          const stats = [0, 0, 0, 0, 0];
+          data.forEach(rating => {
+            stats[rating.rating - 1]++;
+          });
+          setRatingStats(stats);
+        }
+      } catch (error) {
+        console.error('Error fetching ratings:', error);
+      }
+    };
+
+    fetchRatings();
+  }, [user]);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -26,52 +76,30 @@ const DriverRatingsContent = () => {
                   <span>متوسط التقييم</span>
                   <div className="flex items-center">
                     <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
-                    <span className="text-2xl font-bold mr-2">4.8</span>
+                    <span className="text-2xl font-bold mr-2">{averageRating}</span>
                   </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center">
-                    <div className="flex-1">
-                      <div className="h-2 bg-gray-200 rounded">
-                        <div className="h-2 bg-yellow-400 rounded" style={{ width: '90%' }}></div>
+                  {[5, 4, 3, 2, 1].map((stars, index) => {
+                    const count = ratingStats[stars - 1];
+                    const percentage = ratings.length > 0 ? (count / ratings.length) * 100 : 0;
+                    
+                    return (
+                      <div key={stars} className="flex items-center">
+                        <div className="flex-1">
+                          <div className="h-2 bg-gray-200 rounded">
+                            <div 
+                              className="h-2 bg-yellow-400 rounded" 
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                        <span className="ml-2 w-12 text-sm">{stars} نجوم</span>
                       </div>
-                    </div>
-                    <span className="ml-2 w-12 text-sm">5 نجوم</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="flex-1">
-                      <div className="h-2 bg-gray-200 rounded">
-                        <div className="h-2 bg-yellow-400 rounded" style={{ width: '70%' }}></div>
-                      </div>
-                    </div>
-                    <span className="ml-2 w-12 text-sm">4 نجوم</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="flex-1">
-                      <div className="h-2 bg-gray-200 rounded">
-                        <div className="h-2 bg-yellow-400 rounded" style={{ width: '20%' }}></div>
-                      </div>
-                    </div>
-                    <span className="ml-2 w-12 text-sm">3 نجوم</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="flex-1">
-                      <div className="h-2 bg-gray-200 rounded">
-                        <div className="h-2 bg-yellow-400 rounded" style={{ width: '10%' }}></div>
-                      </div>
-                    </div>
-                    <span className="ml-2 w-12 text-sm">2 نجوم</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="flex-1">
-                      <div className="h-2 bg-gray-200 rounded">
-                        <div className="h-2 bg-yellow-400 rounded" style={{ width: '5%' }}></div>
-                      </div>
-                    </div>
-                    <span className="ml-2 w-12 text-sm">1 نجمة</span>
-                  </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -82,23 +110,31 @@ const DriverRatingsContent = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[...Array(5)].map((_, index) => (
-                    <div key={index} className="border-b border-gray-200 pb-4 last:border-0">
+                  {ratings.map((rating) => (
+                    <div key={rating.id} className="border-b border-gray-200 pb-4 last:border-0">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <div className="flex items-center">
                             {[...Array(5)].map((_, starIndex) => (
                               <Star 
                                 key={starIndex} 
-                                className={`h-4 w-4 ${starIndex < 4 ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`} 
+                                className={`h-4 w-4 ${
+                                  starIndex < rating.rating 
+                                    ? 'fill-yellow-400 text-yellow-400' 
+                                    : 'fill-gray-200 text-gray-200'
+                                }`} 
                               />
                             ))}
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">طلب #123{index}</p>
+                          <p className="text-sm text-gray-600 mt-1">طلب #{rating.order_id}</p>
                         </div>
-                        <span className="text-sm text-gray-500">منذ 3 أيام</span>
+                        <span className="text-sm text-gray-500">
+                          {format(new Date(rating.created_at), 'dd/MM/yyyy')}
+                        </span>
                       </div>
-                      <p className="text-gray-700">خدمة ممتازة وتوصيل سريع</p>
+                      {rating.comment && (
+                        <p className="text-gray-700">{rating.comment}</p>
+                      )}
                     </div>
                   ))}
                 </div>

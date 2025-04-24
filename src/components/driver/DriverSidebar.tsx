@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Truck, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
@@ -27,11 +27,6 @@ const DriverSidebar = () => {
       icon: <Package className="h-5 w-5" />,
       label: "الطلبات",
       path: "/driver/orders"
-    },
-    {
-      icon: <Truck className="h-5 w-5" />,
-      label: "مركبتي",
-      path: "/driver/vehicle"
     },
     {
       icon: <UserIcon className="h-5 w-5" />,
