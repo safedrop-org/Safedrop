@@ -17,37 +17,47 @@ const PendingApprovalContent = () => {
     rejection_reason?: string | null;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDriverStatus = async () => {
       if (!user?.id) return;
 
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('drivers')
-        .select('status, rejection_reason')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching driver status:', error);
-        setIsLoading(false);
-        return;
-      }
-
-      setDriverStatus(data);
-      setIsLoading(false);
+      setError(null);
       
-      // Auto-redirect if approved
-      if (data?.status === 'approved') {
-        navigate('/driver/dashboard');
+      try {
+        const { data, error } = await supabase
+          .from('drivers')
+          .select('status, rejection_reason')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching driver status:', error);
+          setError("حدث خطأ أثناء التحقق من حالة طلبك");
+          setIsLoading(false);
+          return;
+        }
+
+        setDriverStatus(data);
+        
+        // Auto-redirect if approved
+        if (data?.status === 'approved') {
+          navigate('/driver/dashboard');
+        }
+      } catch (err) {
+        console.error("Exception checking driver status:", err);
+        setError("حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى لاحقاً");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchDriverStatus();
     
     // Set up interval to check status
-    const interval = setInterval(fetchDriverStatus, 10000); // Every 10 seconds
+    const interval = setInterval(fetchDriverStatus, 30000); // Every 30 seconds
     
     return () => clearInterval(interval);
   }, [user, navigate]);
@@ -70,6 +80,31 @@ const PendingApprovalContent = () => {
           </div>
           <div className="h-6 bg-gray-200 rounded"></div>
           <div className="h-24 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-4">
+        <div className="max-w-md w-full space-y-8 bg-white shadow-xl rounded-xl p-8 text-center">
+          <div className="flex justify-center">
+            <AlertTriangle className="h-16 w-16 text-amber-500" />
+          </div>
+          
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 my-6 text-right">
+            <p className="font-bold text-amber-800">خطأ في النظام</p>
+            <p className="text-amber-700 mt-2">{error}</p>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={handleRefresh}
+          >
+            إعادة المحاولة
+          </Button>
         </div>
       </div>
     );
@@ -131,6 +166,7 @@ const PendingApprovalContent = () => {
     );
   }
 
+  // Default: Pending status
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-4">
       <div className="max-w-md w-full space-y-8 bg-white shadow-xl rounded-xl p-8 text-center">

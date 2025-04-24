@@ -88,27 +88,16 @@ const DriverDetails = () => {
     }
   };
 
-  const approveDriver = async () => {
+  const saveDriverStatus = async (status: string, rejectionReason: string | null = null) => {
     if (!driver?.id) return;
     
-    setProcessingAction(true);
     try {
-      // First check if driver record exists
-      const { data: existingDriver, error: checkError } = await supabase
-        .from("drivers")
-        .select("id, status")
-        .eq("id", driver.id)
-        .maybeSingle();
-      
-      if (checkError) {
-        console.error("Error checking driver existence:", checkError);
-        throw new Error("فشل في التحقق من وجود السائق في قاعدة البيانات");
-      }
-      
       // Prepare driver data with all required fields
       const driverData = {
-        status: "approved",
-        rejection_reason: null,
+        id: driver.id,
+        status: status,
+        rejection_reason: rejectionReason,
+        // Ensure all required fields are present to avoid null value errors
         national_id: driver.national_id || "",
         license_number: driver.license_number || "",
         vehicle_info: driver.vehicle_info || { 
@@ -119,36 +108,32 @@ const DriverDetails = () => {
         }
       };
       
-      let result;
-      
-      // Create or update the driver record with service role if needed
-      // For admin operations, we need to use a different approach to bypass RLS
-      try {
-        if (!existingDriver) {
-          console.log("Creating new driver record:", { id: driver.id, ...driverData });
-          // Use upsert to handle both insert and update cases
-          result = await supabase
-            .from("drivers")
-            .upsert({ id: driver.id, ...driverData }, { 
-              onConflict: 'id',
-              ignoreDuplicates: false
-            });
-        } else {
-          console.log("Updating existing driver:", { id: driver.id, ...driverData });
-          result = await supabase
-            .from("drivers")
-            .update(driverData)
-            .eq("id", driver.id);
-        }
-      
-        if (result.error) {
-          console.error("Error saving driver data with standard auth:", result.error);
-          throw new Error("حدث خطأ أثناء حفظ بيانات السائق");
-        }
-      } catch (error) {
-        console.error("Driver approval failed:", error);
-        throw new Error("فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
+      // Use upsert with onConflict to handle both insert and update cases
+      const { error } = await supabase
+        .from("drivers")
+        .upsert(driverData, { 
+          onConflict: 'id',
+          ignoreDuplicates: false 
+        });
+        
+      if (error) {
+        console.error("Error saving driver status:", error);
+        throw new Error(error.message);
       }
+      
+      return true;
+    } catch (error) {
+      console.error("Driver status update failed:", error);
+      throw error;
+    }
+  };
+
+  const approveDriver = async () => {
+    if (!driver?.id) return;
+    
+    setProcessingAction(true);
+    try {
+      await saveDriverStatus("approved");
       
       toast.success("تم قبول السائق بنجاح");
       
@@ -159,7 +144,7 @@ const DriverDetails = () => {
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
     } catch (error) {
       console.error("Error approving driver:", error);
-      toast.error(error instanceof Error ? error.message : "حدث خطأ أثناء قبول السائق");
+      toast.error("فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
     } finally {
       setProcessingAction(false);
     }
@@ -175,60 +160,7 @@ const DriverDetails = () => {
     
     setProcessingAction(true);
     try {
-      // First check if driver record exists
-      const { data: existingDriver, error: checkError } = await supabase
-        .from("drivers")
-        .select("id, status")
-        .eq("id", driver.id)
-        .maybeSingle();
-      
-      if (checkError) {
-        console.error("Error checking driver existence:", checkError);
-        throw new Error("فشل في التحقق من وجود السائق في قاعدة البيانات");
-      }
-
-      // Prepare driver data
-      const driverData = {
-        status: "rejected",
-        rejection_reason: rejectionReason,
-        national_id: driver.national_id || "",
-        license_number: driver.license_number || "",
-        vehicle_info: driver.vehicle_info || { 
-          make: "", 
-          model: "", 
-          year: "", 
-          plateNumber: "" 
-        }
-      };
-      
-      let result;
-      
-      // Create or update the driver record
-      try {
-        if (!existingDriver) {
-          console.log("Creating new driver record with rejected status:", { id: driver.id, ...driverData });
-          result = await supabase
-            .from("drivers")
-            .upsert({ id: driver.id, ...driverData }, {
-              onConflict: 'id',
-              ignoreDuplicates: false
-            });
-        } else {
-          console.log("Updating existing driver with rejected status:", { id: driver.id, ...driverData });
-          result = await supabase
-            .from("drivers")
-            .update(driverData)
-            .eq("id", driver.id);
-        }
-      
-        if (result.error) {
-          console.error("Error rejecting driver:", result.error);
-          throw new Error("حدث خطأ أثناء رفض السائق");
-        }
-      } catch (error) {
-        console.error("Driver rejection failed:", error);
-        throw new Error("فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
-      }
+      await saveDriverStatus("rejected", rejectionReason);
       
       setShowRejectDialog(false);
       
@@ -241,7 +173,7 @@ const DriverDetails = () => {
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
     } catch (error) {
       console.error("Error rejecting driver:", error);
-      toast.error(error instanceof Error ? error.message : "حدث خطأ أثناء رفض السائق");
+      toast.error("فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
     } finally {
       setProcessingAction(false);
     }
