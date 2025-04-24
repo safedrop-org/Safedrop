@@ -833,18 +833,9 @@ const AdminDashboardContent = () => {
                         </Select>
                         
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleExportReport('csv')}>
-                            <FileDownIcon className="h-4 w-4 mr-1" />
-                            CSV
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleExportReport('pdf')}>
-                            <FileDownIcon className="h-4 w-4 mr-1" />
-                            PDF
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleExportReport('excel')}>
-                            <FileDownIcon className="h-4 w-4 mr-1" />
-                            Excel
-                          </Button>
+                          
+                          
+                          
                         </div>
                       </div>
                     </div>
@@ -919,30 +910,7 @@ const AdminDashboardContent = () => {
                       </div>
                       
                       {/* Commission Settings */}
-                      <Card>
-                        
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="commission-rate">نسبة العمولة (%)</Label>
-                            <div className="flex gap-2">
-                              <Input id="commission-rate" type="number" min="1" max="50" value={selectedCommissionRate} onChange={e => setSelectedCommissionRate(parseInt(e.target.value) || 15)} className="w-full" />
-                              <Button onClick={handleUpdateCommissionRate}>تحديث</Button>
-                            </div>
-                            <p className="text-sm text-gray-500">
-                              النسبة الحالية: {selectedCommissionRate}%
-                            </p>
-                          </div>
-                          
-                          <div className="pt-4 border-t">
-                            <h4 className="font-medium mb-2">تفاصيل تطبيق العمولة</h4>
-                            <ul className="space-y-1 text-sm text-gray-600">
-                              <li>• تطبق العمولة على إجمالي قيمة الطلب</li>
-                              <li>• يتم خصم العمولة تلقائياً من مستحقات السائق</li>
-                              <li>• يمكن تعديل النسبة في أي وقت</li>
-                            </ul>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      
                     </div>
                   </CardContent>
                 </Card>
