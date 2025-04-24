@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,57 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, MessageSquare, Check, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useComplaints } from "@/hooks/useComplaints";
 
-// بيانات تجريبية للشكاوى
-const demoComplaints = [
-  {
-    id: "COMP-001",
-    user: "محمد أحمد",
-    userType: "عميل",
-    orderId: "ORD-122",
-    issue: "تأخر الوصول",
-    date: "2023-04-15",
-    status: "قيد المراجعة"
-  },
-  {
-    id: "COMP-002",
-    user: "خالد محمود",
-    userType: "سائق",
-    orderId: "ORD-118",
-    issue: "عنوان غير صحيح",
-    date: "2023-04-16",
-    status: "تم الحل"
-  },
-  {
-    id: "COMP-003",
-    user: "سارة محمد",
-    userType: "عميل",
-    orderId: "ORD-135",
-    issue: "سلوك السائق",
-    date: "2023-04-17",
-    status: "قيد المراجعة"
-  },
-  {
-    id: "COMP-004",
-    user: "أحمد سعيد",
-    userType: "سائق",
-    orderId: "ORD-142",
-    issue: "مشكلة في الدفع",
-    date: "2023-04-17",
-    status: "قيد المراجعة"
-  },
-  {
-    id: "COMP-005",
-    user: "فاطمة علي",
-    userType: "عميل",
-    orderId: "ORD-120",
-    issue: "طلب إلغاء",
-    date: "2023-04-18",
-    status: "تم الحل"
-  }
-];
-
-// مكون لعرض الشكاوى مع التصفية
 const ComplaintsTable = ({ complaints, status = "all" }) => {
   const filteredComplaints = status === "all" 
     ? complaints 
@@ -82,29 +32,29 @@ const ComplaintsTable = ({ complaints, status = "all" }) => {
         {filteredComplaints.map(complaint => (
           <TableRow key={complaint.id}>
             <TableCell className="font-medium">{complaint.id}</TableCell>
-            <TableCell>{complaint.user}</TableCell>
+            <TableCell>{`${complaint.user.first_name} ${complaint.user.last_name}`}</TableCell>
             <TableCell>
               <Badge variant="outline" className={
-                complaint.userType === "عميل" 
+                complaint.user.user_type === "customer" 
                   ? "bg-blue-100 text-blue-800 border-blue-200"
                   : "bg-orange-100 text-orange-800 border-orange-200"
               }>
-                {complaint.userType}
+                {complaint.user.user_type === "customer" ? "عميل" : "سائق"}
               </Badge>
             </TableCell>
-            <TableCell>{complaint.orderId}</TableCell>
-            <TableCell>{complaint.issue}</TableCell>
-            <TableCell>{complaint.date}</TableCell>
+            <TableCell>{complaint.order?.id || 'N/A'}</TableCell>
+            <TableCell>{complaint.subject}</TableCell>
+            <TableCell>{new Date(complaint.created_at).toLocaleDateString('ar-SA')}</TableCell>
             <TableCell>
               <Badge
                 variant="outline"
                 className={
-                  complaint.status === "تم الحل" 
+                  complaint.status === "resolved" 
                     ? "bg-green-100 text-green-800 border-green-200" 
                     : "bg-yellow-100 text-yellow-800 border-yellow-200"
                 }
               >
-                {complaint.status}
+                {complaint.status === "resolved" ? "تم الحل" : "قيد المراجعة"}
               </Badge>
             </TableCell>
             <TableCell>
@@ -112,7 +62,7 @@ const ComplaintsTable = ({ complaints, status = "all" }) => {
                 <Button variant="ghost" size="icon" className="text-blue-600">
                   <MessageSquare className="h-4 w-4" />
                 </Button>
-                {complaint.status !== "تم الحل" && (
+                {complaint.status !== "resolved" && (
                   <Button variant="ghost" size="icon" className="text-green-600">
                     <Check className="h-4 w-4" />
                   </Button>
@@ -132,15 +82,15 @@ const ComplaintsTable = ({ complaints, status = "all" }) => {
 const Complaints = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterUserType, setFilterUserType] = useState("all");
+  const { data: complaints = [], isLoading } = useComplaints();
   
-  // تصفية الشكاوى حسب مصطلح البحث ونوع المستخدم
-  const filteredComplaints = demoComplaints.filter(complaint => {
+  const filteredComplaints = complaints.filter(complaint => {
     const matchesSearch = complaint.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.issue.toLowerCase().includes(searchTerm.toLowerCase());
+      `${complaint.user.first_name} ${complaint.user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (complaint.order?.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      complaint.subject.toLowerCase().includes(searchTerm.toLowerCase());
       
-    const matchesUserType = filterUserType === "all" || complaint.userType === filterUserType;
+    const matchesUserType = filterUserType === "all" || complaint.user.user_type === filterUserType;
     
     return matchesSearch && matchesUserType;
   });
@@ -167,8 +117,8 @@ const Complaints = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">الجميع</SelectItem>
-              <SelectItem value="عميل">العملاء</SelectItem>
-              <SelectItem value="سائق">السائقين</SelectItem>
+              <SelectItem value="customer">العملاء</SelectItem>
+              <SelectItem value="driver">السائقين</SelectItem>
             </SelectContent>
           </Select>
         </div>

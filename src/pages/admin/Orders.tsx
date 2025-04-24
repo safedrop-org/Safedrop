@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,57 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Eye, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useOrders } from "@/hooks/useOrders";
 
-// بيانات تجريبية للطلبات
-const demoOrders = [
-  {
-    id: "ORD-001",
-    customer: "محمد أحمد",
-    driver: "خالد محمود",
-    date: "2023-04-15",
-    price: "125 ر.س",
-    status: "مكتمل",
-    paymentStatus: "مدفوع"
-  },
-  {
-    id: "ORD-002",
-    customer: "فهد عبدالله",
-    driver: "سالم سعيد",
-    date: "2023-04-16",
-    price: "87 ر.س",
-    status: "نشط",
-    paymentStatus: "مدفوع"
-  },
-  {
-    id: "ORD-003",
-    customer: "أسماء خالد",
-    driver: "عبدالرحمن علي",
-    date: "2023-04-16",
-    price: "200 ر.س",
-    status: "قيد الانتظار",
-    paymentStatus: "غير مدفوع"
-  },
-  {
-    id: "ORD-004",
-    customer: "سارة محمد",
-    driver: "طارق زياد",
-    date: "2023-04-17",
-    price: "150 ر.س",
-    status: "ملغي",
-    paymentStatus: "مسترد"
-  },
-  {
-    id: "ORD-005",
-    customer: "نورة سعد",
-    driver: "فيصل ناصر",
-    date: "2023-04-17",
-    price: "175 ر.س",
-    status: "نشط",
-    paymentStatus: "مدفوع"
-  }
-];
-
-// مكون لعرض الطلبات مع التصفية
 const OrdersTable = ({ orders, status }) => {
   const filteredOrders = status === "all" ? orders : orders.filter(order => order.status === status);
   
@@ -79,33 +29,38 @@ const OrdersTable = ({ orders, status }) => {
         {filteredOrders.map(order => (
           <TableRow key={order.id}>
             <TableCell className="font-medium">{order.id}</TableCell>
-            <TableCell>{order.customer}</TableCell>
-            <TableCell>{order.driver}</TableCell>
-            <TableCell>{order.date}</TableCell>
-            <TableCell>{order.price}</TableCell>
+            <TableCell>{order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'غير معروف'}</TableCell>
+            <TableCell>{order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'غير معين'}</TableCell>
+            <TableCell>{new Date(order.created_at).toLocaleDateString('ar-SA')}</TableCell>
+            <TableCell>{order.price ? `${order.price} ر.س` : 'غير محدد'}</TableCell>
             <TableCell>
               <Badge
                 variant="outline"
                 className={
-                  order.status === "مكتمل" ? "bg-green-100 text-green-800 border-green-200" :
-                  order.status === "نشط" ? "bg-blue-100 text-blue-800 border-blue-200" :
-                  order.status === "قيد الانتظار" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                  order.status === "completed" ? "bg-green-100 text-green-800 border-green-200" :
+                  order.status === "active" ? "bg-blue-100 text-blue-800 border-blue-200" :
+                  order.status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
                   "bg-red-100 text-red-800 border-red-200"
                 }
               >
-                {order.status}
+                {order.status === "completed" ? "مكتمل" :
+                 order.status === "active" ? "نشط" :
+                 order.status === "pending" ? "قيد الانتظار" :
+                 "ملغي"}
               </Badge>
             </TableCell>
             <TableCell>
               <Badge
                 variant="outline"
                 className={
-                  order.paymentStatus === "مدفوع" ? "bg-green-100 text-green-800 border-green-200" :
-                  order.paymentStatus === "غير مدفوع" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                  order.payment_status === "paid" ? "bg-green-100 text-green-800 border-green-200" :
+                  order.payment_status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
                   "bg-purple-100 text-purple-800 border-purple-200"
                 }
               >
-                {order.paymentStatus}
+                {order.payment_status === "paid" ? "مدفوع" :
+                 order.payment_status === "pending" ? "غير مدفوع" :
+                 "مسترد"}
               </Badge>
             </TableCell>
             <TableCell>
@@ -122,12 +77,12 @@ const OrdersTable = ({ orders, status }) => {
 
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const { data: orders = [], isLoading } = useOrders();
   
-  // تصفية الطلبات حسب مصطلح البحث
-  const filteredOrders = demoOrders.filter(order => 
+  const filteredOrders = orders.filter(order => 
     order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.driver.toLowerCase().includes(searchTerm.toLowerCase())
+    (order.customer && `${order.customer.first_name} ${order.customer.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (order.driver && `${order.driver.first_name} ${order.driver.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()))
   );
   
   return (
@@ -161,30 +116,30 @@ const Orders = () => {
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="mb-4 grid grid-cols-5 max-w-md">
               <TabsTrigger value="all">الكل</TabsTrigger>
-              <TabsTrigger value="نشط">نشط</TabsTrigger>
-              <TabsTrigger value="قيد الانتظار">قيد الانتظار</TabsTrigger>
-              <TabsTrigger value="مكتمل">مكتمل</TabsTrigger>
-              <TabsTrigger value="ملغي">ملغي</TabsTrigger>
+              <TabsTrigger value="active">نشط</TabsTrigger>
+              <TabsTrigger value="pending">قيد الانتظار</TabsTrigger>
+              <TabsTrigger value="completed">مكتمل</TabsTrigger>
+              <TabsTrigger value="cancelled">ملغي</TabsTrigger>
             </TabsList>
             
             <TabsContent value="all" className="mt-0">
               <OrdersTable orders={filteredOrders} status="all" />
             </TabsContent>
             
-            <TabsContent value="نشط" className="mt-0">
-              <OrdersTable orders={filteredOrders} status="نشط" />
+            <TabsContent value="active" className="mt-0">
+              <OrdersTable orders={filteredOrders} status="active" />
             </TabsContent>
             
-            <TabsContent value="قيد الانتظار" className="mt-0">
-              <OrdersTable orders={filteredOrders} status="قيد الانتظار" />
+            <TabsContent value="pending" className="mt-0">
+              <OrdersTable orders={filteredOrders} status="pending" />
             </TabsContent>
             
-            <TabsContent value="مكتمل" className="mt-0">
-              <OrdersTable orders={filteredOrders} status="مكتمل" />
+            <TabsContent value="completed" className="mt-0">
+              <OrdersTable orders={filteredOrders} status="completed" />
             </TabsContent>
             
-            <TabsContent value="ملغي" className="mt-0">
-              <OrdersTable orders={filteredOrders} status="ملغي" />
+            <TabsContent value="cancelled" className="mt-0">
+              <OrdersTable orders={filteredOrders} status="cancelled" />
             </TabsContent>
           </Tabs>
         </CardContent>
