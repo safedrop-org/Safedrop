@@ -59,17 +59,26 @@ const AdminLoginContent = () => {
           // التحقق من وجود دور المشرف وإضافته إذا لم يكن موجوداً
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            const { error: roleError } = await supabase
+            // نتحقق أولاً من وجود دور المشرف
+            const { data: existingRole } = await supabase
               .from('user_roles')
-              .insert({
-                user_id: user.id,
-                role: 'admin'
-              })
-              .onConflict('user_id, role')
-              .ignore();
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('role', 'admin')
+              .maybeSingle();
               
-            if (roleError) {
-              console.error('Error assigning admin role:', roleError);
+            // إذا لم يكن هناك دور مشرف موجود، قم بإنشائه
+            if (!existingRole) {
+              const { error: roleError } = await supabase
+                .from('user_roles')
+                .insert({
+                  user_id: user.id,
+                  role: 'admin'
+                });
+                
+              if (roleError) {
+                console.error('Error assigning admin role:', roleError);
+              }
             }
           }
           
