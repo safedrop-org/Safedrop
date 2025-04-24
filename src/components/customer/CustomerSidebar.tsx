@@ -1,21 +1,22 @@
 
-import { LayoutDashboard, Package, PlusCircle, UserIcon, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, PlusCircle, UserIcon, Settings, LogOut, CreditCard, MessageSquare, Star } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/components/auth/AuthContext';
 import { useLanguage } from '@/components/ui/language-context';
 
 const CustomerSidebar = () => {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
-  const handleLogout = () => {
-    // Implementation would depend on your auth setup
-    navigate('/login');
+  const handleLogout = async () => {
+    await signOut();
   };
 
   const menuItems = [
@@ -25,19 +26,34 @@ const CustomerSidebar = () => {
       path: "/customer/dashboard"
     },
     {
-      icon: <Package className="h-5 w-5" />,
-      label: "الطلبات",
-      path: "/customer/orders"
-    },
-    {
       icon: <PlusCircle className="h-5 w-5" />,
       label: "طلب جديد",
       path: "/customer/create-order"
     },
     {
+      icon: <Package className="h-5 w-5" />,
+      label: "طلباتي",
+      path: "/customer/orders"
+    },
+    {
+      icon: <CreditCard className="h-5 w-5" />,
+      label: "الفواتير والدفع",
+      path: "/customer/billing"
+    },
+    {
       icon: <UserIcon className="h-5 w-5" />,
       label: "الملف الشخصي",
       path: "/customer/profile"
+    },
+    {
+      icon: <MessageSquare className="h-5 w-5" />,
+      label: "الدعم الفني",
+      path: "/customer/support"
+    },
+    {
+      icon: <Star className="h-5 w-5" />,
+      label: "التقييم والملاحظات",
+      path: "/customer/feedback"
     },
     {
       icon: <Settings className="h-5 w-5" />,
@@ -83,7 +99,7 @@ const CustomerSidebar = () => {
         <Button 
           onClick={handleLogout} 
           variant="outline" 
-          className="w-full text-white border-white/20 hover:bg-white/10 hover:text-white flex items-center gap-2"
+          className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
         >
           <LogOut className="h-4 w-4" />
           <span>تسجيل الخروج</span>

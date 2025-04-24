@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -15,8 +16,13 @@ import DriverRegister from './pages/auth/DriverRegister';
 
 // Customer Pages
 import CustomerDashboard from './pages/customer/CustomerDashboard';
+import CustomerOrders from './pages/customer/CustomerOrders';
+import CreateOrder from './pages/customer/CreateOrder';
+import CustomerProfile from './pages/customer/CustomerProfile';
+import CustomerBilling from './pages/customer/CustomerBilling';
+import CustomerSupport from './pages/customer/CustomerSupport';
+import CustomerFeedback from './pages/customer/CustomerFeedback';
 import Logout from './pages/customer/Logout';
-import Profile from './pages/customer/CustomerProfile';
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -182,7 +188,7 @@ const AppContent = () => {
         {/* Admin Login Route */}
         <Route path="/admin" element={<AdminLogin />} />
 
-        {/* Customer Routes */}
+        {/* Customer Routes - Updated with all the required pages */}
         <Route 
           path="/customer" 
           element={
@@ -192,7 +198,12 @@ const AppContent = () => {
           }
         >
           <Route path="dashboard" element={<CustomerDashboard />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="create-order" element={<CreateOrder />} />
+          <Route path="orders" element={<CustomerOrders />} />
+          <Route path="billing" element={<CustomerBilling />} />
+          <Route path="profile" element={<CustomerProfile />} />
+          <Route path="support" element={<CustomerSupport />} />
+          <Route path="feedback" element={<CustomerFeedback />} />
           <Route path="logout" element={<Logout />} />
         </Route>
 
