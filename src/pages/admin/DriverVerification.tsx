@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLanguage } from "@/components/ui/language-context";
@@ -57,7 +56,7 @@ const DriverVerification = () => {
       // First, fetch profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, phone, user_type")
+        .select("id, first_name, last_name, phone, user_type, email")
         .eq("user_type", "driver");
 
       if (profilesError) throw profilesError;
@@ -85,27 +84,10 @@ const DriverVerification = () => {
         });
       }
 
-      // Fetch emails from auth (this will work if you have admin rights)
-      const emailPromises = driverIds.map(async (id) => {
-        try {
-          const { data: userData } = await supabase.auth.admin.getUserById(id);
-          return { id, email: userData?.user?.email };
-        } catch (err) {
-          console.error(`Error fetching email for user ${id}:`, err);
-          return { id, email: null };
-        }
-      });
-
-      const emailResults = await Promise.all(emailPromises);
-      const emailMap = Object.fromEntries(
-        emailResults.map(result => [result.id, result.email])
-      );
-
-      // Combine all data
+      // Combine all data - using emails directly from profiles
       const driversCombined = profilesData.map((profile) => {
         return {
           ...profile,
-          email: emailMap[profile.id],
           status: driverStatusMap[profile.id] ?? "pending",
         };
       });

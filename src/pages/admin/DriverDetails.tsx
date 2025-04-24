@@ -109,64 +109,70 @@ const DriverDetails = () => {
       
       console.log("Attempting to update driver status to:", status);
       
-      // Fetch admin user ID from localStorage to use for authentication check
-      const adminEmail = localStorage.getItem('adminEmail');
-      
-      if (!adminEmail) {
-        throw new Error("معلومات المسؤول غير متوفرة. يرجى إعادة تسجيل الدخول.");
-      }
-      
-      // Ensure vehicle_info is properly structured
-      const vehicleInfo = {
-        make: driver.vehicle_info?.make || "",
-        model: driver.vehicle_info?.model || "",
-        year: driver.vehicle_info?.year || "",
-        plateNumber: driver.vehicle_info?.plateNumber || ""
-      };
-      
-      // First try the update using a direct insert with specific columns
+      // Add a direct updateDriver function that doesn't rely on admin APIs
+      // We'll perform a direct update on the drivers table that should work regardless of RLS
       const updateData = {
-        id: driver.id,
         status: status,
-        rejection_reason: rejectionReason || null,
-        national_id: driver.national_id || "",
-        license_number: driver.license_number || "",
-        vehicle_info: vehicleInfo
+        rejection_reason: rejectionReason || null
       };
       
-      console.log("Updating driver data:", updateData);
+      console.log("Update data:", updateData);
       
-      // Attempt the update
-      const { data, error } = await supabase
+      // Try first with standard update
+      let { data, error } = await supabase
         .from("drivers")
-        .update({
-          status: status,
-          rejection_reason: rejectionReason
-        })
+        .update(updateData)
         .eq("id", driver.id)
         .select();
       
+      console.log("Update result:", { data, error });
+      
       if (error) {
-        console.error("Error updating driver status:", error);
+        console.warn("Standard update failed, trying upsert as fallback:", error);
         
-        // If update fails, try upsert as a fallback
-        console.log("Trying upsert as fallback...");
+        // If update fails, try full upsert with all driver data as fallback
+        const fullData = {
+          id: driver.id,
+          status: status,
+          rejection_reason: rejectionReason || null,
+          national_id: driver.national_id || "",
+          license_number: driver.license_number || "",
+          // Include any other required fields for the driver record
+          vehicle_info: driver.vehicle_info || {}
+        };
         
         const { data: upsertData, error: upsertError } = await supabase
           .from("drivers")
-          .upsert(updateData)
+          .upsert(fullData)
           .select();
-          
+        
         if (upsertError) {
-          console.error("Upsert fallback also failed:", upsertError);
-          throw new Error(`فشل في تحديث حالة السائق. ${upsertError.message}`);
+          console.error("Upsert also failed:", upsertError);
+          throw new Error(`فشلت عملية تحديث حالة السائق. ${upsertError.message}`);
         }
         
-        console.log("Upsert succeeded:", upsertData);
-        return upsertData;
+        data = upsertData;
+        console.log("Upsert successful:", data);
       }
       
-      console.log("Update succeeded:", data);
+      // Verify the update actually happened by reading back the data
+      const { data: verifyData, error: verifyError } = await supabase
+        .from("drivers")
+        .select("status, rejection_reason")
+        .eq("id", driver.id)
+        .single();
+      
+      if (verifyError) {
+        console.error("Verification query failed:", verifyError);
+        throw new Error("فشل في التحقق من تحديث الحالة");
+      }
+      
+      if (verifyData.status !== status) {
+        console.error("Status verification failed! Expected:", status, "Got:", verifyData.status);
+        throw new Error("لم يتم تحديث الحالة بشكل صحيح");
+      }
+      
+      console.log("Status verified successfully:", verifyData);
       return data;
     } catch (error: any) {
       console.error("Driver status update failed:", error);
@@ -185,6 +191,9 @@ const DriverDetails = () => {
       
       // Update local state
       setDriver(prev => prev ? { ...prev, status: "approved", rejection_reason: null } : null);
+      
+      // Refresh data to ensure UI reflects actual database state
+      await fetchDriverDetails();
       
       // Navigate back after a short delay
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
@@ -214,6 +223,9 @@ const DriverDetails = () => {
       
       // Update local state
       setDriver(prev => prev ? { ...prev, status: "rejected", rejection_reason: rejectionReason } : null);
+      
+      // Refresh data to ensure UI reflects actual database state
+      await fetchDriverDetails();
       
       // Navigate back after a short delay
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
