@@ -9,6 +9,7 @@ import { Eye, Search, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 interface Driver {
   id: string;
@@ -20,16 +21,37 @@ interface Driver {
   user_type: string;
 }
 
+interface DriverStatusCategory {
+  name: string;
+  display_name_ar: string;
+  color: string;
+}
+
 const DriverVerification = () => {
   const { t } = useLanguage();
   const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [statusCategories, setStatusCategories] = useState<DriverStatusCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchEmail, setSearchEmail] = useState("");
   const [currentTab, setCurrentTab] = useState("pending");
   const navigate = useNavigate();
 
+  const fetchDriverStatusCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("driver_status_categories")
+        .select("name, display_name_ar, color");
+      
+      if (error) throw error;
+      
+      setStatusCategories(data || []);
+    } catch (error) {
+      console.error("Error fetching driver status categories:", error);
+      toast.error("حدث خطأ أثناء جلب فئات حالة السائقين");
+    }
+  };
+
   const fetchDrivers = async () => {
-    console.log("Fetching drivers...");
     setLoading(true);
     try {
       // First, fetch profiles
@@ -88,7 +110,6 @@ const DriverVerification = () => {
         };
       });
 
-      console.log("Fetched drivers:", driversCombined);
       setDrivers(driversCombined);
     } catch (error) {
       console.error("Error fetching drivers:", error);
@@ -98,13 +119,9 @@ const DriverVerification = () => {
     }
   };
 
-  // Function to navigate to driver details
-  const navigateToDriverDetails = (driverId: string) => {
-    navigate(`/admin/driver-details/${driverId}`);
-  };
-
-  // Initial fetch
+  // Initialize data fetching
   useEffect(() => {
+    fetchDriverStatusCategories();
     fetchDrivers();
   }, []);
 
@@ -128,6 +145,16 @@ const DriverVerification = () => {
       (driver.email && driver.email.toLowerCase().includes(searchEmail.toLowerCase()));
     return matchesStatus && matchesSearch;
   });
+
+  const navigateToDriverDetails = (driverId: string) => {
+    navigate(`/admin/driver-details/${driverId}`);
+  };
+
+  // Function to get status badge color
+  const getStatusBadgeColor = (status: string) => {
+    const category = statusCategories.find(cat => cat.name === status);
+    return category ? category.color : "gray";
+  };
 
   return (
     <div className="p-6 flex flex-col min-h-svh">
@@ -156,17 +183,13 @@ const DriverVerification = () => {
           />
         </div>
 
-        <Tabs value={currentTab} onValueChange={(value) => {
-          setCurrentTab(value);
-          // Refresh data when changing tabs
-          console.log("Tab changed to:", value);
-          fetchDrivers();
-        }}>
+        <Tabs value={currentTab} onValueChange={setCurrentTab}>
           <TabsList>
-            <TabsTrigger value="pending">قيد المراجعة</TabsTrigger>
-            <TabsTrigger value="approved">مقبول</TabsTrigger>
-            <TabsTrigger value="rejected">مرفوض</TabsTrigger>
-            <TabsTrigger value="all">الكل</TabsTrigger>
+            {[...statusCategories, { name: "all", display_name_ar: "الكل" }].map(status => (
+              <TabsTrigger key={status.name} value={status.name}>
+                {status.display_name_ar}
+              </TabsTrigger>
+            ))}
           </TabsList>
           
           <TabsContent value={currentTab}>
@@ -182,34 +205,31 @@ const DriverVerification = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredDrivers.map((driver) => (
-                  <TableRow key={driver.id}>
-                    <TableCell>{driver.first_name}</TableCell>
-                    <TableCell>{driver.last_name}</TableCell>
-                    <TableCell>{driver.email || "-"}</TableCell>
-                    <TableCell>{driver.phone}</TableCell>
-                    <TableCell>
-                      {driver.status === "approved" ? (
-                        <span className="text-green-600">مقبول</span>
-                      ) : driver.status === "pending" ? (
-                        <span className="text-yellow-600">قيد المراجعة</span>
-                      ) : driver.status === "rejected" ? (
-                        <span className="text-red-600">مرفوض</span>
-                      ) : (
-                        <span className="text-gray-600">غير محدد</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="flex justify-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => navigateToDriverDetails(driver.id)}
-                      >
-                        <Eye size={16} className="ml-1" /> عرض التفاصيل
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredDrivers.map((driver) => {
+                  const statusCategory = statusCategories.find(cat => cat.name === driver.status);
+                  return (
+                    <TableRow key={driver.id}>
+                      <TableCell>{driver.first_name}</TableCell>
+                      <TableCell>{driver.last_name}</TableCell>
+                      <TableCell>{driver.email || "-"}</TableCell>
+                      <TableCell>{driver.phone}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`bg-${statusCategory?.color}-50 text-${statusCategory?.color}-600`}>
+                          {statusCategory?.display_name_ar || driver.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="flex justify-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigateToDriverDetails(driver.id)}
+                        >
+                          <Eye size={16} className="ml-1" /> عرض التفاصيل
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
 
                 {filteredDrivers.length === 0 && !loading && (
                   <TableRow>

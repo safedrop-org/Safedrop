@@ -74,6 +74,36 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_status_categories: {
+        Row: {
+          color: string
+          created_at: string | null
+          description: string | null
+          display_name_ar: string
+          id: number
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          color: string
+          created_at?: string | null
+          description?: string | null
+          display_name_ar: string
+          id?: number
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          description?: string | null
+          display_name_ar?: string
+          id?: number
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       drivers: {
         Row: {
           created_at: string | null
