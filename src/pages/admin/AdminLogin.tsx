@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -55,13 +54,18 @@ const AdminLoginContent = () => {
               first_name: 'Admin',
               last_name: 'User',
               phone: '+966000000000',
-              user_type: 'admin'
+              user_type: 'admin',
+              email: 'admin@safedrop.com'
             });
             
           console.log('Admin profile created');
         } else {
           console.log('Admin profile already exists');
         }
+        
+        // Additional verification for admin login
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log('Current User ID:', user?.id);
         
         toast.success("تم تسجيل الدخول بنجاح. مرحباً بك في لوحة تحكم المشرف");
         
