@@ -155,30 +155,31 @@ const DriverDetails = () => {
     try {
       console.log("Rejecting driver with ID:", driver.id);
       
-      // First update the driver status to rejected if it exists
+      // Update the driver status to rejected
       const { error: updateError } = await supabase
         .from("drivers")
         .update({ status: "rejected" })
         .eq("id", driver.id);
       
-      if (updateError && updateError.code !== 'PGRST404') {
+      if (updateError) {
         console.error("Error updating driver status:", updateError);
         throw updateError;
       }
       
-      // Try to disable the user account instead of deleting
+      // Try to disable the user account
       try {
-        // This requires admin rights
+        // Instead of using the 'banned' property which doesn't exist,
+        // We'll just update the user's app_metadata to indicate rejection
         const { error: authError } = await supabase.auth.admin.updateUserById(
           driver.id,
-          { banned: true }
+          { app_metadata: { status: 'rejected' } }
         );
         
         if (authError) {
-          console.error("Could not disable user account:", authError);
+          console.error("Could not update user metadata:", authError);
         }
       } catch (e) {
-        console.error("Error disabling user account:", e);
+        console.error("Error updating user account:", e);
       }
       
       toast.success("تم رفض السائق بنجاح");
@@ -333,7 +334,7 @@ const DriverDetails = () => {
           <Button 
             variant="destructive"
             onClick={rejectDriver}
-            disabled={processingAction}
+            disabled={processingAction || driver.status === "rejected"}
           >
             <X size={16} className="ml-1" /> رفض
           </Button>
