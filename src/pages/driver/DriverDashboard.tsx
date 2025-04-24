@@ -9,23 +9,176 @@ import { Badge } from '@/components/ui/badge';
 import { Bell, MessageSquare, AlertTriangle, CheckCircle, Clock, Star, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
+
+type Notification = {
+  id: number;
+  type: 'document' | 'order' | 'payment';
+  message: string;
+  date: string;
+  isRead: boolean;
+};
 
 const DriverDashboardContent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { user, session } = useAuth();
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [driverStatus, setDriverStatus] = useState<'approved' | 'pending' | 'rejected' | 'frozen' | null>(null);
-  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
-  const [rejectionCount, setRejectionCount] = useState(0);
-  const [notifications, setNotifications] = useState<{ id: number; type: string; message: string; date: string; isRead: boolean; }[]>([]);
-  const [driverRating, setDriverRating] = useState<number>(0);
-  const [driverStats, setDriverStats] = useState({
-    completedOrders: 0,
-    totalEarnings: 0,
-    platformCommission: 0,
-    availableBalance: 0
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  // Fetch driver profile and status
+  const { data: driverData, isLoading: isLoadingDriver, error: driverError } = useQuery({
+    queryKey: ['driver-data', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data: driver, error } = await supabase
+        .from('drivers')
+        .select('*, profiles(*)')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) {
+        console.error("Error fetching driver data:", error);
+        throw error;
+      }
+      
+      return driver;
+    },
+    enabled: !!user?.id
+  });
+
+  // Fetch driver financial stats
+  const { data: financialStats, isLoading: isLoadingFinancial } = useQuery({
+    queryKey: ['driver-financial-stats', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      // Get completed orders count
+      const { count: completedOrders, error: ordersError } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('driver_id', user.id)
+        .eq('status', 'completed');
+      
+      if (ordersError) throw ordersError;
+      
+      // Get financial transactions
+      const { data: transactions, error: transactionsError } = await supabase
+        .from('financial_transactions')
+        .select('amount, transaction_type, status')
+        .eq('driver_id', user.id)
+        .eq('status', 'completed');
+      
+      if (transactionsError) throw transactionsError;
+      
+      // Calculate totals
+      const totalEarnings = transactions
+        .filter(t => t.transaction_type === 'driver_payout')
+        .reduce((sum, t) => sum + (t.amount || 0), 0);
+      
+      const platformCommission = transactions
+        .filter(t => t.transaction_type === 'platform_fee')
+        .reduce((sum, t) => sum + (t.amount || 0), 0);
+      
+      return {
+        completedOrders: completedOrders || 0,
+        totalEarnings,
+        platformCommission,
+        availableBalance: totalEarnings - platformCommission
+      };
+    },
+    enabled: !!user?.id
+  });
+
+  // Fetch driver rating
+  const { data: ratingData } = useQuery({
+    queryKey: ['driver-rating', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const { data, error } = await supabase
+        .from('drivers')
+        .select('rating')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data?.rating || 0;
+    },
+    enabled: !!user?.id
+  });
+
+  // Fetch notifications
+  const { data: notificationsData } = useQuery({
+    queryKey: ['driver-notifications', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      // In a real implementation, you would fetch notifications from a notifications table
+      // For now, we'll simulate some notifications based on document expiry dates
+      const { data: driver, error } = await supabase
+        .from('drivers')
+        .select('documents, license_image')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      
+      const notifications: Notification[] = [];
+      
+      // Check if license is about to expire
+      if (driver?.documents?.national_id_expiry) {
+        const expiryDate = new Date(driver.documents.national_id_expiry);
+        const now = new Date();
+        const daysToExpiry = Math.floor((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysToExpiry < 30) {
+          notifications.push({
+            id: 1,
+            type: 'document',
+            message: 'الهوية الوطنية ستنتهي قريبًا، يرجى تحديثها',
+            date: expiryDate.toISOString().split('T')[0],
+            isRead: false
+          });
+        }
+      }
+      
+      if (driver?.documents?.license_expiry) {
+        const expiryDate = new Date(driver.documents.license_expiry);
+        const now = new Date();
+        const daysToExpiry = Math.floor((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysToExpiry < 30) {
+          notifications.push({
+            id: 2,
+            type: 'document',
+            message: 'رخصة القيادة ستنتهي قريبًا، يرجى تحديثها',
+            date: expiryDate.toISOString().split('T')[0],
+            isRead: false
+          });
+        }
+      }
+      
+      // Add some sample notifications if we don't have enough
+      if (notifications.length < 3) {
+        if (financialStats?.availableBalance > 0) {
+          notifications.push({
+            id: 3,
+            type: 'payment',
+            message: `تم إيداع مبلغ ${financialStats.availableBalance} ريال في حسابك البنكي`,
+            date: new Date().toISOString().split('T')[0],
+            isRead: false
+          });
+        }
+      }
+      
+      return notifications;
+    },
+    enabled: !!user?.id && !!financialStats
   });
 
   useEffect(() => {
@@ -55,83 +208,7 @@ const DriverDashboardContent = () => {
           return;
         }
 
-        const { data: driver, error } = await supabase
-          .from('drivers')
-          .select('status, rejection_reason, rating')
-          .eq('id', session.user.id)
-          .single();
-
-        if (error || !driver) {
-          toast({
-            title: "خطأ في جلب بيانات السائق",
-            description: "يرجى التواصل مع الدعم الفني",
-            variant: 'destructive',
-          });
-          navigate('/login');
-          return;
-        }
-
-        setDriverStatus(driver.status);
-        setRejectionReason(driver.rejection_reason || null);
-        setDriverRating(driver.rating || 0);
-
-        if (driver.status === 'pending') {
-          navigate('/driver/pending-approval');
-          return;
-        }
-        if (driver.status === 'rejected') {
-          const count = Number(localStorage.getItem('driverRejectionCount')) || 1;
-          setRejectionCount(count);
-          if (count >= 2) {
-            setDriverStatus('frozen');
-            toast({
-              title: "تم تعطيل الحساب مؤقتاً",
-              description: "تم رفض الحساب مرتين متتاليتين. يرجى التواصل مع الدعم الفني للاستفسار.",
-              variant: "destructive",
-            });
-            return;
-          }
-        }
-        if (driver.status === 'frozen') {
-          toast({
-            title: "تم تعطيل الحساب مؤقتاً",
-            description: "يرجى التواصل مع الدعم الفني للمزيد من المعلومات.",
-            variant: "destructive",
-          });
-          return;
-        }
-        if (driver.status === 'approved') {
-          setIsAuthenticated(true);
-          setDriverStats({
-            completedOrders: 132,
-            totalEarnings: 8650,
-            platformCommission: 1297.50,
-            availableBalance: 7352.50
-          });
-          setNotifications([
-            {
-              id: 1,
-              type: 'document',
-              message: 'رخصة القيادة ستنتهي قريبًا، يرجى تحديثها',
-              date: '2025-05-01',
-              isRead: false
-            },
-            {
-              id: 2,
-              type: 'order',
-              message: 'لديك طلب توصيل جديد في منطقة العليا',
-              date: '2025-04-16',
-              isRead: true
-            },
-            {
-              id: 3,
-              type: 'payment',
-              message: 'تم إيداع مبلغ 750 ريال في حسابك البنكي',
-              date: '2025-04-15',
-              isRead: false
-            }
-          ]);
-        }
+        setIsAuthenticated(true);
       } catch(error) {
         console.error("Error in driver dashboard init", error);
         toast({
@@ -145,8 +222,16 @@ const DriverDashboardContent = () => {
     checkAuthAndData();
   }, [navigate, toast]);
 
+  useEffect(() => {
+    if (notificationsData?.length) {
+      setNotifications(notificationsData);
+    }
+  }, [notificationsData]);
+
   const renderAccountStatusBanner = () => {
-    if (driverStatus === 'approved') {
+    if (!driverData) return null;
+    
+    if (driverData.status === 'approved') {
       return (
         <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
           <div className="flex items-start">
@@ -159,7 +244,7 @@ const DriverDashboardContent = () => {
         </div>
       );
     }
-    if (driverStatus === 'pending') {
+    if (driverData.status === 'pending') {
       return (
         <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
           <div className="flex items-start">
@@ -172,7 +257,7 @@ const DriverDashboardContent = () => {
         </div>
       );
     }
-    if (driverStatus === 'rejected') {
+    if (driverData.status === 'rejected') {
       return (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
           <div className="flex items-start">
@@ -182,10 +267,10 @@ const DriverDashboardContent = () => {
               <p className="text-red-700 text-sm">
                 للأسف، تم رفض طلب انضمامك كسائق في منصة سيف دروب.
               </p>
-              {rejectionReason && (
+              {driverData.rejection_reason && (
                 <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                   <h3 className="font-semibold text-red-800">سبب الرفض:</h3>
-                  <p className="text-red-700 mt-2">{rejectionReason}</p>
+                  <p className="text-red-700 mt-2">{driverData.rejection_reason}</p>
                 </div>
               )}
               <p className="text-gray-600 mt-4">
@@ -203,7 +288,7 @@ const DriverDashboardContent = () => {
         </div>
       );
     }
-    if (driverStatus === 'frozen') {
+    if (driverData.status === 'frozen') {
       return (
         <div className="bg-red-100 border-l-4 border-red-600 p-4 mb-6">
           <div className="flex items-start">
@@ -221,12 +306,25 @@ const DriverDashboardContent = () => {
     return null;
   };
 
-  if (!isAuthenticated || driverStatus !== 'approved') {
+  if (isLoadingDriver || !isAuthenticated) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-safedrop-primary mx-auto"></div>
           <h2 className="text-2xl font-bold">{t('loading') || 'جاري التحميل...'}</h2>
+        </div>
+      </div>
+    );
+  }
+  
+  if (driverError) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
+          <AlertTriangle className="h-16 w-16 text-red-500 mx-auto" />
+          <h2 className="text-2xl font-bold">خطأ في تحميل البيانات</h2>
+          <p className="text-gray-600">حدث خطأ أثناء تحميل بيانات السائق. يرجى المحاولة مرة أخرى.</p>
+          <Button onClick={() => window.location.reload()}>تحديث الصفحة</Button>
         </div>
       </div>
     );
@@ -253,7 +351,13 @@ const DriverDashboardContent = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-500">الطلبات المكتملة</p>
-                      <h3 className="text-2xl font-bold">{driverStats.completedOrders}</h3>
+                      <h3 className="text-2xl font-bold">
+                        {isLoadingFinancial ? (
+                          <span className="animate-pulse">...</span>
+                        ) : (
+                          financialStats?.completedOrders || 0
+                        )}
+                      </h3>
                     </div>
                     <div className="bg-blue-100 p-3 rounded-full">
                       <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -270,8 +374,12 @@ const DriverDashboardContent = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-500">التقييم العام</p>
                       <div className="flex items-center">
-                        <h3 className="text-2xl font-bold">{driverRating.toFixed(1)}</h3>
-                        <span className="text-yellow-500 ml-2">★★★★★</span>
+                        <h3 className="text-2xl font-bold">{(ratingData || 0).toFixed(1)}</h3>
+                        <div className="text-yellow-500 ml-2 text-lg">
+                          {Array(5).fill(0).map((_, i) => (
+                            <span key={i}>{i < Math.round(ratingData || 0) ? '★' : '☆'}</span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                     <div className="bg-yellow-100 p-3 rounded-full">
@@ -286,7 +394,13 @@ const DriverDashboardContent = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-500">الرصيد المتاح</p>
-                      <h3 className="text-2xl font-bold">{driverStats.availableBalance} ر.س</h3>
+                      <h3 className="text-2xl font-bold">
+                        {isLoadingFinancial ? (
+                          <span className="animate-pulse">...</span>
+                        ) : (
+                          `${financialStats?.availableBalance.toFixed(2) || '0.00'} ر.س`
+                        )}
+                      </h3>
                     </div>
                     <div className="bg-green-100 p-3 rounded-full">
                       <DollarSign className="h-6 w-6 text-green-600" />
@@ -302,32 +416,45 @@ const DriverDashboardContent = () => {
                   <CardTitle>الإشعارات الأخيرة</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {notifications.map(notification => (
-                      <div key={notification.id} className={`flex items-start p-3 rounded-lg ${notification.isRead ? 'bg-white' : 'bg-blue-50'}`}>
-                        <div className={`p-2 rounded-full ${
-                          notification.type === 'document' ? 'bg-yellow-100 text-yellow-600' : 
-                          notification.type === 'order' ? 'bg-blue-100 text-blue-600' : 
-                          'bg-green-100 text-green-600'
-                        }`}>
-                          {notification.type === 'document' && <AlertTriangle className="h-5 w-5" />}
-                          {notification.type === 'order' && <Bell className="h-5 w-5" />}
-                          {notification.type === 'payment' && <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>}
+                  {notifications.length === 0 ? (
+                    <div className="text-center p-6">
+                      <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500">لا توجد إشعارات جديدة</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {notifications.map(notification => (
+                        <div key={notification.id} className={`flex items-start p-3 rounded-lg ${notification.isRead ? 'bg-white' : 'bg-blue-50'}`}>
+                          <div className={`p-2 rounded-full ${
+                            notification.type === 'document' ? 'bg-yellow-100 text-yellow-600' : 
+                            notification.type === 'order' ? 'bg-blue-100 text-blue-600' : 
+                            'bg-green-100 text-green-600'
+                          }`}>
+                            {notification.type === 'document' && <AlertTriangle className="h-5 w-5" />}
+                            {notification.type === 'order' && <Bell className="h-5 w-5" />}
+                            {notification.type === 'payment' && <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>}
+                          </div>
+                          <div className="ml-3 flex-1">
+                            <p className={`text-sm ${notification.isRead ? 'font-normal' : 'font-medium'}`}>{notification.message}</p>
+                            <p className="text-xs text-gray-500">{notification.date}</p>
+                          </div>
+                          {!notification.isRead && (
+                            <Badge className="bg-blue-500">جديد</Badge>
+                          )}
                         </div>
-                        <div className="ml-3 flex-1">
-                          <p className={`text-sm ${notification.isRead ? 'font-normal' : 'font-medium'}`}>{notification.message}</p>
-                          <p className="text-xs text-gray-500">{notification.date}</p>
-                        </div>
-                        {!notification.isRead && (
-                          <Badge className="bg-blue-500">جديد</Badge>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                   
-                  <Button variant="outline" className="mt-4 w-full">عرض كافة الإشعارات</Button>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4 w-full"
+                    onClick={() => navigate('/driver/notifications')}
+                  >
+                    عرض كافة الإشعارات
+                  </Button>
                 </CardContent>
               </Card>
               
@@ -339,23 +466,52 @@ const DriverDashboardContent = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <p className="text-gray-600">إجمالي الأرباح</p>
-                      <p className="font-medium">{driverStats.totalEarnings} ر.س</p>
+                      <p className="font-medium">
+                        {isLoadingFinancial ? (
+                          <span className="animate-pulse">...</span>
+                        ) : (
+                          `${financialStats?.totalEarnings.toFixed(2) || '0.00'} ر.س`
+                        )}
+                      </p>
                     </div>
                     <div className="flex items-center justify-between">
                       <p className="text-gray-600">عمولة المنصة (15%)</p>
-                      <p className="font-medium">{driverStats.platformCommission} ر.س</p>
+                      <p className="font-medium">
+                        {isLoadingFinancial ? (
+                          <span className="animate-pulse">...</span>
+                        ) : (
+                          `${financialStats?.platformCommission.toFixed(2) || '0.00'} ر.س`
+                        )}
+                      </p>
                     </div>
                     <div className="border-t pt-3 mt-3">
                       <div className="flex items-center justify-between font-medium">
                         <p>الرصيد المتاح</p>
-                        <p>{driverStats.availableBalance} ر.س</p>
+                        <p>
+                          {isLoadingFinancial ? (
+                            <span className="animate-pulse">...</span>
+                          ) : (
+                            `${financialStats?.availableBalance.toFixed(2) || '0.00'} ر.س`
+                          )}
+                        </p>
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex mt-6 gap-3">
-                    <Button variant="outline" className="flex-1">تفاصيل المدفوعات</Button>
-                    <Button className="bg-safedrop-gold hover:bg-safedrop-gold/90 flex-1">طلب سحب</Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => navigate('/driver/earnings')}
+                    >
+                      تفاصيل المدفوعات
+                    </Button>
+                    <Button 
+                      className="bg-safedrop-gold hover:bg-safedrop-gold/90 flex-1"
+                      onClick={() => toast.success('تم إرسال طلب السحب بنجاح')}
+                    >
+                      طلب سحب
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -367,11 +523,19 @@ const DriverDashboardContent = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-auto py-4 flex items-center justify-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex items-center justify-center gap-2"
+                    onClick={() => navigate('/driver/support')}
+                  >
                     <MessageSquare className="h-5 w-5" />
                     <span>تواصل مع الدعم الفني</span>
                   </Button>
-                  <Button variant="outline" className="h-auto py-4 flex items-center justify-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="h-auto py-4 flex items-center justify-center gap-2"
+                    onClick={() => navigate('/faq')}
+                  >
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -381,7 +545,11 @@ const DriverDashboardContent = () => {
 
                 <div className="mt-4">
                   <p className="text-sm text-gray-500 mb-2">هل تواجه مشكلة؟</p>
-                  <Button variant="secondary" className="w-full">
+                  <Button 
+                    variant="secondary" 
+                    className="w-full"
+                    onClick={() => navigate('/driver/support/report-issue')}
+                  >
                     إبلاغ عن مشكلة
                   </Button>
                 </div>
