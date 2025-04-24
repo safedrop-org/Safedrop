@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import DriverSidebar from '@/components/driver/DriverSidebar';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bell, MessageSquare, AlertTriangle, CheckCircle, Clock, Star, DollarSign } from 'lucide-react';
@@ -33,18 +34,32 @@ const DriverDashboardContent = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data: driver, error } = await supabase
+      // Fetch driver data and user profile separately and then combine them
+      const { data: driver, error: driverError } = await supabase
         .from('drivers')
-        .select('*, profiles(*)')
+        .select('*')
         .eq('id', user.id)
         .single();
       
-      if (error) {
-        console.error("Error fetching driver data:", error);
-        throw error;
+      if (driverError) {
+        console.error("Error fetching driver data:", driverError);
+        throw driverError;
       }
       
-      return driver;
+      // Fetch profile data separately
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileError) {
+        console.error("Error fetching profile data:", profileError);
+        throw profileError;
+      }
+      
+      // Combine the data
+      return { ...driver, profile };
     },
     enabled: !!user?.id
   });
@@ -496,7 +511,11 @@ const DriverDashboardContent = () => {
                     </Button>
                     <Button 
                       className="bg-safedrop-gold hover:bg-safedrop-gold/90 flex-1"
-                      onClick={() => toast.success('تم إرسال طلب السحب بنجاح')}
+                      onClick={() => toast({
+                        title: "تم إرسال طلب السحب بنجاح",
+                        variant: "default",
+                        className: "bg-green-500 text-white"
+                      })}
                     >
                       طلب سحب
                     </Button>
