@@ -100,7 +100,7 @@ const DriverDetails = () => {
         throw new Error("فشل في التحقق من وجود السائق في قاعدة البيانات");
       }
       
-      // Prepare driver data
+      // Prepare driver data with all required fields
       const driverData = {
         status: "approved",
         rejection_reason: null,
@@ -144,7 +144,7 @@ const DriverDetails = () => {
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
     } catch (error) {
       console.error("Error approving driver:", error);
-      toast.error(error.message || "حدث خطأ أثناء قبول السائق");
+      toast.error(error instanceof Error ? error.message : "حدث خطأ أثناء قبول السائق");
     } finally {
       setProcessingAction(false);
     }
@@ -218,7 +218,7 @@ const DriverDetails = () => {
       setTimeout(() => navigate("/admin/driver-verification"), 1500);
     } catch (error) {
       console.error("Error rejecting driver:", error);
-      toast.error(error.message || "حدث خطأ أثناء رفض السائق");
+      toast.error(error instanceof Error ? error.message : "حدث خطأ أثناء رفض السائق");
     } finally {
       setProcessingAction(false);
     }
