@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Check, X, MessageSquare } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface DriverDetails {
   // Profile data
@@ -149,23 +151,37 @@ const DriverDetails = () => {
         
         toast.success("تم حذف حساب السائق بشكل نهائي");
       } else {
+        // Update driver status with rejection reason
         const { error } = await supabase
           .from("drivers")
-          .update({ 
-            status: "rejected", 
-            rejection_reason: rejectionReason 
+          .update({
+            status: "rejected",
+            rejection_reason: rejectionReason
           })
           .eq("id", driver.id);
         
-        if (error) throw error;
+        if (error) {
+          console.error("Error updating driver status:", error);
+          throw error;
+        }
+        
+        // Update local state to reflect changes
+        setDriver(prev => prev ? {
+          ...prev,
+          status: "rejected",
+          rejection_reason: rejectionReason
+        } : null);
         
         toast.success("تم رفض السائق مع إرسال رسالة");
         setRejectionDialogOpen(false);
         setRejectionReason("");
       }
       
-      // Navigate back after a short delay
-      setTimeout(() => navigate("/admin/driver-verification"), 1500);
+      // Wait a moment to ensure the toast is visible
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Navigate back after showing the success toast
+      navigate("/admin/driver-verification");
     } catch (error) {
       console.error("Error rejecting driver:", error);
       toast.error("حدث خطأ أثناء رفض السائق");
@@ -237,6 +253,11 @@ const DriverDetails = () => {
               </div>
               
               <div>
+                <span className="font-bold">العنوان: </span>
+                <span>{driver.address || "غير متوفر"}</span>
+              </div>
+              
+              <div>
                 <span className="font-bold">الحالة: </span>
                 <span className={
                   driver.status === "approved" ? "text-green-600" :
@@ -286,10 +307,10 @@ const DriverDetails = () => {
           </div>
           
           {driver.status === "rejected" && driver.rejection_reason && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <Alert className="mt-4 bg-red-50 border-red-200 text-right">
               <div className="font-bold mb-1">سبب الرفض:</div>
-              <div>{driver.rejection_reason || "لم يتم تحديد سبب"}</div>
-            </div>
+              <AlertDescription>{driver.rejection_reason}</AlertDescription>
+            </Alert>
           )}
         </CardContent>
         
