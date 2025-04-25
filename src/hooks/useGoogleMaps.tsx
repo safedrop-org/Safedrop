@@ -14,24 +14,11 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
   const [loadError, setLoadError] = useState<Error | null>(null);
 
   useEffect(() => {
-    console.log('Initializing Google Maps hook');
-    
-    // Explicitly set the API key - this is a secured environment variable, not hardcoded
-    const apiKey = 'AIzaSyAh7C_dU6EnC0QE1_vor6z96-fShN4A0ow';
-    
-    if (!apiKey) {
-      console.error('Google Maps API key is missing');
-      setLoadError(new Error('Google Maps API key is missing'));
-      toast.error('مفتاح خرائط Google غير موجود');
-      return;
-    }
-
-    console.log('API key found, initializing Google Maps');
-
     // Check if the script is already loaded
     const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api"]');
     if (existingScript) {
       console.log('Google Maps script already exists');
+      // If the script exists but window.google is undefined, wait for it to load
       if (window.google && window.google.maps && window.google.maps.places) {
         console.log('Google Maps already loaded with Places library');
         setIsLoaded(true);
@@ -51,7 +38,6 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
           if (!window.google || !window.google.maps || !window.google.maps.places) {
             console.error('Timeout waiting for Google Maps to load');
             setLoadError(new Error('Timeout loading Google Maps API'));
-            toast.error('انتهت مهلة تحميل خرائط Google');
           }
         }, 10000);
       }
@@ -61,17 +47,21 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     // Load the script if it doesn't exist
     console.log('Loading Google Maps script');
     const script = document.createElement('script');
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     
-    // Build the URL with API key
-    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
-    script.src = scriptUrl;
+    if (!apiKey) {
+      console.error('Google Maps API key is missing');
+      setLoadError(new Error('Google Maps API key is missing'));
+      return;
+    }
+    
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
     script.async = true;
     script.defer = true;
     
     window.initGoogleMaps = () => {
       console.log('Google Maps loaded via callback');
       setIsLoaded(true);
-      toast.success('تم تحميل خرائط Google بنجاح');
     };
     
     script.onerror = (error: Event | string) => {
@@ -84,13 +74,13 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     };
     
     document.head.appendChild(script);
-    console.log('Google Maps script added to document head');
 
     return () => {
       // Cleanup callback
       if (window.initGoogleMaps) {
         delete window.initGoogleMaps;
       }
+      // Don't remove the script as it might be used by other components
     };
   }, []);
 
