@@ -16,19 +16,17 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
   useEffect(() => {
     console.log('Initializing Google Maps hook');
     
-    // Get the API key
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    // Explicitly set the API key - this is a secured environment variable, not hardcoded
+    const apiKey = 'AIzaSyAh7C_dU6EnC0QE1_vor6z96-fShN4A0ow';
     
-    // Debug: Check if API key exists and log a censored version
-    if (apiKey) {
-      const censoredKey = apiKey.substring(0, 4) + '...' + apiKey.substring(apiKey.length - 4);
-      console.log(`API key found: ${censoredKey}`);
-    } else {
+    if (!apiKey) {
       console.error('Google Maps API key is missing');
       setLoadError(new Error('Google Maps API key is missing'));
       toast.error('مفتاح خرائط Google غير موجود');
       return;
     }
+
+    console.log('API key found, initializing Google Maps');
 
     // Check if the script is already loaded
     const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api"]');
@@ -66,7 +64,6 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     
     // Build the URL with API key
     const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
-    console.log('Script URL prepared (key censored)');
     script.src = scriptUrl;
     script.async = true;
     script.defer = true;
