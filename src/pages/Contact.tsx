@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -10,10 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
 const ContactContent = () => {
-  const { t } = useLanguage();
-  const { toast } = useToast();
+  const {
+    t
+  } = useLanguage();
+  const {
+    toast
+  } = useToast();
   const [formState, setFormState] = useState({
     name: '',
     email: '',
@@ -22,15 +24,16 @@ const ContactContent = () => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value
+    } = e.target;
     setFormState(prev => ({
       ...prev,
       [name]: value
     }));
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -39,7 +42,7 @@ const ContactContent = () => {
     setTimeout(() => {
       toast({
         title: "تم إرسال رسالتك بنجاح",
-        description: "سنتواصل معك في أقرب وقت ممكن",
+        description: "سنتواصل معك في أقرب وقت ممكن"
       });
       setFormState({
         name: '',
@@ -51,9 +54,7 @@ const ContactContent = () => {
       setIsSubmitting(false);
     }, 1500);
   };
-
-  return (
-    <div className="min-h-screen flex flex-col">
+  return <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
@@ -85,7 +86,7 @@ const ContactContent = () => {
                         <div>
                           <h3 className="font-semibold text-lg mb-1">العنوان</h3>
                           <p className="text-gray-600">المملكة العربية السعودية، الرياض</p>
-                          <p className="text-gray-600">حي الملقا، شارع الأمير محمد بن سلمان</p>
+                          
                         </div>
                       </div>
                     </CardContent>
@@ -118,8 +119,8 @@ const ContactContent = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-lg mb-1">البريد الإلكتروني</h3>
-                          <p className="text-gray-600">info@safedrop.com</p>
-                          <p className="text-gray-600">support@safedrop.com</p>
+                          <p className="text-gray-600">info@safedrop-express.com</p>
+                          <p className="text-gray-600">support@safedrop-express.com</p>
                         </div>
                       </div>
                     </CardContent>
@@ -154,73 +155,33 @@ const ContactContent = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="name">الاسم الكامل</Label>
-                          <Input 
-                            id="name" 
-                            name="name" 
-                            placeholder="أدخل اسمك الكامل" 
-                            value={formState.name}
-                            onChange={handleChange}
-                            required
-                          />
+                          <Input id="name" name="name" placeholder="أدخل اسمك الكامل" value={formState.name} onChange={handleChange} required />
                         </div>
                         
                         <div className="space-y-2">
                           <Label htmlFor="email">البريد الإلكتروني</Label>
-                          <Input 
-                            id="email" 
-                            name="email" 
-                            type="email" 
-                            placeholder="example@email.com" 
-                            value={formState.email}
-                            onChange={handleChange}
-                            required
-                          />
+                          <Input id="email" name="email" type="email" placeholder="example@email.com" value={formState.email} onChange={handleChange} required />
                         </div>
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="phone">رقم الهاتف</Label>
-                          <Input 
-                            id="phone" 
-                            name="phone" 
-                            placeholder="05XXXXXXXX" 
-                            value={formState.phone}
-                            onChange={handleChange}
-                          />
+                          <Input id="phone" name="phone" placeholder="05XXXXXXXX" value={formState.phone} onChange={handleChange} />
                         </div>
                         
                         <div className="space-y-2">
                           <Label htmlFor="subject">الموضوع</Label>
-                          <Input 
-                            id="subject" 
-                            name="subject" 
-                            placeholder="موضوع الرسالة" 
-                            value={formState.subject}
-                            onChange={handleChange}
-                            required
-                          />
+                          <Input id="subject" name="subject" placeholder="موضوع الرسالة" value={formState.subject} onChange={handleChange} required />
                         </div>
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="message">الرسالة</Label>
-                        <Textarea 
-                          id="message" 
-                          name="message" 
-                          placeholder="اكتب رسالتك هنا..." 
-                          rows={6}
-                          value={formState.message}
-                          onChange={handleChange}
-                          required
-                        />
+                        <Textarea id="message" name="message" placeholder="اكتب رسالتك هنا..." rows={6} value={formState.message} onChange={handleChange} required />
                       </div>
                       
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-                        disabled={isSubmitting}
-                      >
+                      <Button type="submit" className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" disabled={isSubmitting}>
                         {isSubmitting ? "جاري الإرسال..." : "إرسال الرسالة"}
                       </Button>
                     </form>
@@ -243,16 +204,11 @@ const ContactContent = () => {
         </section>
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 const Contact = () => {
-  return (
-    <LanguageProvider>
+  return <LanguageProvider>
       <ContactContent />
-    </LanguageProvider>
-  );
+    </LanguageProvider>;
 };
-
 export default Contact;
