@@ -45,8 +45,12 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     console.log('Cleaning up map resources');
     
     // First, remove all event listeners
-    if (clickListenerRef.current && window.google) {
-      google.maps.event.removeListener(clickListenerRef.current);
+    if (clickListenerRef.current && window.google && window.google.maps) {
+      try {
+        google.maps.event.removeListener(clickListenerRef.current);
+      } catch (e) {
+        console.error('Error removing click listener:', e);
+      }
       clickListenerRef.current = null;
     }
 
@@ -58,7 +62,11 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
     // Remove marker from map - this is a Google Maps operation, not DOM
     if (marker) {
-      marker.setMap(null);
+      try {
+        marker.setMap(null);
+      } catch (e) {
+        console.error('Error removing marker:', e);
+      }
       setMarker(null);
     }
 
@@ -86,7 +94,12 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         
         // Initialize geocoder if needed
         if (!geocoderRef.current && window.google && window.google.maps) {
-          geocoderRef.current = new google.maps.Geocoder();
+          try {
+            geocoderRef.current = new google.maps.Geocoder();
+          } catch (e) {
+            console.error('Error creating geocoder:', e);
+            return;
+          }
         }
         
         // Create Saudi Arabia bounds
@@ -97,69 +110,98 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           east: 55.6666
         };
 
-        const bounds = new google.maps.LatLngBounds(
-          { lat: saudiBounds.south, lng: saudiBounds.west },
-          { lat: saudiBounds.north, lng: saudiBounds.east }
-        );
+        let bounds: google.maps.LatLngBounds;
+        try {
+          bounds = new google.maps.LatLngBounds(
+            { lat: saudiBounds.south, lng: saudiBounds.west },
+            { lat: saudiBounds.north, lng: saudiBounds.east }
+          );
+        } catch (e) {
+          console.error('Error creating bounds:', e);
+          return;
+        }
+
+        if (!mapRef.current) {
+          console.error('Map container disappeared before initialization');
+          return;
+        }
 
         console.log('Creating map with dimensions:', mapRef.current.offsetWidth, mapRef.current.offsetHeight);
         
-        // Create a new map instance
-        const newMap = new google.maps.Map(mapRef.current, {
-          center: { lat: 24.7136, lng: 46.6753 }, // Riyadh coordinates
-          zoom: 11,
-          restriction: {
-            latLngBounds: bounds,
-            strictBounds: true
-          },
-          mapTypeControl: true,
-          streetViewControl: false,
-          fullscreenControl: true,
-          zoomControl: true
-        });
+        let newMap: google.maps.Map;
+        
+        try {
+          // Create a new map instance
+          newMap = new google.maps.Map(mapRef.current, {
+            center: { lat: 24.7136, lng: 46.6753 }, // Riyadh coordinates
+            zoom: 11,
+            restriction: {
+              latLngBounds: bounds,
+              strictBounds: true
+            },
+            mapTypeControl: true,
+            streetViewControl: false,
+            fullscreenControl: true,
+            zoomControl: true
+          });
+        } catch (e) {
+          console.error('Error creating map:', e);
+          return;
+        }
 
-        // Add click event listener to the map
-        const clickListener = newMap.addListener('click', async (e: google.maps.MapMouseEvent) => {
-          if (!e.latLng) return;
+        try {
+          // Add click event listener to the map
+          const clickListener = newMap.addListener('click', async (e: google.maps.MapMouseEvent) => {
+            if (!e.latLng) return;
 
-          // Remove existing marker if any
-          if (marker) {
-            marker.setMap(null);
-          }
+            // Remove existing marker if any
+            if (marker) {
+              marker.setMap(null);
+            }
 
-          // Create new marker
-          const newMarker = new google.maps.Marker({
-            position: e.latLng,
-            map: newMap,
-            animation: google.maps.Animation.DROP
+            let newMarker: google.maps.Marker;
+            try {
+              // Create new marker
+              newMarker = new google.maps.Marker({
+                position: e.latLng,
+                map: newMap,
+                animation: google.maps.Animation.DROP
+              });
+            } catch (markerError) {
+              console.error('Error creating marker:', markerError);
+              return;
+            }
+
+            setMarker(newMarker);
+
+            try {
+              if (geocoderRef.current) {
+                const result = await geocoderRef.current.geocode({
+                  location: e.latLng,
+                  region: 'SA'
+                });
+
+                if (result && result.results[0]) {
+                  onLocationSelect({
+                    address: result.results[0].formatted_address,
+                    coordinates: {
+                      lat: e.latLng.lat(),
+                      lng: e.latLng.lng()
+                    }
+                  });
+                }
+              }
+            } catch (error) {
+              console.error('Geocoding error:', error);
+              toast.error('حدث خطأ أثناء تحديد الموقع');
+            }
           });
 
-          setMarker(newMarker);
+          clickListenerRef.current = clickListener;
+        } catch (listenerError) {
+          console.error('Error adding click listener:', listenerError);
+        }
 
-          try {
-            if (geocoderRef.current) {
-              const result = await geocoderRef.current.geocode({
-                location: e.latLng,
-                region: 'SA'
-              });
-
-              if (result && result.results[0]) {
-                onLocationSelect({
-                  address: result.results[0].formatted_address,
-                  coordinates: {
-                    lat: e.latLng.lat(),
-                    lng: e.latLng.lng()
-                  }
-                });
-              }
-            }
-          } catch (error) {
-            console.error('Geocoding error:', error);
-            toast.error('حدث خطأ أثناء تحديد الموقع');
-          }
-        });
-
-        clickListenerRef.current = clickListener;
         console.log('Map created successfully');
         setMap(newMap);
         setMapInitialized(true);
@@ -170,23 +212,29 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     };
 
     // Delay map initialization to ensure the modal DOM is ready
-    const timer: number = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       if (mapRef.current) {
         initializeMap();
       }
     }, 500);
     
-    mapInitializationTimerRef.current = timer;
+    mapInitializationTimerRef.current = timer as unknown as number;
 
     // Clean up on unmount or when open changes
-    return cleanupMapResources;
+    return () => {
+      cleanupMapResources();
+    };
   }, [open, onLocationSelect, marker]);
 
   // Handle resize events
   useEffect(() => {
     const handleResize = () => {
       if (map && mapRef.current && open) {
-        google.maps.event.trigger(map, 'resize');
+        try {
+          google.maps.event.trigger(map, 'resize');
+        } catch (e) {
+          console.error('Error triggering resize:', e);
+        }
       }
     };
 
@@ -200,9 +248,11 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   }, [map, open]);
 
   // Handle closing via Dialog's onOpenChange
-  const handleCloseModal = () => {
-    cleanupMapResources();
-    onClose();
+  const handleCloseModal = (isOpen: boolean) => {
+    if (!isOpen) {
+      cleanupMapResources();
+      onClose();
+    }
   };
 
   return (

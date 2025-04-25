@@ -70,15 +70,15 @@ const LocationInput: React.FC<LocationInputProps> = ({
           />
         )}
 
-        {/* Only render modal when it's actually needed */}
-        {isLoaded && isModalOpen && (
+        {/* Only render modal when it's actually open */}
+        {isLoaded && isModalOpen ? (
           <LocationPickerModal
             open={isModalOpen}
             onClose={handleCloseModal}
             onLocationSelect={handleLocationSelect}
             title={`اختر ${label}`}
           />
-        )}
+        ) : null}
       </div>
     </div>
   );

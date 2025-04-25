@@ -14,6 +14,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
   const [loadError, setLoadError] = useState<Error | null>(null);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const callbackName = useRef<string>(`initGoogleMaps${Date.now()}`);
+  const mapsLoadedRef = useRef<boolean>(false);
   
   useEffect(() => {
     console.log('Initializing Google Maps hook');
@@ -22,6 +23,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     if (window.google && window.google.maps) {
       console.log('Google Maps already loaded');
       setIsLoaded(true);
+      mapsLoadedRef.current = true;
       return;
     }
     
@@ -43,10 +45,9 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     // Set up the callback function
     window[uniqueCallbackName] = () => {
       console.log('Google Maps loaded via callback');
-      if (!isLoaded) {
-        setIsLoaded(true);
-        toast.success('تم تحميل خرائط Google بنجاح');
-      }
+      setIsLoaded(true);
+      mapsLoadedRef.current = true;
+      toast.success('تم تحميل خرائط Google بنجاح');
     };
 
     // Check if the script already exists
@@ -86,22 +87,31 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
 
     // Clean up function
     return () => {
-      // Only remove script if we were the one who added it
-      if (scriptRef.current && document.head.contains(scriptRef.current)) {
-        document.head.removeChild(scriptRef.current);
+      try {
+        // Only remove script if we were the one who added it and it exists in the DOM
+        if (scriptRef.current) {
+          // Check if it's still in the document before trying to remove
+          const scriptInDom = document.head.contains(scriptRef.current);
+          if (scriptInDom) {
+            document.head.removeChild(scriptRef.current);
+          }
+          scriptRef.current = null;
+        }
+        
+        // Remove callback from window object
+        if (window[uniqueCallbackName]) {
+          delete window[uniqueCallbackName];
+        }
+        
+        console.log('Cleaning up Google Maps hook');
+      } catch (e) {
+        console.error('Error during Maps cleanup:', e);
       }
-      
-      // Remove callback from window object
-      if (window[uniqueCallbackName]) {
-        delete window[uniqueCallbackName];
-      }
-      
-      console.log('Cleaning up Google Maps hook');
     };
-  }, [isLoaded]);
+  }, []);
 
   const geocodeAddress = useCallback(async (address: string): Promise<google.maps.LatLngLiteral | null> => {
-    if (!isLoaded || !window.google) {
+    if (!mapsLoadedRef.current || !window.google || !window.google.maps) {
       console.error('Google Maps not loaded for geocoding');
       toast.error('خرائط جوجل غير متاحة للبحث عن العناوين');
       return null;
@@ -134,13 +144,13 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       toast.error('حدث خطأ أثناء تحديد الموقع');
       return null;
     }
-  }, [isLoaded]);
+  }, []);
 
   const calculateDistance = useCallback(async (
     originAddress: string,
     destinationAddress: string
   ): Promise<number | null> => {
-    if (!isLoaded || !window.google) {
+    if (!mapsLoadedRef.current || !window.google || !window.google.maps) {
       console.error('Google Maps not loaded for distance calculation');
       toast.error('خرائط جوجل غير متاحة لحساب المسافة');
       return null;
@@ -186,7 +196,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       toast.error('حدث خطأ أثناء حساب المسافة');
       return null;
     }
-  }, [isLoaded]);
+  }, []);
 
   return { isLoaded, loadError, calculateDistance, geocodeAddress };
 };
