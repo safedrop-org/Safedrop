@@ -56,7 +56,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
           variant={value.address ? "outline" : "default"}
           disabled={!isLoaded}
         >
-          <MapPin className="h-4 w-4 ml-2 flex-shrink-0" />
+          <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
           <span className="truncate">
             {value.address || placeholder}
           </span>
@@ -70,15 +70,15 @@ const LocationInput: React.FC<LocationInputProps> = ({
           />
         )}
 
-        {/* Only render modal when it's actually open */}
-        {isLoaded && isModalOpen ? (
+        {/* Only create modal when it's going to be shown */}
+        {isLoaded && isModalOpen && (
           <LocationPickerModal
             open={isModalOpen}
             onClose={handleCloseModal}
             onLocationSelect={handleLocationSelect}
             title={`اختر ${label}`}
           />
-        ) : null}
+        )}
       </div>
     </div>
   );

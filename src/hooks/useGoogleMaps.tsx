@@ -58,9 +58,11 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       return;
     }
 
+    let script: HTMLScriptElement | null = null;
+    
     try {
       // Create and append the script
-      const script = document.createElement('script');
+      script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=${uniqueCallbackName}`;
       script.async = true;
@@ -87,23 +89,22 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
 
     // Clean up function
     return () => {
+      console.log('Cleaning up Google Maps hook');
+      
       try {
-        // Only remove script if we were the one who added it and it exists in the DOM
-        if (scriptRef.current) {
-          // Check if it's still in the document before trying to remove
-          const scriptInDom = document.head.contains(scriptRef.current);
-          if (scriptInDom) {
-            document.head.removeChild(scriptRef.current);
-          }
-          scriptRef.current = null;
-        }
-        
         // Remove callback from window object
         if (window[uniqueCallbackName]) {
           delete window[uniqueCallbackName];
         }
         
-        console.log('Cleaning up Google Maps hook');
+        // Only remove script if we were the one who added it
+        if (script && scriptRef.current === script) {
+          // Check if script is still in document before trying to remove
+          if (document.head.contains(script)) {
+            document.head.removeChild(script);
+          }
+          scriptRef.current = null;
+        }
       } catch (e) {
         console.error('Error during Maps cleanup:', e);
       }

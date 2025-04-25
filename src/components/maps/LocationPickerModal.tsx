@@ -37,9 +37,9 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const [mapInitialized, setMapInitialized] = useState(false);
-  const mapInitializationTimerRef = useRef<number | null>(null);
+  const mapInitializationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const clickListenerRef = useRef<google.maps.MapsEventListener | null>(null);
-
+  
   // Complete cleanup function that safely disposes all Google Maps resources
   const cleanupMapResources = () => {
     console.log('Cleaning up map resources');
@@ -56,7 +56,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
     // Clear any pending initialization timers
     if (mapInitializationTimerRef.current !== null) {
-      window.clearTimeout(mapInitializationTimerRef.current);
+      clearTimeout(mapInitializationTimerRef.current);
       mapInitializationTimerRef.current = null;
     }
 
@@ -75,18 +75,22 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     setMapInitialized(false);
   };
 
-  // Only set up the map when the modal is truly open and visible in the DOM
+  // Only initialize the map when modal is fully mounted in DOM and Google Maps is loaded
   useEffect(() => {
+    // Don't do anything if modal is closed or Google Maps is not loaded
     if (!open || !window.google || !window.google.maps) {
       return;
     }
 
-    // Wait until the modal is fully mounted in the DOM
+    let isMounted = true;
+
     const initializeMap = () => {
+      if (!isMounted) return;
+
       try {
-        // Safety check - if the map div isn't in the DOM yet, don't proceed
+        // Safety check - if the map div isn't properly in the DOM yet, don't proceed
         if (!mapRef.current || !mapRef.current.offsetWidth) {
-          console.log('Map container not ready, skipping initialization');
+          console.log('Map container not ready, delaying initialization');
           return;
         }
         
@@ -128,10 +132,9 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
         console.log('Creating map with dimensions:', mapRef.current.offsetWidth, mapRef.current.offsetHeight);
         
+        // Create a new map instance
         let newMap: google.maps.Map;
-        
         try {
-          // Create a new map instance
           newMap = new google.maps.Map(mapRef.current, {
             center: { lat: 24.7136, lng: 46.6753 }, // Riyadh coordinates
             zoom: 11,
@@ -167,21 +170,24 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
                 map: newMap,
                 animation: google.maps.Animation.DROP
               });
+
+              // Only update state if component is still mounted
+              if (isMounted) {
+                setMarker(newMarker);
+              }
             } catch (markerError) {
               console.error('Error creating marker:', markerError);
               return;
             }
 
-            setMarker(newMarker);
-
             try {
-              if (geocoderRef.current) {
+              if (geocoderRef.current && e.latLng) {
                 const result = await geocoderRef.current.geocode({
                   location: e.latLng,
                   region: 'SA'
                 });
 
-                if (result && result.results[0]) {
+                if (result && result.results[0] && isMounted) {
                   onLocationSelect({
                     address: result.results[0].formatted_address,
                     coordinates: {
@@ -193,7 +199,9 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               }
             } catch (error) {
               console.error('Geocoding error:', error);
-              toast.error('حدث خطأ أثناء تحديد الموقع');
+              if (isMounted) {
+                toast.error('حدث خطأ أثناء تحديد الموقع');
+              }
             }
           });
 
@@ -203,31 +211,38 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         }
 
         console.log('Map created successfully');
-        setMap(newMap);
-        setMapInitialized(true);
+        if (isMounted) {
+          setMap(newMap);
+          setMapInitialized(true);
+        }
       } catch (error) {
         console.error('Error initializing map:', error);
-        toast.error('حدث خطأ في تحميل الخريطة');
+        if (isMounted) {
+          toast.error('حدث خطأ في تحميل الخريطة');
+        }
       }
     };
 
     // Delay map initialization to ensure the modal DOM is ready
-    const timer = window.setTimeout(() => {
-      if (mapRef.current) {
+    const timer = setTimeout(() => {
+      if (mapRef.current && isMounted) {
         initializeMap();
       }
     }, 500);
     
-    mapInitializationTimerRef.current = timer as unknown as number;
+    mapInitializationTimerRef.current = timer;
 
-    // Clean up on unmount or when open changes
+    // Clean up on unmount or when open state changes
     return () => {
+      isMounted = false;
       cleanupMapResources();
     };
   }, [open, onLocationSelect, marker]);
 
   // Handle resize events
   useEffect(() => {
+    if (!open) return;
+
     const handleResize = () => {
       if (map && mapRef.current && open) {
         try {
@@ -238,19 +253,15 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       }
     };
 
-    if (open) {
-      window.addEventListener('resize', handleResize);
-    }
-
+    window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
     };
   }, [map, open]);
 
-  // Handle closing via Dialog's onOpenChange
+  // Handle Dialog's onOpenChange
   const handleCloseModal = (isOpen: boolean) => {
     if (!isOpen) {
-      cleanupMapResources();
       onClose();
     }
   };
