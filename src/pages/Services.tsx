@@ -64,7 +64,7 @@ const ServicesContent = () => {
                   <div className="w-14 h-14 rounded-full bg-safedrop-primary flex items-center justify-center mb-4">
                     <Shield className="h-7 w-7 text-safedrop-gold" />
                   </div>
-                  <h3 className="text-xl font-tajwal mb-3">حماية المعاملات</h3>
+                  <h3 className="text-xl font-semibold mb-3">حماية المعاملات</h3>
                   <p className="text-gray-600 mb-4">
                     خدمة ضمان المعاملات بين البائع والمشتري، حيث نقوم بدور الوسيط لضمان استلام المشتري للمنتج قبل إتمام الدفع للبائع، مما يوفر الأمان لكلا الطرفين.
                   </p>
