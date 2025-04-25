@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
@@ -15,8 +14,8 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
 
   useEffect(() => {
     const script = document.createElement('script');
-    // Use process.env for the API key
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
+    // Use import.meta.env for Vite environment variables
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
     script.async = true;
     script.defer = true;
     script.onload = () => setIsLoaded(true);
