@@ -63,21 +63,19 @@ const ServicesContent = () => {
                     <Shield className="h-7 w-7 text-safedrop-gold" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">حماية المعاملات</h3>
-                  <p className="text-gray-600 mb-4">
-                    خدمة ضمان المعاملات بين البائع والمشتري، حيث نقوم بدور الوسيط لضمان استلام المشتري للمنتج قبل إتمام الدفع للبائع، مما يوفر الأمان لكلا الطرفين.
-                  </p>
+                  <p className="text-gray-600 mb-4">نؤمن تعاملاتك من خلال نظام ضمان مالي (Escrow) يحفظ أموالك حتى يتم تأكيد استلام الطرد، مما يوفّر تجربة موثوقة وعادلة للطرفين ويمنع أي محاولة احتيال أو تلاعب.</p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>فحص المنتج قبل التسليم</span>
+                      <span>حماية من الاحتيال</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>ضمان استرداد الأموال</span>
+                      <span>تأكيد قبل تحرير الدفع</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>توثيق المعاملة بالكامل</span>
+                      <span> نظام موثوق ومعتمد</span>
                     </li>
                   </ul>
                 </div>
