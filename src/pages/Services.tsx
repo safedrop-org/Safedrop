@@ -87,9 +87,7 @@ const ServicesContent = () => {
                     <Clock className="h-7 w-7 text-safedrop-gold" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">التوصيل السريع</h3>
-                  <p className="text-gray-600 mb-4">
-                    خدمة التوصيل خلال ساعات محددة لتلبية احتياجات العملاء العاجلة. نضمن وصول الشحنة في الوقت المحدد مع الحفاظ على معايير الأمان والجودة.
-                  </p>
+                  <p className="text-gray-600 mb-4">نوفّر لك خدمة توصيل سريعة وفعالة في نفس اليوم أو خلال ساعات، لتلبية احتياجاتك الطارئة بسهولة واحترافية مع أولوية كاملة في التنفيذ والتوصيل.</p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
@@ -113,19 +111,20 @@ const ServicesContent = () => {
                     <Truck className="h-7 w-7 text-safedrop-gold" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">تتبع الشحنات</h3>
-                  <p className="text-gray-600 mb-4">فريق من السائقين المحترفين المعتمدين الذين تم وفحصهم بعناية بدقة. يتمتع السائقون بخبرة عالية وسجل أمني نظيف لضمان أعلى مستويات الخدمة.</p>
+                  <p className="text-gray-600 mb-4">فريق من السائقين المحترفين المعتمدين الذين تم وفحصهم بعناية بدقيمكنك متابعة حالة شحنتك في كل مرحلة من مراحل التوصيل، حيث يقوم السائق بتحديث حالتها باستمرار لضمان معرفة وضع الطلب حتى لحظة التسليم.ة. يتمتع السائقون بخبرة عالية وسجل أمني نظيف لضمان أعلى مستويات الخدمة.</p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تحقق شامل من هوية السائقين</span>
+                      <span>إشعارات فورية بالحالة
+                    </span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تدريب مستمر على معايير الخدمة</span>
+                      <span> تحديث يدوي من السائق</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تقييم دوري للأداء</span>
+                      <span>وضوح في كل مرحلة</span>
                     </li>
                   </ul>
                 </div>
