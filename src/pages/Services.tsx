@@ -88,22 +88,20 @@ const ServicesContent = () => {
                   <div className="w-14 h-14 rounded-full bg-safedrop-primary flex items-center justify-center mb-4">
                     <Clock className="h-7 w-7 text-safedrop-gold" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">التوصيل السريع</h3>
-                  <p className="text-gray-600 mb-4">
-                    خدمة التوصيل خلال ساعات محددة لتلبية احتياجات العملاء العاجلة. نضمن وصول الشحنة في الوقت المحدد مع الحفاظ على معايير الأمان والجودة.
-                  </p>
+                  <h3 className="text-xl font-semibold mb-3">تتبع الشحنات</h3>
+                  <p className="text-gray-600 mb-4">يمكنك متابعة حالة شحنتك في كل مرحلة من مراحل التوصيل، حيث يقوم السائق بتحديث حالتها باستمرار لضمان معرفة وضع الطلب حتى لحظة التسليم.</p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>توصيل في نفس اليوم</span>
+                      <span>تحديث يدوي من السائق</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>خدمة التوصيل خلال ساعات</span>
+                      <span>وضوح في كل مرحلة</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تغطية المناطق المركزية</span>
+                      <span>إشعارات فورية بالحالة</span>
                     </li>
                   </ul>
                 </div>
@@ -114,20 +112,20 @@ const ServicesContent = () => {
                   <div className="w-14 h-14 rounded-full bg-safedrop-primary flex items-center justify-center mb-4">
                     <Truck className="h-7 w-7 text-safedrop-gold" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">سائقون معتمدون</h3>
-                  <p className="text-gray-600 mb-4">فريق من السائقين المحترفين المعتمدين الذين تم اختيارهم بعناية وفحصهم بدقة. يتمتع السائقون بخبرة عالية وسجل أمني نظيف لضمان أعلى مستويات الخدمة.</p>
+                  <h3 className="text-xl font-semibold mb-3">التوصيل السريع</h3>
+                  <p className="text-gray-600 mb-4">نوفّر لك خدمة توصيل سريعة وفعالة في نفس اليوم أو خلال ساعات، لتلبية احتياجاتك الطارئة بسهولة واحترافية مع أولوية كاملة في التنفيذ والتوصيل.</p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تحقق شامل من هوية السائقين</span>
+                      <span> تسليم بنفس اليوم</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تدريب مستمر على معايير الخدمة</span>
+                      <span>أولوية في التنفيذ</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تقييم دوري للأداء</span>
+                      <span>مناسب للطلبات المستعجلة</span>
                     </li>
                   </ul>
                 </div>
