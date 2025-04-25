@@ -39,58 +39,72 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const [mapInitialized, setMapInitialized] = useState(false);
   const mapInitializationTimerRef = useRef<number | null>(null);
+  const clickListenerRef = useRef<google.maps.MapsEventListener | null>(null);
 
   // Clean up function to properly dispose Google Maps resources
   const cleanupMap = () => {
+    // Remove event listeners first
+    if (clickListenerRef.current) {
+      google.maps.event.removeListener(clickListenerRef.current);
+      clickListenerRef.current = null;
+    }
+
     // Clear any pending timers
     if (mapInitializationTimerRef.current) {
       window.clearTimeout(mapInitializationTimerRef.current);
       mapInitializationTimerRef.current = null;
     }
 
-    // Remove marker from map
+    // Remove marker from map (without removing from DOM)
     if (marker) {
       marker.setMap(null);
       setMarker(null);
     }
 
     // Reset map state without disposing the map object
-    // This prevents the DOM removal error
     setMap(null);
     setMapInitialized(false);
   };
 
+  // This effect initializes the map when the modal opens and the DOM is ready
   useEffect(() => {
-    // Only initialize the map when modal is open and the DOM element is ready
+    // Only initialize the map when modal is open and Google Maps is loaded
     if (!open || !mapRef.current || !window.google || !window.google.maps) {
-      return cleanupMap();
+      return;
     }
 
     console.log('Initializing map in modal');
     
-    try {
-      // Initialize geocoder if not already done
-      if (!geocoderRef.current) {
-        geocoderRef.current = new google.maps.Geocoder();
-      }
-      
-      // Create Saudi Arabia bounds
-      const saudiBounds = new google.maps.LatLngBounds(
-        { lat: 16.3797, lng: 34.5725 }, // Southwest
-        { lat: 32.1543, lng: 55.6666 }  // Northeast
-      );
+    const initializeMap = () => {
+      try {
+        // Initialize geocoder if not already done
+        if (!geocoderRef.current && window.google.maps) {
+          geocoderRef.current = new google.maps.Geocoder();
+        }
+        
+        // Create Saudi Arabia bounds
+        const saudiBounds = {
+          north: 32.1543,
+          south: 16.3797,
+          west: 34.5725,
+          east: 55.6666
+        };
 
-      // Create the map with a short delay to ensure the container is fully rendered
-      mapInitializationTimerRef.current = window.setTimeout(() => {
-        if (!mapRef.current || !open) return;
+        const bounds = new google.maps.LatLngBounds(
+          { lat: saudiBounds.south, lng: saudiBounds.west },
+          { lat: saudiBounds.north, lng: saudiBounds.east }
+        );
+
+        if (!mapRef.current) return;
         
         console.log('Creating map with dimensions:', mapRef.current.offsetWidth, mapRef.current.offsetHeight);
         
+        // Create a new map instance
         const newMap = new google.maps.Map(mapRef.current, {
           center: { lat: 24.7136, lng: 46.6753 }, // Riyadh coordinates
           zoom: 11,
           restriction: {
-            latLngBounds: saudiBounds,
+            latLngBounds: bounds,
             strictBounds: true
           },
           mapTypeControl: true,
@@ -100,7 +114,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         });
 
         // Add click event listener to the map
-        const clickListener = newMap.addListener('click', async (e: google.maps.MapMouseEvent) => {
+        clickListenerRef.current = newMap.addListener('click', async (e: google.maps.MapMouseEvent) => {
           if (!e.latLng) return;
 
           if (marker) {
@@ -142,18 +156,16 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         console.log('Map created successfully');
         setMap(newMap);
         setMapInitialized(true);
-        
-        // Return a cleanup function for this specific effect
-        return () => {
-          google.maps.event.removeListener(clickListener);
-        };
-      }, 300);
-    } catch (error) {
-      console.error('Error initializing map:', error);
-      toast.error('حدث خطأ في تحميل الخريطة');
-    }
+      } catch (error) {
+        console.error('Error initializing map:', error);
+        toast.error('حدث خطأ في تحميل الخريطة');
+      }
+    };
 
-    // Cleanup when the component unmounts or modal closes
+    // Short delay to ensure the DOM is ready
+    mapInitializationTimerRef.current = window.setTimeout(initializeMap, 300);
+
+    // Cleanup when the effect is re-run or component unmounts
     return cleanupMap;
   }, [open, onClose, onLocationSelect]);
 
@@ -173,6 +185,13 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       window.removeEventListener('resize', handleResize);
     };
   }, [map, open]);
+  
+  // Final cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      cleanupMap();
+    };
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
