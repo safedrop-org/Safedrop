@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
@@ -83,6 +84,8 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       if (window[uniqueCallbackName]) {
         delete window[uniqueCallbackName];
       }
+      
+      console.log('Cleaning up Google Maps hook');
     };
   }, []);
 

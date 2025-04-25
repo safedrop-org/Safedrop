@@ -7,7 +7,6 @@ import {
   DialogTitle,
   DialogDescription
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,36 +49,31 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     }
 
     // Clear any pending timers
-    if (mapInitializationTimerRef.current) {
+    if (mapInitializationTimerRef.current !== null) {
       window.clearTimeout(mapInitializationTimerRef.current);
       mapInitializationTimerRef.current = null;
     }
 
-    // Remove marker from map without touching DOM
+    // Remove marker from map
     if (marker) {
       marker.setMap(null);
       setMarker(null);
     }
 
-    // Reset map state without disposing the map object immediately
-    // (This prevents direct DOM manipulation that could conflict with React)
-    if (map) {
-      setMap(null); // Just remove our reference
-    }
-    
+    // Reset map state
+    setMap(null);
     setMapInitialized(false);
   };
 
-  // This effect initializes the map when the modal opens and the DOM is ready
+  // This effect initializes the map when the modal opens and cleans up when it closes
   useEffect(() => {
     // Only initialize the map when modal is open and Google Maps is loaded
     if (!open || !mapRef.current || !window.google || !window.google.maps) {
       return;
     }
 
-    // We need this small delay to ensure the modal is fully rendered
-    // before initializing the map
-    const initializeTimeout = setTimeout(() => {
+    // Small delay to ensure the modal is fully rendered
+    const initializeMap = () => {
       try {
         console.log('Initializing map in modal');
         
@@ -120,7 +114,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         });
 
         // Add click event listener to the map
-        clickListenerRef.current = newMap.addListener('click', async (e: google.maps.MapMouseEvent) => {
+        const clickListener = newMap.addListener('click', async (e: google.maps.MapMouseEvent) => {
           if (!e.latLng) return;
 
           // Remove existing marker if any
@@ -161,6 +155,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           }
         });
 
+        clickListenerRef.current = clickListener;
         console.log('Map created successfully');
         setMap(newMap);
         setMapInitialized(true);
@@ -168,27 +163,17 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         console.error('Error initializing map:', error);
         toast.error('حدث خطأ في تحميل الخريطة');
       }
-    }, 300);
+    };
 
-    mapInitializationTimerRef.current = initializeTimeout;
+    // Use setTimeout with proper typing and casting
+    // Store the timeout ID as a number
+    mapInitializationTimerRef.current = window.setTimeout(initializeMap, 300);
 
-    // Cleanup when the effect is re-run or component unmounts
-    return cleanupMap;
-  }, [open, onClose, onLocationSelect, marker]);
-
-  // Clean up completely when the component unmounts
-  useEffect(() => {
+    // Cleanup when component unmounts or when the dialog closes
     return () => {
       cleanupMap();
     };
-  }, []);
-
-  // Handle modal close event to ensure clean map disposal
-  const handleCloseModal = () => {
-    // Ensure we cleanup the map before closing the modal
-    cleanupMap();
-    onClose();
-  };
+  }, [open, onClose, onLocationSelect, marker]);
 
   // Handle resize events when the modal is open
   useEffect(() => {
@@ -206,6 +191,12 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       window.removeEventListener('resize', handleResize);
     };
   }, [map, open]);
+
+  // Handle modal close event to ensure clean map disposal
+  const handleCloseModal = () => {
+    cleanupMap();
+    onClose();
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleCloseModal}>
