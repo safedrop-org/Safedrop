@@ -136,9 +136,9 @@ const ContactContent = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-lg mb-1">ساعات العمل</h3>
-                          <p className="text-gray-600">الأحد - الخميس: 9:00 ص - 6:00 م</p>
-                          <p className="text-gray-600">السبت: 10:00 ص - 2:00 م</p>
-                          <p className="text-gray-600">الجمعة: مغلق</p>
+                          <p className="text-gray-600">الأحد - السبت : 9:00 ص - 9:00 م</p>
+                          
+                          
                         </div>
                       </div>
                     </CardContent>
