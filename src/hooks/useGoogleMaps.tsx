@@ -19,7 +19,13 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     script.async = true;
     script.defer = true;
     script.onload = () => setIsLoaded(true);
-    script.onerror = (error) => setLoadError(error as Error);
+    script.onerror = (error: Event | string) => {
+      // Convert the error to an Error object if it's not already one
+      const errorObj = error instanceof Error 
+        ? error 
+        : new Error(typeof error === 'string' ? error : 'Script load error');
+      setLoadError(errorObj);
+    };
     document.head.appendChild(script);
 
     return () => {

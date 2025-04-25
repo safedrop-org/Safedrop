@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Card } from '@/components/ui/card';
 import { useOrders } from '@/hooks/useOrders';
-import { MapPin, Package, Clock, Truck, Navigation } from 'lucide-react';
+import { MapPin, Package, Clock, Truck, Navigation, DollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -160,6 +160,7 @@ const OrderMapDialog: React.FC<OrderMapDialogProps> = ({ isOpen, onClose, order 
 };
 
 const MyOrders = () => {
+  const navigate = useNavigate();
   const { data: orders, isLoading, error } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [mapDialogOpen, setMapDialogOpen] = useState(false);

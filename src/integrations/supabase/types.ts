@@ -208,6 +208,7 @@ export type Database = {
           created_at: string | null
           customer_id: string
           driver_id: string | null
+          driver_location: Json | null
           driver_payout: number | null
           dropoff_location: Json
           estimated_distance: number | null
@@ -228,6 +229,7 @@ export type Database = {
           created_at?: string | null
           customer_id: string
           driver_id?: string | null
+          driver_location?: Json | null
           driver_payout?: number | null
           dropoff_location: Json
           estimated_distance?: number | null
@@ -248,6 +250,7 @@ export type Database = {
           created_at?: string | null
           customer_id?: string
           driver_id?: string | null
+          driver_location?: Json | null
           driver_payout?: number | null
           dropoff_location?: Json
           estimated_distance?: number | null
