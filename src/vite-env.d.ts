@@ -22,10 +22,26 @@ declare namespace google.maps {
     lng: number;
   }
 
-  export interface LatLngBounds {
+  export class LatLngBounds {
+    constructor(sw?: LatLng | LatLngLiteral, ne?: LatLng | LatLngLiteral);
+    contains(latLng: LatLng | LatLngLiteral): boolean;
+    equals(other: LatLngBounds | LatLngLiteralBounds): boolean;
+    extend(latLng: LatLng | LatLngLiteral): this;
+    getCenter(): LatLng;
+    getNorthEast(): LatLng;
+    getSouthWest(): LatLng;
+    intersects(other: LatLngBounds | LatLngLiteralBounds): boolean;
+    isEmpty(): boolean;
+    toJSON(): LatLngLiteralBounds;
+    toSpan(): LatLng;
+    toString(): string;
+    union(other: LatLngBounds | LatLngLiteralBounds): LatLngBounds;
+  }
+
+  export interface LatLngLiteralBounds {
+    east: number;
     north: number;
     south: number;
-    east: number;
     west: number;
   }
 
@@ -65,6 +81,7 @@ declare namespace google.maps {
   export interface GeocoderRequest {
     location?: LatLng | LatLngLiteral;
     region?: string;
+    address?: string;
   }
 
   export interface GeocoderResponse {
@@ -91,5 +108,67 @@ declare namespace google.maps {
 
   export namespace Animation {
     export const DROP: number;
+  }
+
+  export enum DistanceMatrixStatus {
+    OK = 'OK',
+    INVALID_REQUEST = 'INVALID_REQUEST',
+    MAX_ELEMENTS_EXCEEDED = 'MAX_ELEMENTS_EXCEEDED',
+    MAX_DIMENSIONS_EXCEEDED = 'MAX_DIMENSIONS_EXCEEDED',
+    OVER_QUERY_LIMIT = 'OVER_QUERY_LIMIT',
+    REQUEST_DENIED = 'REQUEST_DENIED',
+    UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+  }
+
+  export enum TravelMode {
+    DRIVING = 'DRIVING',
+    BICYCLING = 'BICYCLING',
+    TRANSIT = 'TRANSIT',
+    WALKING = 'WALKING'
+  }
+
+  export enum UnitSystem {
+    METRIC = 0,
+    IMPERIAL = 1
+  }
+
+  export interface DistanceMatrixRequest {
+    origins: (string | LatLng | LatLngLiteral)[];
+    destinations: (string | LatLng | LatLngLiteral)[];
+    travelMode: TravelMode;
+    unitSystem?: UnitSystem;
+    region?: string;
+  }
+
+  export interface DistanceMatrixResponseElement {
+    distance: {
+      text: string;
+      value: number;
+    };
+    duration: {
+      text: string;
+      value: number;
+    };
+    status: string;
+  }
+
+  export interface DistanceMatrixResponseRow {
+    elements: DistanceMatrixResponseElement[];
+  }
+
+  export interface DistanceMatrixResponse {
+    originAddresses: string[];
+    destinationAddresses: string[];
+    rows: DistanceMatrixResponseRow[];
+  }
+
+  export class DistanceMatrixService {
+    getDistanceMatrix(
+      request: DistanceMatrixRequest,
+      callback: (
+        response: DistanceMatrixResponse,
+        status: DistanceMatrixStatus
+      ) => void
+    ): void;
   }
 }

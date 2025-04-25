@@ -21,6 +21,9 @@ interface LocationInputProps {
   value: Location;
   onChange: (location: Location) => void;
   className?: string;
+  // Add the missing props
+  isLoaded?: boolean;
+  geocodeAddress?: (address: string) => Promise<google.maps.LatLngLiteral | null>;
 }
 
 const LocationInput: React.FC<LocationInputProps> = ({
@@ -30,6 +33,9 @@ const LocationInput: React.FC<LocationInputProps> = ({
   value,
   onChange,
   className,
+  // Add default values for the new props
+  isLoaded = true,
+  geocodeAddress,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 

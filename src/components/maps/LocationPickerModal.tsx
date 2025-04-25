@@ -40,16 +40,25 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   useEffect(() => {
     if (!open || !mapRef.current) return;
 
+    // Create Saudi Arabia bounds
+    const saudiBounds = {
+      north: 32.1543,
+      south: 16.3797,
+      west: 34.5725,
+      east: 55.6666
+    };
+
+    // Create proper LatLngBounds object
+    const bounds = new google.maps.LatLngBounds(
+      { lat: saudiBounds.south, lng: saudiBounds.west },
+      { lat: saudiBounds.north, lng: saudiBounds.east }
+    );
+
     const newMap = new google.maps.Map(mapRef.current, {
       center: { lat: 24.7136, lng: 46.6753 }, // Riyadh coordinates
       zoom: 11,
       restriction: {
-        latLngBounds: {
-          north: 32.1543,
-          south: 16.3797,
-          west: 34.5725,
-          east: 55.6666
-        },
+        latLngBounds: bounds,
         strictBounds: true
       }
     });
