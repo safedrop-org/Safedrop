@@ -67,9 +67,7 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">{t('services')}</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">
-                  خدمة توصيل الطرود
-                </Link>
+                <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">خدمة توصيل الطرود</Link>
               </li>
               <li>
                 <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">

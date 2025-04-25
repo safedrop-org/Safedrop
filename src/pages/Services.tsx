@@ -4,12 +4,11 @@ import Footer from '@/components/layout/footer';
 import { Shield, Truck, Package, Clock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-
 const ServicesContent = () => {
-  const { t } = useLanguage();
-
-  return (
-    <div className="min-h-screen flex flex-col">
+  const {
+    t
+  } = useLanguage();
+  return <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
@@ -20,19 +19,10 @@ const ServicesContent = () => {
               نقدم مجموعة من الخدمات المتكاملة لضمان توصيل آمن وموثوق للطرود الثمينة
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                asChild
-                size="lg" 
-                className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-white"
-              >
+              <Button asChild size="lg" className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-white">
                 <Link to="/register/customer">تسجيل كعميل</Link>
               </Button>
-              <Button 
-                asChild
-                size="lg" 
-                variant="outline" 
-                className="bg-white/10 hover:bg-white/20 text-white border-white"
-              >
+              <Button asChild size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white">
                 <Link to="/register/driver">تسجيل كسائق</Link>
               </Button>
             </div>
@@ -74,7 +64,7 @@ const ServicesContent = () => {
                   <div className="w-14 h-14 rounded-full bg-safedrop-primary flex items-center justify-center mb-4">
                     <Shield className="h-7 w-7 text-safedrop-gold" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">حماية المعاملات</h3>
+                  <h3 className="text-xl font-tajwal mb-3">حماية المعاملات</h3>
                   <p className="text-gray-600 mb-4">
                     خدمة ضمان المعاملات بين البائع والمشتري، حيث نقوم بدور الوسيط لضمان استلام المشتري للمنتج قبل إتمام الدفع للبائع، مما يوفر الأمان لكلا الطرفين.
                   </p>
@@ -153,26 +143,15 @@ const ServicesContent = () => {
         {/* Call to Action Section */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold text-safedrop-primary mb-6">
-              ابدأ رحلتك مع سيف در��ب اليوم
-            </h2>
+            <h2 className="text-3xl font-bold text-safedrop-primary mb-6">ابدأ رحلتك مع سيف دروب اليوم</h2>
             <p className="text-xl text-gray-600 mb-8">
               سجل الآن واستمتع بتجربة توصيل آمنة ومضمونة لطرودك الثمينة
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                asChild
-                size="lg" 
-                className="bg-safedrop-primary hover:bg-safedrop-primary/90"
-              >
+              <Button asChild size="lg" className="bg-safedrop-primary hover:bg-safedrop-primary/90">
                 <Link to="/register/customer">تسجيل كعميل</Link>
               </Button>
-              <Button 
-                asChild
-                size="lg" 
-                variant="outline" 
-                className="border-safedrop-primary text-safedrop-primary hover:bg-safedrop-primary hover:text-white"
-              >
+              <Button asChild size="lg" variant="outline" className="border-safedrop-primary text-safedrop-primary hover:bg-safedrop-primary hover:text-white">
                 <Link to="/register/driver">تسجيل كسائق</Link>
               </Button>
             </div>
@@ -180,16 +159,11 @@ const ServicesContent = () => {
         </section>
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 const Services = () => {
-  return (
-    <LanguageProvider>
+  return <LanguageProvider>
       <ServicesContent />
-    </LanguageProvider>
-  );
+    </LanguageProvider>;
 };
-
 export default Services;
