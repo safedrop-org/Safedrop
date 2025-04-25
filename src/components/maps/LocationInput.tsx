@@ -40,6 +40,11 @@ const LocationInput: React.FC<LocationInputProps> = ({
     onChange({ ...location, details: value.details });
     setIsModalOpen(false);
   };
+  
+  // Safe close handler to ensure proper cleanup
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   return (
     <div className={className}>
@@ -47,7 +52,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
       <div className="flex flex-col space-y-4">
         <Button
           type="button"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => isLoaded && setIsModalOpen(true)}
           className="w-full flex justify-start items-center"
           variant={value.address ? "outline" : "default"}
           disabled={!isLoaded}
@@ -66,12 +71,14 @@ const LocationInput: React.FC<LocationInputProps> = ({
           />
         )}
 
-        <LocationPickerModal
-          open={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onLocationSelect={handleLocationSelect}
-          title={`اختر ${label}`}
-        />
+        {isLoaded && (
+          <LocationPickerModal
+            open={isModalOpen}
+            onClose={handleCloseModal}
+            onLocationSelect={handleLocationSelect}
+            title={`اختر ${label}`}
+          />
+        )}
       </div>
     </div>
   );

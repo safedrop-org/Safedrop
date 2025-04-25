@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
@@ -14,9 +13,16 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
   const [loadError, setLoadError] = useState<Error | null>(null);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const callbackName = useRef<string>(`initGoogleMaps${Date.now()}`);
-
+  
   useEffect(() => {
     console.log('Initializing Google Maps hook');
+    
+    // Skip initialization if Google Maps is already loaded
+    if (window.google && window.google.maps) {
+      console.log('Google Maps already loaded');
+      setIsLoaded(true);
+      return;
+    }
     
     // Explicitly set the API key - this is a secured environment variable, not hardcoded
     const apiKey = 'AIzaSyAh7C_dU6EnC0QE1_vor6z96-fShN4A0ow';
@@ -25,13 +31,6 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       console.error('Google Maps API key is missing');
       setLoadError(new Error('Google Maps API key is missing'));
       toast.error('مفتاح خرائط Google غير موجود');
-      return;
-    }
-
-    // Only proceed if Google Maps isn't already loaded
-    if (window.google && window.google.maps) {
-      console.log('Google Maps already loaded');
-      setIsLoaded(true);
       return;
     }
 
@@ -73,12 +72,14 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       toast.error('حدث خطأ أثناء تحميل خرائط Google');
     }
 
+    // Clean up function
     return () => {
-      // Clean up
+      // Clean up script element if it exists
       if (scriptRef.current && document.head.contains(scriptRef.current)) {
         document.head.removeChild(scriptRef.current);
       }
       
+      // Remove callback from window object
       if (window[uniqueCallbackName]) {
         delete window[uniqueCallbackName];
       }

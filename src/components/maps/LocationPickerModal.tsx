@@ -55,14 +55,18 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       mapInitializationTimerRef.current = null;
     }
 
-    // Remove marker from map (without removing from DOM)
+    // Remove marker from map without touching DOM
     if (marker) {
       marker.setMap(null);
       setMarker(null);
     }
 
-    // Reset map state without disposing the map object
-    setMap(null);
+    // Reset map state without disposing the map object immediately
+    // (This prevents direct DOM manipulation that could conflict with React)
+    if (map) {
+      setMap(null); // Just remove our reference
+    }
+    
     setMapInitialized(false);
   };
 
@@ -73,12 +77,14 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       return;
     }
 
-    console.log('Initializing map in modal');
-    
-    const initializeMap = () => {
+    // We need this small delay to ensure the modal is fully rendered
+    // before initializing the map
+    const initializeTimeout = setTimeout(() => {
       try {
+        console.log('Initializing map in modal');
+        
         // Initialize geocoder if not already done
-        if (!geocoderRef.current && window.google.maps) {
+        if (!geocoderRef.current && window.google && window.google.maps) {
           geocoderRef.current = new google.maps.Geocoder();
         }
         
@@ -117,10 +123,12 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         clickListenerRef.current = newMap.addListener('click', async (e: google.maps.MapMouseEvent) => {
           if (!e.latLng) return;
 
+          // Remove existing marker if any
           if (marker) {
             marker.setMap(null);
           }
 
+          // Create new marker
           const newMarker = new google.maps.Marker({
             position: e.latLng,
             map: newMap,
@@ -160,14 +168,27 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         console.error('Error initializing map:', error);
         toast.error('حدث خطأ في تحميل الخريطة');
       }
-    };
+    }, 300);
 
-    // Short delay to ensure the DOM is ready
-    mapInitializationTimerRef.current = window.setTimeout(initializeMap, 300);
+    mapInitializationTimerRef.current = initializeTimeout;
 
     // Cleanup when the effect is re-run or component unmounts
     return cleanupMap;
-  }, [open, onClose, onLocationSelect]);
+  }, [open, onClose, onLocationSelect, marker]);
+
+  // Clean up completely when the component unmounts
+  useEffect(() => {
+    return () => {
+      cleanupMap();
+    };
+  }, []);
+
+  // Handle modal close event to ensure clean map disposal
+  const handleCloseModal = () => {
+    // Ensure we cleanup the map before closing the modal
+    cleanupMap();
+    onClose();
+  };
 
   // Handle resize events when the modal is open
   useEffect(() => {
@@ -185,16 +206,9 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       window.removeEventListener('resize', handleResize);
     };
   }, [map, open]);
-  
-  // Final cleanup when component unmounts
-  useEffect(() => {
-    return () => {
-      cleanupMap();
-    };
-  }, []);
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleCloseModal}>
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader className="mb-2">
           <DialogTitle className="flex items-center gap-2">
