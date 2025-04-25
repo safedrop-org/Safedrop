@@ -41,7 +41,6 @@ const LocationInput: React.FC<LocationInputProps> = ({
     setIsModalOpen(false);
   };
   
-  // Safe close handler
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
@@ -71,7 +70,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
           />
         )}
 
-        {/* Only render the modal when needed and loaded */}
+        {/* Only render modal when it's actually needed */}
         {isLoaded && isModalOpen && (
           <LocationPickerModal
             open={isModalOpen}

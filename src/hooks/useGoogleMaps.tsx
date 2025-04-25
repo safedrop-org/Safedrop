@@ -10,7 +10,7 @@ interface UseGoogleMapsResult {
 }
 
 export const useGoogleMaps = (): UseGoogleMapsResult => {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<Error | null>(null);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
   const callbackName = useRef<string>(`initGoogleMaps${Date.now()}`);
@@ -25,7 +25,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       return;
     }
     
-    // Explicitly set the API key - this is a secured environment variable, not hardcoded
+    // Define API key
     const apiKey = 'AIzaSyAh7C_dU6EnC0QE1_vor6z96-fShN4A0ow';
     
     if (!apiKey) {
@@ -37,19 +37,30 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
 
     console.log('API key found, initializing Google Maps');
 
-    // Use a unique callback name to prevent conflicts
+    // Use a unique callback name
     const uniqueCallbackName = callbackName.current;
 
     // Set up the callback function
     window[uniqueCallbackName] = () => {
       console.log('Google Maps loaded via callback');
-      setIsLoaded(true);
-      toast.success('تم تحميل خرائط Google بنجاح');
+      if (!isLoaded) {
+        setIsLoaded(true);
+        toast.success('تم تحميل خرائط Google بنجاح');
+      }
     };
+
+    // Check if the script already exists
+    const existingScript = document.querySelector(`script[src*="maps.googleapis.com"]`);
+    if (existingScript) {
+      console.log('Google Maps script already exists in document');
+      // If it exists but Maps isn't loaded yet, we'll wait for our callback
+      return;
+    }
 
     try {
       // Create and append the script
       const script = document.createElement('script');
+      script.type = 'text/javascript';
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=${uniqueCallbackName}`;
       script.async = true;
       script.defer = true;
@@ -75,7 +86,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
 
     // Clean up function
     return () => {
-      // Clean up script element if it exists
+      // Only remove script if we were the one who added it
       if (scriptRef.current && document.head.contains(scriptRef.current)) {
         document.head.removeChild(scriptRef.current);
       }
@@ -87,7 +98,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       
       console.log('Cleaning up Google Maps hook');
     };
-  }, []);
+  }, [isLoaded]);
 
   const geocodeAddress = useCallback(async (address: string): Promise<google.maps.LatLngLiteral | null> => {
     if (!isLoaded || !window.google) {
@@ -112,10 +123,6 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       });
 
       if (result && result[0] && result[0].geometry && result[0].geometry.location) {
-        console.log('Geocoded coordinates:', {
-          lat: result[0].geometry.location.lat(),
-          lng: result[0].geometry.location.lng()
-        });
         return {
           lat: result[0].geometry.location.lat(),
           lng: result[0].geometry.location.lng()
@@ -169,7 +176,6 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       ) {
         const distanceKm = response.rows[0].elements[0].distance.value / 1000;
         console.log('Calculated distance:', distanceKm, 'km');
-        // Return distance in kilometers
         return distanceKm;
       }
       
