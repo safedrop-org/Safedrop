@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -33,7 +32,6 @@ import DriverDetailsWithSidebar from './pages/admin/DriverDetailsWithSidebar';
 import FinanceWithSidebar from './pages/admin/FinanceWithSidebar';
 import OrdersWithSidebar from './pages/admin/OrdersWithSidebar';
 import ComplaintsWithSidebar from './pages/admin/ComplaintsWithSidebar';
-import SettingsWithSidebar from './pages/admin/SettingsWithSidebar';
 
 // Driver Pages
 import DriverDashboard from './pages/driver/DriverDashboard';
@@ -261,14 +259,6 @@ const AppContent = () => {
           element={
             <ProtectedAdminRoute>
               <ComplaintsWithSidebar />
-            </ProtectedAdminRoute>
-          } 
-        />
-        <Route 
-          path="/admin/settings" 
-          element={
-            <ProtectedAdminRoute>
-              <SettingsWithSidebar />
             </ProtectedAdminRoute>
           } 
         />
