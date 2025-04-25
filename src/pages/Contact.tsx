@@ -180,13 +180,7 @@ const ContactContent = () => {
         </section>
 
         {/* Map */}
-        <section className="pb-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-gray-200 rounded-lg overflow-hidden h-96">
-              
-            </div>
-          </div>
-        </section>
+        
       </main>
       <Footer />
     </div>;
