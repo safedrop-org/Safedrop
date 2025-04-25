@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -38,10 +37,26 @@ const LocationInput: React.FC<LocationInputProps> = ({
   const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
   const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesService = useRef<google.maps.places.PlacesService | null>(null);
+  const autocompleteSessionToken = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
+  const divRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isLoaded && window.google) {
-      autocompleteService.current = new window.google.maps.places.AutocompleteService();
+    if (isLoaded && window.google && window.google.maps && window.google.maps.places) {
+      try {
+        console.log('Google Maps loaded, initializing services');
+        autocompleteService.current = new window.google.maps.places.AutocompleteService();
+        autocompleteSessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
+        
+        // Create a dummy div for PlacesService (required)
+        if (divRef.current) {
+          placesService.current = new window.google.maps.places.PlacesService(divRef.current);
+        }
+      } catch (error) {
+        console.error('Error initializing Google Maps services:', error);
+        toast.error('فشل في تحميل خدمات خرائط جوجل');
+      }
+    } else if (isLoaded) {
+      console.warn('Google Maps loaded but places library is not available');
     }
   }, [isLoaded]);
 
@@ -55,19 +70,30 @@ const LocationInput: React.FC<LocationInputProps> = ({
     }
 
     try {
+      console.log('Fetching address predictions for:', input);
       const request = {
-        input: input,
+        input,
+        sessionToken: autocompleteSessionToken.current,
         componentRestrictions: { country: 'SA' }, // Restrict to Saudi Arabia
-        types: ['address']
+        types: ['address', 'establishment', 'geocode']
       };
 
-      autocompleteService.current.getPlacePredictions(request, (predictions, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-          setSuggestions(predictions || []);
-        } else {
-          setSuggestions([]);
+      autocompleteService.current.getPlacePredictions(
+        request,
+        (predictions, status) => {
+          console.log('Autocomplete status:', status);
+          console.log('Predictions:', predictions);
+          
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+            setSuggestions(predictions);
+          } else {
+            setSuggestions([]);
+            if (status !== window.google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+              console.warn('Autocomplete failed with status:', status);
+            }
+          }
         }
-      });
+      );
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
       setSuggestions([]);
@@ -75,25 +101,47 @@ const LocationInput: React.FC<LocationInputProps> = ({
   };
 
   const handleSuggestionSelect = async (suggestion: google.maps.places.AutocompletePrediction) => {
-    if (!placesService.current && isLoaded) {
-      placesService.current = new window.google.maps.places.PlacesService(document.createElement('div'));
+    if (!placesService.current) {
+      if (divRef.current && isLoaded && window.google) {
+        placesService.current = new window.google.maps.places.PlacesService(divRef.current);
+      } else {
+        toast.error('خدمة الأماكن غير متاحة');
+        return;
+      }
     }
 
-    placesService.current?.getDetails(
-      { placeId: suggestion.place_id },
-      (place, status) => {
-        if (status === window.google.maps.places.PlacesServiceStatus.OK && place?.geometry) {
-          onChange({
-            address: suggestion.description,
-            coordinates: {
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng()
-            }
-          });
-          setSuggestions([]);
+    try {
+      placesService.current.getDetails(
+        {
+          placeId: suggestion.place_id,
+          fields: ['geometry', 'formatted_address', 'name'],
+          sessionToken: autocompleteSessionToken.current
+        },
+        (place, status) => {
+          console.log('Place details status:', status);
+          
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && place?.geometry) {
+            onChange({
+              address: place.formatted_address || suggestion.description,
+              coordinates: {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng()
+              }
+            });
+            
+            // Get a new session token after selection
+            autocompleteSessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
+            setSuggestions([]);
+          } else {
+            console.error('Error getting place details:', status);
+            toast.error('تعذر الحصول على تفاصيل المكان');
+          }
         }
-      }
-    );
+      );
+    } catch (error) {
+      console.error('Error selecting suggestion:', error);
+      toast.error('حدث خطأ أثناء اختيار العنوان');
+    }
   };
 
   const handleDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,7 +160,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
             className="w-full"
           />
           {suggestions.length > 0 && (
-            <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+            <ul className="absolute z-40 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
               {suggestions.map((suggestion) => (
                 <li 
                   key={suggestion.place_id}
@@ -124,6 +172,8 @@ const LocationInput: React.FC<LocationInputProps> = ({
               ))}
             </ul>
           )}
+          {/* Hidden div for PlacesService */}
+          <div ref={divRef} style={{ display: 'none' }}></div>
         </div>
 
         <Input
