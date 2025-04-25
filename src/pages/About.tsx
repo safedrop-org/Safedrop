@@ -61,9 +61,7 @@ const AboutContent = () => {
                   <Award className="h-8 w-8 text-safedrop-gold" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">الجودة</h3>
-                <p className="text-gray-600">
-                  نلتزم بتقديم خدمة عالية الجودة في كل تفاصيلها، من اختيار السائقين إلى تتبع الشحنات.
-                </p>
+                <p className="text-gray-600">نلتزم بتقديم خدمة عالية الجودة في كل تفاصيلها، من اختيار السائقين إلى تسليم الشحنات.</p>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-md text-center">
