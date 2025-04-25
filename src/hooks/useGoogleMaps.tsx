@@ -32,39 +32,19 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api"]');
     if (existingScript) {
       console.log('Google Maps script already exists');
-      if (window.google && window.google.maps && window.google.maps.places) {
-        console.log('Google Maps already loaded with Places library');
+      // Check if Google Maps is already initialized
+      if (window.google && window.google.maps) {
+        console.log('Google Maps already loaded');
         setIsLoaded(true);
-      } else {
-        console.log('Waiting for existing Google Maps script to load');
-        const checkGoogleExists = setInterval(() => {
-          if (window.google && window.google.maps && window.google.maps.places) {
-            console.log('Google Maps loaded from existing script');
-            clearInterval(checkGoogleExists);
-            setIsLoaded(true);
-          }
-        }, 100);
-        
-        // Timeout after 10 seconds
-        setTimeout(() => {
-          clearInterval(checkGoogleExists);
-          if (!window.google || !window.google.maps || !window.google.maps.places) {
-            console.error('Timeout waiting for Google Maps to load');
-            setLoadError(new Error('Timeout loading Google Maps API'));
-            toast.error('انتهت مهلة تحميل خرائط Google');
-          }
-        }, 10000);
+        return;
       }
-      return;
     }
 
-    // Load the script if it doesn't exist
+    // Load the script if it doesn't exist or if Google Maps is not initialized
     console.log('Loading Google Maps script');
     const script = document.createElement('script');
     
-    // Build the URL with API key
-    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
-    script.src = scriptUrl;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
     script.async = true;
     script.defer = true;
     
@@ -88,9 +68,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
 
     return () => {
       // Cleanup callback
-      if (window.initGoogleMaps) {
-        delete window.initGoogleMaps;
-      }
+      delete window.initGoogleMaps;
     };
   }, []);
 

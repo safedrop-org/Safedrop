@@ -21,7 +21,6 @@ interface LocationInputProps {
   value: Location;
   onChange: (location: Location) => void;
   className?: string;
-  // Add the missing props
   isLoaded?: boolean;
   geocodeAddress?: (address: string) => Promise<google.maps.LatLngLiteral | null>;
 }
@@ -33,14 +32,13 @@ const LocationInput: React.FC<LocationInputProps> = ({
   value,
   onChange,
   className,
-  // Add default values for the new props
   isLoaded = true,
-  geocodeAddress,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleLocationSelect = (location: Location) => {
     onChange({ ...location, details: value.details });
+    setIsModalOpen(false);
   };
 
   return (
@@ -50,11 +48,14 @@ const LocationInput: React.FC<LocationInputProps> = ({
         <Button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="w-full flex justify-start text-right"
+          className="w-full flex justify-start items-center"
           variant={value.address ? "outline" : "default"}
+          disabled={!isLoaded}
         >
           <MapPin className="h-4 w-4 ml-2 flex-shrink-0" />
-          {value.address || placeholder}
+          <span className="truncate">
+            {value.address || placeholder}
+          </span>
         </Button>
 
         {value.address && (
