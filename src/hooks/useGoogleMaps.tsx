@@ -15,7 +15,8 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
 
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places`;
+    // Use process.env for the API key
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.VITE_GOOGLE_MAPS_API_KEY}&libraries=places`;
     script.async = true;
     script.defer = true;
     script.onload = () => setIsLoaded(true);
