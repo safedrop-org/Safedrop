@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MapPin, Navigation } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Location {
@@ -35,126 +35,95 @@ const LocationInput: React.FC<LocationInputProps> = ({
   isLoaded,
   geocodeAddress
 }) => {
-  const [isGeocodingAddress, setIsGeocodingAddress] = useState(false);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [marker, setMarker] = useState<google.maps.Marker | null>(null);
+  const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
+  const placesService = useRef<google.maps.places.PlacesService | null>(null);
 
   useEffect(() => {
-    if (isLoaded && mapRef.current && value.coordinates) {
-      // Initialize map if coordinates exist
-      const newMap = new window.google.maps.Map(mapRef.current, {
-        center: value.coordinates,
-        zoom: 15,
-        mapTypeControl: false,
-        streetViewControl: false,
-      });
-      
-      const newMarker = new window.google.maps.Marker({
-        position: value.coordinates,
-        map: newMap,
-        draggable: true,
-        animation: window.google.maps.Animation.DROP,
-      });
-      
-      // Update marker position when dragged
-      window.google.maps.event.addListener(newMarker, 'dragend', function() {
-        if (newMarker.getPosition()) {
-          const position = newMarker.getPosition()!;
-          onChange({
-            ...value,
-            coordinates: {
-              lat: position.lat(),
-              lng: position.lng(),
-            }
-          });
-          
-          // Reverse geocode to get address from coordinates
-          reverseGeocode(position.lat(), position.lng());
+    if (isLoaded && window.google) {
+      autocompleteService.current = new window.google.maps.places.AutocompleteService();
+    }
+  }, [isLoaded]);
+
+  const handleAddressChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    onChange({ ...value, address: input });
+
+    if (!autocompleteService.current || input.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const request = {
+        input: input,
+        componentRestrictions: { country: 'SA' }, // Restrict to Saudi Arabia
+        types: ['address']
+      };
+
+      autocompleteService.current.getPlacePredictions(request, (predictions, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+          setSuggestions(predictions || []);
+        } else {
+          setSuggestions([]);
         }
       });
-      
-      setMap(newMap);
-      setMarker(newMarker);
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+      setSuggestions([]);
     }
-  }, [isLoaded, value.coordinates]);
+  };
 
-  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange({ ...value, address: e.target.value });
+  const handleSuggestionSelect = async (suggestion: google.maps.places.AutocompletePrediction) => {
+    if (!placesService.current && isLoaded) {
+      placesService.current = new window.google.maps.places.PlacesService(document.createElement('div'));
+    }
+
+    placesService.current?.getDetails(
+      { placeId: suggestion.place_id },
+      (place, status) => {
+        if (status === window.google.maps.places.PlacesServiceStatus.OK && place?.geometry) {
+          onChange({
+            address: suggestion.description,
+            coordinates: {
+              lat: place.geometry.location.lat(),
+              lng: place.geometry.location.lng()
+            }
+          });
+          setSuggestions([]);
+        }
+      }
+    );
   };
 
   const handleDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange({ ...value, details: e.target.value });
   };
 
-  const handleVerifyAddress = async () => {
-    if (!value.address || value.address.trim() === '') {
-      toast.error('يرجى إدخال العنوان أولاً');
-      return;
-    }
-
-    setIsGeocodingAddress(true);
-    try {
-      const coordinates = await geocodeAddress(value.address);
-      if (coordinates) {
-        onChange({
-          ...value,
-          coordinates: coordinates
-        });
-        toast.success('تم تحديد الموقع بنجاح');
-      } else {
-        toast.error('لم نتمكن من العثور على العنوان');
-      }
-    } catch (error) {
-      console.error('Error geocoding address:', error);
-      toast.error('حدث خطأ أثناء تحديد الموقع');
-    } finally {
-      setIsGeocodingAddress(false);
-    }
-  };
-
-  const reverseGeocode = async (lat: number, lng: number) => {
-    if (!isLoaded || !window.google) return;
-    
-    try {
-      const geocoder = new window.google.maps.Geocoder();
-      const latlng = { lat, lng };
-      
-      geocoder.geocode({ location: latlng }, (results, status) => {
-        if (status === window.google.maps.GeocoderStatus.OK && results && results[0]) {
-          onChange({
-            ...value,
-            address: results[0].formatted_address,
-            coordinates: { lat, lng }
-          });
-        }
-      });
-    } catch (error) {
-      console.error('Error reverse geocoding:', error);
-    }
-  };
-
   return (
     <div className={className}>
       <label className="block mb-1 font-medium text-gray-700">{label}</label>
       <div className="flex flex-col space-y-4">
-        <div className="flex gap-2">
+        <div className="relative">
           <Input
             placeholder={placeholder}
             value={value.address}
             onChange={handleAddressChange}
-            className="flex-1"
+            className="w-full"
           />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleVerifyAddress}
-            disabled={isGeocodingAddress || !value.address}
-            className="whitespace-nowrap"
-          >
-            <MapPin className="h-4 w-4 ml-2" />
-            تحديد الموقع
-          </Button>
+          {suggestions.length > 0 && (
+            <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+              {suggestions.map((suggestion) => (
+                <li 
+                  key={suggestion.place_id}
+                  onClick={() => handleSuggestionSelect(suggestion)}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                >
+                  {suggestion.description}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <Input
@@ -162,14 +131,6 @@ const LocationInput: React.FC<LocationInputProps> = ({
           value={value.details || ''}
           onChange={handleDetailsChange}
         />
-
-        {isLoaded && (
-          <div
-            ref={mapRef}
-            className="w-full h-40 rounded-md mt-2 border border-gray-300"
-            style={{ display: value.coordinates ? 'block' : 'none' }}
-          />
-        )}
       </div>
     </div>
   );
