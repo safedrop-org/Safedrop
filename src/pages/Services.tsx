@@ -38,22 +38,20 @@ const ServicesContent = () => {
                   <div className="w-14 h-14 rounded-full bg-safedrop-primary flex items-center justify-center mb-4">
                     <Package className="h-7 w-7 text-safedrop-gold" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">توصيل الطرود الثمينة</h3>
-                  <p className="text-gray-600 mb-4">
-                    خدمة متخصصة لتوصيل الطرود ذات القيمة العالية مثل المجوهرات والإلكترونيات والساعات الثمينة بشكل آمن وموثوق. نضمن وصول الطرد بحالة ممتازة وضمن الوقت المحدد.
-                  </p>
+                  <h3 className="text-xl font-semibold mb-3">توصيل الطرود</h3>
+                  <p className="text-gray-600 mb-4">نقدم خدمة توصيل الطرود بأمان وسرعة، مع متابعة دقيقة لضمان وصولها في الوقت المحدد وبدون أي تلف أو فقدان.</p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تأمين شامل ضد الفقدان أو التلف</span>
+                      <span>التوصيل إلى جميع المناطق في السعودية</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تعبئة وتغليف احترافي</span>
+                      <span>تغليف آمن ومحكم</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تتبع مباشر للشحنة</span>
+                      <span>تسليم مباشر للمستلم</span>
                     </li>
                   </ul>
                 </div>
@@ -117,9 +115,7 @@ const ServicesContent = () => {
                     <Truck className="h-7 w-7 text-safedrop-gold" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">سائقون معتمدون</h3>
-                  <p className="text-gray-600 mb-4">
-                    فريق من السائقين المحترفين المعتمدين الذين تم اختيارهم بعناية وفحصهم بدقة. يت��تع السائقون بخبرة عالية وسجل أمني نظيف لضمان أعلى مستويات الخدمة.
-                  </p>
+                  <p className="text-gray-600 mb-4">فريق من السائقين المحترفين المعتمدين الذين تم وفحصهم بعناية بدقة. يتمتع السائقون بخبرة عالية وسجل أمني نظيف لضمان أعلى مستويات الخدمة.</p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
