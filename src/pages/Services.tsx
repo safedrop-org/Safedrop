@@ -112,7 +112,7 @@ const ServicesContent = () => {
                   <div className="w-14 h-14 rounded-full bg-safedrop-primary flex items-center justify-center mb-4">
                     <Truck className="h-7 w-7 text-safedrop-gold" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">سائقون معتمدون</h3>
+                  <h3 className="text-xl font-semibold mb-3">تتبع الشحنات</h3>
                   <p className="text-gray-600 mb-4">فريق من السائقين المحترفين المعتمدين الذين تم وفحصهم بعناية بدقة. يتمتع السائقون بخبرة عالية وسجل أمني نظيف لضمان أعلى مستويات الخدمة.</p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
