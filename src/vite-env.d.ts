@@ -54,6 +54,10 @@ declare namespace google.maps {
     center: LatLngLiteral;
     zoom: number;
     restriction?: MapRestriction;
+    mapTypeControl?: boolean;
+    streetViewControl?: boolean;
+    fullscreenControl?: boolean;
+    zoomControl?: boolean;
   }
 
   export class Map {
@@ -75,7 +79,7 @@ declare namespace google.maps {
   }
 
   export class Geocoder {
-    geocode(request: GeocoderRequest): Promise<GeocoderResponse>;
+    geocode(request: GeocoderRequest, callback?: (results: GeocoderResult[], status: GeocoderStatus) => void): Promise<GeocoderResponse>;
   }
 
   export interface GeocoderRequest {
@@ -170,5 +174,13 @@ declare namespace google.maps {
         status: DistanceMatrixStatus
       ) => void
     ): void;
+  }
+
+  export namespace event {
+    function addListener(instance: Object, eventName: string, handler: Function): MapsEventListener;
+    function addDomListener(instance: Element, eventName: string, handler: Function, capture?: boolean): MapsEventListener;
+    function clearInstanceListeners(instance: Object): void;
+    function removeListener(listener: MapsEventListener): void;
+    function trigger(instance: any, eventName: string, ...args: any[]): void;
   }
 }

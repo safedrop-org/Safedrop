@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 interface UseGoogleMapsResult {
@@ -12,6 +12,8 @@ interface UseGoogleMapsResult {
 export const useGoogleMaps = (): UseGoogleMapsResult => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<Error | null>(null);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
+  const callbackName = useRef<string>(`initGoogleMaps${Date.now()}`);
 
   useEffect(() => {
     console.log('Initializing Google Maps hook');
@@ -26,49 +28,60 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       return;
     }
 
-    console.log('API key found, initializing Google Maps');
-
-    // Check if the script is already loaded
-    const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api"]');
-    if (existingScript) {
-      console.log('Google Maps script already exists');
-      // Check if Google Maps is already initialized
-      if (window.google && window.google.maps) {
-        console.log('Google Maps already loaded');
-        setIsLoaded(true);
-        return;
-      }
+    // Only proceed if Google Maps isn't already loaded
+    if (window.google && window.google.maps) {
+      console.log('Google Maps already loaded');
+      setIsLoaded(true);
+      return;
     }
 
-    // Load the script if it doesn't exist or if Google Maps is not initialized
-    console.log('Loading Google Maps script');
-    const script = document.createElement('script');
-    
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
-    script.async = true;
-    script.defer = true;
-    
-    window.initGoogleMaps = () => {
+    console.log('API key found, initializing Google Maps');
+
+    // Use a unique callback name to prevent conflicts
+    const uniqueCallbackName = callbackName.current;
+
+    // Set up the callback function
+    window[uniqueCallbackName] = () => {
       console.log('Google Maps loaded via callback');
       setIsLoaded(true);
       toast.success('تم تحميل خرائط Google بنجاح');
     };
-    
-    script.onerror = (error: Event | string) => {
-      const errorObj = error instanceof Error 
-        ? error 
-        : new Error(typeof error === 'string' ? error : 'Script load error');
-      console.error('Error loading Google Maps:', errorObj);
-      setLoadError(errorObj);
-      toast.error('فشل في تحميل خرائط Google');
-    };
-    
-    document.head.appendChild(script);
-    console.log('Google Maps script added to document head');
+
+    try {
+      // Create and append the script
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=${uniqueCallbackName}`;
+      script.async = true;
+      script.defer = true;
+      
+      script.onerror = (error: Event | string) => {
+        const errorObj = error instanceof Error 
+          ? error 
+          : new Error(typeof error === 'string' ? error : 'Script load error');
+        console.error('Error loading Google Maps:', errorObj);
+        setLoadError(errorObj);
+        toast.error('فشل في تحميل خرائط Google');
+      };
+      
+      document.head.appendChild(script);
+      scriptRef.current = script;
+      console.log('Google Maps script added to document head');
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error('Unknown error loading Google Maps');
+      console.error('Exception loading Google Maps:', error);
+      setLoadError(error);
+      toast.error('حدث خطأ أثناء تحميل خرائط Google');
+    }
 
     return () => {
-      // Cleanup callback
-      delete window.initGoogleMaps;
+      // Clean up
+      if (scriptRef.current && document.head.contains(scriptRef.current)) {
+        document.head.removeChild(scriptRef.current);
+      }
+      
+      if (window[uniqueCallbackName]) {
+        delete window[uniqueCallbackName];
+      }
     };
   }, []);
 
@@ -171,7 +184,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
 // Add global type declaration for the callback function
 declare global {
   interface Window {
-    initGoogleMaps: () => void;
+    [key: string]: any;
     google: any;
   }
 }
