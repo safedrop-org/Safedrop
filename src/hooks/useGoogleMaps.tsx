@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
@@ -13,9 +14,16 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
   const [loadError, setLoadError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // Verify API key is present
+    console.log('Initializing Google Maps hook');
+    
+    // Get the API key
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) {
+    
+    // Debug: Check if API key exists and log a censored version
+    if (apiKey) {
+      const censoredKey = apiKey.substring(0, 4) + '...' + apiKey.substring(apiKey.length - 4);
+      console.log(`API key found: ${censoredKey}`);
+    } else {
       console.error('Google Maps API key is missing');
       setLoadError(new Error('Google Maps API key is missing'));
       toast.error('مفتاح خرائط Google غير موجود');
@@ -45,6 +53,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
           if (!window.google || !window.google.maps || !window.google.maps.places) {
             console.error('Timeout waiting for Google Maps to load');
             setLoadError(new Error('Timeout loading Google Maps API'));
+            toast.error('انتهت مهلة تحميل خرائط Google');
           }
         }, 10000);
       }
@@ -55,13 +64,17 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     console.log('Loading Google Maps script');
     const script = document.createElement('script');
     
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
+    // Build the URL with API key
+    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
+    console.log('Script URL prepared (key censored)');
+    script.src = scriptUrl;
     script.async = true;
     script.defer = true;
     
     window.initGoogleMaps = () => {
       console.log('Google Maps loaded via callback');
       setIsLoaded(true);
+      toast.success('تم تحميل خرائط Google بنجاح');
     };
     
     script.onerror = (error: Event | string) => {
@@ -74,6 +87,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     };
     
     document.head.appendChild(script);
+    console.log('Google Maps script added to document head');
 
     return () => {
       // Cleanup callback
