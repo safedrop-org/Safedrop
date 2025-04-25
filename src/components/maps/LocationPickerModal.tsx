@@ -39,6 +39,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
   const [mapInitialized, setMapInitialized] = useState(false);
   const mapInitializationTimerRef = useRef<NodeJS.Timeout | null>(null);
   const clickListenerRef = useRef<google.maps.MapsEventListener | null>(null);
+  const isMountedRef = useRef(true);
   
   // Complete cleanup function that safely disposes all Google Maps resources
   const cleanupMapResources = () => {
@@ -75,6 +76,14 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
     setMapInitialized(false);
   };
 
+  // Ensure cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      cleanupMapResources();
+    };
+  }, []);
+
   // Only initialize the map when modal is fully mounted in DOM and Google Maps is loaded
   useEffect(() => {
     // Don't do anything if modal is closed or Google Maps is not loaded
@@ -82,10 +91,13 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
       return;
     }
 
-    let isMounted = true;
+    // Safety check - clean up existing resources first
+    if (map) {
+      cleanupMapResources();
+    }
 
     const initializeMap = () => {
-      if (!isMounted) return;
+      if (!isMountedRef.current) return;
 
       try {
         // Safety check - if the map div isn't properly in the DOM yet, don't proceed
@@ -125,7 +137,8 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           return;
         }
 
-        if (!mapRef.current) {
+        // Null check again, component might have unmounted
+        if (!mapRef.current || !isMountedRef.current) {
           console.error('Map container disappeared before initialization');
           return;
         }
@@ -152,10 +165,15 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
           return;
         }
 
+        // Component might have unmounted during async operations
+        if (!isMountedRef.current) {
+          return;
+        }
+
         try {
           // Add click event listener to the map
           const clickListener = newMap.addListener('click', async (e: google.maps.MapMouseEvent) => {
-            if (!e.latLng) return;
+            if (!e.latLng || !isMountedRef.current) return;
 
             // Remove existing marker if any
             if (marker) {
@@ -172,8 +190,12 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
               });
 
               // Only update state if component is still mounted
-              if (isMounted) {
+              if (isMountedRef.current) {
                 setMarker(newMarker);
+              } else {
+                // Clean up if unmounted
+                newMarker.setMap(null);
+                return;
               }
             } catch (markerError) {
               console.error('Error creating marker:', markerError);
@@ -181,25 +203,30 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
             }
 
             try {
-              if (geocoderRef.current && e.latLng) {
-                const result = await geocoderRef.current.geocode({
+              if (geocoderRef.current && e.latLng && isMountedRef.current) {
+                geocoderRef.current.geocode({
                   location: e.latLng,
                   region: 'SA'
+                }).then(result => {
+                  if (result && result.results[0] && isMountedRef.current) {
+                    onLocationSelect({
+                      address: result.results[0].formatted_address,
+                      coordinates: {
+                        lat: e.latLng!.lat(),
+                        lng: e.latLng!.lng()
+                      }
+                    });
+                  }
+                }).catch(error => {
+                  console.error('Geocoding error:', error);
+                  if (isMountedRef.current) {
+                    toast.error('حدث خطأ أثناء تحديد الموقع');
+                  }
                 });
-
-                if (result && result.results[0] && isMounted) {
-                  onLocationSelect({
-                    address: result.results[0].formatted_address,
-                    coordinates: {
-                      lat: e.latLng.lat(),
-                      lng: e.latLng.lng()
-                    }
-                  });
-                }
               }
             } catch (error) {
               console.error('Geocoding error:', error);
-              if (isMounted) {
+              if (isMountedRef.current) {
                 toast.error('حدث خطأ أثناء تحديد الموقع');
               }
             }
@@ -211,13 +238,23 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
         }
 
         console.log('Map created successfully');
-        if (isMounted) {
+        if (isMountedRef.current) {
           setMap(newMap);
           setMapInitialized(true);
+        } else {
+          // Clean up if component unmounted during async operations
+          try {
+            if (clickListenerRef.current) {
+              google.maps.event.removeListener(clickListenerRef.current);
+              clickListenerRef.current = null;
+            }
+          } catch (e) {
+            console.error('Error cleaning up during unmounted state:', e);
+          }
         }
       } catch (error) {
         console.error('Error initializing map:', error);
-        if (isMounted) {
+        if (isMountedRef.current) {
           toast.error('حدث خطأ في تحميل الخريطة');
         }
       }
@@ -225,7 +262,7 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
     // Delay map initialization to ensure the modal DOM is ready
     const timer = setTimeout(() => {
-      if (mapRef.current && isMounted) {
+      if (isMountedRef.current && mapRef.current) {
         initializeMap();
       }
     }, 500);
@@ -234,17 +271,16 @@ const LocationPickerModal: React.FC<LocationPickerModalProps> = ({
 
     // Clean up on unmount or when open state changes
     return () => {
-      isMounted = false;
       cleanupMapResources();
     };
-  }, [open, onLocationSelect, marker]);
+  }, [open, onLocationSelect]);
 
   // Handle resize events
   useEffect(() => {
     if (!open) return;
 
     const handleResize = () => {
-      if (map && mapRef.current && open) {
+      if (map && mapRef.current && open && isMountedRef.current) {
         try {
           google.maps.event.trigger(map, 'resize');
         } catch (e) {
