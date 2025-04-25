@@ -183,9 +183,7 @@ const ContactContent = () => {
         <section className="pb-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-gray-200 rounded-lg overflow-hidden h-96">
-              <div className="w-full h-full bg-gray-300 flex items-center justify-center">
-                <p className="text-gray-600 text-center">هنا يمكن إضافة خريطة تفاعلية</p>
-              </div>
+              
             </div>
           </div>
         </section>
