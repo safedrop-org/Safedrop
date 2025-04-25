@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
@@ -14,11 +13,19 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
   const [loadError, setLoadError] = useState<Error | null>(null);
 
   useEffect(() => {
+    // Verify API key is present
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      console.error('Google Maps API key is missing');
+      setLoadError(new Error('Google Maps API key is missing'));
+      toast.error('مفتاح خرائط Google غير موجود');
+      return;
+    }
+
     // Check if the script is already loaded
     const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api"]');
     if (existingScript) {
       console.log('Google Maps script already exists');
-      // If the script exists but window.google is undefined, wait for it to load
       if (window.google && window.google.maps && window.google.maps.places) {
         console.log('Google Maps already loaded with Places library');
         setIsLoaded(true);
@@ -47,13 +54,6 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     // Load the script if it doesn't exist
     console.log('Loading Google Maps script');
     const script = document.createElement('script');
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    
-    if (!apiKey) {
-      console.error('Google Maps API key is missing');
-      setLoadError(new Error('Google Maps API key is missing'));
-      return;
-    }
     
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
     script.async = true;
@@ -80,7 +80,6 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       if (window.initGoogleMaps) {
         delete window.initGoogleMaps;
       }
-      // Don't remove the script as it might be used by other components
     };
   }, []);
 
