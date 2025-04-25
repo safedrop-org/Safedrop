@@ -38,7 +38,7 @@ const ServicesContent = () => {
                   <div className="w-14 h-14 rounded-full bg-safedrop-primary flex items-center justify-center mb-4">
                     <Package className="h-7 w-7 text-safedrop-gold" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">توصيل الطرود الثمينة</h3>
+                  <h3 className="text-xl font-semibold mb-3">توصيل الطرود</h3>
                   <p className="text-gray-600 mb-4">
                     خدمة متخصصة لتوصيل الطرود ذات القيمة العالية مثل المجوهرات والإلكترونيات والساعات الثمينة بشكل آمن وموثوق. نضمن وصول الطرد بحالة ممتازة وضمن الوقت المحدد.
                   </p>
