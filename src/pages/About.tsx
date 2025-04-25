@@ -1,15 +1,13 @@
-
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import StatSection from '@/components/home/stat-section';
 import { Award, Target, Users, Shield } from 'lucide-react';
-
 const AboutContent = () => {
-  const { t } = useLanguage();
-
-  return (
-    <div className="min-h-screen flex flex-col">
+  const {
+    t
+  } = useLanguage();
+  return <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
@@ -39,11 +37,7 @@ const AboutContent = () => {
                 </p>
               </div>
               <div className="rounded-lg overflow-hidden shadow-lg">
-                <img 
-                  src="/lovable-uploads/44f380d5-d61b-4da3-9305-ab3bf3bdff5a.png" 
-                  alt="About SafeDrop" 
-                  className="w-full h-auto"
-                />
+                <img alt="About SafeDrop" className="w-full h-auto" src="/lovable-uploads/b85743d1-b412-4dd7-8c3c-de2c2dfb08bd.png" />
               </div>
             </div>
           </div>
@@ -105,16 +99,11 @@ const AboutContent = () => {
         <StatSection />
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 const About = () => {
-  return (
-    <LanguageProvider>
+  return <LanguageProvider>
       <AboutContent />
-    </LanguageProvider>
-  );
+    </LanguageProvider>;
 };
-
 export default About;
