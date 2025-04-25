@@ -91,15 +91,15 @@ const ServicesContent = () => {
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>توصيل في نفس اليوم</span>
+                      <span>تسليم بنفس اليوم</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>خدمة التوصيل خلال ساعات</span>
+                      <span>أولوية في التنفيذ</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تغطية المناطق المركزية</span>
+                      <span>مناسب للطلبات المستعجلة</span>
                     </li>
                   </ul>
                 </div>
