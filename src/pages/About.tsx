@@ -1,13 +1,15 @@
+
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import StatSection from '@/components/home/stat-section';
 import { Award, Target, Users, Shield } from 'lucide-react';
+
 const AboutContent = () => {
-  const {
-    t
-  } = useLanguage();
-  return <div className="min-h-screen flex flex-col">
+  const { t } = useLanguage();
+
+  return (
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
@@ -26,12 +28,22 @@ const AboutContent = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
               <div>
                 <h2 className="text-3xl font-bold mb-6 text-safedrop-primary">قصتنا</h2>
-                <p className="text-gray-700 mb-4">جاءت فكرتنا من حاجة حقيقية لنظام توصيل يحمي الممتلكات الشخصية ويوفر للناس راحة البال. أردنا تقديم تجربة مختلفة، أكثر أمانًا وشفافية من الطرق التقليدية.</p>
-                <p className="text-gray-700 mb-4">أنشأنا SafeDrop لنكون حلًا موثوقًا لكل من يحتاج إلى توصيل آمن وسهل. اعتمدنا على البساطة، الوضوح، ونظام حماية مالي لضمان حقوق الجميع.</p>
-                <p className="text-gray-700">نطمح لأن نصبح المنصة الأولى في توصيل الممتلكات الشخصية عبر سائقين موثوقين ونظام متكامل. نسعى دائمًا للتطوير وتقديم الأفضل لمستخدمينا.</p>
+                <p className="text-gray-700 mb-4">
+                  تأسست منصة سيف دروب لحل مشكلة حقيقية يواجهها الكثيرون في عمليات البيع والشراء عبر الإنترنت: ضمان وصول المنتجات الثمينة بشكل آمن وموثوق.
+                </p>
+                <p className="text-gray-700 mb-4">
+                  بدأت الفكرة عندما لاحظنا تزايد عمليات الاحتيال في تداول السلع الثمينة، وعدم وجود وسيط موثوق يضمن حقوق كل من البائع والمشتري. من هنا، قررنا إطلاق منصة متخصصة تقدم حلاً شاملاً لهذه المشكلة.
+                </p>
+                <p className="text-gray-700">
+                  اليوم، نفخر بأن سيف دروب أصبحت الخيار الأول للعديد من العملاء الذين يبحثون عن موثوقية وأمان في توصيل مشترياتهم الثمينة.
+                </p>
               </div>
               <div className="rounded-lg overflow-hidden shadow-lg">
-                <img alt="About SafeDrop" className="w-full h-auto" src="/lovable-uploads/16ff960d-b443-402b-97f9-55f064403391.png" />
+                <img 
+                  src="/lovable-uploads/44f380d5-d61b-4da3-9305-ab3bf3bdff5a.png" 
+                  alt="About SafeDrop" 
+                  className="w-full h-auto"
+                />
               </div>
             </div>
           </div>
@@ -93,11 +105,16 @@ const AboutContent = () => {
         <StatSection />
       </main>
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 const About = () => {
-  return <LanguageProvider>
+  return (
+    <LanguageProvider>
       <AboutContent />
-    </LanguageProvider>;
+    </LanguageProvider>
+  );
 };
+
 export default About;

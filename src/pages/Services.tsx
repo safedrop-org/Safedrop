@@ -4,11 +4,12 @@ import Footer from '@/components/layout/footer';
 import { Shield, Truck, Package, Clock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+
 const ServicesContent = () => {
-  const {
-    t
-  } = useLanguage();
-  return <div className="min-h-screen flex flex-col">
+  const { t } = useLanguage();
+
+  return (
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
@@ -19,10 +20,19 @@ const ServicesContent = () => {
               نقدم مجموعة من الخدمات المتكاملة لضمان توصيل آمن وموثوق للطرود الثمينة
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-white">
+              <Button 
+                asChild
+                size="lg" 
+                className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-white"
+              >
                 <Link to="/register/customer">تسجيل كعميل</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="bg-white/10 hover:bg-white/20 text-white border-white">
+              <Button 
+                asChild
+                size="lg" 
+                variant="outline" 
+                className="bg-white/10 hover:bg-white/20 text-white border-white"
+              >
                 <Link to="/register/driver">تسجيل كسائق</Link>
               </Button>
             </div>
@@ -38,20 +48,22 @@ const ServicesContent = () => {
                   <div className="w-14 h-14 rounded-full bg-safedrop-primary flex items-center justify-center mb-4">
                     <Package className="h-7 w-7 text-safedrop-gold" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">توصيل الطرود</h3>
-                  <p className="text-gray-600 mb-4">نقدّم خدمة توصيل الطرود بكل أمان وسرعة إلى باب العميل، مع تغليف محكم وتحديثات مستمرة، لضمان أن تصل شحنتك بحالة ممتازة وفي الوقت الذي تريده تمامًا.</p>
+                  <h3 className="text-xl font-semibold mb-3">توصيل الطرود الثمينة</h3>
+                  <p className="text-gray-600 mb-4">
+                    خدمة متخصصة لتوصيل الطرود ذات القيمة العالية مثل المجوهرات والإلكترونيات والساعات الثمينة بشكل آمن وموثوق. نضمن وصول الطرد بحالة ممتازة وضمن الوقت المحدد.
+                  </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>التوصيل إلى جميع المناطق في السعودية</span>
+                      <span>تأمين شامل ضد الفقدان أو التلف</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تغليف آمن ومحكم</span>
+                      <span>تعبئة وتغليف احترافي</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تسليم مباشر للمستلم</span>
+                      <span>تتبع مباشر للشحنة</span>
                     </li>
                   </ul>
                 </div>
@@ -63,19 +75,21 @@ const ServicesContent = () => {
                     <Shield className="h-7 w-7 text-safedrop-gold" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">حماية المعاملات</h3>
-                  <p className="text-gray-600 mb-4">نؤمن تعاملاتك من خلال نظام ضمان مالي (Escrow) يحفظ أموالك حتى يتم تأكيد استلام الطرد، مما يوفّر تجربة موثوقة وعادلة للطرفين ويمنع أي محاولة احتيال أو تلاعب.</p>
+                  <p className="text-gray-600 mb-4">
+                    خدمة ضمان المعاملات بين البائع والمشتري، حيث نقوم بدور الوسيط لضمان استلام المشتري للمنتج قبل إتمام الدفع للبائع، مما يوفر الأمان لكلا الطرفين.
+                  </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>حماية من الاحتيال</span>
+                      <span>فحص المنتج قبل التسليم</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تأكيد قبل تحرير الدفع</span>
+                      <span>ضمان استرداد الأموال</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span> نظام موثوق ومعتمد</span>
+                      <span>توثيق المعاملة بالكامل</span>
                     </li>
                   </ul>
                 </div>
@@ -87,19 +101,21 @@ const ServicesContent = () => {
                     <Clock className="h-7 w-7 text-safedrop-gold" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">التوصيل السريع</h3>
-                  <p className="text-gray-600 mb-4">نوفّر لك خدمة توصيل سريعة وفعالة في نفس اليوم أو خلال ساعات، لتلبية احتياجاتك الطارئة بسهولة واحترافية مع أولوية كاملة في التنفيذ والتوصيل.</p>
+                  <p className="text-gray-600 mb-4">
+                    خدمة التوصيل خلال ساعات محددة لتلبية احتياجات العملاء العاجلة. نضمن وصول الشحنة في الوقت المحدد مع الحفاظ على معايير الأمان والجودة.
+                  </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>تسليم بنفس اليوم</span>
+                      <span>توصيل في نفس اليوم</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>أولوية في التنفيذ</span>
+                      <span>خدمة التوصيل خلال ساعات</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>مناسب للطلبات المستعجلة</span>
+                      <span>تغطية المناطق المركزية</span>
                     </li>
                   </ul>
                 </div>
@@ -110,21 +126,22 @@ const ServicesContent = () => {
                   <div className="w-14 h-14 rounded-full bg-safedrop-primary flex items-center justify-center mb-4">
                     <Truck className="h-7 w-7 text-safedrop-gold" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">تتبع الشحنات</h3>
-                  <p className="text-gray-600 mb-4">فريق من السائقين المحترفين المعتمدين الذين تم وفحصهم بعناية بدقيمكنك متابعة حالة شحنتك في كل مرحلة من مراحل التوصيل، حيث يقوم السائق بتحديث حالتها باستمرار لضمان معرفة وضع الطلب حتى لحظة التسليم.ة. يتمتع السائقون بخبرة عالية وسجل أمني نظيف لضمان أعلى مستويات الخدمة.</p>
+                  <h3 className="text-xl font-semibold mb-3">سائقون معتمدون</h3>
+                  <p className="text-gray-600 mb-4">
+                    فريق من السائقين المحترفين المعتمدين الذين تم اختيارهم بعناية وفحصهم بدقة. يت��تع السائقون بخبرة عالية وسجل أمني نظيف لضمان أعلى مستويات الخدمة.
+                  </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>إشعارات فورية بالحالة
-                    </span>
+                      <span>تحقق شامل من هوية السائقين</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span> تحديث يدوي من السائق</span>
+                      <span>تدريب مستمر على معايير الخدمة</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>وضوح في كل مرحلة</span>
+                      <span>تقييم دوري للأداء</span>
                     </li>
                   </ul>
                 </div>
@@ -136,15 +153,26 @@ const ServicesContent = () => {
         {/* Call to Action Section */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold text-safedrop-primary mb-6">ابدأ رحلتك مع سيف دروب اليوم</h2>
+            <h2 className="text-3xl font-bold text-safedrop-primary mb-6">
+              ابدأ رحلتك مع سيف در��ب اليوم
+            </h2>
             <p className="text-xl text-gray-600 mb-8">
               سجل الآن واستمتع بتجربة توصيل آمنة ومضمونة لطرودك الثمينة
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-safedrop-primary hover:bg-safedrop-primary/90">
+              <Button 
+                asChild
+                size="lg" 
+                className="bg-safedrop-primary hover:bg-safedrop-primary/90"
+              >
                 <Link to="/register/customer">تسجيل كعميل</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-safedrop-primary text-safedrop-primary hover:bg-safedrop-primary hover:text-white">
+              <Button 
+                asChild
+                size="lg" 
+                variant="outline" 
+                className="border-safedrop-primary text-safedrop-primary hover:bg-safedrop-primary hover:text-white"
+              >
                 <Link to="/register/driver">تسجيل كسائق</Link>
               </Button>
             </div>
@@ -152,11 +180,16 @@ const ServicesContent = () => {
         </section>
       </main>
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 const Services = () => {
-  return <LanguageProvider>
+  return (
+    <LanguageProvider>
       <ServicesContent />
-    </LanguageProvider>;
+    </LanguageProvider>
+  );
 };
+
 export default Services;

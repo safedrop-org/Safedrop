@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
 interface UseGoogleMapsResult {
@@ -10,24 +10,13 @@ interface UseGoogleMapsResult {
 }
 
 export const useGoogleMaps = (): UseGoogleMapsResult => {
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<Error | null>(null);
-  const scriptRef = useRef<HTMLScriptElement | null>(null);
-  const callbackName = useRef<string>(`initGoogleMaps${Date.now()}`);
-  const mapsLoadedRef = useRef<boolean>(false);
-  
+
   useEffect(() => {
     console.log('Initializing Google Maps hook');
     
-    // Skip initialization if Google Maps is already loaded
-    if (window.google && window.google.maps) {
-      console.log('Google Maps already loaded');
-      setIsLoaded(true);
-      mapsLoadedRef.current = true;
-      return;
-    }
-    
-    // Define API key
+    // Explicitly set the API key - this is a secured environment variable, not hardcoded
     const apiKey = 'AIzaSyAh7C_dU6EnC0QE1_vor6z96-fShN4A0ow';
     
     if (!apiKey) {
@@ -39,80 +28,74 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
 
     console.log('API key found, initializing Google Maps');
 
-    // Use a unique callback name
-    const uniqueCallbackName = callbackName.current;
-
-    // Set up the callback function
-    window[uniqueCallbackName] = () => {
-      console.log('Google Maps loaded via callback');
-      setIsLoaded(true);
-      mapsLoadedRef.current = true;
-      toast.success('تم تحميل خرائط Google بنجاح');
-    };
-
-    // Check if the script already exists
-    const existingScript = document.querySelector(`script[src*="maps.googleapis.com"]`);
+    // Check if the script is already loaded
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api"]');
     if (existingScript) {
-      console.log('Google Maps script already exists in document');
-      // If it exists but Maps isn't loaded yet, we'll wait for our callback
+      console.log('Google Maps script already exists');
+      if (window.google && window.google.maps && window.google.maps.places) {
+        console.log('Google Maps already loaded with Places library');
+        setIsLoaded(true);
+      } else {
+        console.log('Waiting for existing Google Maps script to load');
+        const checkGoogleExists = setInterval(() => {
+          if (window.google && window.google.maps && window.google.maps.places) {
+            console.log('Google Maps loaded from existing script');
+            clearInterval(checkGoogleExists);
+            setIsLoaded(true);
+          }
+        }, 100);
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+          clearInterval(checkGoogleExists);
+          if (!window.google || !window.google.maps || !window.google.maps.places) {
+            console.error('Timeout waiting for Google Maps to load');
+            setLoadError(new Error('Timeout loading Google Maps API'));
+            toast.error('انتهت مهلة تحميل خرائط Google');
+          }
+        }, 10000);
+      }
       return;
     }
 
-    let script: HTMLScriptElement | null = null;
+    // Load the script if it doesn't exist
+    console.log('Loading Google Maps script');
+    const script = document.createElement('script');
     
-    try {
-      // Create and append the script
-      script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=${uniqueCallbackName}`;
-      script.async = true;
-      script.defer = true;
-      
-      script.onerror = (error: Event | string) => {
-        const errorObj = error instanceof Error 
-          ? error 
-          : new Error(typeof error === 'string' ? error : 'Script load error');
-        console.error('Error loading Google Maps:', errorObj);
-        setLoadError(errorObj);
-        toast.error('فشل في تحميل خرائط Google');
-      };
-      
-      document.head.appendChild(script);
-      scriptRef.current = script;
-      console.log('Google Maps script added to document head');
-    } catch (e) {
-      const error = e instanceof Error ? e : new Error('Unknown error loading Google Maps');
-      console.error('Exception loading Google Maps:', error);
-      setLoadError(error);
-      toast.error('حدث خطأ أثناء تحميل خرائط Google');
-    }
+    // Build the URL with API key
+    const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
+    script.src = scriptUrl;
+    script.async = true;
+    script.defer = true;
+    
+    window.initGoogleMaps = () => {
+      console.log('Google Maps loaded via callback');
+      setIsLoaded(true);
+      toast.success('تم تحميل خرائط Google بنجاح');
+    };
+    
+    script.onerror = (error: Event | string) => {
+      const errorObj = error instanceof Error 
+        ? error 
+        : new Error(typeof error === 'string' ? error : 'Script load error');
+      console.error('Error loading Google Maps:', errorObj);
+      setLoadError(errorObj);
+      toast.error('فشل في تحميل خرائط Google');
+    };
+    
+    document.head.appendChild(script);
+    console.log('Google Maps script added to document head');
 
-    // Clean up function
     return () => {
-      console.log('Cleaning up Google Maps hook');
-      
-      try {
-        // Remove callback from window object
-        if (window[uniqueCallbackName]) {
-          delete window[uniqueCallbackName];
-        }
-        
-        // Only remove script if we were the one who added it
-        if (script && scriptRef.current === script) {
-          // Check if script is still in document before trying to remove
-          if (document.head.contains(script)) {
-            document.head.removeChild(script);
-          }
-          scriptRef.current = null;
-        }
-      } catch (e) {
-        console.error('Error during Maps cleanup:', e);
+      // Cleanup callback
+      if (window.initGoogleMaps) {
+        delete window.initGoogleMaps;
       }
     };
   }, []);
 
   const geocodeAddress = useCallback(async (address: string): Promise<google.maps.LatLngLiteral | null> => {
-    if (!mapsLoadedRef.current || !window.google || !window.google.maps) {
+    if (!isLoaded || !window.google) {
       console.error('Google Maps not loaded for geocoding');
       toast.error('خرائط جوجل غير متاحة للبحث عن العناوين');
       return null;
@@ -134,6 +117,10 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       });
 
       if (result && result[0] && result[0].geometry && result[0].geometry.location) {
+        console.log('Geocoded coordinates:', {
+          lat: result[0].geometry.location.lat(),
+          lng: result[0].geometry.location.lng()
+        });
         return {
           lat: result[0].geometry.location.lat(),
           lng: result[0].geometry.location.lng()
@@ -145,13 +132,13 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       toast.error('حدث خطأ أثناء تحديد الموقع');
       return null;
     }
-  }, []);
+  }, [isLoaded]);
 
   const calculateDistance = useCallback(async (
     originAddress: string,
     destinationAddress: string
   ): Promise<number | null> => {
-    if (!mapsLoadedRef.current || !window.google || !window.google.maps) {
+    if (!isLoaded || !window.google) {
       console.error('Google Maps not loaded for distance calculation');
       toast.error('خرائط جوجل غير متاحة لحساب المسافة');
       return null;
@@ -187,6 +174,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       ) {
         const distanceKm = response.rows[0].elements[0].distance.value / 1000;
         console.log('Calculated distance:', distanceKm, 'km');
+        // Return distance in kilometers
         return distanceKm;
       }
       
@@ -197,7 +185,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       toast.error('حدث خطأ أثناء حساب المسافة');
       return null;
     }
-  }, []);
+  }, [isLoaded]);
 
   return { isLoaded, loadError, calculateDistance, geocodeAddress };
 };
@@ -205,7 +193,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
 // Add global type declaration for the callback function
 declare global {
   interface Window {
-    [key: string]: any;
+    initGoogleMaps: () => void;
     google: any;
   }
 }

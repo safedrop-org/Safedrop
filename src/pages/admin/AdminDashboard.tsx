@@ -152,7 +152,7 @@ const AdminDashboardContent = () => {
         const {
           data,
           error
-        } = await supabase.from('drivers').select(
+        } = await supabase.from('drivers').select(`
             id,
             national_id,
             license_number,
@@ -166,7 +166,7 @@ const AdminDashboardContent = () => {
               last_name,
               phone
             )
-          ).eq('status', 'pending');
+          `).eq('status', 'pending');
         if (error) {
           console.error('Error fetching driver applications:', error);
           return [];
@@ -190,7 +190,7 @@ const AdminDashboardContent = () => {
         const {
           data,
           error
-        } = await supabase.from('drivers').select(
+        } = await supabase.from('drivers').select(`
             id,
             national_id,
             license_number,
@@ -209,7 +209,7 @@ const AdminDashboardContent = () => {
               email,
               created_at
             )
-          ).eq('status', 'approved');
+          `).eq('status', 'approved');
         if (error) {
           console.error('Error fetching approved drivers:', error);
           return [];
@@ -233,7 +233,7 @@ const AdminDashboardContent = () => {
         const {
           data,
           error
-        } = await supabase.from('drivers').select(
+        } = await supabase.from('drivers').select(`
             id,
             national_id,
             license_number,
@@ -251,7 +251,7 @@ const AdminDashboardContent = () => {
               status,
               created_at
             )
-          ).eq('status', 'approved').in('profiles.status', ['suspended', 'banned']);
+          `).eq('status', 'approved').in('profiles.status', ['suspended', 'banned']);
         if (error) {
           console.error('Error fetching suspended drivers:', error);
           return [];
@@ -275,14 +275,14 @@ const AdminDashboardContent = () => {
         const {
           data,
           error
-        } = await supabase.from('complaints').select(
+        } = await supabase.from('complaints').select(`
             *,
             profiles:user_id (
               first_name,
               last_name,
               user_type
             )
-          ).order('created_at', {
+          `).order('created_at', {
           ascending: false
         });
         if (error) {
@@ -292,7 +292,7 @@ const AdminDashboardContent = () => {
         return (data || []).map(item => ({
           id: item.id,
           userId: item.user_id,
-          userName: ${item.profiles?.first_name || ''} ${item.profiles?.last_name || ''},
+          userName: `${item.profiles?.first_name || ''} ${item.profiles?.last_name || ''}`,
           userType: item.profiles?.user_type as UserType || 'customer',
           subject: item.subject,
           content: item.content,
