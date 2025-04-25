@@ -22,7 +22,7 @@ export const HeroSection = () => {
 
       <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">Safe Drop</h1>
-        <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">توصيل سريع وآمن للمقتنيات الثمينة للشحنات الثمينة</p>
+        <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">توصيل سريع وآمن للمقتنيات الثمينة</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/register/customer">
             <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8">
