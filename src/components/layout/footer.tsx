@@ -89,13 +89,10 @@ const Footer = () => {
                 <MapPin className="mr-2 h-5 w-5 text-safedrop-gold shrink-0 rtl:ml-2 rtl:mr-0" />
                 <span className="text-sm">المملكة العربية السعودية، الرياض</span>
               </li>
-              <li className="flex items-start">
-                <Phone className="mr-2 h-5 w-5 text-safedrop-gold shrink-0 rtl:ml-2 rtl:mr-0" />
-                <span className="text-sm" dir="ltr">+966 50 123 4567</span>
-              </li>
+              
               <li className="flex items-start">
                 <Mail className="mr-2 h-5 w-5 text-safedrop-gold shrink-0 rtl:ml-2 rtl:mr-0" />
-                <span className="text-sm">info@safedrop.com</span>
+                <span className="text-sm">info@safedropksa.com</span>
               </li>
             </ul>
           </div>
