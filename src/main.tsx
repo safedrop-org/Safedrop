@@ -5,6 +5,7 @@ import './index.css'
 import { AuthProvider } from '@/components/auth/AuthContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LanguageProvider } from '@/components/ui/language-context'
+import "@fontsource/tajawal";
 
 // Create a client
 const queryClient = new QueryClient({
