@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
@@ -48,7 +47,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     // Load the script if it doesn't exist
     console.log('Loading Google Maps script');
     const script = document.createElement('script');
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const apiKey = 'AIzaSyAh7C_dU6EnC0QE1_vor6z96-fShN4A0ow'; // Updated API key
     
     if (!apiKey) {
       console.error('Google Maps API key is missing');
