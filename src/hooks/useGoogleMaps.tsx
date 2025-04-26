@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
@@ -28,6 +29,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
             console.log('Google Maps loaded from existing script');
             clearInterval(checkGoogleExists);
             setIsLoaded(true);
+            toast.success('تم تحميل خرائط Google بنجاح');
           }
         }, 100);
         
@@ -60,6 +62,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     script.async = true;
     script.defer = true;
     
+    // Define the callback globally
     window.initGoogleMaps = () => {
       console.log('Google Maps loaded via callback');
       setIsLoaded(true);

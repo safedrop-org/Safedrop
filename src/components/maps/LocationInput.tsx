@@ -41,7 +41,9 @@ const LocationInput: React.FC<LocationInputProps> = ({
   const autocompleteSessionToken = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
   const divRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
+  // Initialize Google Maps services when API is loaded
   useEffect(() => {
     if (isLoaded && window.google && window.google.maps && window.google.maps.places) {
       try {
@@ -76,11 +78,11 @@ const LocationInput: React.FC<LocationInputProps> = ({
     };
   }, []);
 
-  const handleAddressChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     onChange({ ...value, address: input });
 
-    if (!autocompleteService.current || input.length < 3) {
+    if (!autocompleteService.current || input.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -106,11 +108,9 @@ const LocationInput: React.FC<LocationInputProps> = ({
             setShowSuggestions(true);
             console.log('Setting suggestions visible with', predictions.length, 'items');
           } else {
+            console.warn('Autocomplete failed or returned no results with status:', status);
             setSuggestions([]);
             setShowSuggestions(false);
-            if (status !== window.google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-              console.warn('Autocomplete failed with status:', status);
-            }
           }
         }
       );
@@ -122,10 +122,22 @@ const LocationInput: React.FC<LocationInputProps> = ({
   };
 
   const handleInputFocus = () => {
-    // Re-show suggestions if we have them when input is focused
-    if (suggestions.length > 0) {
+    setIsInputFocused(true);
+    // Show suggestions if we have any when input is focused
+    if (value.address.length >= 2 && suggestions.length > 0) {
       setShowSuggestions(true);
     }
+    
+    // If we have text but no suggestions, try to fetch them again
+    if (value.address.length >= 2 && suggestions.length === 0 && autocompleteService.current) {
+      handleAddressChange({ target: { value: value.address } } as React.ChangeEvent<HTMLInputElement>);
+    }
+  };
+
+  const handleInputBlur = () => {
+    setIsInputFocused(false);
+    // We don't hide suggestions here to allow clicking on them
+    // The click outside handler will take care of hiding them when needed
   };
 
   const handleSuggestionSelect = async (suggestion: google.maps.places.AutocompletePrediction) => {
@@ -188,8 +200,10 @@ const LocationInput: React.FC<LocationInputProps> = ({
             value={value.address}
             onChange={handleAddressChange}
             onFocus={handleInputFocus}
-            className="w-full"
+            onBlur={handleInputBlur}
+            className={`w-full ${isInputFocused ? 'border-safedrop-gold' : ''}`}
           />
+          
           {showSuggestions && suggestions.length > 0 && (
             <ul className="absolute z-50 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
               {suggestions.map((suggestion) => (
@@ -206,6 +220,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
               ))}
             </ul>
           )}
+          
           {/* Hidden div for PlacesService */}
           <div ref={divRef} style={{ display: 'none' }}></div>
         </div>
