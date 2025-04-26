@@ -38,6 +38,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
           if (!window.google || !window.google.maps || !window.google.maps.places) {
             console.error('Timeout waiting for Google Maps to load');
             setLoadError(new Error('Timeout loading Google Maps API'));
+            toast.error('فشل في تحميل خرائط Google - تحقق من اتصالك بالإنترنت');
           }
         }, 10000);
       }
@@ -52,6 +53,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     if (!apiKey) {
       console.error('Google Maps API key is missing');
       setLoadError(new Error('Google Maps API key is missing'));
+      toast.error('مفتاح API لخرائط Google مفقود');
       return;
     }
     
@@ -62,6 +64,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     window.initGoogleMaps = () => {
       console.log('Google Maps loaded via callback');
       setIsLoaded(true);
+      toast.success('تم تحميل خرائط Google بنجاح');
     };
     
     script.onerror = (error: Event | string) => {

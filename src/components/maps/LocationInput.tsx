@@ -35,10 +35,12 @@ const LocationInput: React.FC<LocationInputProps> = ({
   geocodeAddress
 }) => {
   const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null);
   const placesService = useRef<google.maps.places.PlacesService | null>(null);
   const autocompleteSessionToken = useRef<google.maps.places.AutocompleteSessionToken | null>(null);
   const divRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isLoaded && window.google && window.google.maps && window.google.maps.places) {
@@ -60,12 +62,27 @@ const LocationInput: React.FC<LocationInputProps> = ({
     }
   }, [isLoaded]);
 
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleAddressChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     onChange({ ...value, address: input });
 
     if (!autocompleteService.current || input.length < 3) {
       setSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
 
@@ -86,8 +103,11 @@ const LocationInput: React.FC<LocationInputProps> = ({
           
           if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
             setSuggestions(predictions);
+            setShowSuggestions(true);
+            console.log('Setting suggestions visible with', predictions.length, 'items');
           } else {
             setSuggestions([]);
+            setShowSuggestions(false);
             if (status !== window.google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
               console.warn('Autocomplete failed with status:', status);
             }
@@ -97,6 +117,14 @@ const LocationInput: React.FC<LocationInputProps> = ({
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
       setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleInputFocus = () => {
+    // Re-show suggestions if we have them when input is focused
+    if (suggestions.length > 0) {
+      setShowSuggestions(true);
     }
   };
 
@@ -132,6 +160,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
             // Get a new session token after selection
             autocompleteSessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
             setSuggestions([]);
+            setShowSuggestions(false);
           } else {
             console.error('Error getting place details:', status);
             toast.error('تعذر الحصول على تفاصيل المكان');
@@ -154,20 +183,25 @@ const LocationInput: React.FC<LocationInputProps> = ({
       <div className="flex flex-col space-y-4">
         <div className="relative">
           <Input
+            ref={inputRef}
             placeholder={placeholder}
             value={value.address}
             onChange={handleAddressChange}
+            onFocus={handleInputFocus}
             className="w-full"
           />
-          {suggestions.length > 0 && (
-            <ul className="absolute z-40 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+          {showSuggestions && suggestions.length > 0 && (
+            <ul className="absolute z-50 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
               {suggestions.map((suggestion) => (
                 <li 
                   key={suggestion.place_id}
                   onClick={() => handleSuggestionSelect(suggestion)}
                   className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
                 >
-                  {suggestion.description}
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 mr-2 text-safedrop-gold" />
+                    {suggestion.description}
+                  </div>
                 </li>
               ))}
             </ul>
