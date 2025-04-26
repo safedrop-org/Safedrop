@@ -14,24 +14,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { IProfile, IDriver } from '@/integrations/supabase/custom-types';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { 
-  UsersIcon, TruckIcon, PackageIcon, LogOutIcon, DollarSign, LineChart, BarChart2Icon, 
-  AlertTriangleIcon, BellIcon, UserXIcon, UserCheckIcon, SearchIcon, MoreVerticalIcon, 
-  FilterIcon, FileTextIcon, MessageSquareIcon, SettingsIcon, Check, Globe, ShieldIcon, 
-  UserCogIcon, Eye, Search, Ban 
-} from 'lucide-react';
+import { UsersIcon, TruckIcon, PackageIcon, LogOutIcon, DollarSign, LineChart, BarChart2Icon, AlertTriangleIcon, BellIcon, UserXIcon, UserCheckIcon, SearchIcon, MoreVerticalIcon, FilterIcon, FileTextIcon, MessageSquareIcon, SettingsIcon, Check, Globe, ShieldIcon, UserCogIcon, Eye, Search, Ban } from 'lucide-react';
 
 // Define types
 type DateRange = 'today' | 'week' | 'month' | 'year';
 type UserType = 'customer' | 'driver';
-
 interface FinancialSummary {
   totalRevenue: number;
   commissions: number;
   platformProfit: number;
   driversPayout: number;
 }
-
 interface Complaint {
   id: string;
   userId: string;
@@ -42,10 +35,11 @@ interface Complaint {
   status: 'pending' | 'in-progress' | 'resolved';
   createdAt: string;
 }
-
 const AdminDashboardContent = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const {
+    t
+  } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange>('month');
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,7 +53,6 @@ const AdminDashboardContent = () => {
     platformProfit: 0,
     driversPayout: 0
   });
-
   const {
     data: customersCount = 0,
     isLoading: isLoadingCustomers,
@@ -86,7 +79,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-
   const {
     data: driversCount = 0,
     isLoading: isLoadingDrivers,
@@ -113,7 +105,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-
   const {
     data: ordersCount = 0,
     isLoading: isLoadingOrders,
@@ -140,7 +131,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-
   const {
     data: driverApplications = [],
     isLoading: isLoadingApplications,
@@ -178,7 +168,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-
   const {
     data: approvedDrivers = [],
     isLoading: isLoadingApprovedDrivers,
@@ -221,7 +210,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-
   const {
     data: suspendedDrivers = [],
     isLoading: isLoadingSuspendedDrivers,
@@ -263,7 +251,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-
   const {
     data: complaints = [],
     isLoading: isLoadingComplaints,
@@ -305,7 +292,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-
   const {
     data: orders = [],
     isLoading: isLoadingOrdersList,
@@ -333,7 +319,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-
   const {
     data: customersList = [],
     isLoading: isLoadingCustomersList,
@@ -359,7 +344,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-
   const {
     data: systemSettings,
     isLoading: isLoadingSettings
@@ -375,24 +359,19 @@ const AdminDashboardContent = () => {
           console.error('Error fetching system settings:', error);
           return null;
         }
-
         const settings: Record<string, any> = {};
         (data || []).forEach(item => {
           settings[item.key] = item.value;
         });
-
         if (settings.commission_rate) {
           setSelectedCommissionRate(parseInt(settings.commission_rate));
         }
-
         if (settings.system_language) {
           setSystemLanguage(settings.system_language);
         }
-
         if (settings.privacy_policy) {
           setPrivacyPolicy(settings.privacy_policy);
         }
-
         if (settings.terms_of_service) {
           setTermsOfService(settings.terms_of_service);
         }
@@ -403,7 +382,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-
   const {
     data: financialData,
     isLoading: isLoadingFinancial
@@ -411,10 +389,12 @@ const AdminDashboardContent = () => {
     queryKey: ['financial-data', dateRange],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase.rpc('get_financial_summary', {
+        const {
+          data,
+          error
+        } = await supabase.rpc('get_financial_summary', {
           period_type: dateRange
         });
-        
         if (error) throw error;
         return data || {
           total_revenue: 0,
@@ -433,7 +413,6 @@ const AdminDashboardContent = () => {
       }
     }
   });
-  
   useEffect(() => {
     if (financialData) {
       setFinancialSummary({
@@ -444,7 +423,6 @@ const AdminDashboardContent = () => {
       });
     }
   }, [financialData]);
-  
   useEffect(() => {
     const adminAuth = localStorage.getItem('adminAuth');
     if (!adminAuth || adminAuth !== 'true') {
@@ -453,12 +431,10 @@ const AdminDashboardContent = () => {
       setIsAdmin(true);
     }
   }, [navigate]);
-  
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
     navigate('/admin');
   };
-  
   const handleUpdateCommissionRate = async () => {
     try {
       const {
@@ -475,7 +451,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث نسبة العمولة');
     }
   };
-  
   const handleUpdateSystemLanguage = async (language: string) => {
     try {
       const {
@@ -493,7 +468,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث لغة النظام');
     }
   };
-  
   const handleUpdatePrivacyPolicy = async () => {
     try {
       const {
@@ -510,7 +484,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث سياسة الخصوصية');
     }
   };
-  
   const handleUpdateTermsOfService = async () => {
     try {
       const {
@@ -527,7 +500,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث شروط الاستخدام');
     }
   };
-  
   const handleApproveDriver = async (driverId: string) => {
     try {
       const {
@@ -545,7 +517,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء قبول السائق');
     }
   };
-  
   const handleRejectDriver = async (driverId: string) => {
     try {
       const {
@@ -563,7 +534,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء رفض السائق');
     }
   };
-  
   const handleDeleteRejectedApplications = async () => {
     try {
       const {
@@ -578,7 +548,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء حذف طلبات الإنضمام المرفوضة');
     }
   };
-  
   const handleSuspendUser = async (userId: string, userType: UserType) => {
     try {
       const {
@@ -599,7 +568,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تعليق الحساب');
     }
   };
-  
   const handleBanUser = async (userId: string, userType: UserType) => {
     try {
       const {
@@ -620,7 +588,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء حظر الحساب');
     }
   };
-  
   const handleActivateUser = async (userId: string, userType: UserType) => {
     try {
       const {
@@ -641,7 +608,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تنشيط الحساب');
     }
   };
-  
   const handleResolveComplaint = async (complaintId: string) => {
     try {
       const {
@@ -657,7 +623,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث حالة الشكوى');
     }
   };
-  
   const handleProcessComplaint = async (complaintId: string) => {
     try {
       const {
@@ -673,7 +638,6 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء تحديث حالة الشكوى');
     }
   };
-  
   const handleDeleteCustomer = async (userId: string) => {
     try {
       const {
@@ -688,18 +652,14 @@ const AdminDashboardContent = () => {
       toast.error('حدث خطأ أثناء حذف العميل');
     }
   };
-  
   if (!isAdmin) {
     return <div className="flex justify-center items-center h-screen">جاري التحميل...</div>;
   }
-  
   const formatCurrency = (value: number) => {
     if (value === undefined || value === null) return "0 ر.س";
     return `${value.toLocaleString()} ر.س`;
   };
-  
-  return (
-    <div className="flex h-screen bg-gray-50">
+  return <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
       
       <div className="flex-1 flex flex-col overflow-auto">
@@ -797,8 +757,7 @@ const AdminDashboardContent = () => {
                             <div>
                               <p className="text-sm text-gray-500">إجمالي المبالغ المستلمة</p>
                               <h3 className="text-2xl font-bold">
-                                {isLoadingFinancial ? "..." : 
-                                 formatCurrency(financialData?.total_revenue || 0)}
+                                {isLoadingFinancial ? "..." : formatCurrency(financialData?.total_revenue || 0)}
                               </h3>
                             </div>
                             <div className="p-3 bg-green-100 rounded-full">
@@ -814,8 +773,7 @@ const AdminDashboardContent = () => {
                             <div>
                               <p className="text-sm text-gray-500">إجمالي العمولات</p>
                               <h3 className="text-2xl font-bold">
-                                {isLoadingFinancial ? "..." :
-                                 formatCurrency(financialData?.commissions || 0)}
+                                {isLoadingFinancial ? "..." : formatCurrency(financialData?.commissions || 0)}
                               </h3>
                             </div>
                             <div className="p-3 bg-blue-100 rounded-full">
@@ -831,8 +789,7 @@ const AdminDashboardContent = () => {
                             <div>
                               <p className="text-sm text-gray-500">أرباح المنصة</p>
                               <h3 className="text-2xl font-bold">
-                                {isLoadingFinancial ? "..." :
-                                 formatCurrency(financialData?.platform_profit || 0)}
+                                {isLoadingFinancial ? "..." : formatCurrency(financialData?.platform_profit || 0)}
                               </h3>
                             </div>
                             <div className="p-3 bg-violet-100 rounded-full">
@@ -848,8 +805,7 @@ const AdminDashboardContent = () => {
                             <div>
                               <p className="text-sm text-gray-500">مستحقات السائقين</p>
                               <h3 className="text-2xl font-bold">
-                                {isLoadingFinancial ? "..." :
-                                 formatCurrency(financialData?.driver_profit || 0)}
+                                {isLoadingFinancial ? "..." : formatCurrency(financialData?.driver_profit || 0)}
                               </h3>
                             </div>
                             <div className="p-3 bg-amber-100 rounded-full">
@@ -873,11 +829,9 @@ const AdminDashboardContent = () => {
                           <SearchIcon className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                           <Input placeholder="بحث عن سائق..." className="pl-9 pr-4 w-[250px]" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                         </div>
-                        {driverApplications && driverApplications.some((driver: any) => driver.status === 'rejected') && (
-                          <Button variant="destructive" size="sm" onClick={handleDeleteRejectedApplications} className="whitespace-nowrap">
+                        {driverApplications && driverApplications.some((driver: any) => driver.status === 'rejected') && <Button variant="destructive" size="sm" onClick={handleDeleteRejectedApplications} className="whitespace-nowrap">
                             حذف الطلبات المرفوضة
-                          </Button>
-                        )}
+                          </Button>}
                       </div>
                     </div>
                   </CardHeader>
@@ -885,20 +839,15 @@ const AdminDashboardContent = () => {
                     <Tabs defaultValue="applications" dir="rtl">
                       <TabsList className="mb-4 justify-end">
                         <TabsTrigger value="applications">طلبات الانضمام</TabsTrigger>
-                        <TabsTrigger value="active">السائقين النشطين</TabsTrigger>
-                        <TabsTrigger value="suspended">السائقين المعلقين</TabsTrigger>
+                        <TabsTrigger value="active">السائقين النشطون</TabsTrigger>
+                        <TabsTrigger value="suspended">السائقين المعلقون</TabsTrigger>
                       </TabsList>
                       
                       <TabsContent value="applications">
-                        {isLoadingApplications ? (
-                          <div className="text-center py-8">جاري تحميل البيانات...</div>
-                        ) : driverApplications.length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
+                        {isLoadingApplications ? <div className="text-center py-8">جاري تحميل البيانات...</div> : driverApplications.length === 0 ? <div className="text-center py-8 text-gray-500">
                             <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                             لا توجد طلبات انضمام جديدة
-                          </div>
-                        ) : (
-                          <div className="overflow-x-auto">
+                          </div> : <div className="overflow-x-auto">
                             <Table>
                               <TableHeader>
                                 <TableRow>
@@ -910,8 +859,7 @@ const AdminDashboardContent = () => {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {driverApplications.map((driver: any) => (
-                                  <TableRow key={driver.id}>
+                                {driverApplications.map((driver: any) => <TableRow key={driver.id}>
                                     <TableCell className="font-medium">
                                       {driver.profiles?.first_name} {driver.profiles?.last_name}
                                     </TableCell>
@@ -932,24 +880,17 @@ const AdminDashboardContent = () => {
                                         </Button>
                                       </div>
                                     </TableCell>
-                                  </TableRow>
-                                ))}
+                                  </TableRow>)}
                               </TableBody>
                             </Table>
-                          </div>
-                        )}
+                          </div>}
                       </TabsContent>
                       
                       <TabsContent value="active">
-                        {isLoadingApprovedDrivers ? (
-                          <div className="text-center py-8">جاري تحميل البيانات...</div>
-                        ) : approvedDrivers.length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
+                        {isLoadingApprovedDrivers ? <div className="text-center py-8">جاري تحميل البيانات...</div> : approvedDrivers.length === 0 ? <div className="text-center py-8 text-gray-500">
                             <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                             لا توجد سائقين
-                          </div>
-                        ) : (
-                          <div className="overflow-x-auto">
+                          </div> : <div className="overflow-x-auto">
                             <Table>
                               <TableHeader>
                                 <TableRow>
@@ -961,8 +902,7 @@ const AdminDashboardContent = () => {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {approvedDrivers.map((driver: any) => (
-                                  <TableRow key={driver.id}>
+                                {approvedDrivers.map((driver: any) => <TableRow key={driver.id}>
                                     <TableCell className="font-medium">
                                       {driver.profiles?.first_name} {driver.profiles?.last_name}
                                     </TableCell>
@@ -983,24 +923,17 @@ const AdminDashboardContent = () => {
                                         </Button>
                                       </div>
                                     </TableCell>
-                                  </TableRow>
-                                ))}
+                                  </TableRow>)}
                               </TableBody>
                             </Table>
-                          </div>
-                        )}
+                          </div>}
                       </TabsContent>
                       
                       <TabsContent value="suspended">
-                        {isLoadingSuspendedDrivers ? (
-                          <div className="text-center py-8">جاري تحميل البيانات...</div>
-                        ) : suspendedDrivers.length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
+                        {isLoadingSuspendedDrivers ? <div className="text-center py-8">جاري تحميل البيانات...</div> : suspendedDrivers.length === 0 ? <div className="text-center py-8 text-gray-500">
                             <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                             لا يوجد سائقين معلقين
-                          </div>
-                        ) : (
-                          <div className="overflow-x-auto">
+                          </div> : <div className="overflow-x-auto">
                             <Table>
                               <TableHeader>
                                 <TableRow>
@@ -1012,8 +945,7 @@ const AdminDashboardContent = () => {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {suspendedDrivers.map((driver: any) => (
-                                  <TableRow key={driver.id}>
+                                {suspendedDrivers.map((driver: any) => <TableRow key={driver.id}>
                                     <TableCell className="font-medium">
                                       {driver.profiles?.first_name} {driver.profiles?.last_name}
                                     </TableCell>
@@ -1034,12 +966,10 @@ const AdminDashboardContent = () => {
                                         </Button>
                                       </div>
                                     </TableCell>
-                                  </TableRow>
-                                ))}
+                                  </TableRow>)}
                               </TableBody>
                             </Table>
-                          </div>
-                        )}
+                          </div>}
                       </TabsContent>
                     </Tabs>
                   </CardContent>
@@ -1047,15 +977,10 @@ const AdminDashboardContent = () => {
               </TabsContent>
               
               <TabsContent value="customers">
-                {isLoadingCustomersList ? (
-                  <div className="text-center py-8">جاري تحميل البيانات...</div>
-                ) : customersList.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                {isLoadingCustomersList ? <div className="text-center py-8">جاري تحميل البيانات...</div> : customersList.length === 0 ? <div className="text-center py-8 text-gray-500">
                     <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                     لا يوجد عملاء
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
+                  </div> : <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1066,8 +991,7 @@ const AdminDashboardContent = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {customersList.map((customer: any) => (
-                          <TableRow key={customer.id}>
+                        {customersList.map((customer: any) => <TableRow key={customer.id}>
                             <TableCell className="font-medium">
                               {customer.profiles?.first_name} {customer.profiles?.last_name}
                             </TableCell>
@@ -1089,24 +1013,17 @@ const AdminDashboardContent = () => {
                                 </Button>
                               </div>
                             </TableCell>
-                          </TableRow>
-                        ))}
+                          </TableRow>)}
                       </TableBody>
                     </Table>
-                  </div>
-                )}
+                  </div>}
               </TabsContent>
               
               <TabsContent value="orders">
-                {isLoadingOrdersList ? (
-                  <div className="text-center py-8">جاري تحميل البيانات...</div>
-                ) : orders.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                {isLoadingOrdersList ? <div className="text-center py-8">جاري تحميل البيانات...</div> : orders.length === 0 ? <div className="text-center py-8 text-gray-500">
                     <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                     لا يوجد طلبات
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
+                  </div> : <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1117,8 +1034,7 @@ const AdminDashboardContent = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {orders.map((order: any) => (
-                          <TableRow key={order.id}>
+                        {orders.map((order: any) => <TableRow key={order.id}>
                             <TableCell className="font-medium">
                               {order.customer?.first_name} {order.customer?.last_name}
                             </TableCell>
@@ -1136,12 +1052,10 @@ const AdminDashboardContent = () => {
                                 </Button>
                               </div>
                             </TableCell>
-                          </TableRow>
-                        ))}
+                          </TableRow>)}
                       </TableBody>
                     </Table>
-                  </div>
-                )}
+                  </div>}
               </TabsContent>
               
               <TabsContent value="settings">
@@ -1163,15 +1077,7 @@ const AdminDashboardContent = () => {
                           <div>
                             <Label htmlFor="commission-rate">نسبة العمولة (%)</Label>
                             <div className="flex items-center gap-4 mt-1">
-                              <Input 
-                                id="commission-rate" 
-                                type="number" 
-                                min="0"
-                                max="100"
-                                value={selectedCommissionRate.toString()}
-                                onChange={e => setSelectedCommissionRate(Number(e.target.value))}
-                                className="w-[100px]"
-                              />
+                              <Input id="commission-rate" type="number" min="0" max="100" value={selectedCommissionRate.toString()} onChange={e => setSelectedCommissionRate(Number(e.target.value))} className="w-[100px]" />
                               <Button onClick={handleUpdateCommissionRate}>
                                 <Check className="h-4 w-4 mr-2" />
                                 حفظ
@@ -1186,16 +1092,10 @@ const AdminDashboardContent = () => {
                           <div className="flex items-center justify-between">
                             <Label>لغة النظام</Label>
                             <div className="flex gap-4">
-                              <Button 
-                                variant={systemLanguage === 'ar' ? 'default' : 'outline'} 
-                                onClick={() => handleUpdateSystemLanguage('ar')}
-                              >
+                              <Button variant={systemLanguage === 'ar' ? 'default' : 'outline'} onClick={() => handleUpdateSystemLanguage('ar')}>
                                 العربية
                               </Button>
-                              <Button 
-                                variant={systemLanguage === 'en' ? 'default' : 'outline'}
-                                onClick={() => handleUpdateSystemLanguage('en')}
-                              >
+                              <Button variant={systemLanguage === 'en' ? 'default' : 'outline'} onClick={() => handleUpdateSystemLanguage('en')}>
                                 English
                               </Button>
                             </div>
@@ -1207,13 +1107,7 @@ const AdminDashboardContent = () => {
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="privacy-policy">سياسة الخصوصية</Label>
-                            <Input 
-                              id="privacy-policy" 
-                              type="text"
-                              value={privacyPolicy}
-                              onChange={e => setPrivacyPolicy(e.target.value)}
-                              className="w-full"
-                            />
+                            <Input id="privacy-policy" type="text" value={privacyPolicy} onChange={e => setPrivacyPolicy(e.target.value)} className="w-full" />
                             <Button onClick={handleUpdatePrivacyPolicy}>
                               <Check className="h-4 w-4 mr-2" />
                               حفظ
@@ -1226,13 +1120,7 @@ const AdminDashboardContent = () => {
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="terms-of-service">شروط الاستخدام</Label>
-                            <Input 
-                              id="terms-of-service" 
-                              type="text"
-                              value={termsOfService}
-                              onChange={e => setTermsOfService(e.target.value)}
-                              className="w-full"
-                            />
+                            <Input id="terms-of-service" type="text" value={termsOfService} onChange={e => setTermsOfService(e.target.value)} className="w-full" />
                             <Button onClick={handleUpdateTermsOfService}>
                               <Check className="h-4 w-4 mr-2" />
                               حفظ
@@ -1248,16 +1136,11 @@ const AdminDashboardContent = () => {
           </div>
         </main>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 const AdminDashboard = () => {
-  return (
-    <LanguageProvider>
+  return <LanguageProvider>
       <AdminDashboardContent />
-    </LanguageProvider>
-  );
+    </LanguageProvider>;
 };
-
 export default AdminDashboard;
