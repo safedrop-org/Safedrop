@@ -1,68 +1,39 @@
-
 import { useLanguage } from '@/components/ui/language-context';
 import { UserCheck, Truck, Package, Star } from 'lucide-react';
-
 const StatSection = () => {
-  const { t, language } = useLanguage();
-  
-  const stats = [
-    {
-      icon: <UserCheck className="h-10 w-10 text-safedrop-gold" />,
-      value: "100+",
-      label: {
-        ar: "عملاء سعداء",
-        en: "Happy Customers"
-      }
-    },
-    {
-      icon: <Truck className="h-10 w-10 text-safedrop-gold" />,
-      value: "50+",
-      label: {
-        ar: "سائق معتمد",
-        en: "Verified Drivers"
-      }
-    },
-    {
-      icon: <Package className="h-10 w-10 text-safedrop-gold" />,
-      value: "500+",
-      label: {
-        ar: "توصيل ناجح",
-        en: "Successful Deliveries"
-      }
-    },
-    {
-      icon: <Star className="h-10 w-10 text-safedrop-gold" />,
-      value: "4.9",
-      label: {
-        ar: "تقييم العملاء",
-        en: "Customer Rating"
-      }
+  const {
+    t,
+    language
+  } = useLanguage();
+  const stats = [{
+    icon: <UserCheck className="h-10 w-10 text-safedrop-gold" />,
+    value: "100+",
+    label: {
+      ar: "عملاء سعداء",
+      en: "Happy Customers"
     }
-  ];
-  
-  return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-safedrop-primary">
-            {language === 'ar' ? 'إحصائيات' : 'Statistics'}
-          </h2>
-          <p className="mt-4 text-lg text-gray-600">
-            {language === 'ar' ? 'بعض الأرقام التي تعكس إنجازاتنا' : 'Numbers that reflect our achievements'}
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {stats.map((stat, index) => (
-            <div key={index} className="p-6 bg-gray-50 rounded-lg shadow-sm text-center">
-              <div className="mx-auto mb-4 flex justify-center">{stat.icon}</div>
-              <div className="text-3xl font-bold mb-2 text-safedrop-primary">{stat.value}</div>
-              <div className="text-gray-600">{language === 'ar' ? stat.label.ar : stat.label.en}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  }, {
+    icon: <Truck className="h-10 w-10 text-safedrop-gold" />,
+    value: "50+",
+    label: {
+      ar: "سائق معتمد",
+      en: "Verified Drivers"
+    }
+  }, {
+    icon: <Package className="h-10 w-10 text-safedrop-gold" />,
+    value: "500+",
+    label: {
+      ar: "توصيل ناجح",
+      en: "Successful Deliveries"
+    }
+  }, {
+    icon: <Star className="h-10 w-10 text-safedrop-gold" />,
+    value: "4.9",
+    label: {
+      ar: "تقييم العملاء",
+      en: "Customer Rating"
+    }
+  }];
+  return;
 };
-
 export default StatSection;
