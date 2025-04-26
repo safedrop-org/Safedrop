@@ -725,7 +725,7 @@ const AdminDashboardContent = () => {
             <Tabs defaultValue="financial" className="w-full">
               <TabsList className="w-full grid grid-cols-5 mb-6">
                 <TabsTrigger value="financial">الملخص المالي</TabsTrigger>
-                <TabsTrigger value="drivers">السائقين</TabsTrigger>
+                
                 <TabsTrigger value="customers">العملاء</TabsTrigger>
                 <TabsTrigger value="orders">الطلبات</TabsTrigger>
                 <TabsTrigger value="settings">الإعدادات</TabsTrigger>
