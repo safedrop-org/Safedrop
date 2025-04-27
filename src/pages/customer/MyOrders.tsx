@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useOrders } from '@/hooks/useOrders';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
@@ -30,7 +31,7 @@ const MyOrders = () => {
   }
 
   const getStatusBadge = (status: string) => {
-    let badgeColor = "secondary";
+    let badgeColor: "default" | "destructive" | "outline" | "secondary" = "default";
     let statusText = status;
 
     switch (status) {
@@ -39,19 +40,19 @@ const MyOrders = () => {
         statusText = "متاح";
         break;
       case "picked_up":
-        badgeColor = "blue";
+        badgeColor = "secondary";
         statusText = "تم الالتقاط";
         break;
       case "in_transit":
-        badgeColor = "violet";
+        badgeColor = "default";
         statusText = "في الطريق";
         break;
       case "approaching":
-        badgeColor = "orange";
+        badgeColor = "default";
         statusText = "قريب";
         break;
       case "completed":
-        badgeColor = "green";
+        badgeColor = "default";
         statusText = "مكتمل";
         break;
       case "cancelled":
