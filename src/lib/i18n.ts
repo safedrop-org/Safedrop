@@ -1,4 +1,6 @@
-type Translations = {
+import { LanguageKey } from './language-key'; // We'll create this type file to centralize language key definition
+
+export type Translations = {
   [key: string]: {
     ar: string;
     en: string;
@@ -172,7 +174,7 @@ export const translations: Translations = {
     en: "Your account has been created successfully. You can now log in."
   },
   registrationError: {
-    ar: "خطأ ���ي التسجيل",
+    ar: "خطأ في التسجيل",
     en: "Registration Error"
   },
   nationalId: {
@@ -340,7 +342,7 @@ export const translations: Translations = {
     en: "Distance"
   },
   amount: {
-    ar: "��لمبلغ",
+    ar: "المبلغ",
     en: "Amount"
   },
   order: {
@@ -472,7 +474,7 @@ export const translations: Translations = {
     en: "Verified Drivers"
   },
   verifiedDriversDescription: {
-    ar: "كل ��لسائقين في منصتنا يمرون بعملية تحقق شاملة من بيانات��م ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
+    ar: "كل السائقين في منصتنا يمرون بعملية تحقق شاملة من بياناتهم ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
     en: "All drivers on our platform undergo a comprehensive verification process of their credentials and licenses before acceptance. We ensure you deal with reliable and highly competent individuals."
   },
   licenseVerification: {
@@ -552,7 +554,7 @@ export const translations: Translations = {
     en: "Suitable for urgent orders"
   },
   startWithSafedrop: {
-    ar: "ابد�� رحلت�� م�� ��يف دروب اليوم",
+    ar: "ابدأ رحلتك مع سيف دروب اليوم",
     en: "Start your journey with SafeDrop today"
   },
   safeDeliveryExperience: {
@@ -768,7 +770,7 @@ export const translations: Translations = {
     en: "Availability Status"
   },
   updateAvailability: {
-    ar: "��حديث الحالة",
+    ar: "تحديث الحالة",
     en: "Update Status"
   },
   noNotifications: {
@@ -792,7 +794,7 @@ export const translations: Translations = {
     en: "Available Balance"
   },
   paymentDetails: {
-    ar: "تفاصيل المدفوع��ت",
+    ar: "تفاصيل المدفوعات",
     en: "Payment Details"
   },
   requestWithdrawal: {
@@ -900,7 +902,7 @@ export const translations: Translations = {
     en: "How can I update my vehicle information?"
   },
   updateVehicleAnswer: {
-    ar: "يمكنك تحديث معلومات مركبت�� من خلال الذهاب إلى صفحة 'مركبتي' في لوحة التحكم.",
+    ar: "يمكنك تحديث معلومات مركبتك من خلال الذهاب إلى صفحة 'مركبتي' في لوحة التحكم.",
     en: "You can update your vehicle information by going to the 'My Vehicle' page in your dashboard."
   },
   earningsTransfer: {
@@ -912,7 +914,7 @@ export const translations: Translations = {
     en: "Earnings are transferred weekly every Thursday."
   },
   reportIssueQuestion: {
-    ar: "كي�� يمكنني الإبلاغ عن مشكلة في طلب؟",
+    ar: "كيف يمكنني الإبلاغ عن مشكلة في طلب؟",
     en: "How can I report an issue with an order?"
   },
   reportIssueAnswer: {
@@ -976,43 +978,4 @@ export const translations: Translations = {
     en: "No orders available at the moment"
   },
   noCompletedOrders: {
-    ar: "لا توجد طلبات مكتملة",
-    en: "No completed orders"
-  },
-  withdrawEarningsQuestion: {
-    ar: "كيف أسحب أرباحي؟",
-    en: "How do I withdraw my earnings?"
-  },
-  withdrawEarningsAnswer: {
-    ar: "يمكنك سحب أرباحك عبر إعدادات الحساب وإدخال بياناتك البنكية.",
-    en: "You can withdraw your earnings through account settings by entering your banking information."
-  },
-  updateOrderStatusQuestion: {
-    ar: "كيف يمكنني تحديث حالتي أمام العميل؟",
-    en: "How can I update my status to the customer?"
-  },
-  updateOrderStatusAnswer: {
-    ar: "عند تحديث حالة الطلب (مثل \"جار التوصيل\" أو \"تم التوصيل\") من خلال التطبيق، يتم إشعار العميل بحالة الشحنة",
-    en: "When you update the order status (such as \"In Delivery\" or \"Delivered\") through the app, the customer is notified of the shipment status"
-  },
-  troubleshootingQuestion: {
-    ar: "ماذا أفعل عند مواجهة مشكلة؟",
-    en: "What should I do when encountering a problem?"
-  },
-  troubleshootingAnswer: {
-    ar: "تواصل مع فريق الدعم عبر البريد الإلكتروني أو صفحة \"اتصل بنا\".",
-    en: "Contact our support team via email or through the \"Contact Us\" page."
-  }
-};
-
-export type LanguageKey = 'ar' | 'en';
-
-export const useTranslation = (language: LanguageKey) => {
-  return (key: string) => {
-    if (!translations[key]) {
-      console.warn(`Translation for key "${key}" not found`);
-      return key;
-    }
-    return translations[key][language];
-  };
-};
+    ar: "لا توجد طلبات
