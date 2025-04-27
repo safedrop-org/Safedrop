@@ -2,7 +2,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  // No Google Maps API key needed anymore
+  readonly VITE_GOOGLE_MAPS_API_KEY: string;
 }
 
 interface ImportMeta {
