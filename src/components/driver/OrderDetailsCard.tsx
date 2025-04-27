@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,13 +13,17 @@ interface OrderDetailsCardProps {
   onOrderUpdate: () => void;
   driverLocation?: { lat: number; lng: number } | null;
   showCompleteButton?: boolean;
+  showAcceptButton?: boolean;
+  onAcceptOrder?: (orderId: string) => Promise<void>;
 }
 
 const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   order,
   onOrderUpdate,
   driverLocation,
-  showCompleteButton = true
+  showCompleteButton = true,
+  showAcceptButton = false,
+  onAcceptOrder
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -121,37 +126,6 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
     }
   };
 
-  const handleAcceptOrder = async (id: string) => {
-    try {
-      if (!driverLocation) {
-        toast.error("يجب تحديد موقعك الحالي لقبول الطلب");
-        return;
-      }
-
-      console.log("Accepting order - setting status to approved");
-      
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          driver_id: order.id, 
-          status: 'approved', // Valid database status value
-          driver_location: driverLocation
-        })
-        .eq('id', id);
-      
-      if (error) {
-        console.error("Error accepting order:", error);
-        throw error;
-      }
-      
-      toast.success(`تم قبول الطلب رقم ${id} بنجاح`);
-      onOrderUpdate();
-    } catch (err) {
-      console.error('Error accepting order:', err);
-      toast.error('حدث خطأ أثناء قبول الطلب');
-    }
-  };
-
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-gray-50 pb-2">
@@ -210,6 +184,35 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
           </div>
         </div>
         
+        <div className="grid grid-cols-3 gap-4 mt-4 text-center">
+          <div className="bg-gray-50 rounded p-2">
+            <p className="text-sm text-gray-500">المسافة</p>
+            <p className="font-medium">{order.estimated_distance} كم</p>
+          </div>
+          <div className="bg-gray-50 rounded p-2">
+            <p className="text-sm text-gray-500">الوقت المتوقع</p>
+            <p className="font-medium">{order.estimated_duration} دقيقة</p>
+          </div>
+          <div className="bg-gray-50 rounded p-2">
+            <p className="text-sm text-gray-500">المبلغ</p>
+            <p className="font-medium">{order.price} ر.س</p>
+          </div>
+        </div>
+        
+        {order.package_details && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-sm text-gray-500 mb-2">تفاصيل الشحنة:</p>
+            <p className="bg-gray-50 p-2 rounded">{order.package_details}</p>
+          </div>
+        )}
+        
+        {order.notes && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-sm text-gray-500 mb-2">ملاحظات:</p>
+            <p className="bg-gray-50 p-2 rounded">{order.notes}</p>
+          </div>
+        )}
+        
         <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
           <div>
             <p className="text-sm text-gray-500">المبلغ:</p>
@@ -217,7 +220,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
               {order.price ? `${order.price} ر.س` : 'غير محدد'}
             </p>
           </div>
-          <div className="flex flex-col md:flex-row gap-2">
+          <div className="flex flex-wrap gap-2 justify-end">
             {order.customer?.phone && (
               <Button 
                 variant="outline"
@@ -230,7 +233,18 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
               </Button>
             )}
             
-            {showCompleteButton && order.status !== "completed" && (
+            {showAcceptButton && onAcceptOrder && (
+              <Button 
+                variant="default" 
+                className="bg-safedrop-gold hover:bg-safedrop-gold/90"
+                onClick={() => onAcceptOrder(order.id)}
+                disabled={isUpdating}
+              >
+                قبول الطلب
+              </Button>
+            )}
+            
+            {showCompleteButton && order.status !== "completed" && order.driver_id && (
               <Button 
                 variant="default" 
                 className="bg-green-600 hover:bg-green-700"
@@ -242,7 +256,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
               </Button>
             )}
 
-            {order.status !== "completed" && (
+            {order.status !== "completed" && order.driver_id && (
               <Button 
                 variant="outline" 
                 className="text-amber-800 border-amber-300 bg-amber-50 hover:bg-amber-100"
@@ -256,7 +270,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
           </div>
         </div>
 
-        {order.status !== "completed" && (
+        {order.status !== "completed" && order.driver_id && (
           <div className="mt-4 pt-4 border-t border-gray-100">
             <p className="text-sm text-gray-500 mb-2">تحديث حالة الطلب:</p>
             <OrderStatusUpdater

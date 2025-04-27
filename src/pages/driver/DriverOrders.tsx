@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,7 +69,7 @@ const DriverOrdersContent = () => {
   
   const currentOrders = orders?.filter(order => 
     order.driver_id === user?.id && 
-    ['in_transit'].includes(order.status)
+    ['approved', 'in_transit'].includes(order.status)
   ) ?? [];
   
   const completedOrders = orders?.filter(order => 
@@ -103,7 +104,7 @@ const DriverOrdersContent = () => {
       refetch();
     } catch (err) {
       console.error('Error accepting order:', err);
-      toast.error('حدث خطأ أ��ناء قبول الطلب');
+      toast.error('حدث خطأ أثناء قبول الطلب');
     }
   };
 
@@ -195,63 +196,14 @@ const DriverOrdersContent = () => {
                   </div>
                 ) : (
                   availableOrders.map((order) => (
-                    <Card key={order.id} className="overflow-hidden">
-                      <CardHeader className="bg-gray-50 pb-2">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <span>طلب #{order.id}</span>
-                          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200 mr-2">
-                            جديد
-                          </Badge>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-4">
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-start gap-2">
-                            <div className="mt-1 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                              <MapPinIcon className="h-3 w-3 text-green-600" />
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-500">نقطة الانطلاق:</p>
-                              <p>{order.pickup_location?.formatted_address || 'غير محدد'}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <div className="mt-1 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                              <MapPinIcon className="h-3 w-3 text-red-600" />
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-500">نقطة الوصول:</p>
-                              <p>{order.dropoff_location?.formatted_address || 'غير محدد'}</p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-4 mt-4 text-center">
-                          <div className="bg-gray-50 rounded p-2">
-                            <p className="text-sm text-gray-500">المسافة</p>
-                            <p className="font-medium">{order.estimated_distance} كم</p>
-                          </div>
-                          <div className="bg-gray-50 rounded p-2">
-                            <p className="text-sm text-gray-500">الوقت المتوقع</p>
-                            <p className="font-medium">{order.estimated_duration} دقيقة</p>
-                          </div>
-                          <div className="bg-gray-50 rounded p-2">
-                            <p className="text-sm text-gray-500">المبلغ</p>
-                            <p className="font-medium">{order.price} ر.س</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-end mt-4 pt-4 border-t border-gray-100">
-                          <Button 
-                            variant="default" 
-                            className="bg-safedrop-gold hover:bg-safedrop-gold/90"
-                            onClick={() => handleAcceptOrder(order.id)}
-                          >
-                            قبول الطلب
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <OrderDetailsCard 
+                      key={order.id}
+                      order={order}
+                      onOrderUpdate={refetch}
+                      driverLocation={driverLocation}
+                      showAcceptButton={true}
+                      onAcceptOrder={handleAcceptOrder}
+                    />
                   ))
                 )}
               </TabsContent>
