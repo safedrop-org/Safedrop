@@ -7,9 +7,10 @@ import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Package, Truck } from 'lucide-react';
+import { Package, Truck, DollarSign } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface LocationType {
   address: string;
@@ -25,7 +26,8 @@ const CreateOrder = () => {
     pickupLocation: { address: '', details: '' } as LocationType,
     dropoffLocation: { address: '', details: '' } as LocationType,
     packageDetails: '',
-    notes: ''
+    notes: '',
+    price: '' // New price field
   });
 
   useEffect(() => {
@@ -53,6 +55,17 @@ const CreateOrder = () => {
     }));
   };
 
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow numbers and one decimal point
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setFormData(prev => ({
+        ...prev,
+        price: value
+      }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -61,8 +74,14 @@ const CreateOrder = () => {
       return;
     }
 
-    if (!formData.pickupLocation.address || !formData.dropoffLocation.address || !formData.packageDetails) {
+    if (!formData.pickupLocation.address || !formData.dropoffLocation.address || !formData.packageDetails || !formData.price) {
       toast.error('يرجى ملء جميع الحقول الإلزامية');
+      return;
+    }
+
+    const price = parseFloat(formData.price);
+    if (isNaN(price) || price <= 0) {
+      toast.error('يرجى إدخال سعر صحيح');
       return;
     }
 
@@ -74,7 +93,9 @@ const CreateOrder = () => {
         dropoff_location: formData.dropoffLocation,
         package_details: formData.packageDetails,
         notes: formData.notes,
+        price: price,
         status: 'available',
+        commission_rate: 0.15, // 15% platform fee
       });
 
       const { data, error } = await supabase
@@ -91,8 +112,10 @@ const CreateOrder = () => {
           },
           package_details: formData.packageDetails,
           notes: formData.notes,
+          price: price,
           status: 'available',
-          payment_status: 'pending'
+          payment_status: 'pending',
+          commission_rate: 0.15, // 15% platform fee (driver gets 75% automatically)
         }])
         .select();
 
@@ -173,7 +196,31 @@ const CreateOrder = () => {
             </h2>
             <div className="space-y-4">
               <div>
-                <label htmlFor="packageDetails" className="block mb-1 font-medium text-gray-700">وصف الشحنة</label>
+                <Label htmlFor="price" className="block mb-1 font-medium text-gray-700">
+                  السعر (ريال)
+                </Label>
+                <div className="relative">
+                  <DollarSign className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="price"
+                    name="price"
+                    type="text"
+                    className="pl-10 text-left"
+                    placeholder="0.00"
+                    value={formData.price}
+                    onChange={handlePriceChange}
+                    required
+                  />
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  سيحصل السائق على 75% من السعر والمنصة على 15%
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="packageDetails" className="block mb-1 font-medium text-gray-700">
+                  وصف الشحنة
+                </Label>
                 <Textarea
                   id="packageDetails"
                   name="packageDetails"
@@ -185,7 +232,9 @@ const CreateOrder = () => {
                 />
               </div>
               <div>
-                <label htmlFor="notes" className="block mb-1 font-medium text-gray-700">ملاحظات للسائق</label>
+                <Label htmlFor="notes" className="block mb-1 font-medium text-gray-700">
+                  ملاحظات للسائق
+                </Label>
                 <Textarea
                   id="notes"
                   name="notes"
@@ -228,3 +277,4 @@ const CreateOrder = () => {
 };
 
 export default CreateOrder;
+
