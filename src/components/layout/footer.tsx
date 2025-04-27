@@ -1,7 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
-import { MapPin, Mail, Instagram, MessageCircle, Video, Ghost } from 'lucide-react';
+import { MapPin, Mail, Instagram, Video, Ghost } from 'lucide-react';
 
 const Footer = () => {
   const {
@@ -21,16 +21,28 @@ const Footer = () => {
               {t('tagline')}
             </p>
             <div className="flex space-x-4 rtl:space-x-reverse">
-              <a href="#" className="text-white hover:text-safedrop-gold transition-colors">
+              <a 
+                href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-white hover:text-safedrop-gold transition-colors"
+              >
                 <Instagram size={20} />
               </a>
-              <a href="#" className="text-white hover:text-safedrop-gold transition-colors">
-                <MessageCircle size={20} />
-              </a>
-              <a href="#" className="text-white hover:text-safedrop-gold transition-colors">
+              <a 
+                href="https://www.tiktok.com/@iha.store?_t=ZS-8vshXos9iJm&_r=1" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-white hover:text-safedrop-gold transition-colors"
+              >
                 <Video size={20} />
               </a>
-              <a href="#" className="text-white hover:text-safedrop-gold transition-colors">
+              <a 
+                href="https://www.snapchat.com/add/ihalabbad1?share_id=4tDP8fBXbHs&locale=ar-SA" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-white hover:text-safedrop-gold transition-colors"
+              >
                 <Ghost size={20} />
               </a>
             </div>
