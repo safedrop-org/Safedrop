@@ -88,7 +88,7 @@ const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-start">
                 <MapPin className="mr-2 h-5 w-5 text-safedrop-gold shrink-0 rtl:ml-2 rtl:mr-0" />
-                <span className="text-sm">المملكة العربية السعودية، الرياض</span>
+                <span className="text-sm">Riyadh, Saudi Arabia</span>
               </li>
               
               <li className="flex items-start">
