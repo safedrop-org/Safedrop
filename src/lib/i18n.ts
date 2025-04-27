@@ -393,7 +393,7 @@ export const translations: Translations = {
   },
   location: {
     ar: "المملكة العربية السعودية، الرياض",
-    en: "Riyadh, Saudi Arabia"
+    en: " Saudi Arabia"
   },
   notificationSettings: {
     ar: "إعدادات الإشعارات",
