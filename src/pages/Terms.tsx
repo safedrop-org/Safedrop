@@ -1,3 +1,4 @@
+
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
@@ -17,73 +18,75 @@ const TermsContent = () => {
           <div className="bg-white rounded-lg shadow-sm p-6 space-y-8">
             {language === 'ar' ? (
               // Arabic content
-              <section>
-                <h2 className="text-xl font-semibold text-safedrop-primary mb-4">1. تعريفات</h2>
-                <ul className="space-y-2 text-gray-700">
-                  <li><strong>المنصة:</strong> تشير إلى "SafeDrop"، وهي منصة إلكترونية تربط بين مستخدمين يرغبون في إرسال شحنات وسائقين مرخصين ومستقلين.</li>
-                  <li><strong>العميل:</strong> هو أي مستخدم يطلب خدمة التوصيل عبر المنصة.</li>
-                  <li><strong>السائق:</strong> هو أي شخص مُسجل ومعتمد من قبل إدارة المنصة لتقديم خدمة التوصيل.</li>
-                  <li><strong>الشحنة:</strong> أي غرض أو طرد يتم طلب توصيله من العميل عبر المنصة.</li>
-                </ul>
-              </section>
+              <>
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">1. تعريفات</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li><strong>المنصة:</strong> تشير إلى "SafeDrop"، وهي منصة إلكترونية تربط بين مستخدمين يرغبون في إرسال شحنات وسائقين مرخصين ومستقلين.</li>
+                    <li><strong>العميل:</strong> هو أي مستخدم يطلب خدمة التوصيل عبر المنصة.</li>
+                    <li><strong>السائق:</strong> هو أي شخص مُسجل ومعتمد من قبل إدارة المنصة لتقديم خدمة التوصيل.</li>
+                    <li><strong>الشحنة:</strong> أي غرض أو طرد يتم طلب توصيله من العميل عبر المنصة.</li>
+                  </ul>
+                </section>
 
-              <section>
-                <h2 className="text-xl font-semibold text-safedrop-primary mb-4">2. دور المنصة</h2>
-                <ul className="space-y-2 text-gray-700">
-                  <li>SafeDrop تعمل كـ وسيط تقني بين العميل والسائق.</li>
-                  <li>لا تقدم خدمات النقل بنفسها ولا تتحمل مسؤولية محتوى أو سلامة الشحنات.</li>
-                  <li>تقدم المنصة نظام ضمان لحجز المبلغ حتى تأكيد الاستلام، وليس تأمينًا ماليًا.</li>
-                </ul>
-              </section>
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">2. دور المنصة</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>SafeDrop تعمل كـ وسيط تقني بين العميل والسائق.</li>
+                    <li>لا تقدم خدمات النقل بنفسها ولا تتحمل مسؤولية محتوى أو سلامة الشحنات.</li>
+                    <li>تقدم المنصة نظام ضمان لحجز المبلغ حتى تأكيد الاستلام، وليس تأمينًا ماليًا.</li>
+                  </ul>
+                </section>
 
-              <section>
-                <h2 className="text-xl font-semibold text-safedrop-primary mb-4">3. التحقق من السائقين</h2>
-                <ul className="space-y-2 text-gray-700">
-                  <li>تخضع بيانات السائقين للمراجعة والموافقة.</li>
-                  <li>يُمنع تقديم الخدمات دون موافقة المنصة.</li>
-                  <li>يحق للمنصة تعليق أو رفض حساب السائق في حال وجود مخالفات.</li>
-                </ul>
-              </section>
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">3. التحقق من السائقين</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>تخضع بيانات السائقين للمراجعة والموافقة.</li>
+                    <li>يُمنع تقديم الخدمات دون موافقة المنصة.</li>
+                    <li>يحق للمنصة تعليق أو رفض حساب السائق في حال وجود مخالفات.</li>
+                  </ul>
+                </section>
 
-              <section>
-                <h2 className="text-xl font-semibold text-safedrop-primary mb-4">4. استخدام المنصة</h2>
-                <ul className="space-y-2 text-gray-700">
-                  <li>التسجيل بمعلومات صحيحة إلزامي لجميع المستخدمين.</li>
-                  <li>يُمنع استخدام المنصة في أنشطة غير قانونية أو لنقل مواد محظورة.</li>
-                  <li>لا يمكن تقديم طلب بدون تسجيل دخول.</li>
-                </ul>
-              </section>
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">4. استخدام المنصة</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>التسجيل بمعلومات صحيحة إلزامي لجميع المستخدمين.</li>
+                    <li>يُمنع استخدام المنصة في أنشطة غير قانونية أو لنقل مواد محظورة.</li>
+                    <li>لا يمكن تقديم طلب بدون تسجيل دخول.</li>
+                  </ul>
+                </section>
 
-              <section>
-                <h2 className="text-xl font-semibold text-safedrop-primary mb-4">5. المسؤولية</h2>
-                <ul className="space-y-2 text-gray-700">
-                  <li>المنصة غير مسؤولة عن تلف أو ضياع الشحنة بعد استلامها.</li>
-                  <li>العميل مسؤول عن تغليف الشحنة جيدًا.</li>
-                  <li>في حال النزاع، تتدخل المنصة كميسر دون التزام قانوني بالتعويض.</li>
-                </ul>
-              </section>
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">5. المسؤولية</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>المنصة غير مسؤولة عن تلف أو ضياع الشحنة بعد استلامها.</li>
+                    <li>العميل مسؤول عن تغليف الشحنة جيدًا.</li>
+                    <li>في حال النزاع، تتدخل المنصة كميسر دون التزام قانوني بالتعويض.</li>
+                  </ul>
+                </section>
 
-              <section>
-                <h2 className="text-xl font-semibold text-safedrop-primary mb-4">6. المدفوعات والعمولة</h2>
-                <ul className="space-y-2 text-gray-700">
-                  <li>يتم حجز قيمة الطلب حتى تأكيد الاستلام.</li>
-                  <li>يتم خصم عمولة 15% لصالح المنصة.</li>
-                  <li>يتم تحويل المبلغ للسائق بعد تأكيد العميل للاستلام.</li>
-                </ul>
-              </section>
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">6. المدفوعات والعمولة</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>يتم حجز قيمة الطلب حتى تأكيد الاستلام.</li>
+                    <li>يتم خصم عمولة 15% لصالح المنصة.</li>
+                    <li>يتم تحويل المبلغ للسائق بعد تأكيد العميل للاستلام.</li>
+                  </ul>
+                </section>
 
-              <section>
-                <h2 className="text-xl font-semibold text-safedrop-primary mb-4">7. الشروط الخاصة</h2>
-                <ul className="space-y-2 text-gray-700">
-                  <li>لا يُسمح بإعادة تسجيل السائقين المرفوضين نهائيًا.</li>
-                  <li>المنصة تحتفظ بحق إيقاف الحسابات المخالفة.</li>
-                </ul>
-              </section>
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">7. الشروط الخاصة</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>لا يُسمح بإعادة تسجيل السائقين المرفوضين نهائيًا.</li>
+                    <li>المنصة تحتفظ بحق إيقاف الحسابات المخالفة.</li>
+                  </ul>
+                </section>
 
-              <section>
-                <h2 className="text-xl font-semibold text-safedrop-primary mb-4">8. التعديلات</h2>
-                <p className="text-gray-700">للمنصة الحق في تعديل الشروط في أي وقت مع إشعار المستخدمين.</p>
-              </section>
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">8. التعديلات</h2>
+                  <p className="text-gray-700">للمنصة الحق في تعديل الشروط في أي وقت مع إشعار المستخدمين.</p>
+                </section>
+              </>
             ) : (
               // English content
               <>
@@ -106,7 +109,54 @@ const TermsContent = () => {
                   </ul>
                 </section>
 
-                {/* Add more sections as needed */}
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">3. Driver Verification</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>Driver information is subject to review and approval.</li>
+                    <li>Providing services without platform approval is prohibited.</li>
+                    <li>The platform reserves the right to suspend or reject a driver's account in case of violations.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">4. Platform Usage</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>Registration with accurate information is mandatory for all users.</li>
+                    <li>Using the platform for illegal activities or transporting prohibited materials is forbidden.</li>
+                    <li>Orders cannot be placed without logging in.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">5. Responsibility</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>The platform is not responsible for package damage or loss after pickup.</li>
+                    <li>The customer is responsible for properly packaging the shipment.</li>
+                    <li>In case of dispute, the platform intervenes as a facilitator without legal obligation for compensation.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">6. Payments and Commission</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>Order payment is held until delivery confirmation.</li>
+                    <li>A 15% commission is deducted for the platform.</li>
+                    <li>Payment is transferred to the driver after customer confirmation of receipt.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">7. Special Conditions</h2>
+                  <ul className="space-y-2 text-gray-700">
+                    <li>Permanently rejected drivers are not allowed to re-register.</li>
+                    <li>The platform reserves the right to suspend accounts that violate terms.</li>
+                  </ul>
+                </section>
+
+                <section>
+                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">8. Amendments</h2>
+                  <p className="text-gray-700">The platform has the right to modify the terms at any time with notification to users.</p>
+                </section>
               </>
             )}
           </div>

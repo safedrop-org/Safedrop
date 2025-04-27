@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
 import { MapPin, Mail, Instagram, Video, Ghost } from 'lucide-react';
