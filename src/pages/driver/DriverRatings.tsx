@@ -10,20 +10,33 @@ import { toast } from 'sonner';
 
 const DriverRatingsContent = () => {
   const { t } = useLanguage();
-  const { data: ratings, isLoading, error } = useDriverRatings();
+  const { data: ratings, isLoading, error, refetch } = useDriverRatings();
   const [averageRating, setAverageRating] = useState(0);
   const [ratingStats, setRatingStats] = useState([0, 0, 0, 0, 0]);
 
+  // Function to retry fetching data
+  const handleRetry = () => {
+    toast.info("جاري إعادة تحميل التقييمات...");
+    refetch();
+  };
+
   useEffect(() => {
     if (ratings && ratings.length > 0) {
+      // Calculate average rating
       const avg = ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length;
       setAverageRating(Number(avg.toFixed(1)));
 
+      // Calculate rating distribution
       const stats = [0, 0, 0, 0, 0];
       ratings.forEach(rating => {
-        stats[rating.rating - 1]++;
+        if (rating.rating >= 1 && rating.rating <= 5) {
+          stats[rating.rating - 1]++;
+        }
       });
       setRatingStats(stats);
+    } else {
+      setAverageRating(0);
+      setRatingStats([0, 0, 0, 0, 0]);
     }
   }, [ratings]);
 
@@ -40,13 +53,18 @@ const DriverRatingsContent = () => {
 
   if (error) {
     console.error("Error loading ratings:", error);
-    toast.error("حدث خطأ أثناء تحميل التقييمات");
     
     return (
       <div className="flex h-screen bg-gray-50">
         <DriverSidebar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-lg text-red-500">حدث خطأ أثناء تحميل التقييمات</div>
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
+          <div className="text-lg text-red-500 mb-4">حدث خطأ أثناء تحميل التقييمات</div>
+          <button 
+            onClick={handleRetry}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            إعادة المحاولة
+          </button>
         </div>
       </div>
     );
@@ -77,7 +95,7 @@ const DriverRatingsContent = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {[5, 4, 3, 2, 1].map((stars, index) => {
+                  {[5, 4, 3, 2, 1].map((stars) => {
                     const count = ratingStats[stars - 1];
                     const percentage = ratings && ratings.length > 0 ? (count / ratings.length) * 100 : 0;
                     
@@ -124,12 +142,12 @@ const DriverRatingsContent = () => {
                               ))}
                             </div>
                             <p className="text-sm text-gray-600 mt-1">
-                              {rating.customer?.first_name} {rating.customer?.last_name}
+                              {rating.customer?.first_name} {rating.customer?.last_name || 'عميل'}
                             </p>
                             <p className="text-sm text-gray-600">طلب #{rating.order_id}</p>
                           </div>
                           <span className="text-sm text-gray-500">
-                            {format(new Date(rating.created_at), 'dd/MM/yyyy')}
+                            {rating.created_at ? format(new Date(rating.created_at), 'dd/MM/yyyy') : ''}
                           </span>
                         </div>
                         {rating.comment && (
