@@ -215,6 +215,7 @@ export type Database = {
           estimated_duration: number | null
           id: string
           notes: string | null
+          package_details: string | null
           payment_method: string | null
           payment_status: string | null
           pickup_location: Json
@@ -236,6 +237,7 @@ export type Database = {
           estimated_duration?: number | null
           id?: string
           notes?: string | null
+          package_details?: string | null
           payment_method?: string | null
           payment_status?: string | null
           pickup_location: Json
@@ -257,6 +259,7 @@ export type Database = {
           estimated_duration?: number | null
           id?: string
           notes?: string | null
+          package_details?: string | null
           payment_method?: string | null
           payment_status?: string | null
           pickup_location?: Json

@@ -61,8 +61,8 @@ const CreateOrder = () => {
       return;
     }
 
-    if (!formData.pickupLocation.address || !formData.dropoffLocation.address) {
-      toast.error('يرجى تحديد مواقع الاستلام والتوصيل');
+    if (!formData.pickupLocation.address || !formData.dropoffLocation.address || !formData.packageDetails) {
+      toast.error('يرجى ملء جميع الحقول الإلزامية');
       return;
     }
 
@@ -80,9 +80,9 @@ const CreateOrder = () => {
             address: formData.dropoffLocation.address,
             details: formData.dropoffLocation.details
           },
+          package_details: formData.packageDetails,
           notes: formData.notes,
-          status: 'pending',
-          package_details: formData.packageDetails
+          status: 'pending'
         })
         .select();
 
