@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,15 +60,21 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
     try {
       console.log(`Updating order ${orderId} status to ${newStatus}`, { driverLocation });
 
+      const orderUpdate: any = { 
+        status: newStatus,
+        driver_location: driverLocation,
+        updated_at: new Date().toISOString()
+      };
+
+      // إذا كانت هذه أول عملية التقاط، قم بتعيين السائق للطلب
+      if (currentStatus === 'available' && newStatus === 'picked_up') {
+        orderUpdate.driver_id = user.id;
+      }
+
       const { data, error } = await supabase
         .from('orders')
-        .update({ 
-          status: newStatus,
-          driver_location: driverLocation,
-          updated_at: new Date().toISOString()
-        })
+        .update(orderUpdate)
         .eq('id', orderId)
-        .eq('driver_id', user.id)
         .select();
 
       if (error) {
@@ -122,9 +129,9 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
       )}
       
       <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 md:space-x-reverse">
-        {(currentStatus === 'available' || currentStatus === 'picked_up') && (
+        {(currentStatus === 'available') && (
           <Button
-            variant={currentStatus === 'picked_up' ? "default" : "outline"}
+            variant="outline"
             onClick={() => updateOrderStatus('picked_up')}
             disabled={isUpdating || !driverLocation || isCompleted || !isDriverAuthorized}
             className="gap-1"
@@ -134,13 +141,13 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
             ) : (
               <Package className="h-4 w-4 ml-1" />
             )}
-            ملتقط
+            التقاط الطلب
           </Button>
         )}
         
-        {(currentStatus === 'picked_up' || currentStatus === 'in_transit') && (
+        {(currentStatus === 'picked_up') && (
           <Button
-            variant={currentStatus === 'in_transit' ? "default" : "outline"}
+            variant="default"
             onClick={() => updateOrderStatus('in_transit')}
             disabled={isUpdating || !driverLocation || isCompleted || !isDriverAuthorized}
             className="gap-1"
@@ -154,9 +161,9 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
           </Button>
         )}
         
-        {(currentStatus === 'in_transit' || currentStatus === 'approaching') && (
+        {(currentStatus === 'in_transit') && (
           <Button
-            variant={currentStatus === 'approaching' ? "default" : "outline"}
+            variant="default"
             onClick={() => updateOrderStatus('approaching')}
             disabled={isUpdating || !driverLocation || isCompleted || !isDriverAuthorized}
             className="gap-1"
@@ -168,6 +175,12 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
             )}
             اقترب
           </Button>
+        )}
+        
+        {(currentStatus === 'approaching') && (
+          <div className="text-sm text-green-600 bg-green-50 p-2 rounded-md">
+            بانتظار تأكيد العميل للاستلام
+          </div>
         )}
       </div>
     </div>

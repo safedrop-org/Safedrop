@@ -74,25 +74,26 @@ const CreateOrder = () => {
         dropoff_location: formData.dropoffLocation,
         package_details: formData.packageDetails,
         notes: formData.notes,
+        status: 'available',
       });
 
       const { data, error } = await supabase
         .from('orders')
-        .insert({
+        .insert([{
           customer_id: user.id,
           pickup_location: {
             address: formData.pickupLocation.address,
-            details: formData.pickupLocation.details
+            details: formData.pickupLocation.details || ''
           },
           dropoff_location: {
             address: formData.dropoffLocation.address,
-            details: formData.dropoffLocation.details
+            details: formData.dropoffLocation.details || ''
           },
           package_details: formData.packageDetails,
           notes: formData.notes,
-          status: 'available', // تعديل الحالة لتكون 'available' بدلاً من 'pending' بما يتوافق مع التعديلات الجديدة
+          status: 'available',
           payment_status: 'pending'
-        })
+        }])
         .select();
 
       if (error) {
@@ -133,7 +134,7 @@ const CreateOrder = () => {
                 <div>
                   <label className="block mb-1">تفاصيل إضافية</label>
                   <Input
-                    value={formData.pickupLocation.details}
+                    value={formData.pickupLocation.details || ''}
                     onChange={(e) => handleLocationChange('pickupLocation', 'details', e.target.value)}
                     placeholder="رقم المبنى، الطابق، علامات مميزة"
                   />
@@ -156,7 +157,7 @@ const CreateOrder = () => {
                 <div>
                   <label className="block mb-1">تفاصيل إضافية</label>
                   <Input
-                    value={formData.dropoffLocation.details}
+                    value={formData.dropoffLocation.details || ''}
                     onChange={(e) => handleLocationChange('dropoffLocation', 'details', e.target.value)}
                     placeholder="رقم المبنى، الطابق، علامات مميزة"
                   />
