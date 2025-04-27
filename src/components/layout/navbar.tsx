@@ -46,7 +46,7 @@ const Navbar = () => {
           <div className="hidden md:block">
             <div className="flex items-center ml-4 space-x-3 rtl:space-x-reverse">
               <Button variant="ghost" onClick={toggleLanguage} className="text-white">
-                {language === 'ar' ? 'English' : 'العربية'}
+                {language === 'ar' ? 'English' : 'Arabic'}
               </Button>
               <Link to="/login">
                 <Button variant="outline" className="border-safedrop-gold text-safedrop-gold hover:bg-safedrop-gold hover:text-white">
