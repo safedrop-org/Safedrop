@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +6,7 @@ import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Package, Truck, DollarSign } from 'lucide-react';
+import { Package, Truck, DollarSign, MapPin, XCircle, CheckCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,7 +27,7 @@ const CreateOrder = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
-  const { isLoaded, calculateDistance, geocodeAddress } = useGoogleMaps();
+  const { isLoaded, loadError, calculateDistance, geocodeAddress } = useGoogleMaps();
   const [distance, setDistance] = useState<number | null>(null);
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -48,14 +47,28 @@ const CreateOrder = () => {
     }
   }, [user, navigate]);
 
-  // Calculate distance and price when both locations have coordinates
+  useEffect(() => {
+    if (isLoaded) {
+      toast.success('تم تحميل خرائط جوجل بنجاح', {
+        icon: <CheckCircle className="h-5 w-5" />,
+      });
+    } else if (loadError) {
+      toast.error('فشل في تحميل خرائط جوجل - تحقق من اتصالك بالإنترنت', {
+        icon: <XCircle className="h-5 w-5" />,
+      });
+    } else {
+      toast('جاري تحميل خرائط جوجل...', {
+        icon: <MapPin className="h-5 w-5" />,
+      });
+    }
+  }, [isLoaded, loadError]);
+
   useEffect(() => {
     const calculateDistanceAndPrice = async () => {
       if (!formData.pickupLocation.address || !formData.dropoffLocation.address) {
         return;
       }
       
-      // Only calculate if both locations have actual addresses
       if (formData.pickupLocation.address.trim() && formData.dropoffLocation.address.trim()) {
         setIsCalculating(true);
         try {
@@ -67,15 +80,13 @@ const CreateOrder = () => {
           if (distanceKm !== null) {
             setDistance(distanceKm);
             
-            // Calculate price: 10 SAR base + 1.5 SAR per km after first 2km
-            const basePrice = 10; // Base price in SAR
-            const additionalKm = Math.max(0, distanceKm - 2); // Kilometers beyond first 2km
-            const additionalPrice = additionalKm * 1.5; // 1.5 SAR per additional km
+            const basePrice = 10;
+            const additionalKm = Math.max(0, distanceKm - 2);
+            const additionalPrice = additionalKm * 1.5;
             const totalPrice = basePrice + additionalPrice;
             
             setCalculatedPrice(totalPrice);
             
-            // Update form price field with calculated price
             setFormData(prev => ({
               ...prev,
               price: totalPrice.toFixed(2)
@@ -113,7 +124,6 @@ const CreateOrder = () => {
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Only allow numbers and one decimal point
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
       setFormData(prev => ({
         ...prev,
@@ -151,7 +161,7 @@ const CreateOrder = () => {
         notes: formData.notes,
         price: price,
         status: 'available',
-        commission_rate: 0.15, // 15% platform fee
+        commission_rate: 0.15,
       });
 
       const { data, error } = await supabase
@@ -173,8 +183,8 @@ const CreateOrder = () => {
           price: price,
           status: 'available',
           payment_status: 'pending',
-          commission_rate: 0.15, // 15% platform fee (driver gets 75% automatically)
-          distance_km: distance || null // Store the calculated distance
+          commission_rate: 0.15,
+          distance_km: distance || null
         }])
         .select();
 
