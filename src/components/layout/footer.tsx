@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
 import { MapPin, Mail, Instagram, Video, Ghost } from 'lucide-react';
-
 const Footer = () => {
-  const { t } = useLanguage();
-  return (
-    <footer className="bg-safedrop-primary text-white pt-12 pb-6">
+  const {
+    t
+  } = useLanguage();
+  return <footer className="bg-safedrop-primary text-white pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
@@ -19,28 +19,13 @@ const Footer = () => {
               {t('tagline')}
             </p>
             <div className="flex space-x-4 rtl:space-x-reverse">
-              <a 
-                href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-white hover:text-safedrop-gold transition-colors"
-              >
+              <a href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Instagram size={20} />
               </a>
-              <a 
-                href="https://www.tiktok.com/@iha.store?_t=ZS-8vshXos9iJm&_r=1" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-white hover:text-safedrop-gold transition-colors"
-              >
+              <a href="https://www.tiktok.com/@iha.store?_t=ZS-8vshXos9iJm&_r=1" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Video size={20} />
               </a>
-              <a 
-                href="https://www.snapchat.com/add/ihalabbad1?share_id=4tDP8fBXbHs&locale=ar-SA" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-white hover:text-safedrop-gold transition-colors"
-              >
+              <a href="https://www.snapchat.com/add/ihalabbad1?share_id=4tDP8fBXbHs&locale=ar-SA" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Ghost size={20} />
               </a>
             </div>
@@ -113,28 +98,13 @@ const Footer = () => {
             </ul>
 
             <div className="flex space-x-4 rtl:space-x-reverse mt-4">
-              <a 
-                href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-white hover:text-safedrop-gold transition-colors"
-              >
+              <a href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Instagram size={20} />
               </a>
-              <a 
-                href="https://www.tiktok.com/@iha.store?_t=ZS-8vshXos9iJm&_r=1" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-white hover:text-safedrop-gold transition-colors"
-              >
+              <a href="https://www.tiktok.com/@iha.store?_t=ZS-8vshXos9iJm&_r=1" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Video size={20} />
               </a>
-              <a 
-                href="https://www.snapchat.com/add/ihalabbad1?share_id=4tDP8fBXbHs&locale=ar-SA" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-white hover:text-safedrop-gold transition-colors"
-              >
+              <a href="https://www.snapchat.com/add/ihalabbad1?share_id=4tDP8fBXbHs&locale=ar-SA" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Ghost size={20} />
               </a>
             </div>
@@ -146,18 +116,14 @@ const Footer = () => {
             <Link to="/terms" className="hover:text-safedrop-gold transition-colors">
               الشروط والأحكام
             </Link>
-            <span>•</span>
-            <Link to="/privacy" className="hover:text-safedrop-gold transition-colors">
-              سياسة الخصوصية
-            </Link>
+            
+            
           </div>
           <p className="text-center text-sm text-gray-400">
             {t('footer')}
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
