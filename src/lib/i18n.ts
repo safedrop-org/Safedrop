@@ -85,7 +85,7 @@ export const translations: Translations = {
   },
   support: {
     ar: "الدعم والمساعدة",
-    en: "Support"
+    en: "Support & Help"
   },
   settings: {
     ar: "الإعدادات",
@@ -552,7 +552,7 @@ export const translations: Translations = {
     en: "Suitable for urgent orders"
   },
   startWithSafedrop: {
-    ar: "ابدأ رحلتك م�� سيف دروب اليوم",
+    ar: "ابدأ رحلت�� م�� سيف دروب اليوم",
     en: "Start your journey with SafeDrop today"
   },
   safeDeliveryExperience: {
@@ -878,6 +878,54 @@ export const translations: Translations = {
   accountFrozenDesc: {
     ar: "تم رفض طلبك كسائق مرتين متتاليتين. يرجى التواصل مع الدعم الفني لتقديم اعتراض أو استفسار",
     en: "Your driver application has been rejected twice in a row. Please contact support to file an appeal or inquiry"
+  },
+  supportTitle: {
+    ar: "الدعم والمساعدة",
+    en: "Support & Help"
+  },
+  callUs: {
+    ar: "اتصل بنا",
+    en: "Call Us"
+  },
+  emailSupport: {
+    ar: "البريد الإلكتروني",
+    en: "Email Support"
+  },
+  faqTitle: {
+    ar: "الأسئلة الشائعة",
+    en: "Frequently Asked Questions"
+  },
+  updateVehicleInfo: {
+    ar: "كيف يمكنني تحديث معلومات مركبتي؟",
+    en: "How can I update my vehicle information?"
+  },
+  updateVehicleAnswer: {
+    ar: "يمكنك تحديث معلومات مركبت�� من خلال الذهاب إلى صفحة 'مركبتي' في لوحة التحكم.",
+    en: "You can update your vehicle information by going to the 'My Vehicle' page in your dashboard."
+  },
+  earningsTransfer: {
+    ar: "متى يتم تحويل الأرباح؟",
+    en: "When are earnings transferred?"
+  },
+  earningsTransferAnswer: {
+    ar: "يتم تحويل الأرباح بشكل أسبوعي كل يوم خميس.",
+    en: "Earnings are transferred weekly every Thursday."
+  },
+  reportIssueQuestion: {
+    ar: "كيف يمكنني الإبلاغ عن مشكلة في طلب؟",
+    en: "How can I report an issue with an order?"
+  },
+  reportIssueAnswer: {
+    ar: "يمكنك الإبلاغ عن المشكلة من خلال الضغط على زر 'الإبلاغ' في تفاصيل الطلب.",
+    en: "You can report an issue by clicking the 'Report' button in the order details."
+  },
+  contactPhone: {
+    ar: "920001234",
+    en: "920001234"
+  },
+  contactEmail: {
+    ar: "support@safedrop.com",
+    en: "support@safedrop.com"
   }
 };
 
