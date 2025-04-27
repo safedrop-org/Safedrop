@@ -26,30 +26,50 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
   const handleStatusChange = async (newStatus: 'approved' | 'rejected') => {
     setIsUpdating(true);
     try {
-      // تحقق من صحة معرف الطلب قبل إرسال الطلب
+      // Check if order is valid and has an ID
       if (!order?.id) {
         throw new Error('معرف الطلب غير صالح');
       }
 
-      const { error } = await supabase
+      console.log('Updating order status', { orderId: order.id, newStatus });
+      
+      // First, check if the order exists
+      const { data: existingOrder, error: checkError } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('id', order.id)
+        .maybeSingle();
+        
+      if (checkError) {
+        console.error('Error checking order existence:', checkError);
+        throw checkError;
+      }
+      
+      if (!existingOrder) {
+        throw new Error('الطلب غير موجود');
+      }
+
+      const { data, error } = await supabase
         .from('orders')
         .update({
           status: newStatus,
           updated_at: new Date().toISOString()
         })
-        .eq('id', order.id);
+        .eq('id', order.id)
+        .select();
 
       if (error) {
         console.error('Error updating order status:', error);
         throw error;
       }
       
+      console.log('Order status updated successfully:', data);
       toast.success('تم تحديث حالة الطلب بنجاح');
       onStatusUpdate(); // تحديث قائمة الطلبات
       onClose(); // إغلاق النافذة
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating order status:', error);
-      toast.error('حدث خطأ أثناء تحديث حالة الطلب');
+      toast.error(`حدث خطأ أثناء تحديث حالة الطلب: ${error.message || ''}`);
     } finally {
       setIsUpdating(false);
     }
@@ -133,6 +153,7 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
                     onClick={() => handleStatusChange('approved')}
                     disabled={isUpdating}
                     variant="default"
+                    className="bg-green-600 hover:bg-green-700"
                   >
                     {isUpdating ? 'جاري المعالجة...' : 'قبول الطلب'}
                   </Button>

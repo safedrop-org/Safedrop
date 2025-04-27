@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,7 +112,10 @@ const DriverDetails = () => {
   };
 
   const saveDriverStatus = async (status: string, rejectionReason: string | null = null) => {
-    if (!driver?.id) return;
+    if (!driver?.id) {
+      toast.error("معرف السائق غير صالح");
+      return null;
+    }
     
     try {
       const adminAuth = localStorage.getItem('adminAuth');
@@ -128,17 +132,36 @@ const DriverDetails = () => {
       
       console.log("Update data:", updateData);
       
-      let { data, error } = await supabase
+      // Check if driver record exists first
+      const { data: existingDriver, error: checkError } = await supabase
         .from("drivers")
-        .update(updateData)
+        .select("id")
         .eq("id", driver.id)
-        .select();
-      
-      console.log("Update result:", { data, error });
-      
-      if (error) {
-        console.warn("Standard update failed, trying upsert as fallback:", error);
+        .maybeSingle();
         
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error("Error checking if driver exists:", checkError);
+        throw checkError;
+      }
+      
+      let result;
+      
+      // If driver record exists, update it, otherwise create it
+      if (existingDriver) {
+        console.log("Driver record exists, updating...");
+        const { data, error } = await supabase
+          .from("drivers")
+          .update(updateData)
+          .eq("id", driver.id)
+          .select();
+          
+        if (error) {
+          console.error("Error updating driver status:", error);
+          throw error;
+        }
+        result = data;
+      } else {
+        console.log("Driver record doesn't exist, creating...");
         const fullData = {
           id: driver.id,
           status: status,
@@ -154,15 +177,14 @@ const DriverDetails = () => {
           .select();
         
         if (upsertError) {
-          console.error("Upsert also failed:", upsertError);
-          throw new Error(`فشلت عملية تحديث حالة السائق. ${upsertError.message}`);
+          console.error("Error creating driver record:", upsertError);
+          throw upsertError;
         }
-        
-        data = upsertData;
-        console.log("Upsert successful:", data);
+        result = upsertData;
       }
       
-      return data;
+      console.log("Driver status update successful:", result);
+      return result;
     } catch (error: any) {
       console.error("Driver status update failed:", error);
       throw error;
@@ -170,19 +192,25 @@ const DriverDetails = () => {
   };
 
   const approveDriver = async () => {
-    if (!driver?.id) return;
+    if (!driver?.id) {
+      toast.error("معرف السائق غير صالح");
+      return;
+    }
     
     setProcessingAction(true);
     try {
-      await saveDriverStatus("approved");
+      const result = await saveDriverStatus("approved");
       
-      toast.success("تم قبول السائق بنجاح");
-      
-      setDriver(prev => prev ? { ...prev, status: "approved", rejection_reason: null } : null);
-      
-      await fetchDriverDetails();
-      
-      setTimeout(() => navigate("/admin/driver-verification"), 1500);
+      if (result) {
+        toast.success("تم قبول السائق بنجاح");
+        
+        setDriver(prev => prev ? { ...prev, status: "approved", rejection_reason: null } : null);
+        
+        // Slight delay before navigating away
+        setTimeout(() => navigate("/admin/driver-verification"), 1500);
+      } else {
+        throw new Error("فشل في تحديث حالة السائق");
+      }
     } catch (error: any) {
       console.error("Error approving driver:", error);
       toast.error(error.message || "فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");
@@ -192,7 +220,10 @@ const DriverDetails = () => {
   };
 
   const rejectDriver = async () => {
-    if (!driver?.id) return;
+    if (!driver?.id) {
+      toast.error("معرف السائق غير صالح");
+      return;
+    }
     
     if (!rejectionReason.trim()) {
       toast.error("يرجى كتابة سبب الرفض");
@@ -201,17 +232,19 @@ const DriverDetails = () => {
     
     setProcessingAction(true);
     try {
-      await saveDriverStatus("rejected", rejectionReason);
+      const result = await saveDriverStatus("rejected", rejectionReason);
       
-      setShowRejectDialog(false);
-      
-      toast.success("تم رفض السائق بنجاح");
-      
-      setDriver(prev => prev ? { ...prev, status: "rejected", rejection_reason: rejectionReason } : null);
-      
-      await fetchDriverDetails();
-      
-      setTimeout(() => navigate("/admin/driver-verification"), 1500);
+      if (result) {
+        toast.success("تم رفض السائق بنجاح");
+        
+        setShowRejectDialog(false);
+        setDriver(prev => prev ? { ...prev, status: "rejected", rejection_reason: rejectionReason } : null);
+        
+        // Slight delay before navigating away
+        setTimeout(() => navigate("/admin/driver-verification"), 1500);
+      } else {
+        throw new Error("فشل في تحديث حالة السائق");
+      }
     } catch (error: any) {
       console.error("Error rejecting driver:", error);
       toast.error(error.message || "فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك");

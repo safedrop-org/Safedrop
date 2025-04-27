@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Truck, Clock } from 'lucide-react';
+import { Truck, Clock, Loader2 } from 'lucide-react';
 
 interface OrderStatusUpdaterProps {
   orderId: string;
@@ -19,6 +19,7 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
   onStatusUpdated
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
   const updateOrderStatus = async (newStatus: 'approaching' | 'in_transit') => {
     if (!driverLocation) {
@@ -26,25 +27,61 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
       return;
     }
 
+    if (!orderId) {
+      toast.error('معرف الطلب غير صالح');
+      return;
+    }
+
     setIsUpdating(true);
+    setUpdatingStatus(newStatus);
+    
     try {
-      const { error } = await supabase
+      console.log(`Updating order ${orderId} status to ${newStatus}`, { driverLocation });
+
+      // Verify the order exists
+      const { data: orderExists, error: checkError } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('id', orderId)
+        .maybeSingle();
+        
+      if (checkError) {
+        console.error("Error checking if order exists:", checkError);
+        throw checkError;
+      }
+      
+      if (!orderExists) {
+        throw new Error('الطلب غير موجود');
+      }
+
+      const { data, error } = await supabase
         .from('orders')
         .update({ 
           status: newStatus,
-          driver_location: driverLocation 
+          driver_location: driverLocation,
+          updated_at: new Date().toISOString()
         })
-        .eq('id', orderId);
+        .eq('id', orderId)
+        .select();
 
-      if (error) throw error;
-
+      if (error) {
+        console.error('Error updating order status:', error);
+        throw error;
+      }
+      
+      console.log('Order status updated successfully:', data);
+      
       toast.success(`تم تحديث حالة الطلب إلى ${newStatus === 'approaching' ? 'اقترب' : 'بدأ التوصيل'}`);
-      if (onStatusUpdated) onStatusUpdated();
-    } catch (error) {
+      
+      if (onStatusUpdated) {
+        onStatusUpdated();
+      }
+    } catch (error: any) {
       console.error('Error updating order status:', error);
-      toast.error('حدث خطأ أثناء تحديث حالة الطلب');
+      toast.error(`حدث خطأ أثناء تحديث حالة الطلب: ${error.message || ''}`);
     } finally {
       setIsUpdating(false);
+      setUpdatingStatus(null);
     }
   };
 
@@ -56,7 +93,11 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
         disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
         className="gap-1"
       >
-        <Clock className="h-4 w-4 ml-1" />
+        {isUpdating && updatingStatus === 'approaching' ? (
+          <Loader2 className="h-4 w-4 ml-1 animate-spin" />
+        ) : (
+          <Clock className="h-4 w-4 ml-1" />
+        )}
         اقترب
       </Button>
       
@@ -66,7 +107,11 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
         disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
         className="gap-1"
       >
-        <Truck className="h-4 w-4 ml-1" />
+        {isUpdating && updatingStatus === 'in_transit' ? (
+          <Loader2 className="h-4 w-4 ml-1 animate-spin" />
+        ) : (
+          <Truck className="h-4 w-4 ml-1" />
+        )}
         بدأ التوصيل
       </Button>
     </div>
