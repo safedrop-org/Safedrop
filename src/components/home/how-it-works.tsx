@@ -1,6 +1,6 @@
 
 import { useLanguage } from '@/components/ui/language-context';
-import { PackagePlus, Truck, MapPin, CreditCard, CheckCircle } from 'lucide-react';
+import { PackagePlus, Truck, CreditCard, CheckCircle } from 'lucide-react';
 
 const HowItWorks = () => {
   const { t, language } = useLanguage();
@@ -40,17 +40,6 @@ const HowItWorks = () => {
       }
     },
     {
-      icon: <MapPin className="h-10 w-10 text-safedrop-gold" />,
-      title: {
-        ar: "تتبع مباشر",
-        en: "Live Tracking"
-      },
-      description: {
-        ar: "تابع مسار شحنتك في الوقت الفعلي عبر خرائط GPS",
-        en: "Track your shipment in real time via GPS maps"
-      }
-    },
-    {
       icon: <CheckCircle className="h-10 w-10 text-safedrop-gold" />,
       title: {
         ar: "تأكيد الاستلام",
@@ -69,7 +58,7 @@ const HowItWorks = () => {
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-safedrop-primary mb-4">كيف تعمل منصة سيف دروب؟</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            خمس خطوات بسيطة لضمان توصيل آمن ومضمون للشحنات الثمينة
+            أربع خطوات بسيطة لضمان توصيل آمن ومضمون للشحنات الثمينة
           </p>
         </div>
 
@@ -77,7 +66,7 @@ const HowItWorks = () => {
           {/* Connection Line */}
           <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
           
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
             {steps.map((step, index) => (
               <div 
                 key={index} 

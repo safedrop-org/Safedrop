@@ -1,14 +1,18 @@
+
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+
 export const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  
   useEffect(() => {
     // Make sure the video loads and plays
     if (videoRef.current) {
       videoRef.current.load();
     }
   }, []);
+
   return <div className="relative min-h-[85vh] flex items-center justify-center">
       {/* Background Video */}
       <div className="absolute inset-0 w-full h-full overflow-hidden bg-gray-800">
