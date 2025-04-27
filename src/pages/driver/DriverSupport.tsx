@@ -1,4 +1,3 @@
-
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,12 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import DriverSidebar from '@/components/driver/DriverSidebar';
 import { MessageSquare, Phone, Mail, HelpCircle } from 'lucide-react';
-
 const DriverSupportContent = () => {
-  const { t } = useLanguage();
-
-  return (
-    <div className="flex h-screen bg-gray-50">
+  const {
+    t
+  } = useLanguage();
+  return <div className="flex h-screen bg-gray-50">
       <DriverSidebar />
       
       <div className="flex-1 flex flex-col overflow-auto">
@@ -104,41 +102,17 @@ const DriverSupportContent = () => {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>إرسال استفسار</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">الموضوع</label>
-                    <Input placeholder="أدخل موضوع الاستفسار" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">الرسالة</label>
-                    <Textarea 
-                      placeholder="اكتب رسالتك هنا..."
-                      className="min-h-[100px]"
-                    />
-                  </div>
-                  <Button className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90">
-                    إرسال الاستفسار
-                  </Button>
-                </form>
-              </CardContent>
+              
+              
             </Card>
           </div>
         </main>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 const DriverSupport = () => {
-  return (
-    <LanguageProvider>
+  return <LanguageProvider>
       <DriverSupportContent />
-    </LanguageProvider>
-  );
+    </LanguageProvider>;
 };
-
 export default DriverSupport;
