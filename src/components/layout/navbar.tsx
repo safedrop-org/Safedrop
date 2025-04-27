@@ -3,17 +3,17 @@ import { Link } from 'react-router-dom';
 import { Menu, X, ChevronDown, User, LogIn, Play, Box, Users, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
+
 const Navbar = () => {
-  const {
-    t,
-    language,
-    setLanguage
-  } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const toggleLanguage = () => {
     setLanguage(language === 'ar' ? 'en' : 'ar');
   };
-  return <nav className="bg-safedrop-primary text-white py-4">
+
+  return (
+    <nav className="bg-safedrop-primary text-white py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -46,7 +46,7 @@ const Navbar = () => {
           <div className="hidden md:block">
             <div className="flex items-center ml-4 space-x-3 rtl:space-x-reverse">
               <Button variant="ghost" onClick={toggleLanguage} className="text-white">
-                {language === 'ar' ? 'English' : 'العربية'}
+                {language === 'ar' ? 'ARABIC' : 'English'}
               </Button>
               <Link to="/login">
                 <Button variant="outline" className="border-safedrop-gold text-safedrop-gold hover:bg-safedrop-gold hover:text-white">
@@ -101,7 +101,7 @@ const Navbar = () => {
           <div className="pt-4 pb-3 border-t border-gray-700">
             <div className="flex items-center px-5">
               <Button variant="ghost" onClick={toggleLanguage} className="w-full justify-center text-white">
-                {language === 'ar' ? 'English' : 'العربية'}
+                {language === 'ar' ? 'ARABIC' : 'English'}
               </Button>
             </div>
             <div className="mt-3 px-2 space-y-1">
@@ -117,6 +117,8 @@ const Navbar = () => {
             </div>
           </div>
         </div>}
-    </nav>;
+    </nav>
+  );
 };
+
 export default Navbar;

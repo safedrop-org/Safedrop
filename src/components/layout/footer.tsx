@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
 import { MapPin, Mail, Instagram, Video, Ghost } from 'lucide-react';
+
 const Footer = () => {
-  const {
-    t
-  } = useLanguage();
-  return <footer className="bg-safedrop-primary text-white pt-12 pb-6">
+  const { t } = useLanguage();
+  
+  return (
+    <footer className="bg-safedrop-primary text-white pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
@@ -114,16 +115,16 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-gray-700">
           <div className="flex flex-wrap justify-center gap-4 mb-4 text-sm text-gray-400">
             <Link to="/terms" className="hover:text-safedrop-gold transition-colors">
-              الشروط والأحكام
+              Terms & Conditions / الشروط والأحكام
             </Link>
-            
-            
           </div>
           <p className="text-center text-sm text-gray-400">
             {t('footer')}
           </p>
         </div>
       </div>
-    </footer>;
+    </footer>
+  );
 };
+
 export default Footer;
