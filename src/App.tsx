@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -10,6 +11,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 import Services from './pages/Services';
+import Terms from './pages/Terms';
 import CustomerRegister from './pages/auth/CustomerRegister';
 import DriverRegister from './pages/auth/DriverRegister';
 
@@ -177,6 +179,7 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/services" element={<Services />} />
+        <Route path="/terms" element={<Terms />} />
         <Route path="*" element={<NotFound />} />
         
         {/* Registration Routes */}
