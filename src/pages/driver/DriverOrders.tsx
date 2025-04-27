@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { useOrders } from '@/hooks/useOrders';
 import { useAuth } from '@/hooks/useAuth';
 import OrderDetailsCard from '@/components/driver/OrderDetailsCard';
 import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const DriverOrdersContent = () => {
   const { t } = useLanguage();

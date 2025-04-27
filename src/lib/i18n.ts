@@ -340,7 +340,7 @@ export const translations: Translations = {
     en: "Distance"
   },
   amount: {
-    ar: "المبلغ",
+    ar: "��لمبلغ",
     en: "Amount"
   },
   order: {
@@ -472,7 +472,7 @@ export const translations: Translations = {
     en: "Verified Drivers"
   },
   verifiedDriversDescription: {
-    ar: "كل السائقين في منصتنا يمرون بعملية تحقق شاملة من بيانات��م ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
+    ar: "كل ��لسائقين في منصتنا يمرون بعملية تحقق شاملة من بيانات��م ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
     en: "All drivers on our platform undergo a comprehensive verification process of their credentials and licenses before acceptance. We ensure you deal with reliable and highly competent individuals."
   },
   licenseVerification: {
@@ -552,7 +552,7 @@ export const translations: Translations = {
     en: "Suitable for urgent orders"
   },
   startWithSafedrop: {
-    ar: "ابدأ رحلت�� م�� ��يف دروب اليوم",
+    ar: "ابد�� رحلت�� م�� ��يف دروب اليوم",
     en: "Start your journey with SafeDrop today"
   },
   safeDeliveryExperience: {
@@ -792,7 +792,7 @@ export const translations: Translations = {
     en: "Available Balance"
   },
   paymentDetails: {
-    ar: "تفاصيل المدفوعات",
+    ar: "تفاصيل المدفوع��ت",
     en: "Payment Details"
   },
   requestWithdrawal: {
