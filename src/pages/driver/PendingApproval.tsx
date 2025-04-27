@@ -221,14 +221,14 @@ const PendingApprovalContent = () => {
           
           <div className="flex items-start">
             <div className="w-8 h-8 bg-safedrop-primary rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">2</div>
-            <p className="mr-4 text-right">   قد يستغرق هذا ما بين 1-3 أيام عمل</p>
+            <p className="mr-4 text-right">    قد يستغرق هذا ما بين 1-3 أيام عمل</p>
           </div>
           
           <div className="flex items-start">
             <div className="w-8 h-8 bg-safedrop-primary rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
               3
             </div>
-            <p className="mr-4 text-center">ستستطيع العمل معنا بعد قبول طلب إنضمامك   </p>
+            <p className="mr-4 text-center">   ستستطيع العمل معنا بعد قبول طلب إنضمامك</p>
           </div>
         </div>
         
