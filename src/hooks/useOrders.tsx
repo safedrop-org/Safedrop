@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -11,13 +12,12 @@ export const useOrders = (isAdmin = false) => {
       if (!user) throw new Error('Not authenticated');
 
       try {
-        // Regular driver query - fetch both available and assigned orders
         console.log("Fetching orders for driver:", user.id);
         
         // Fetch both available orders and orders assigned to the driver
         const { data: orders, error } = await supabase
           .from('orders')
-          .select('*, customer:profiles(*)')
+          .select('*')
           .or(`driver_id.is.null,driver_id.eq.${user.id}`)
           .order('created_at', { ascending: false });
 
@@ -31,8 +31,32 @@ export const useOrders = (isAdmin = false) => {
           return [];
         }
         
+        // Fetch customer profiles separately
         console.log(`Found ${orders.length} orders`);
-        return orders;
+        
+        // Enrich orders with customer data
+        const enrichedOrders = await Promise.all(
+          orders.map(async (order) => {
+            // Get customer data
+            const { data: customer, error: customerError } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, phone')
+              .eq('id', order.customer_id)
+              .maybeSingle();
+            
+            if (customerError) {
+              console.error("Error fetching customer data:", customerError);
+              return { ...order, customer: null };
+            }
+            
+            return { 
+              ...order, 
+              customer 
+            };
+          })
+        );
+        
+        return enrichedOrders;
       } catch (error) {
         console.error("Error in useOrders hook:", error);
         throw error;
