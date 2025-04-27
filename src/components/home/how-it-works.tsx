@@ -56,9 +56,13 @@ const HowItWorks = () => {
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-safedrop-primary mb-4">كيف تعمل منصة سيف دروب؟</h2>
+          <h2 className="text-3xl font-bold text-safedrop-primary mb-4">
+            {language === 'ar' ? 'كيف تعمل منصة سيف دروب؟' : 'How Does SafeDrop Work?'}
+          </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            أربع خطوات بسيطة لضمان توصيل آمن ومضمون للشحنات الثمينة
+            {language === 'ar' 
+              ? 'أربع خطوات بسيطة لضمان توصيل آمن ومضمون للشحنات الثمينة'
+              : 'Four simple steps for secure and guaranteed delivery of valuable shipments'}
           </p>
         </div>
 

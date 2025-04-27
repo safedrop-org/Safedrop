@@ -1,3 +1,4 @@
+
 import { LayoutDashboard, Package, PlusCircle, UserIcon, Settings, LogOut, CreditCard, MessageSquare, Star } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { useLanguage } from '@/components/ui/language-context';
 import LanguageToggleDashboard from '../ui/language-toggle-dashboard';
 
 const CustomerSidebar = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
@@ -22,42 +23,42 @@ const CustomerSidebar = () => {
   const menuItems = [
     {
       icon: <LayoutDashboard className="h-5 w-5" />,
-      label: "لوحة المعلومات",
+      label: language === 'ar' ? "لوحة المعلومات" : "Dashboard",
       path: "/customer/dashboard"
     },
     {
       icon: <PlusCircle className="h-5 w-5" />,
-      label: "طلب جديد",
+      label: language === 'ar' ? "طلب جديد" : "New Order",
       path: "/customer/create-order"
     },
     {
       icon: <Package className="h-5 w-5" />,
-      label: "طلباتي",
+      label: language === 'ar' ? "طلباتي" : "My Orders",
       path: "/customer/orders"
     },
     {
       icon: <CreditCard className="h-5 w-5" />,
-      label: "الفواتير والدفع",
+      label: language === 'ar' ? "الفواتير والدفع" : "Billing & Payment",
       path: "/customer/billing"
     },
     {
       icon: <UserIcon className="h-5 w-5" />,
-      label: "الملف الشخصي",
+      label: language === 'ar' ? "الملف الشخصي" : "Profile",
       path: "/customer/profile"
     },
     {
       icon: <MessageSquare className="h-5 w-5" />,
-      label: "الدعم الفني",
+      label: language === 'ar' ? "الدعم الفني" : "Technical Support",
       path: "/customer/support"
     },
     {
       icon: <Star className="h-5 w-5" />,
-      label: "التقييم والملاحظات",
+      label: language === 'ar' ? "التقييم والملاحظات" : "Feedback & Rating",
       path: "/customer/feedback"
     },
     {
       icon: <Settings className="h-5 w-5" />,
-      label: "الإعدادات",
+      label: language === 'ar' ? "الإعدادات" : "Settings",
       path: "/customer/settings"
     }
   ];
@@ -71,7 +72,7 @@ const CustomerSidebar = () => {
             alt="SafeDrop Logo" 
             className="h-10" 
           />
-          <div className="text-center mt-2 font-bold">سيف دروب</div>
+          <div className="text-center mt-2 font-bold">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</div>
         </Link>
       </div>
       

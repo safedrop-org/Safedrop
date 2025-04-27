@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import LanguageToggleDashboard from '../ui/language-toggle-dashboard';
 
 const AdminSidebar = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const location = useLocation();
 
   const isActive = (path: string) => {
@@ -15,37 +15,37 @@ const AdminSidebar = () => {
   const menuItems = [
     {
       icon: <BarChart2Icon className="h-5 w-5" />,
-      label: "لوحة المعلومات",
+      label: language === 'ar' ? "لوحة المعلومات" : "Dashboard",
       path: "/admin/dashboard"
     },
     {
       icon: <DollarSign className="h-5 w-5" />,
-      label: "الملخص المالي",
+      label: language === 'ar' ? "الملخص المالي" : "Financial Summary",
       path: "/admin/finance"
     },
     {
       icon: <TruckIcon className="h-5 w-5" />,
-      label: "إدارة السائقين",
+      label: language === 'ar' ? "إدارة السائقين" : "Driver Management",
       path: "/admin/driver-verification"
     },
     {
       icon: <UsersIcon className="h-5 w-5" />,
-      label: "إدارة العملاء",
+      label: language === 'ar' ? "إدارة العملاء" : "Customer Management",
       path: "/admin/customers"
     },
     {
       icon: <PackageIcon className="h-5 w-5" />,
-      label: "إدارة الطلبات",
+      label: language === 'ar' ? "إدارة الطلبات" : "Order Management",
       path: "/admin/orders"
     },
     {
       icon: <MessageSquareIcon className="h-5 w-5" />,
-      label: "الشكاوى والدعم",
+      label: language === 'ar' ? "الشكاوى والدعم" : "Complaints & Support",
       path: "/admin/complaints"
     },
     {
       icon: <SettingsIcon className="h-5 w-5" />,
-      label: "الإعدادات",
+      label: language === 'ar' ? "الإعدادات" : "Settings",
       path: "/admin/settings"
     }
   ];
@@ -57,8 +57,8 @@ const AdminSidebar = () => {
           <ShieldIcon className="h-6 w-6 text-safedrop-primary" />
         </div>
         <div>
-          <h2 className="text-xl font-bold">سيف دروب</h2>
-          <p className="text-xs opacity-75">لوحة تحكم المشرف</p>
+          <h2 className="text-xl font-bold">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</h2>
+          <p className="text-xs opacity-75">{language === 'ar' ? 'لوحة تحكم المشرف' : 'Admin Dashboard'}</p>
         </div>
       </div>
       
