@@ -46,7 +46,7 @@ const Navbar = () => {
           <div className="hidden md:block">
             <div className="flex items-center ml-4 space-x-3 rtl:space-x-reverse">
               <Button variant="ghost" onClick={toggleLanguage} className="text-white">
-                {language === 'ar' ? 'ARABIC' : 'English'}
+                {language === 'ar' ? 'Arabic' : 'English'}
               </Button>
               <Link to="/login">
                 <Button variant="outline" className="border-safedrop-gold text-safedrop-gold hover:bg-safedrop-gold hover:text-white">
@@ -82,7 +82,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
       {mobileMenuOpen && <div className="md:hidden" id="mobile-menu">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link to="/" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-safedrop-primary hover:bg-opacity-75">
@@ -101,7 +100,7 @@ const Navbar = () => {
           <div className="pt-4 pb-3 border-t border-gray-700">
             <div className="flex items-center px-5">
               <Button variant="ghost" onClick={toggleLanguage} className="w-full justify-center text-white">
-                {language === 'ar' ? 'ARABIC' : 'English'}
+                {language === 'ar' ? 'Arabic' : 'English'}
               </Button>
             </div>
             <div className="mt-3 px-2 space-y-1">
