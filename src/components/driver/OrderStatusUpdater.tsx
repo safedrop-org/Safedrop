@@ -11,7 +11,7 @@ interface OrderStatusUpdaterProps {
   currentStatus: string;
   driverLocation?: { lat: number; lng: number } | null;
   onStatusUpdated?: () => void;
-  driverId?: string | null; // Added to validate ownership
+  driverId?: string | null;
 }
 
 const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
@@ -79,9 +79,10 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
         throw new Error('لا يمكنك تعديل طلب غير مسند إليك');
       }
 
-      // Only use database-allowed values: 'pending', 'approved', 'in_transit', 'completed', 'cancelled'
-      // 'approaching' in UI maps to 'approved' in database
-      const dbStatus = newStatus === 'approaching' ? 'approved' : 'in_transit';
+      // Map UI status values to valid database status values
+      // IMPORTANT: The database has constraints on the status field values
+      // We need to ensure we're setting a valid value
+      const dbStatus = newStatus === 'approaching' ? 'approved' : newStatus;
       
       console.log("Setting database status to:", dbStatus);
       
