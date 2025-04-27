@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/auth/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export const useOrders = (isAdmin = false) => {
   const { user } = useAuth();
@@ -63,7 +63,8 @@ export const useOrders = (isAdmin = false) => {
       }
     },
     enabled: !!user,
-    retry: 1
+    retry: 1,
+    refetchInterval: 10000, // Refresh every 10 seconds to keep order list updated
   });
 };
 

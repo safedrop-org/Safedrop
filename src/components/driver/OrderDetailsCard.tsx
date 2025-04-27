@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -66,7 +65,6 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   const handleCompleteOrder = async () => {
     setIsUpdating(true);
     try {
-      // Use valid database status value: 'completed'
       console.log("Setting order status to completed");
       
       const { error } = await supabase
@@ -100,7 +98,6 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 
     setIsUpdating(true);
     try {
-      // Always use valid database status: 'approved' for five minutes away UI status
       console.log("Setting order status to approved (five minutes away)");
       
       const { error } = await supabase
@@ -124,6 +121,11 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const getLocationAddress = (location: any) => {
+    if (!location) return "غير محدد";
+    return location.formatted_address || "غير محدد";
   };
 
   return (
@@ -170,7 +172,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-500">نقطة الانطلاق:</p>
-              <p>{order.pickup_location?.formatted_address || 'غير محدد'}</p>
+              <p>{getLocationAddress(order.pickup_location)}</p>
             </div>
           </div>
           <div className="flex items-start gap-2">
@@ -179,7 +181,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
             </div>
             <div>
               <p className="text-sm text-gray-500">نقطة الوصول:</p>
-              <p>{order.dropoff_location?.formatted_address || 'غير محدد'}</p>
+              <p>{getLocationAddress(order.dropoff_location)}</p>
             </div>
           </div>
         </div>

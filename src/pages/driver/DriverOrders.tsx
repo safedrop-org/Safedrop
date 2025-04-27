@@ -20,6 +20,7 @@ const DriverOrdersContent = () => {
   const { user } = useAuth();
   const { data: orders = [], isLoading, error, refetch } = useOrders();
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [activeTab, setActiveTab] = useState('current');
 
   useEffect(() => {
     const getLocation = () => {
@@ -101,7 +102,9 @@ const DriverOrdersContent = () => {
       }
       
       toast.success(`تم قبول الطلب رقم ${id} بنجاح`);
-      refetch();
+      // After accepting the order, refetch the data and switch to current orders tab
+      await refetch();
+      setActiveTab('current');
     } catch (err) {
       console.error('Error accepting order:', err);
       toast.error('حدث خطأ أثناء قبول الطلب');
@@ -137,7 +140,7 @@ const DriverOrdersContent = () => {
 
         <main className="flex-1 overflow-auto p-4">
           <div className="max-w-7xl mx-auto">
-            <Tabs defaultValue="current" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full grid grid-cols-3 mb-6">
                 <TabsTrigger value="current">الطلبات الحالية</TabsTrigger>
                 <TabsTrigger value="available">طلبات متاحة</TabsTrigger>
@@ -154,6 +157,7 @@ const DriverOrdersContent = () => {
                       <Button 
                         variant="default" 
                         className="bg-safedrop-gold hover:bg-safedrop-gold/90"
+                        onClick={() => setActiveTab('available')}
                       >
                         استعرض الطلبات المتاحة
                       </Button>
