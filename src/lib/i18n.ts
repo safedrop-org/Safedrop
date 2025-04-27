@@ -1,4 +1,3 @@
-
 type Translations = {
   [key: string]: {
     ar: string;
@@ -13,8 +12,8 @@ export const translations: Translations = {
     en: "SafeDrop"
   },
   tagline: {
-    ar: "توصيل آمن وأمن ومحمي للأشياء الثمينة",
-    en: "Secure delivery of valuable items"
+    ar: "سجل الآن واستمتع بتجربة توصيل سريعة وأمنة للمقتنيات الثمينة",
+    en: "Register now and enjoy a fast and secure delivery experience for your valuables"
   },
   getStarted: {
     ar: "ابدأ الآن",
@@ -669,4 +668,3 @@ export const useTranslation = (language: LanguageKey) => {
     return translations[key][language];
   };
 };
-

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -23,12 +24,10 @@ export const HeroSection = () => {
 
       <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
-          {t('siteTitle')}
+          {t('heroTitle')}
         </h1>
         <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">
-          {language === 'ar' 
-            ? "سجل الآن واستمتع بتجربة توصيل سري��ة وأمنة للمقتنيات الثمينة"
-            : "Register now and enjoy a fast and secure delivery experience for your valuables"}
+          {t('tagline')}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/register/customer">
