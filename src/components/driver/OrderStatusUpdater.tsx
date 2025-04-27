@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Truck, Clock, Loader2, AlertCircle } from 'lucide-react';
+import { Truck, Clock, Loader2, AlertCircle, Package } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface OrderStatusUpdaterProps {
@@ -25,7 +26,7 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
   const { user } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const updateOrderStatus = async (newStatus: 'in_transit' | 'approaching') => {
+  const updateOrderStatus = async (newStatus: 'picked_up' | 'in_transit' | 'approaching') => {
     // Reset error state
     setErrorMessage(null);
     
@@ -79,7 +80,20 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
       
       console.log('Order status updated successfully:', data);
       
-      toast.success(`تم تحديث حالة الطلب إلى ${newStatus === 'approaching' ? 'اقترب' : 'بدأ التوصيل'}`);
+      let statusMessage = '';
+      switch (newStatus) {
+        case 'picked_up':
+          statusMessage = 'ملتقط';
+          break;
+        case 'in_transit':
+          statusMessage = 'تم إستلام الشحنة وجاري توصيلها';
+          break;
+        case 'approaching':
+          statusMessage = 'اقترب';
+          break;
+      }
+      
+      toast.success(`تم تحديث حالة الطلب إلى ${statusMessage}`);
       
       if (onStatusUpdated) {
         onStatusUpdated();
@@ -104,33 +118,53 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
       )}
       
       <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 md:space-x-reverse">
-        <Button
-          variant={currentStatus === 'approved' ? "default" : "outline"}
-          onClick={() => updateOrderStatus('approaching')}
-          disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
-          className="gap-1"
-        >
-          {isUpdating && updatingStatus === 'approaching' ? (
-            <Loader2 className="h-4 w-4 ml-1 animate-spin" />
-          ) : (
-            <Clock className="h-4 w-4 ml-1" />
-          )}
-          اقترب
-        </Button>
+        {(currentStatus === 'available' || currentStatus === 'picked_up') && (
+          <Button
+            variant={currentStatus === 'picked_up' ? "default" : "outline"}
+            onClick={() => updateOrderStatus('picked_up')}
+            disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
+            className="gap-1"
+          >
+            {isUpdating && updatingStatus === 'picked_up' ? (
+              <Loader2 className="h-4 w-4 ml-1 animate-spin" />
+            ) : (
+              <Package className="h-4 w-4 ml-1" />
+            )}
+            ملتقط
+          </Button>
+        )}
         
-        <Button
-          variant={currentStatus === 'in_transit' ? "default" : "outline"}
-          onClick={() => updateOrderStatus('in_transit')}
-          disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
-          className="gap-1"
-        >
-          {isUpdating && updatingStatus === 'in_transit' ? (
-            <Loader2 className="h-4 w-4 ml-1 animate-spin" />
-          ) : (
-            <Truck className="h-4 w-4 ml-1" />
-          )}
-          بدأ التوصيل
-        </Button>
+        {(currentStatus === 'picked_up' || currentStatus === 'in_transit') && (
+          <Button
+            variant={currentStatus === 'in_transit' ? "default" : "outline"}
+            onClick={() => updateOrderStatus('in_transit')}
+            disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
+            className="gap-1"
+          >
+            {isUpdating && updatingStatus === 'in_transit' ? (
+              <Loader2 className="h-4 w-4 ml-1 animate-spin" />
+            ) : (
+              <Truck className="h-4 w-4 ml-1" />
+            )}
+            تم إستلام الشحنة وجاري توصيلها
+          </Button>
+        )}
+        
+        {(currentStatus === 'in_transit' || currentStatus === 'approaching') && (
+          <Button
+            variant={currentStatus === 'approaching' ? "default" : "outline"}
+            onClick={() => updateOrderStatus('approaching')}
+            disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
+            className="gap-1"
+          >
+            {isUpdating && updatingStatus === 'approaching' ? (
+              <Loader2 className="h-4 w-4 ml-1 animate-spin" />
+            ) : (
+              <Clock className="h-4 w-4 ml-1" />
+            )}
+            اقترب
+          </Button>
+        )}
       </div>
     </div>
   );

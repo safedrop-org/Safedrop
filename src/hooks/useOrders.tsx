@@ -21,11 +21,11 @@ export const useOrders = (isAdmin = false) => {
           console.log("Filtering for driver:", user.id);
           
           // This complicated OR query gets:
-          // 1. Pending orders with no driver assigned (available for pickup)
+          // 1. Available orders with no driver assigned 
           // 2. OR any order assigned specifically to this driver (regardless of status)
-          query = query.or(`and(driver_id.is.null,status.eq.pending),driver_id.eq.${user.id}`);
+          query = query.or(`and(driver_id.is.null,status.eq.available),driver_id.eq.${user.id}`);
           
-          console.log("Using filter:", `and(driver_id.is.null,status.eq.pending),driver_id.eq.${user.id}`);
+          console.log("Using filter:", `and(driver_id.is.null,status.eq.available),driver_id.eq.${user.id}`);
         }
         
         const { data: orders, error } = await query

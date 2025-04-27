@@ -74,12 +74,12 @@ const DriverOrdersContent = () => {
   }, [orders]);
 
   const availableOrders = orders?.filter(order => 
-    !order.driver_id && order.status === 'approved'
+    !order.driver_id && order.status === 'available'
   ) ?? [];
   
   const currentOrders = orders?.filter(order => 
     order.driver_id === user?.id && 
-    ['picked_up', 'in_transit', 'approaching', 'five_minutes_away'].includes(order.status)
+    ['picked_up', 'in_transit', 'approaching'].includes(order.status)
   ) ?? [];
   
   const completedOrders = orders?.filter(order => 
@@ -140,7 +140,7 @@ const DriverOrdersContent = () => {
         return;
       }
         
-      if (orderCheck.status !== 'approved' || orderCheck.driver_id) {
+      if (orderCheck.status !== 'available' || orderCheck.driver_id) {
         console.error("Order is no longer available for acceptance", orderCheck);
         toast.error('هذا الطلب لم يعد متاحاً للقبول');
         setIsProcessing(false);
