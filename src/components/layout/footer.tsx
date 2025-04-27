@@ -1,6 +1,8 @@
+
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
-import { MapPin, Phone, Mail, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { MapPin, Phone, Mail, Instagram, Snapchat, TikTok } from 'lucide-react';
+
 const Footer = () => {
   const {
     t
@@ -92,6 +94,33 @@ const Footer = () => {
                 <span className="text-sm">info@safedropksa.com</span>
               </li>
             </ul>
+
+            <div className="flex space-x-4 rtl:space-x-reverse mt-4">
+              <a 
+                href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-white hover:text-safedrop-gold transition-colors"
+              >
+                <Instagram size={20} />
+              </a>
+              <a 
+                href="https://www.tiktok.com/@iha.store?_t=ZS-8vshXos9iJm&_r=1" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-white hover:text-safedrop-gold transition-colors"
+              >
+                <TikTok size={20} />
+              </a>
+              <a 
+                href="https://www.snapchat.com/add/ihalabbad1?share_id=4tDP8fBXbHs&locale=ar-SA" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-white hover:text-safedrop-gold transition-colors"
+              >
+                <Snapchat size={20} />
+              </a>
+            </div>
           </div>
         </div>
 
@@ -112,4 +141,5 @@ const Footer = () => {
       </div>
     </footer>;
 };
+
 export default Footer;
