@@ -770,6 +770,114 @@ export const translations: Translations = {
   updateAvailability: {
     ar: "��حديث الحالة",
     en: "Update Status"
+  },
+  noNotifications: {
+    ar: "لا توجد إشعارات جديدة",
+    en: "No new notifications"
+  },
+  viewAllNotifications: {
+    ar: "عرض كافة الإشعارات",
+    en: "View all notifications"
+  },
+  earningsSummary: {
+    ar: "ملخص الأرباح",
+    en: "Earnings Summary"
+  },
+  platformFee: {
+    ar: "عمولة المنصة (15%)",
+    en: "Platform Fee (15%)"
+  },
+  availableBalance: {
+    ar: "الرصيد المتاح",
+    en: "Available Balance"
+  },
+  paymentDetails: {
+    ar: "تفاصيل المدفوعات",
+    en: "Payment Details"
+  },
+  requestWithdrawal: {
+    ar: "طلب سحب",
+    en: "Request Withdrawal"
+  },
+  withdrawalRequestSent: {
+    ar: "تم إرسال طلب السحب بنجاح",
+    en: "Withdrawal request sent successfully"
+  },
+  supportAndHelp: {
+    ar: "الدعم والمساعدة",
+    en: "Support & Help"
+  },
+  contactSupport: {
+    ar: "تواصل مع الدعم الفني",
+    en: "Contact Support"
+  },
+  reportIssue: {
+    ar: "إبلاغ عن مشكلة",
+    en: "Report Issue"
+  },
+  havingProblem: {
+    ar: "هل تواجه مشكلة؟",
+    en: "Having a problem?"
+  },
+  accountApproved: {
+    ar: "تم اعتماد حسابك",
+    en: "Your account has been approved"
+  },
+  accountApprovedDesc: {
+    ar: "يمكنك الآن استقبال طلبات التوصيل والبدء في استخدام المنصة",
+    en: "You can now receive delivery requests and start using the platform"
+  },
+  accountPending: {
+    ar: "حسابك قيد المراجعة",
+    en: "Your account is under review"
+  },
+  accountPendingDesc: {
+    ar: "نحن نراجع بياناتك ووثائقك، وسنعلمك عند الانتهاء من المراجعة",
+    en: "We are reviewing your information and documents, we will notify you when the review is complete"
+  },
+  loading: {
+    ar: "جاري التحميل...",
+    en: "Loading..."
+  },
+  systemError: {
+    ar: "خطأ في النظام",
+    en: "System Error"
+  },
+  errorLoadingAccount: {
+    ar: "حدث خطأ عند جلب بيانات الحساب",
+    en: "Error loading account data"
+  },
+  refreshPage: {
+    ar: "تحديث الصفحة",
+    en: "Refresh Page"
+  },
+  accountRejected: {
+    ar: "تم رفض طلبك",
+    en: "Your application was rejected"
+  },
+  accountRejectedDesc: {
+    ar: "للأسف، تم رفض طلب انضمامك كسائق في منصة سيف دروب",
+    en: "Unfortunately, your application to join SafeDrop as a driver has been rejected"
+  },
+  rejectionReason: {
+    ar: "سبب الرفض:",
+    en: "Rejection reason:"
+  },
+  reapplyNote: {
+    ar: "يمكنك تعديل بياناتك وإعادة التقديم مرة واحدة",
+    en: "You can modify your information and reapply once"
+  },
+  reapply: {
+    ar: "إعادة التقديم",
+    en: "Reapply"
+  },
+  accountFrozen: {
+    ar: "الحساب مجمد مؤقتاً",
+    en: "Account temporarily frozen"
+  },
+  accountFrozenDesc: {
+    ar: "تم رفض طلبك كسائق مرتين متتاليتين. يرجى التواصل مع الدعم الفني لتقديم اعتراض أو استفسار",
+    en: "Your driver application has been rejected twice in a row. Please contact support to file an appeal or inquiry"
   }
 };
 

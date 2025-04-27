@@ -5,7 +5,7 @@ import DriverSidebar from '@/components/driver/DriverSidebar';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, MessageSquare, AlertTriangle, CheckCircle, Clock, Star, DollarSign } from 'lucide-react';
+import { Bell, MessageSquare, AlertTriangle, CheckCircle, Clock, Star, DollarSign, Package, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -236,8 +236,8 @@ const DriverDashboardContent = () => {
           <div className="flex items-start">
             <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
             <div>
-              <p className="font-medium text-green-800">تم اعتماد حسابك</p>
-              <p className="text-green-700 text-sm">يمكنك الآن استقبال طلبات التوصيل والبدء في استخدام المنصة</p>
+              <p className="font-medium text-green-800">{t('accountApproved')}</p>
+              <p className="text-green-700 text-sm">{t('accountApprovedDesc')}</p>
             </div>
           </div>
         </div>
@@ -249,8 +249,8 @@ const DriverDashboardContent = () => {
           <div className="flex items-start">
             <Clock className="h-6 w-6 text-yellow-500 mr-3" />
             <div>
-              <p className="font-medium text-yellow-800">حسابك قيد المراجعة</p>
-              <p className="text-yellow-700 text-sm">نحن نراجع بياناتك ووثائقك، وسنعلمك عند الانتهاء من المراجعة</p>
+              <p className="font-medium text-yellow-800">{t('accountPending')}</p>
+              <p className="text-yellow-700 text-sm">{t('accountPendingDesc')}</p>
             </div>
           </div>
         </div>
@@ -262,25 +262,25 @@ const DriverDashboardContent = () => {
           <div className="flex items-start">
             <AlertTriangle className="h-6 w-6 text-red-500 mr-3" />
             <div>
-              <p className="font-medium text-red-800">تم رفض طلبك</p>
+              <p className="font-medium text-red-800">{t('accountRejected')}</p>
               <p className="text-red-700 text-sm">
-                للأسف، تم رفض طلب انضمامك كسائق في منصة سيف دروب.
+                {t('accountRejectedDesc')}
               </p>
               {driverData.rejection_reason && (
                 <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <h3 className="font-semibold text-red-800">سبب الرفض:</h3>
+                  <h3 className="font-semibold text-red-800">{t('rejectionReason')}</h3>
                   <p className="text-red-700 mt-2">{driverData.rejection_reason}</p>
                 </div>
               )}
               <p className="text-gray-600 mt-4">
-                يمكنك تعديل بياناتك وإعادة التقديم مرة واحدة.
+                {t('reapplyNote')}
               </p>
               <Button 
                 variant="outline" 
                 className="mt-2"
                 onClick={() => navigate('/driver/profile')}
               >
-                إعادة التقديم
+                {t('reapply')}
               </Button>
             </div>
           </div>
@@ -293,9 +293,9 @@ const DriverDashboardContent = () => {
           <div className="flex items-start">
             <AlertTriangle className="h-6 w-6 text-red-600 mr-3" />
             <div>
-              <p className="font-bold text-red-700">الحساب مجمد مؤقتاً</p>
+              <p className="font-bold text-red-700">{t('accountFrozen')}</p>
               <p className="mt-2 text-red-600">
-                تم رفض طلبك كسائق مرتين متتاليتين. يرجى التواصل مع الدعم الفني لتقديم اعتراض أو استفسار.
+                {t('accountFrozenDesc')}
               </p>
             </div>
           </div>
@@ -310,7 +310,7 @@ const DriverDashboardContent = () => {
       <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-safedrop-primary mx-auto"></div>
-          <h2 className="text-2xl font-bold">{t('loading') || 'جاري التحميل...'}</h2>
+          <h2 className="text-2xl font-bold">{t('loading')}</h2>
         </div>
       </div>
     );
@@ -321,9 +321,9 @@ const DriverDashboardContent = () => {
       <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
           <AlertTriangle className="h-16 w-16 text-red-500 mx-auto" />
-          <h2 className="text-2xl font-bold">خطأ في تحميل البيانات</h2>
-          <p className="text-gray-600">حدث خطأ أثناء تحميل بيانات السائق. يرجى المحاولة مرة أخرى.</p>
-          <Button onClick={() => window.location.reload()}>تحديث الصفحة</Button>
+          <h2 className="text-2xl font-bold">{t('systemError')}</h2>
+          <p className="text-gray-600">{t('errorLoadingAccount')}</p>
+          <Button onClick={() => window.location.reload()}>{t('refreshPage')}</Button>
         </div>
       </div>
     );
@@ -336,7 +336,7 @@ const DriverDashboardContent = () => {
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">لوحة تحكم السائق</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('driverDashboardTitle')}</h1>
           </div>
         </header>
 
@@ -349,7 +349,7 @@ const DriverDashboardContent = () => {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">الطلبات المكتملة</p>
+                      <p className="text-sm font-medium text-gray-500">{t('completedOrdersCount')}</p>
                       <h3 className="text-2xl font-bold">
                         {isLoadingFinancial ? (
                           <span className="animate-pulse">...</span>
@@ -359,9 +359,7 @@ const DriverDashboardContent = () => {
                       </h3>
                     </div>
                     <div className="bg-blue-100 p-3 rounded-full">
-                      <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
+                      <Package className="h-6 w-6 text-blue-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -371,7 +369,7 @@ const DriverDashboardContent = () => {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">التقييم العام</p>
+                      <p className="text-sm font-medium text-gray-500">{t('rating')}</p>
                       <div 
                         className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => navigate('/driver/ratings')}
@@ -398,7 +396,7 @@ const DriverDashboardContent = () => {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">الرصيد المتاح</p>
+                      <p className="text-sm font-medium text-gray-500">{t('availableBalance')}</p>
                       <h3 className="text-2xl font-bold">
                         {isLoadingFinancial ? (
                           <span className="animate-pulse">...</span>
@@ -418,13 +416,13 @@ const DriverDashboardContent = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>الإشعارات الأخيرة</CardTitle>
+                  <CardTitle>{t('notifications')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {notifications.length === 0 ? (
                     <div className="text-center p-6">
                       <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500">لا توجد إشعارات جديدة</p>
+                      <p className="text-gray-500">{t('noNotifications')}</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -458,19 +456,19 @@ const DriverDashboardContent = () => {
                     className="mt-4 w-full"
                     onClick={() => navigate('/driver/notifications')}
                   >
-                    عرض كافة الإشعارات
+                    {t('viewAllNotifications')}
                   </Button>
                 </CardContent>
               </Card>
               
               <Card>
                 <CardHeader>
-                  <CardTitle>ملخص الأرباح</CardTitle>
+                  <CardTitle>{t('earningsSummary')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <p className="text-gray-600">إجمالي الأرباح</p>
+                      <p className="text-gray-600">{t('totalEarnings')}</p>
                       <p className="font-medium">
                         {isLoadingFinancial ? (
                           <span className="animate-pulse">...</span>
@@ -480,7 +478,7 @@ const DriverDashboardContent = () => {
                       </p>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="text-gray-600">عمولة المنصة (15%)</p>
+                      <p className="text-gray-600">{t('platformFee')}</p>
                       <p className="font-medium">
                         {isLoadingFinancial ? (
                           <span className="animate-pulse">...</span>
@@ -491,7 +489,7 @@ const DriverDashboardContent = () => {
                     </div>
                     <div className="border-t pt-3 mt-3">
                       <div className="flex items-center justify-between font-medium">
-                        <p>الرصيد المتاح</p>
+                        <p>{t('availableBalance')}</p>
                         <p>
                           {isLoadingFinancial ? (
                             <span className="animate-pulse">...</span>
@@ -509,17 +507,17 @@ const DriverDashboardContent = () => {
                       className="flex-1"
                       onClick={() => navigate('/driver/earnings')}
                     >
-                      تفاصيل المدفوعات
+                      {t('paymentDetails')}
                     </Button>
                     <Button 
                       className="bg-safedrop-gold hover:bg-safedrop-gold/90 flex-1"
                       onClick={() => toast({
-                        title: "تم إرسال طلب السحب بنجاح",
+                        title: t('withdrawalRequestSent'),
                         variant: "default",
                         className: "bg-green-500 text-white"
                       })}
                     >
-                      طلب سحب
+                      {t('requestWithdrawal')}
                     </Button>
                   </div>
                 </CardContent>
@@ -528,7 +526,7 @@ const DriverDashboardContent = () => {
             
             <Card>
               <CardHeader>
-                <CardTitle>الدعم والمساعدة</CardTitle>
+                <CardTitle>{t('supportAndHelp')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -538,28 +536,26 @@ const DriverDashboardContent = () => {
                     onClick={() => navigate('/driver/support')}
                   >
                     <MessageSquare className="h-5 w-5" />
-                    <span>تواصل مع الدعم الفني</span>
+                    <span>{t('contactSupport')}</span>
                   </Button>
                   <Button 
                     variant="outline" 
                     className="h-auto py-4 flex items-center justify-center gap-2"
                     onClick={() => navigate('/faq')}
                   >
-                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>الأسئلة الشائعة</span>
+                    <HelpCircle className="h-5 w-5" />
+                    <span>{t('faq')}</span>
                   </Button>
                 </div>
 
                 <div className="mt-4">
-                  <p className="text-sm text-gray-500 mb-2">هل تواجه مشكلة؟</p>
+                  <p className="text-sm text-gray-500 mb-2">{t('havingProblem')}</p>
                   <Button 
                     variant="secondary" 
                     className="w-full"
                     onClick={() => navigate('/driver/support/report-issue')}
                   >
-                    إبلاغ عن مشكلة
+                    {t('reportIssue')}
                   </Button>
                 </div>
               </CardContent>
