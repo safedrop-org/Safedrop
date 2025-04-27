@@ -1,7 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
-import { MapPin, Phone, Mail, Instagram, Snapchat, TikTok } from 'lucide-react';
+import { MapPin, Mail, Instagram, MessageCircle, Video, Ghost } from 'lucide-react';
 
 const Footer = () => {
   const {
@@ -22,16 +22,16 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4 rtl:space-x-reverse">
               <a href="#" className="text-white hover:text-safedrop-gold transition-colors">
-                <Facebook size={20} />
-              </a>
-              <a href="#" className="text-white hover:text-safedrop-gold transition-colors">
-                <Twitter size={20} />
-              </a>
-              <a href="#" className="text-white hover:text-safedrop-gold transition-colors">
                 <Instagram size={20} />
               </a>
               <a href="#" className="text-white hover:text-safedrop-gold transition-colors">
-                <Linkedin size={20} />
+                <MessageCircle size={20} />
+              </a>
+              <a href="#" className="text-white hover:text-safedrop-gold transition-colors">
+                <Video size={20} />
+              </a>
+              <a href="#" className="text-white hover:text-safedrop-gold transition-colors">
+                <Ghost size={20} />
               </a>
             </div>
           </div>
@@ -110,7 +110,7 @@ const Footer = () => {
                 rel="noopener noreferrer" 
                 className="text-white hover:text-safedrop-gold transition-colors"
               >
-                <TikTok size={20} />
+                <Video size={20} />
               </a>
               <a 
                 href="https://www.snapchat.com/add/ihalabbad1?share_id=4tDP8fBXbHs&locale=ar-SA" 
@@ -118,7 +118,7 @@ const Footer = () => {
                 rel="noopener noreferrer" 
                 className="text-white hover:text-safedrop-gold transition-colors"
               >
-                <Snapchat size={20} />
+                <Ghost size={20} />
               </a>
             </div>
           </div>
