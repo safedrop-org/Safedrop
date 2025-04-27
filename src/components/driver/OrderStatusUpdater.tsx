@@ -21,8 +21,9 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
-  // Check if status is valid based on the database constraint
-  const updateOrderStatus = async (newStatus: 'in_transit' | 'approved') => {
+  // Based on database constraints, valid values for order status are:
+  // 'pending', 'approved', 'rejected', 'in_transit', 'completed', etc.
+  const updateOrderStatus = async (newStatus: 'in_transit' | 'approaching') => {
     if (!driverLocation) {
       toast.error('لا يمكن تحديث الحالة بدون تحديد الموقع');
       return;
@@ -55,10 +56,14 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
         throw new Error('الطلب غير موجود');
       }
 
+      // Check database constraints for status values
+      // For "approaching" status, we use "approved" in the database
+      const dbStatus = newStatus === 'approaching' ? 'approved' : newStatus;
+      
       const { data, error } = await supabase
         .from('orders')
         .update({ 
-          status: newStatus,
+          status: dbStatus,
           driver_location: driverLocation,
           updated_at: new Date().toISOString()
         })
@@ -72,7 +77,7 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
       
       console.log('Order status updated successfully:', data);
       
-      toast.success(`تم تحديث حالة الطلب إلى ${newStatus === 'approved' ? 'اقترب' : 'بدأ التوصيل'}`);
+      toast.success(`تم تحديث حالة الطلب إلى ${newStatus === 'approaching' ? 'اقترب' : 'بدأ التوصيل'}`);
       
       if (onStatusUpdated) {
         onStatusUpdated();
@@ -90,11 +95,11 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
     <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 md:space-x-reverse">
       <Button
         variant={currentStatus === 'approved' ? "default" : "outline"}
-        onClick={() => updateOrderStatus('approved')}
+        onClick={() => updateOrderStatus('approaching')}
         disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
         className="gap-1"
       >
-        {isUpdating && updatingStatus === 'approved' ? (
+        {isUpdating && updatingStatus === 'approaching' ? (
           <Loader2 className="h-4 w-4 ml-1 animate-spin" />
         ) : (
           <Clock className="h-4 w-4 ml-1" />
