@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,19 +12,69 @@ import { toast } from 'sonner';
 import { useOrders } from '@/hooks/useOrders';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import OrderDetailsCard from '@/components/driver/OrderDetailsCard';
 
 const DriverOrdersContent = () => {
   const { t } = useLanguage();
   const [isAvailable, setIsAvailable] = useState(true);
   const { user } = useAuth();
-  const { data: orders, isLoading, error } = useOrders();
+  const { data: orders = [], isLoading, error, refetch } = useOrders();
+  const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-  const availableOrders = orders?.filter(order => !order.driver_id) ?? [];
+  // Get driver's current location
+  useEffect(() => {
+    const getLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setDriverLocation({ lat: latitude, lng: longitude });
+          },
+          (error) => {
+            console.error("Error getting location:", error);
+            toast.error("تعذر الوصول إلى موقعك. يرجى التحقق من إعدادات الموقع.");
+          }
+        );
+      } else {
+        toast.error("متصفحك لا يدعم تحديد الموقع الجغرافي");
+      }
+    };
+
+    getLocation();
+    // Set up periodic location updates
+    const locationInterval = setInterval(getLocation, 30000); // Update every 30 seconds
+
+    return () => clearInterval(locationInterval);
+  }, []);
+
+  // Update driver availability status
+  useEffect(() => {
+    if (user?.id) {
+      const updateDriverAvailability = async () => {
+        try {
+          await supabase
+            .from('drivers')
+            .update({ is_available: isAvailable, location: driverLocation })
+            .eq('id', user.id);
+        } catch (err) {
+          console.error('Error updating driver availability:', err);
+        }
+      };
+
+      updateDriverAvailability();
+    }
+  }, [isAvailable, driverLocation, user?.id]);
+
+  const availableOrders = orders?.filter(order => 
+    !order.driver_id && order.status === 'approved'
+  ) ?? [];
+  
   const currentOrders = orders?.filter(order => 
     order.driver_id === user?.id && 
     order.status !== 'completed' && 
     order.status !== 'cancelled'
   ) ?? [];
+  
   const orderHistory = orders?.filter(order => 
     order.driver_id === user?.id && 
     (order.status === 'completed' || order.status === 'cancelled')
@@ -32,40 +82,28 @@ const DriverOrdersContent = () => {
 
   const handleAcceptOrder = async (id: string) => {
     try {
+      if (!driverLocation) {
+        toast.error("يجب تحديد موقعك الحالي لقبول الطلب");
+        return;
+      }
+
       const { error } = await supabase
         .from('orders')
-        .update({ driver_id: user?.id, status: 'accepted' })
+        .update({ 
+          driver_id: user?.id, 
+          status: 'approved',
+          driver_location: driverLocation
+        })
         .eq('id', id);
       
       if (error) throw error;
+      
       toast.success(`تم قبول الطلب رقم ${id} بنجاح`);
+      refetch();
     } catch (err) {
       console.error('Error accepting order:', err);
       toast.error('حدث خطأ أثناء قبول الطلب');
     }
-  };
-
-  const handleCompleteOrder = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status: 'completed', actual_delivery_time: new Date().toISOString() })
-        .eq('id', id);
-      
-      if (error) throw error;
-      toast.success(`تم توصيل الطلب رقم ${id} بنجاح`);
-    } catch (err) {
-      console.error('Error completing order:', err);
-      toast.error('حدث خطأ أثناء تحديث حالة الطلب');
-    }
-  };
-
-  const handleContactCustomer = (phone: string) => {
-    toast.info(`جاري الاتصال بالعميل: ${phone}`);
-  };
-
-  const handleCancelOrder = (id: string) => {
-    toast.error(`تم إلغاء الطلب رقم ${id}`);
   };
 
   return (
@@ -122,80 +160,12 @@ const DriverOrdersContent = () => {
                   </div>
                 ) : (
                   currentOrders.map((order) => (
-                    <Card key={order.id} className="overflow-hidden">
-                      <CardHeader className="bg-gray-50 pb-2">
-                        <div className="flex justify-between items-center">
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            <span>طلب #{order.id}</span>
-                          </CardTitle>
-                          <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200">
-                            {order.status}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <p className="text-sm text-gray-500 mb-1">معلومات العميل:</p>
-                            <p className="font-medium">{order.customer}</p>
-                            <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                              <PhoneIcon className="h-3 w-3" />
-                              <span>{order.phone}</span>
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500 mb-1">وقت الطلب:</p>
-                            <p className="font-medium">{order.time}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-start gap-2">
-                            <div className="mt-1 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                              <MapPinIcon className="h-3 w-3 text-green-600" />
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-500">نقطة الانطلاق:</p>
-                              <p>{order.pickup}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <div className="mt-1 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                              <MapPinIcon className="h-3 w-3 text-red-600" />
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-500">نقطة الوصول:</p>
-                              <p>{order.dropoff}</p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-                          <div>
-                            <p className="text-sm text-gray-500">المبلغ:</p>
-                            <p className="font-semibold text-lg">{order.price}</p>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline"
-                              onClick={() => handleContactCustomer(order.phone)}
-                              className="flex items-center gap-1"
-                            >
-                              <PhoneIcon className="h-4 w-4" />
-                              <span>اتصال بالعميل</span>
-                            </Button>
-                            <Button 
-                              variant="default" 
-                              className="bg-green-600 hover:bg-green-700"
-                              onClick={() => handleCompleteOrder(order.id)}
-                            >
-                              <CheckIcon className="h-4 w-4 mr-1" />
-                              <span>تم التوصيل</span>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <OrderDetailsCard 
+                      key={order.id}
+                      order={order}
+                      onOrderUpdate={refetch}
+                      driverLocation={driverLocation}
+                    />
                   ))
                 )}
               </TabsContent>
@@ -243,7 +213,7 @@ const DriverOrdersContent = () => {
                             </div>
                             <div>
                               <p className="text-sm text-gray-500">نقطة الانطلاق:</p>
-                              <p>{order.pickup}</p>
+                              <p>{order.pickup_location?.formatted_address || 'غير محدد'}</p>
                             </div>
                           </div>
                           <div className="flex items-start gap-2">
@@ -252,7 +222,7 @@ const DriverOrdersContent = () => {
                             </div>
                             <div>
                               <p className="text-sm text-gray-500">نقطة الوصول:</p>
-                              <p>{order.dropoff}</p>
+                              <p>{order.dropoff_location?.formatted_address || 'غير محدد'}</p>
                             </div>
                           </div>
                         </div>
@@ -260,15 +230,15 @@ const DriverOrdersContent = () => {
                         <div className="grid grid-cols-3 gap-4 mt-4 text-center">
                           <div className="bg-gray-50 rounded p-2">
                             <p className="text-sm text-gray-500">المسافة</p>
-                            <p className="font-medium">{order.distance}</p>
+                            <p className="font-medium">{order.estimated_distance} كم</p>
                           </div>
                           <div className="bg-gray-50 rounded p-2">
                             <p className="text-sm text-gray-500">الوقت المتوقع</p>
-                            <p className="font-medium">{order.time}</p>
+                            <p className="font-medium">{order.estimated_duration} دقيقة</p>
                           </div>
                           <div className="bg-gray-50 rounded p-2">
                             <p className="text-sm text-gray-500">المبلغ</p>
-                            <p className="font-medium">{order.price}</p>
+                            <p className="font-medium">{order.price} ر.س</p>
                           </div>
                         </div>
                         
@@ -302,25 +272,51 @@ const DriverOrdersContent = () => {
                             <th className="px-6 py-3 text-right font-medium text-gray-500">من</th>
                             <th className="px-6 py-3 text-right font-medium text-gray-500">إلى</th>
                             <th className="px-6 py-3 text-right font-medium text-gray-500">المبلغ</th>
-                            <th className="px-6 py-3 text-right font-medium text-gray-500">التقييم</th>
+                            <th className="px-6 py-3 text-right font-medium text-gray-500">الحالة</th>
+                            <th className="px-6 py-3 text-right font-medium text-gray-500">العمولة</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                          {orderHistory.map((order) => (
-                            <tr key={order.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap">#{order.id}</td>
-                              <td className="px-6 py-4 whitespace-nowrap">{order.date}</td>
-                              <td className="px-6 py-4 whitespace-nowrap">{order.customer}</td>
-                              <td className="px-6 py-4 whitespace-nowrap">{order.pickup}</td>
-                              <td className="px-6 py-4 whitespace-nowrap">{order.dropoff}</td>
-                              <td className="px-6 py-4 whitespace-nowrap">{order.price}</td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                {Array(5).fill(0).map((_, i) => (
-                                  <span key={i} className={i < order.rating ? 'text-yellow-500' : 'text-gray-300'}>★</span>
-                                ))}
+                          {orderHistory.length === 0 ? (
+                            <tr>
+                              <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
+                                لا يوجد سجل طلبات سابقة
                               </td>
                             </tr>
-                          ))}
+                          ) : (
+                            orderHistory.map((order) => (
+                              <tr key={order.id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap">#{order.id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {new Date(order.created_at).toLocaleDateString('ar-SA')}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'غير معروف'}
+                                </td>
+                                <td className="px-6 py-4">
+                                  {order.pickup_location?.formatted_address?.substring(0, 30) || 'غير محدد'}...
+                                </td>
+                                <td className="px-6 py-4">
+                                  {order.dropoff_location?.formatted_address?.substring(0, 30) || 'غير محدد'}...
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">{order.price} ر.س</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      order.status === "completed" ? "bg-green-100 text-green-800 border-green-200" :
+                                      "bg-red-100 text-red-800 border-red-200"
+                                    }
+                                  >
+                                    {order.status === "completed" ? "مكتمل" : "ملغي"}
+                                  </Badge>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  {order.driver_payout ? `${order.driver_payout} ر.س` : '-'}
+                                </td>
+                              </tr>
+                            ))
+                          )}
                         </tbody>
                       </table>
                     </div>

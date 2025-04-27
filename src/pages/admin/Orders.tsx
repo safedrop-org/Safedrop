@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,8 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Eye, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useOrders } from "@/hooks/useOrders";
+import { OrderDetails } from "@/components/admin/OrderDetails";
+import { toast } from "sonner";
 
-const OrdersTable = ({ orders, status }) => {
+const OrdersTable = ({ orders, status, onViewOrder }) => {
   const filteredOrders = status === "all" ? orders : orders.filter(order => order.status === status);
   
   return (
@@ -26,50 +29,62 @@ const OrdersTable = ({ orders, status }) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {filteredOrders.map(order => (
-          <TableRow key={order.id}>
-            <TableCell className="font-medium">{order.id}</TableCell>
-            <TableCell>{order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'غير معروف'}</TableCell>
-            <TableCell>{order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'غير معين'}</TableCell>
-            <TableCell>{new Date(order.created_at).toLocaleDateString('ar-SA')}</TableCell>
-            <TableCell>{order.price ? `${order.price} ر.س` : 'غير محدد'}</TableCell>
-            <TableCell>
-              <Badge
-                variant="outline"
-                className={
-                  order.status === "completed" ? "bg-green-100 text-green-800 border-green-200" :
-                  order.status === "active" ? "bg-blue-100 text-blue-800 border-blue-200" :
-                  order.status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-                  "bg-red-100 text-red-800 border-red-200"
-                }
-              >
-                {order.status === "completed" ? "مكتمل" :
-                 order.status === "active" ? "نشط" :
-                 order.status === "pending" ? "قيد الانتظار" :
-                 "ملغي"}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <Badge
-                variant="outline"
-                className={
-                  order.payment_status === "paid" ? "bg-green-100 text-green-800 border-green-200" :
-                  order.payment_status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-                  "bg-purple-100 text-purple-800 border-purple-200"
-                }
-              >
-                {order.payment_status === "paid" ? "مدفوع" :
-                 order.payment_status === "pending" ? "غير مدفوع" :
-                 "مسترد"}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              <Button variant="ghost" size="icon">
-                <Eye className="h-4 w-4" />
-              </Button>
+        {filteredOrders.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={8} className="h-24 text-center">
+              لا توجد طلبات في هذه الفئة
             </TableCell>
           </TableRow>
-        ))}
+        ) : (
+          filteredOrders.map(order => (
+            <TableRow key={order.id}>
+              <TableCell className="font-medium">{order.id}</TableCell>
+              <TableCell>{order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'غير معروف'}</TableCell>
+              <TableCell>{order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'غير معين'}</TableCell>
+              <TableCell>{new Date(order.created_at).toLocaleDateString('ar-SA')}</TableCell>
+              <TableCell>{order.price ? `${order.price} ر.س` : 'غير محدد'}</TableCell>
+              <TableCell>
+                <Badge
+                  variant="outline"
+                  className={
+                    order.status === "completed" ? "bg-green-100 text-green-800 border-green-200" :
+                    order.status === "approved" ? "bg-blue-100 text-blue-800 border-blue-200" :
+                    order.status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                    order.status === "in_transit" ? "bg-purple-100 text-purple-800 border-purple-200" :
+                    order.status === "approaching" ? "bg-indigo-100 text-indigo-800 border-indigo-200" :
+                    "bg-red-100 text-red-800 border-red-200"
+                  }
+                >
+                  {order.status === "completed" ? "مكتمل" :
+                   order.status === "approved" ? "موافق عليه" :
+                   order.status === "pending" ? "قيد الانتظار" :
+                   order.status === "in_transit" ? "قيد التوصيل" :
+                   order.status === "approaching" ? "اقترب" :
+                   "ملغي"}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant="outline"
+                  className={
+                    order.payment_status === "paid" ? "bg-green-100 text-green-800 border-green-200" :
+                    order.payment_status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                    "bg-purple-100 text-purple-800 border-purple-200"
+                  }
+                >
+                  {order.payment_status === "paid" ? "مدفوع" :
+                   order.payment_status === "pending" ? "غير مدفوع" :
+                   "مسترد"}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Button variant="ghost" size="icon" onClick={() => onViewOrder(order)}>
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))
+        )}
       </TableBody>
     </Table>
   );
@@ -77,7 +92,58 @@ const OrdersTable = ({ orders, status }) => {
 
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { data: orders = [], isLoading } = useOrders();
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { data: orders = [], isLoading, refetch } = useOrders(true); // Pass true for admin view
+  
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setIsDetailsOpen(true);
+  };
+
+  const handleOrderStatusUpdate = () => {
+    refetch();
+    toast.success('تم تحديث الطلب بنجاح');
+  };
+
+  const handleCloseDetails = () => {
+    setIsDetailsOpen(false);
+    setSelectedOrder(null);
+  };
+
+  const handleExportOrders = () => {
+    // Create CSV data
+    const headers = ["رقم الطلب", "العميل", "السائق", "التاريخ", "السعر", "الحالة", "حالة الدفع"];
+    
+    const csvData = orders.map(order => [
+      order.id,
+      order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'غير معروف',
+      order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'غير معين',
+      new Date(order.created_at).toLocaleDateString('ar-SA'),
+      order.price ? `${order.price} ر.س` : 'غير محدد',
+      order.status,
+      order.payment_status
+    ]);
+    
+    // Convert to CSV string
+    let csvContent = headers.join(",") + "\n";
+    csvData.forEach(row => {
+      csvContent += row.join(",") + "\n";
+    });
+    
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `orders-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('تم تصدير الطلبات بنجاح');
+  };
   
   const filteredOrders = orders.filter(order => 
     order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -101,49 +167,69 @@ const Orders = () => {
             />
           </div>
           
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleExportOrders}>
             <Download size={16} />
             تصدير الطلبات
           </Button>
         </div>
       </div>
       
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle>جميع الطلبات</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="mb-4 grid grid-cols-5 max-w-md">
-              <TabsTrigger value="all">الكل</TabsTrigger>
-              <TabsTrigger value="active">نشط</TabsTrigger>
-              <TabsTrigger value="pending">قيد الانتظار</TabsTrigger>
-              <TabsTrigger value="completed">مكتمل</TabsTrigger>
-              <TabsTrigger value="cancelled">ملغي</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="all" className="mt-0">
-              <OrdersTable orders={filteredOrders} status="all" />
-            </TabsContent>
-            
-            <TabsContent value="active" className="mt-0">
-              <OrdersTable orders={filteredOrders} status="active" />
-            </TabsContent>
-            
-            <TabsContent value="pending" className="mt-0">
-              <OrdersTable orders={filteredOrders} status="pending" />
-            </TabsContent>
-            
-            <TabsContent value="completed" className="mt-0">
-              <OrdersTable orders={filteredOrders} status="completed" />
-            </TabsContent>
-            
-            <TabsContent value="cancelled" className="mt-0">
-              <OrdersTable orders={filteredOrders} status="cancelled" />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>جميع الطلبات</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="mb-4 grid grid-cols-6 max-w-md">
+                <TabsTrigger value="all">الكل</TabsTrigger>
+                <TabsTrigger value="pending">قيد الانتظار</TabsTrigger>
+                <TabsTrigger value="approved">موافق عليه</TabsTrigger>
+                <TabsTrigger value="in_transit">قيد التوصيل</TabsTrigger>
+                <TabsTrigger value="completed">مكتمل</TabsTrigger>
+                <TabsTrigger value="cancelled">ملغي</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="all" className="mt-0">
+                <OrdersTable orders={filteredOrders} status="all" onViewOrder={handleViewOrder} />
+              </TabsContent>
+              
+              <TabsContent value="pending" className="mt-0">
+                <OrdersTable orders={filteredOrders} status="pending" onViewOrder={handleViewOrder} />
+              </TabsContent>
+              
+              <TabsContent value="approved" className="mt-0">
+                <OrdersTable orders={filteredOrders} status="approved" onViewOrder={handleViewOrder} />
+              </TabsContent>
+              
+              <TabsContent value="in_transit" className="mt-0">
+                <OrdersTable orders={filteredOrders} status="in_transit" onViewOrder={handleViewOrder} />
+              </TabsContent>
+              
+              <TabsContent value="completed" className="mt-0">
+                <OrdersTable orders={filteredOrders} status="completed" onViewOrder={handleViewOrder} />
+              </TabsContent>
+              
+              <TabsContent value="cancelled" className="mt-0">
+                <OrdersTable orders={filteredOrders} status="cancelled" onViewOrder={handleViewOrder} />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedOrder && (
+        <OrderDetails 
+          order={selectedOrder}
+          isOpen={isDetailsOpen}
+          onClose={handleCloseDetails}
+          onStatusUpdate={handleOrderStatusUpdate}
+        />
+      )}
     </div>
   );
 };
