@@ -61,7 +61,7 @@ const HowItWorks = () => {
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             {language === 'ar' 
-              ? 'أربع خطوات بسيطة لضمان توصيل آمن ومضمون للشحنات الثمينة'
+              ? 'أربع خطوات بسيطة لضمان توصيل سريع وآمن للمقتنيات الثمينة'
               : 'Four simple steps for secure and guaranteed delivery of valuable shipments'}
           </p>
         </div>
