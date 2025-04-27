@@ -25,6 +25,11 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
   const handleStatusChange = async (newStatus: 'approved' | 'rejected') => {
     setIsUpdating(true);
     try {
+      // تحقق من صحة معرف الطلب قبل إرسال الطلب
+      if (!order?.id) {
+        throw new Error('معرف الطلب غير صالح');
+      }
+
       const { error } = await supabase
         .from('orders')
         .update({
@@ -33,11 +38,14 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
         })
         .eq('id', order.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating order status:', error);
+        throw error;
+      }
       
       toast.success('تم تحديث حالة الطلب بنجاح');
-      onStatusUpdate();
-      onClose();
+      onStatusUpdate(); // تحديث قائمة الطلبات
+      onClose(); // إغلاق النافذة
     } catch (error) {
       console.error('Error updating order status:', error);
       toast.error('حدث خطأ أثناء تحديث حالة الطلب');
@@ -62,7 +70,7 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">تفاصيل الطلب #{order.id.substring(0, 8)}</DialogTitle>
+          <DialogTitle className="text-xl">تفاصيل الطلب #{order.id?.substring(0, 8) || 'غير معروف'}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
