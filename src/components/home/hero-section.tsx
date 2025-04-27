@@ -24,7 +24,7 @@ export const HeroSection = () => {
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
           {t('siteTitle')}
         </h1>
-        <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">سجل الآن واستمتع بتجربة توصيل سريعة وأمنة للمقتنيات الثمينة</p>
+        <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">Register now and enjoy a fast and secure delivery experience for your valuables.</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/register/customer">
             <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8">
