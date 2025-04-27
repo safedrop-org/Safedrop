@@ -1,3 +1,4 @@
+
 import { LanguageKey } from './language-key'; // We'll create this type file to centralize language key definition
 
 export type Translations = {
@@ -390,12 +391,12 @@ export const translations: Translations = {
     en: "Express Delivery"
   },
   termsAndConditions: {
-    ar: "Terms & Conditions / الشروط والأحكام",
-    en: "Terms & Conditions / الشروط والأحكام"
+    ar: "الشروط والأحكام",
+    en: "Terms & Conditions"
   },
   location: {
     ar: "المملكة العربية السعودية، الرياض",
-    en: " Saudi Arabia"
+    en: "Saudi Arabia"
   },
   notificationSettings: {
     ar: "إعدادات الإشعارات",
@@ -933,10 +934,6 @@ export const translations: Translations = {
     ar: "إدارة الطلبات",
     en: "Manage Orders"
   },
-  availabilityStatus: {
-    ar: "حالة الاستقبال",
-    en: "Availability Status"
-  },
   availableForOrders: {
     ar: "متاح",
     en: "Available"
@@ -978,4 +975,31 @@ export const translations: Translations = {
     en: "No orders available at the moment"
   },
   noCompletedOrders: {
-    ar: "لا توجد طلبات
+    ar: "لا توجد طلبات مكتملة",
+    en: "No completed orders"
+  },
+  withdrawEarningsQuestion: {
+    ar: "كيف يمكنني سحب أرباحي؟",
+    en: "How can I withdraw my earnings?"
+  },
+  withdrawEarningsAnswer: {
+    ar: "يمكنك طلب سحب أرباحك من خلال صفحة 'الأرباح' في لوحة التحكم، وسيتم تحويلها إلى حسابك البنكي المسجل خلال 1-3 أيام عمل.",
+    en: "You can request to withdraw your earnings through the 'Earnings' page in your dashboard, and they will be transferred to your registered bank account within 1-3 business days."
+  },
+  updateOrderStatusQuestion: {
+    ar: "كيف يمكنني تغيير حالة الطلب؟",
+    en: "How can I update an order status?"
+  },
+  updateOrderStatusAnswer: {
+    ar: "يمكنك تغيير حالة الطلب من خلال صفحة 'تفاصيل الطلب' بالضغط على زر 'تحديث الحالة'.",
+    en: "You can update the order status from the 'Order Details' page by clicking the 'Update Status' button."
+  },
+  troubleshootingQuestion: {
+    ar: "التطبيق لا يعمل كما ينبغي. ماذا أفعل؟",
+    en: "The app is not working properly. What should I do?"
+  },
+  troubleshootingAnswer: {
+    ar: "جرّب تسجيل الخروج وإعادة تسجيل الدخول أولاً. إذا استمرت المشكلة، تأكد من تحديث التطبيق للإصدار الأحدث أو تواصل مع الدعم الفني.",
+    en: "Try logging out and logging back in first. If the problem persists, make sure to update the app to the latest version or contact technical support."
+  }
+};
