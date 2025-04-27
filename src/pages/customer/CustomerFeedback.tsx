@@ -40,16 +40,38 @@ const CustomerFeedbackContent = () => {
         throw new Error('لا يمكن العثور على معرف السائق');
       }
 
+      // Check if rating already exists for this order
+      const { data: existingRating, error: checkError } = await supabase
+        .from('driver_ratings')
+        .select('id')
+        .eq('order_id', selectedOrder)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking existing rating:', checkError);
+      }
+
+      if (existingRating) {
+        toast.error('لقد قمت بالفعل بتقييم هذا الطلب');
+        setSubmitting(false);
+        return;
+      }
+
+      // Insert new rating
       const { error } = await supabase
         .from('driver_ratings')
         .insert({
           driver_id: order.driver_id,
           order_id: selectedOrder,
           rating,
-          comment: comment.trim() || null
+          comment: comment.trim() || null,
+          customer_id: user.id // Explicitly set customer_id
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error submitting rating:', error);
+        throw error;
+      }
 
       toast.success('تم إرسال تقييمك بنجاح');
       setSelectedOrder(null);
