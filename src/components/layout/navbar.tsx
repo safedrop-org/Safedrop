@@ -1,10 +1,8 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, ChevronDown, User, LogIn, Play, Box, Users, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
-
 const Navbar = () => {
   const {
     t,
@@ -21,7 +19,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center">
-                <img alt="SafeDrop" className="h-14 w-auto" src="/lovable-uploads/7dd0ecee-8381-468b-81d8-ffcbb81319f9.png" />
+                <img alt="SafeDrop" className="h-14 w-auto" src="/lovable-uploads/9ef7c6f1-f098-4830-9f86-ee33f2bfe655.png" />
               </Link>
             </div>
             <div className={`hidden md:block ${language === 'ar' ? 'mr-10' : 'ml-10'}`}>
