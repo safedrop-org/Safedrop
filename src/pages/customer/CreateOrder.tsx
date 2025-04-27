@@ -11,16 +11,27 @@ import { Package, Truck, DollarSign } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useGoogleMaps } from '@/hooks/useGoogleMaps';
+import LocationInput from '@/components/maps/LocationInput';
+import DistanceDisplay from '@/components/maps/DistanceDisplay';
 
 interface LocationType {
   address: string;
   details?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 const CreateOrder = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const { isLoaded, calculateDistance, geocodeAddress } = useGoogleMaps();
+  const [distance, setDistance] = useState<number | null>(null);
+  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
   
   const [formData, setFormData] = useState({
     pickupLocation: { address: '', details: '' } as LocationType,
@@ -37,13 +48,58 @@ const CreateOrder = () => {
     }
   }, [user, navigate]);
 
-  const handleLocationChange = (type: 'pickupLocation' | 'dropoffLocation', field: 'address' | 'details', value: string) => {
+  // Calculate distance and price when both locations have coordinates
+  useEffect(() => {
+    const calculateDistanceAndPrice = async () => {
+      if (!formData.pickupLocation.address || !formData.dropoffLocation.address) {
+        return;
+      }
+      
+      // Only calculate if both locations have actual addresses
+      if (formData.pickupLocation.address.trim() && formData.dropoffLocation.address.trim()) {
+        setIsCalculating(true);
+        try {
+          const distanceKm = await calculateDistance(
+            formData.pickupLocation.address,
+            formData.dropoffLocation.address
+          );
+          
+          if (distanceKm !== null) {
+            setDistance(distanceKm);
+            
+            // Calculate price: 10 SAR base + 1.5 SAR per km after first 2km
+            const basePrice = 10; // Base price in SAR
+            const additionalKm = Math.max(0, distanceKm - 2); // Kilometers beyond first 2km
+            const additionalPrice = additionalKm * 1.5; // 1.5 SAR per additional km
+            const totalPrice = basePrice + additionalPrice;
+            
+            setCalculatedPrice(totalPrice);
+            
+            // Update form price field with calculated price
+            setFormData(prev => ({
+              ...prev,
+              price: totalPrice.toFixed(2)
+            }));
+          } else {
+            setDistance(null);
+            setCalculatedPrice(null);
+          }
+        } catch (error) {
+          console.error('Error calculating distance:', error);
+          toast.error('فشل في حساب المسافة');
+        } finally {
+          setIsCalculating(false);
+        }
+      }
+    };
+
+    calculateDistanceAndPrice();
+  }, [formData.pickupLocation.address, formData.dropoffLocation.address, calculateDistance]);
+
+  const handleLocationChange = (type: 'pickupLocation' | 'dropoffLocation', location: LocationType) => {
     setFormData(prev => ({
       ...prev,
-      [type]: {
-        ...prev[type],
-        [field]: value
-      }
+      [type]: location
     }));
   };
 
@@ -104,11 +160,13 @@ const CreateOrder = () => {
           customer_id: user.id,
           pickup_location: {
             address: formData.pickupLocation.address,
-            details: formData.pickupLocation.details || ''
+            details: formData.pickupLocation.details || '',
+            ...(formData.pickupLocation.coordinates && { coordinates: formData.pickupLocation.coordinates })
           },
           dropoff_location: {
             address: formData.dropoffLocation.address,
-            details: formData.dropoffLocation.details || ''
+            details: formData.dropoffLocation.details || '',
+            ...(formData.dropoffLocation.coordinates && { coordinates: formData.dropoffLocation.coordinates })
           },
           package_details: formData.packageDetails,
           notes: formData.notes,
@@ -116,6 +174,7 @@ const CreateOrder = () => {
           status: 'available',
           payment_status: 'pending',
           commission_rate: 0.15, // 15% platform fee (driver gets 75% automatically)
+          distance_km: distance || null // Store the calculated distance
         }])
         .select();
 
@@ -145,107 +204,101 @@ const CreateOrder = () => {
             <Card className="p-6">
               <div className="space-y-4">
                 <label className="block text-lg font-semibold mb-2">معلومات الاستلام</label>
-                <div>
-                  <label className="block mb-1">العنوان</label>
-                  <Input
-                    value={formData.pickupLocation.address}
-                    onChange={(e) => handleLocationChange('pickupLocation', 'address', e.target.value)}
-                    placeholder="أدخل عنوان الاستلام"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1">تفاصيل إضافية</label>
-                  <Input
-                    value={formData.pickupLocation.details || ''}
-                    onChange={(e) => handleLocationChange('pickupLocation', 'details', e.target.value)}
-                    placeholder="رقم المبنى، الطابق، علامات مميزة"
-                  />
-                </div>
+                <LocationInput
+                  label="موقع الاستلام"
+                  placeholder="أدخل عنوان الاستلام"
+                  detailsPlaceholder="رقم المبنى، الطابق، علامات مميزة"
+                  value={formData.pickupLocation}
+                  onChange={(location) => handleLocationChange('pickupLocation', location)}
+                  className="space-y-4"
+                  isLoaded={isLoaded}
+                  geocodeAddress={geocodeAddress}
+                />
               </div>
             </Card>
             
             <Card className="p-6">
               <div className="space-y-4">
                 <label className="block text-lg font-semibold mb-2">معلومات التوصيل</label>
+                <LocationInput
+                  label="موقع التوصيل"
+                  placeholder="أدخل عنوان التوصيل"
+                  detailsPlaceholder="رقم المبنى، الطابق، علامات مميزة"
+                  value={formData.dropoffLocation}
+                  onChange={(location) => handleLocationChange('dropoffLocation', location)}
+                  className="space-y-4"
+                  isLoaded={isLoaded}
+                  geocodeAddress={geocodeAddress}
+                />
+              </div>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <DistanceDisplay 
+              distance={distance}
+              price={calculatedPrice}
+              isCalculating={isCalculating}
+            />
+          
+            <Card className="p-6 md:col-span-2">
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <Package className="h-5 w-5 ml-2 text-safedrop-gold" />
+                تفاصيل الشحنة
+              </h2>
+              <div className="space-y-4">
                 <div>
-                  <label className="block mb-1">العنوان</label>
-                  <Input
-                    value={formData.dropoffLocation.address}
-                    onChange={(e) => handleLocationChange('dropoffLocation', 'address', e.target.value)}
-                    placeholder="أدخل عنوان التوصيل"
+                  <Label htmlFor="price" className="block mb-1 font-medium text-gray-700">
+                    السعر (ريال)
+                  </Label>
+                  <div className="relative">
+                    <DollarSign className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <Input
+                      id="price"
+                      name="price"
+                      type="text"
+                      className="pl-10 text-left"
+                      placeholder="0.00"
+                      value={formData.price}
+                      onChange={handlePriceChange}
+                      required
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    سيحصل السائق على 75% من السعر والمنصة على 15%
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="packageDetails" className="block mb-1 font-medium text-gray-700">
+                    وصف الشحنة
+                  </Label>
+                  <Textarea
+                    id="packageDetails"
+                    name="packageDetails"
+                    placeholder="وصف المحتويات، الحجم، الوزن التقريبي"
+                    rows={3}
+                    value={formData.packageDetails}
+                    onChange={handleTextChange}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block mb-1">تفاصيل إضافية</label>
-                  <Input
-                    value={formData.dropoffLocation.details || ''}
-                    onChange={(e) => handleLocationChange('dropoffLocation', 'details', e.target.value)}
-                    placeholder="رقم المبنى، الطابق، علامات مميزة"
+                  <Label htmlFor="notes" className="block mb-1 font-medium text-gray-700">
+                    ملاحظات للسائق
+                  </Label>
+                  <Textarea
+                    id="notes"
+                    name="notes"
+                    placeholder="أي تعليمات خاصة للسائق"
+                    rows={3}
+                    value={formData.notes}
+                    onChange={handleTextChange}
                   />
                 </div>
               </div>
             </Card>
           </div>
-          
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <Package className="h-5 w-5 ml-2 text-safedrop-gold" />
-              تفاصيل الشحنة
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="price" className="block mb-1 font-medium text-gray-700">
-                  السعر (ريال)
-                </Label>
-                <div className="relative">
-                  <DollarSign className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                  <Input
-                    id="price"
-                    name="price"
-                    type="text"
-                    className="pl-10 text-left"
-                    placeholder="0.00"
-                    value={formData.price}
-                    onChange={handlePriceChange}
-                    required
-                  />
-                </div>
-                <p className="text-sm text-gray-500 mt-1">
-                  سيحصل السائق على 75% من السعر والمنصة على 15%
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="packageDetails" className="block mb-1 font-medium text-gray-700">
-                  وصف الشحنة
-                </Label>
-                <Textarea
-                  id="packageDetails"
-                  name="packageDetails"
-                  placeholder="وصف المحتويات، الحجم، الوزن التقريبي"
-                  rows={3}
-                  value={formData.packageDetails}
-                  onChange={handleTextChange}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="notes" className="block mb-1 font-medium text-gray-700">
-                  ملاحظات للسائق
-                </Label>
-                <Textarea
-                  id="notes"
-                  name="notes"
-                  placeholder="أي تعليمات خاصة للسائق"
-                  rows={3}
-                  value={formData.notes}
-                  onChange={handleTextChange}
-                />
-              </div>
-            </div>
-          </Card>
           
           <div className="flex justify-between items-center">
             <Button 
@@ -277,4 +330,3 @@ const CreateOrder = () => {
 };
 
 export default CreateOrder;
-
