@@ -4,58 +4,50 @@ import { LanguageProvider, useLanguage } from '@/components/ui/language-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import DriverSidebar from '@/components/driver/DriverSidebar';
 import { Star } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useDriverRatings } from '@/hooks/useDriverRatings';
 import { format } from 'date-fns';
 
 const DriverRatingsContent = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
-  const [ratings, setRatings] = useState<any[]>([]);
+  const { data: ratings, isLoading, error } = useDriverRatings();
   const [averageRating, setAverageRating] = useState(0);
   const [ratingStats, setRatingStats] = useState([0, 0, 0, 0, 0]);
 
   useEffect(() => {
-    const fetchRatings = async () => {
-      if (!user?.id) return;
+    if (ratings && ratings.length > 0) {
+      const avg = ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length;
+      setAverageRating(Number(avg.toFixed(1)));
 
-      try {
-        const { data, error } = await supabase
-          .from('driver_ratings')
-          .select(`
-            *,
-            orders (
-              customer_id,
-              pickup_location,
-              dropoff_location
-            )
-          `)
-          .eq('driver_id', user.id)
-          .order('created_at', { ascending: false });
+      const stats = [0, 0, 0, 0, 0];
+      ratings.forEach(rating => {
+        stats[rating.rating - 1]++;
+      });
+      setRatingStats(stats);
+    }
+  }, [ratings]);
 
-        if (error) throw error;
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-gray-50">
+        <DriverSidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-lg">جاري التحميل...</div>
+        </div>
+      </div>
+    );
+  }
 
-        setRatings(data || []);
-
-        // Calculate average rating
-        if (data && data.length > 0) {
-          const avg = data.reduce((acc, curr) => acc + curr.rating, 0) / data.length;
-          setAverageRating(Number(avg.toFixed(1)));
-
-          // Calculate rating stats
-          const stats = [0, 0, 0, 0, 0];
-          data.forEach(rating => {
-            stats[rating.rating - 1]++;
-          });
-          setRatingStats(stats);
-        }
-      } catch (error) {
-        console.error('Error fetching ratings:', error);
-      }
-    };
-
-    fetchRatings();
-  }, [user]);
+  if (error) {
+    console.error("Error loading ratings:", error);
+    return (
+      <div className="flex h-screen bg-gray-50">
+        <DriverSidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-lg text-red-500">حدث خطأ أثناء تحميل التقييمات</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -84,10 +76,11 @@ const DriverRatingsContent = () => {
                 <div className="space-y-4">
                   {[5, 4, 3, 2, 1].map((stars, index) => {
                     const count = ratingStats[stars - 1];
-                    const percentage = ratings.length > 0 ? (count / ratings.length) * 100 : 0;
+                    const percentage = ratings && ratings.length > 0 ? (count / ratings.length) * 100 : 0;
                     
                     return (
                       <div key={stars} className="flex items-center">
+                        <span className="ml-2 w-12 text-sm">{stars} نجوم</span>
                         <div className="flex-1">
                           <div className="h-2 bg-gray-200 rounded">
                             <div 
@@ -96,7 +89,7 @@ const DriverRatingsContent = () => {
                             />
                           </div>
                         </div>
-                        <span className="ml-2 w-12 text-sm">{stars} نجوم</span>
+                        <span className="mr-2 text-sm text-gray-500">{count}</span>
                       </div>
                     );
                   })}
@@ -110,7 +103,7 @@ const DriverRatingsContent = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {ratings.map((rating) => (
+                  {ratings && ratings.map((rating) => (
                     <div key={rating.id} className="border-b border-gray-200 pb-4 last:border-0">
                       <div className="flex justify-between items-start mb-2">
                         <div>
@@ -126,7 +119,10 @@ const DriverRatingsContent = () => {
                               />
                             ))}
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">طلب #{rating.order_id}</p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {rating.customer?.first_name} {rating.customer?.last_name}
+                          </p>
+                          <p className="text-sm text-gray-600">طلب #{rating.order_id}</p>
                         </div>
                         <span className="text-sm text-gray-500">
                           {format(new Date(rating.created_at), 'dd/MM/yyyy')}
@@ -137,6 +133,12 @@ const DriverRatingsContent = () => {
                       )}
                     </div>
                   ))}
+
+                  {ratings && ratings.length === 0 && (
+                    <div className="text-center text-gray-500 py-8">
+                      لا توجد تقييمات بعد
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
