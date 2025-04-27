@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +92,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
       const { error } = await supabase
         .from('orders')
         .update({ 
-          status: 'five_minutes_away',
+          status: 'approved', 
           driver_location: driverLocation 
         })
         .eq('id', order.id);
