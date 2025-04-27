@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 const DriverNotificationsContent = () => {
   const { t } = useLanguage();
@@ -80,9 +81,12 @@ const DriverNotificationsContent = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-between items-center">
               <h1 className="text-xl font-bold text-gray-900">الإشعارات</h1>
-              <Button variant="outline" size="sm" onClick={markAllAsRead}>
-                تحديد الكل كمقروء
-              </Button>
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <Button variant="outline" size="sm" onClick={markAllAsRead}>
+                  تحديد الكل كمقروء
+                </Button>
+              </div>
             </div>
           </div>
         </header>
@@ -131,7 +135,11 @@ const DriverNotificationsContent = () => {
 const DriverNotifications = () => {
   return (
     <LanguageProvider>
-      <DriverNotificationsContent />
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <DriverNotificationsContent />
+        </div>
+      </SidebarProvider>
     </LanguageProvider>
   );
 };

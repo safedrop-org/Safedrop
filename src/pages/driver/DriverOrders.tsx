@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import OrderDetailsCard from '@/components/driver/OrderDetailsCard';
 import { useQueryClient } from '@tanstack/react-query';
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 const DriverOrdersContent = () => {
   const { t } = useLanguage();
@@ -346,7 +347,11 @@ const DriverOrdersContent = () => {
 const DriverOrders = () => {
   return (
     <LanguageProvider>
-      <DriverOrdersContent />
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <DriverOrdersContent />
+        </div>
+      </SidebarProvider>
     </LanguageProvider>
   );
 };
