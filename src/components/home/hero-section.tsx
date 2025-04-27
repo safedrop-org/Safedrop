@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -5,15 +6,13 @@ import { useLanguage } from '@/components/ui/language-context';
 
 export const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
     }
   }, []);
-
-  const { t } = useLanguage();
   
   return <div className="relative min-h-[85vh] flex items-center justify-center">
       <div className="absolute inset-0 w-full h-full overflow-hidden bg-gray-800">
