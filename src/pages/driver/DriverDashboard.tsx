@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 type Notification = {
   id: number;
@@ -340,7 +341,10 @@ const DriverDashboardContent = () => {
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">لوحة تحكم السائق</h1>
+            <div className="flex justify-between items-center">
+              <h1 className="text-xl font-bold text-gray-900">لوحة تحكم السائق</h1>
+              <SidebarTrigger />
+            </div>
           </div>
         </header>
 
@@ -572,7 +576,11 @@ const DriverDashboardContent = () => {
 const DriverDashboard = () => {
   return (
     <LanguageProvider>
-      <DriverDashboardContent />
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <DriverDashboardContent />
+        </div>
+      </SidebarProvider>
     </LanguageProvider>
   );
 };

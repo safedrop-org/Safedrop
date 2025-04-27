@@ -1,73 +1,15 @@
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DollarSign, TrendingUp, Clock, Download, Calendar } from 'lucide-react';
 import DriverSidebar from '@/components/driver/DriverSidebar';
-import { DollarSign, TrendingUp, Calendar, ArrowUpRight } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { format } from 'date-fns';
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 const DriverEarningsContent = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
-  const [earnings, setEarnings] = useState<any[]>([]);
-  const [summary, setSummary] = useState({
-    today: 0,
-    weekly: 0,
-    monthly: 0
-  });
-
-  useEffect(() => {
-    const fetchEarnings = async () => {
-      if (!user?.id) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('driver_earnings')
-          .select('*')
-          .eq('driver_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        setEarnings(data || []);
-
-        // Calculate summaries
-        const now = new Date();
-        const today = now.toISOString().split('T')[0];
-        const weekStart = new Date(now.setDate(now.getDate() - 7)).toISOString();
-        const monthStart = new Date(now.setDate(now.getDate() - 30)).toISOString();
-
-        const todayEarnings = data?.filter(e => e.created_at.startsWith(today))
-          .reduce((sum, e) => sum + Number(e.amount), 0);
-
-        const weeklyEarnings = data?.filter(e => e.created_at >= weekStart)
-          .reduce((sum, e) => sum + Number(e.amount), 0);
-
-        const monthlyEarnings = data?.filter(e => e.created_at >= monthStart)
-          .reduce((sum, e) => sum + Number(e.amount), 0);
-
-        setSummary({
-          today: todayEarnings,
-          weekly: weeklyEarnings,
-          monthly: monthlyEarnings
-        });
-
-      } catch (error) {
-        console.error('Error fetching earnings:', error);
-      }
-    };
-
-    fetchEarnings();
-  }, [user]);
-
-  // Prepare chart data
-  const chartData = earnings.slice(0, 7).map(earning => ({
-    name: format(new Date(earning.created_at), 'dd/MM'),
-    amount: Number(earning.amount)
-  })).reverse();
+  const [activeTab, setActiveTab] = useState('overview');
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -76,97 +18,131 @@ const DriverEarningsContent = () => {
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">الأرباح</h1>
+            <div className="flex justify-between items-center">
+              <h1 className="text-xl font-bold text-gray-900">الأرباح</h1>
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <Download className="h-4 w-4" />
+                  <span>تصدير التقرير</span>
+                </Button>
+              </div>
+            </div>
           </div>
         </header>
 
         <main className="flex-1 overflow-auto p-4">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-500">الأرباح اليوم</p>
-                      <p className="text-2xl font-bold mt-1">{summary.today} ريال</p>
-                    </div>
-                    <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
-                      <DollarSign className="h-6 w-6 text-green-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-500">الأرباح هذا الأسبوع</p>
-                      <p className="text-2xl font-bold mt-1">{summary.weekly} ريال</p>
-                    </div>
-                    <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-                      <TrendingUp className="h-6 w-6 text-blue-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-500">الأرباح هذا الشهر</p>
-                      <p className="text-2xl font-bold mt-1">{summary.monthly} ريال</p>
-                    </div>
-                    <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
-                      <Calendar className="h-6 w-6 text-purple-600" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>تحليل الأرباح</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="amount" stroke="#4f46e5" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>آخر المعاملات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {earnings.slice(0, 5).map((earning) => (
-                    <div key={earning.id} className="flex items-center justify-between p-4 border-b last:border-0">
-                      <div>
-                        <p className="font-medium">طلب #{earning.order_id}</p>
-                        <p className="text-sm text-gray-500">
-                          {format(new Date(earning.created_at), 'dd/MM/yyyy HH:mm')}
-                        </p>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="w-full grid grid-cols-2 mb-6">
+                <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+                <TabsTrigger value="details">تفاصيل الأرباح</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      <span>ملخص الأرباح</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-600">إجمالي الأرباح</p>
+                        <p className="font-medium">5,250 ر.س</p>
                       </div>
-                      <span className="text-green-600 font-medium">
-                        +{earning.amount} ريال
-                      </span>
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-600">عمولة المنصة (15%)</p>
+                        <p className="font-medium">787.50 ر.س</p>
+                      </div>
+                      <div className="border-t pt-3 mt-3">
+                        <div className="flex items-center justify-between font-medium">
+                          <p>الرصيد المتاح</p>
+                          <p>4,462.50 ر.س</p>
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Clock className="h-5 w-5" />
+                      <span>المدفوعات المعلقة</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-500">لا توجد مدفوعات معلقة حالياً</p>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="details">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <DollarSign className="h-5 w-5" />
+                      <span>سجل الأرباح</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full leading-normal">
+                        <thead>
+                          <tr>
+                            <th className="px-5 py-3 border-b-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              تاريخ الطلب
+                            </th>
+                            <th className="px-5 py-3 border-b-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              رقم الطلب
+                            </th>
+                            <th className="px-5 py-3 border-b-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              المبلغ
+                            </th>
+                            <th className="px-5 py-3 border-b-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              الحالة
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="px-5 py-5 border-b text-sm">
+                              2024-07-15
+                            </td>
+                            <td className="px-5 py-5 border-b text-sm">
+                              #12345
+                            </td>
+                            <td className="px-5 py-5 border-b text-sm">
+                              50 ر.س
+                            </td>
+                            <td className="px-5 py-5 border-b text-sm">
+                              تم الدفع
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="px-5 py-5 border-b text-sm">
+                              2024-07-14
+                            </td>
+                            <td className="px-5 py-5 border-b text-sm">
+                              #12344
+                            </td>
+                            <td className="px-5 py-5 border-b text-sm">
+                              75 ر.س
+                            </td>
+                            <td className="px-5 py-5 border-b text-sm">
+                              تم الدفع
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
       </div>
@@ -177,7 +153,11 @@ const DriverEarningsContent = () => {
 const DriverEarnings = () => {
   return (
     <LanguageProvider>
-      <DriverEarningsContent />
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <DriverEarningsContent />
+        </div>
+      </SidebarProvider>
     </LanguageProvider>
   );
 };
