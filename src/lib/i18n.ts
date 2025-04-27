@@ -12,7 +12,7 @@ export const translations: Translations = {
     en: "SafeDrop"
   },
   tagline: {
-    ar: "سجل الآن واستمتع بتجربة توصيل سريعة وأمنة للمقتنيات الثمينة",
+    ar: "سجل الآن واستمتع بتجربة توصيل سريعة وآمنة للمقتنيات الثمينة",
     en: "Register now and enjoy a fast and secure delivery experience for your valuables"
   },
   getStarted: {

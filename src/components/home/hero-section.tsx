@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -14,6 +13,8 @@ export const HeroSection = () => {
     }
   }, []);
 
+  const { t } = useLanguage();
+  
   return <div className="relative min-h-[85vh] flex items-center justify-center">
       <div className="absolute inset-0 w-full h-full overflow-hidden bg-gray-800">
         <video ref={videoRef} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" poster="https://images.unsplash.com/photo-1566576912333-261b896ef5cd?q=80&w=2070&auto=format&fit=crop">
@@ -24,7 +25,7 @@ export const HeroSection = () => {
 
       <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
-          {t('heroTitle')}
+          {t('siteTitle')}
         </h1>
         <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">
           {t('tagline')}
