@@ -4,6 +4,7 @@ import Footer from '@/components/layout/footer';
 import { Shield, Truck, Package, Clock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+
 const ServicesContent = () => {
   const {
     t
@@ -113,22 +114,23 @@ const ServicesContent = () => {
                     <Truck className="h-7 w-7 text-safedrop-gold" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">
-                </h3>
+                    {t('verifiedDrivers')}
+                  </h3>
                   <p className="text-gray-600 mb-4">
-                </p>
+                    {t('verifiedDriversDescription')}
+                  </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>
-                    </span>
+                      <span>{t('licenseVerification')}</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>أولوية في التنفيذ</span>
+                      <span>{t('executionPriority')}</span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>مناسب للطلبات المستعجلة</span>
+                      <span>{t('suitableForUrgentOrders')}</span>
                     </li>
                   </ul>
                 </div>
@@ -158,9 +160,11 @@ const ServicesContent = () => {
       <Footer />
     </div>;
 };
+
 const Services = () => {
   return <LanguageProvider>
       <ServicesContent />
     </LanguageProvider>;
 };
+
 export default Services;

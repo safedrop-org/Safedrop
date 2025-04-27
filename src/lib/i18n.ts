@@ -466,6 +466,122 @@ export const translations: Translations = {
   saveChanges: {
     ar: "حفظ التغييرات",
     en: "Save Changes"
+  },
+  verifiedDrivers: {
+    ar: "سائقون معتمدون",
+    en: "Verified Drivers"
+  },
+  verifiedDriversDescription: {
+    ar: "كل السائقين في منصتنا يمرون بعملية تحقق شاملة من بياناتهم ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
+    en: "All drivers on our platform undergo a comprehensive verification process of their credentials and licenses before acceptance. We ensure you deal with reliable and highly competent individuals."
+  },
+  licenseVerification: {
+    ar: "تحقق من الرخصة والهوية",
+    en: "License and ID verification"
+  },
+  executionPriority: {
+    ar: "أولوية في التنفيذ",
+    en: "Priority in execution"
+  },
+  suitableForUrgentOrders: {
+    ar: "مناسب للطلبات المستعجلة",
+    en: "Suitable for urgent orders"
+  },
+  aboutHero: {
+    ar: "من نحن",
+    en: "About Us"
+  },
+  aboutDescription: {
+    ar: "سيف دروب هي منصة متخصصة في توفير خدمات توصيل سريع وآمن للمقتنيات الثمينة",
+    en: "SafeDrop is a specialized platform providing fast and secure delivery services for valuable items"
+  },
+  ourStory: {
+    ar: "قصتنا",
+    en: "Our Story"
+  },
+  ourStoryDescription1: {
+    ar: "جاءت فكرتنا من حاجة حقيقية لنظام توصيل يحمي الممتلكات الشخصية ويوفر للناس راحة البال. أردنا تقديم تجربة مختلفة، أكثر أمانًا وشفافية من الطرق التقليدية.",
+    en: "Our idea came from a real need for a delivery system that protects personal property and provides people with peace of mind. We wanted to offer a different experience, more secure and transparent than traditional methods."
+  },
+  ourStoryDescription2: {
+    ar: "أنشأنا SafeDrop لنكون حلًا موثوقًا لكل من يحتاج إلى توصيل آمن وسهل. اعتمدنا على البساطة، الوضوح، ونظام حماية مالي لضمان حقوق الجميع.",
+    en: "We created SafeDrop to be a reliable solution for anyone who needs secure and easy delivery. We relied on simplicity, clarity, and a financial protection system to ensure everyone's rights."
+  },
+  ourValues: {
+    ar: "قيمنا",
+    en: "Our Values"
+  },
+  ourValuesDescription: {
+    ar: "المبادئ التي نعمل بها كل يوم",
+    en: "The principles we work with every day"
+  },
+  security: {
+    ar: "الأمان",
+    en: "Security"
+  },
+  securityDescription: {
+    ar: "نضع أمان العملاء والمنتجات في مقدمة أولوياتنا. نتخذ كافة الإجراءات لضمان حماية كاملة.",
+    en: "We put customer and product safety at the forefront of our priorities. We take all measures to ensure complete protection."
+  },
+  quality: {
+    ar: "الجودة",
+    en: "Quality"
+  },
+  qualityDescription: {
+    ar: "نلتزم بتقديم خدمة عالية الجودة في كل تفاصيلها، من اختيار السائقين إلى تسليم الشحنات.",
+    en: "We are committed to providing high-quality service in all its details, from selecting drivers to delivering shipments."
+  },
+  transparency: {
+    ar: "الشفافية",
+    en: "Transparency"
+  },
+  transparencyDescription: {
+    ar: "نؤمن بالشفافية التامة في تعاملاتنا. نوفر متابعة مستمرة ومعلومات واضحة في كل مرحلة.",
+    en: "We believe in complete transparency in our dealings. We provide continuous monitoring and clear information at every stage."
+  },
+  innovation: {
+    ar: "الابتكار",
+    en: "Innovation"
+  },
+  innovationDescription: {
+    ar: "نسعى دائماً لتطوير خدماتنا وتقديم حلول مبتكرة تلبي احتياجات عملائنا المتنوعة.",
+    en: "We always strive to develop our services and provide innovative solutions that meet the diverse needs of our customers."
+  },
+  sendMessage: {
+    ar: "أرسل لنا رسالة",
+    en: "Send us a message"
+  },
+  fullName: {
+    ar: "الاسم الكامل",
+    en: "Full Name"
+  },
+  messageSubject: {
+    ar: "موضوع الرسالة",
+    en: "Message Subject"
+  },
+  messageContent: {
+    ar: "الرسالة",
+    en: "Message"
+  },
+  messageSent: {
+    ar: "تم إرسال رسالتك بنجاح",
+    en: "Your message has been sent successfully"
+  },
+  messageWillReply: {
+    ar: "سنتواصل معك في أقرب وقت ممكن",
+    en: "We will contact you as soon as possible"
+  },
+  sending: {
+    ar: "جاري الإرسال...",
+    en: "Sending..."
+  },
+  workingHours: {
+    ar: "ساعات العمل",
+    en: "Working Hours"
+  },
+  workingDays: {
+    ar: "الأحد - السبت : 9:00 ص - 9:00 م",
+    en: "Sunday - Saturday: 9:00 AM - 9:00 PM"
   }
 };
 

@@ -17,14 +17,17 @@ interface LanguageProviderProps {
 import { translations } from '@/lib/i18n';
 
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
-  const [language, setLanguage] = useState<LanguageKey>('ar');
+  const [language, setLanguage] = useState<LanguageKey>(() => {
+    const savedLanguage = localStorage.getItem('preferred-language');
+    return (savedLanguage === 'en' || savedLanguage === 'ar') ? savedLanguage : 'ar';
+  });
 
   useEffect(() => {
+    localStorage.setItem('preferred-language', language);
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
   }, [language]);
 
-  // Translation function
   const t = (key: string) => {
     if (!translations[key]) {
       console.warn(`Translation for key "${key}" not found`);
