@@ -1,154 +1,155 @@
+
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import DriverSidebar from '@/components/driver/DriverSidebar';
-import { useProfile } from '@/hooks/useProfile';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { ImageIcon, User2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 const DriverProfileContent = () => {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const { user } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('personal');
-  const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState({
-    full_name: '',
-    email: '',
-    phone_number: '',
-    city: '',
-    national_id: '',
-    license_number: '',
-    license_expiry: '',
-    national_id_expiry: '',
-    iban: '',
-    bank_name: '',
-    profile_image_url: '',
-  });
-  const [tempProfileImage, setTempProfileImage] = useState<string | null>(null);
-  const [newProfileImage, setNewProfileImage] = useState<File | null>(null);
 
-  const { data: initialProfileData, isLoading, error, mutate } = useProfile();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    vehicle_model: '',
+    vehicle_year: '',
+    license_number: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState('');
+
+  const { data: profileData, isLoading, error, refetch } = useQuery({
+    queryKey: ['driver-profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('drivers')
+        .select('*, profiles(*)')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
 
   useEffect(() => {
-    if (initialProfileData) {
-      setProfileData({
-        ...initialProfileData,
-        license_expiry: initialProfileData.license_expiry || '',
-        national_id_expiry: initialProfileData.national_id_expiry || '',
-        profile_image_url: initialProfileData.profile_image_url || '',
+    if (profileData) {
+      setFormData({
+        name: profileData.profiles?.full_name || '',
+        email: profileData.profiles?.email || '',
+        phone: profileData.phone || '',
+        vehicle_model: profileData.vehicle_model || '',
+        vehicle_year: profileData.vehicle_year || '',
+        license_number: profileData.license_number || '',
       });
-    }
-  }, [initialProfileData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      if (profileData.profiles?.avatar_url) {
+        setAvatarUrl(profileData.profiles.avatar_url);
+      }
+    }
+  }, [profileData]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setProfileData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setNewProfileImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setTempProfileImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = async () => {
-    try {
-      if (!user?.id) {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 2 * 1024 * 1024) {
         toast({
-          title: "Error",
-          description: "User ID not found. Please log in again.",
+          title: "حجم الملف كبير جداً",
+          description: "يرجى اختيار صورة بحجم أقل من 2 ميجابايت",
           variant: "destructive",
         });
         return;
       }
-
-      const updates = {
-        ...profileData,
-        id: user.id,
-      };
-
-      if (newProfileImage) {
-        const { data, error: storageError } = await supabase.storage
-          .from('avatars')
-          .upload(`${user.id}/${newProfileImage.name}`, newProfileImage, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (storageError) {
-          console.error("Error uploading image:", storageError);
-          toast({
-            title: "Error",
-            description: "Failed to upload profile image.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        const profile_image_url = `${supabase.storageUrl}/avatars/${data?.path}`;
-        updates.profile_image_url = profile_image_url;
-      }
-
-      await mutate(updates);
-
-      toast({
-        title: "Success",
-        description: "Profile updated successfully!",
-      });
-      setIsEditing(false);
-    } catch (err: any) {
-      console.error("Error updating profile:", err);
-      toast({
-        title: "Error",
-        description: err.message || "Failed to update profile.",
-        variant: "destructive",
-      });
+      setAvatar(file);
+      setAvatarUrl(URL.createObjectURL(file));
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-safedrop-primary mx-auto"></div>
-          <h2 className="text-2xl font-bold">{t('loading') || 'جاري التحميل...'}</h2>
-        </div>
-      </div>
-    );
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <ImageIcon className="h-16 w-16 text-red-500 mx-auto" />
-          <h2 className="text-2xl font-bold">Error Loading Data</h2>
-          <p className="text-gray-600">Failed to load profile data. Please try again.</p>
-          <Button onClick={() => window.location.reload()}>Refresh Page</Button>
-        </div>
-      </div>
-    );
-  }
+    try {
+      // Update profile information
+      const profileUpdates = {
+        phone: formData.phone,
+        vehicle_model: formData.vehicle_model,
+        vehicle_year: formData.vehicle_year,
+        license_number: formData.license_number,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error: profileError } = await supabase
+        .from('drivers')
+        .update(profileUpdates)
+        .eq('id', user?.id);
+
+      if (profileError) throw profileError;
+
+      // Upload avatar if changed
+      if (avatar) {
+        const filePath = `avatars/${user?.id}/${Date.now()}-${avatar.name}`;
+        
+        const { error: uploadError } = await supabase
+          .storage
+          .from('profiles')
+          .upload(filePath, avatar);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = await supabase
+          .storage
+          .from('profiles')
+          .getPublicUrl(filePath);
+
+        // Update avatar URL in the profile
+        const { error: avatarError } = await supabase
+          .from('profiles')
+          .update({ avatar_url: data.publicUrl })
+          .eq('id', user?.id);
+
+        if (avatarError) throw avatarError;
+      }
+
+      toast({
+        title: "تم تحديث الملف الشخصي بنجاح",
+        variant: "default",
+        className: "bg-green-500 text-white",
+      });
+
+      // Refresh data
+      refetch();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "فشل تحديث الملف الشخصي",
+        description: "حدث خطأ أثناء تحديث البيانات",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -165,207 +166,146 @@ const DriverProfileContent = () => {
         </header>
 
         <main className="flex-1 overflow-auto p-4">
-          <div className="max-w-4xl mx-auto">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full grid grid-cols-2 mb-6">
-                <TabsTrigger value="personal">المعلومات الشخصية</TabsTrigger>
-                <TabsTrigger value="documents">الوثائق</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="personal" className="space-y-6">
+          <div className="max-w-3xl mx-auto space-y-6">
+            {isLoading ? (
+              <Card>
+                <CardContent className="p-4 flex justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-safedrop-primary"></div>
+                </CardContent>
+              </Card>
+            ) : error ? (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-red-500">حدث خطأ أثناء تحميل البيانات. يرجى المحاولة مرة أخرى.</div>
+                  <Button onClick={() => refetch()} className="mt-2">إعادة المحاولة</Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <form onSubmit={handleSubmit}>
                 <Card>
-                  <CardHeader>
-                    <CardTitle>
-                      {isEditing ? 'تعديل المعلومات الشخصية' : 'معلوماتك الشخصية'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-center mb-4">
-                      <Avatar className="h-24 w-24">
-                        {tempProfileImage ? (
-                          <AvatarImage src={tempProfileImage} alt="Profile" />
-                        ) : profileData.profile_image_url ? (
-                          <AvatarImage src={profileData.profile_image_url} alt="Profile" />
-                        ) : (
-                          <AvatarFallback><User2 className="h-8 w-8" /></AvatarFallback>
-                        )}
-                      </Avatar>
-                    </div>
-                    {isEditing && (
-                      <div className="flex justify-center">
-                        <label htmlFor="profile-image-upload" className="cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="space-y-6">
+                      {/* Avatar Section */}
+                      <div className="flex flex-col items-center space-y-4">
+                        <div className="h-32 w-32 rounded-full overflow-hidden border-4 border-gray-200">
+                          {avatarUrl ? (
+                            <img 
+                              src={avatarUrl} 
+                              alt="Profile" 
+                              className="h-full w-full object-cover" 
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gray-200 flex items-center justify-center text-gray-400">
+                              <svg className="h-16 w-16" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div>
                           <Input
                             type="file"
-                            id="profile-image-upload"
+                            id="avatar"
                             accept="image/*"
+                            onChange={handleFileChange}
                             className="hidden"
-                            onChange={handleImageChange}
                           />
-                          <Button variant="secondary" size="sm">
+                          <label 
+                            htmlFor="avatar" 
+                            className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                          >
                             تغيير الصورة
-                          </Button>
-                        </label>
+                          </label>
+                        </div>
                       </div>
-                    )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="full_name">الاسم الكامل</Label>
-                        <Input
-                          type="text"
-                          id="full_name"
-                          name="full_name"
-                          value={profileData.full_name}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                        />
+                      
+                      {/* Basic Information */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل</label>
+                          <Input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            value={formData.name} 
+                            onChange={handleChange} 
+                            disabled
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
+                          <Input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            value={formData.email} 
+                            onChange={handleChange} 
+                            disabled
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">رقم الجوال</label>
+                          <Input 
+                            type="tel" 
+                            id="phone" 
+                            name="phone" 
+                            value={formData.phone} 
+                            onChange={handleChange}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <Label htmlFor="email">البريد الإلكتروني</Label>
-                        <Input
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={profileData.email}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                        />
+                      
+                      {/* Vehicle Information */}
+                      <div className="border-t pt-6 mt-6">
+                        <h3 className="text-lg font-medium mb-4">معلومات المركبة</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label htmlFor="vehicle_model" className="block text-sm font-medium text-gray-700 mb-1">طراز المركبة</label>
+                            <Input 
+                              type="text" 
+                              id="vehicle_model" 
+                              name="vehicle_model" 
+                              value={formData.vehicle_model} 
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="vehicle_year" className="block text-sm font-medium text-gray-700 mb-1">سنة الصنع</label>
+                            <Input 
+                              type="text" 
+                              id="vehicle_year" 
+                              name="vehicle_year" 
+                              value={formData.vehicle_year} 
+                              onChange={handleChange}
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="license_number" className="block text-sm font-medium text-gray-700 mb-1">رقم رخصة القيادة</label>
+                            <Input 
+                              type="text" 
+                              id="license_number" 
+                              name="license_number" 
+                              value={formData.license_number} 
+                              onChange={handleChange}
+                            />
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="phone_number">رقم الهاتف</Label>
-                        <Input
-                          type="tel"
-                          id="phone_number"
-                          name="phone_number"
-                          value={profileData.phone_number}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="city">المدينة</Label>
-                        <Input
-                          type="text"
-                          id="city"
-                          name="city"
-                          value={profileData.city}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                        />
+
+                      <div className="flex justify-end mt-6">
+                        <Button 
+                          type="submit" 
+                          className="bg-safedrop-primary hover:bg-safedrop-primary/90"
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
-
-              <TabsContent value="documents" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>معلومات الوثائق</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="national_id">رقم الهوية الوطنية</Label>
-                        <Input
-                          type="text"
-                          id="national_id"
-                          name="national_id"
-                          value={profileData.national_id}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="national_id_expiry">تاريخ انتهاء الهوية الوطنية</Label>
-                        <Input
-                          type="date"
-                          id="national_id_expiry"
-                          name="national_id_expiry"
-                          value={profileData.national_id_expiry}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="license_number">رقم رخصة القيادة</Label>
-                        <Input
-                          type="text"
-                          id="license_number"
-                          name="license_number"
-                          value={profileData.license_number}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="license_expiry">تاريخ انتهاء رخصة القيادة</Label>
-                        <Input
-                          type="date"
-                          id="license_expiry"
-                          name="license_expiry"
-                          value={profileData.license_expiry}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>المعلومات المالية</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="iban">رقم الحساب المصرفي (IBAN)</Label>
-                        <Input
-                          type="text"
-                          id="iban"
-                          name="iban"
-                          value={profileData.iban}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="bank_name">اسم البنك</Label>
-                        <Input
-                          type="text"
-                          id="bank_name"
-                          name="bank_name"
-                          value={profileData.bank_name}
-                          onChange={handleChange}
-                          disabled={!isEditing}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex justify-end mt-4">
-              {isEditing ? (
-                <div className="space-x-2">
-                  <Button variant="ghost" onClick={() => setIsEditing(false)}>
-                    إلغاء
-                  </Button>
-                  <Button onClick={handleSubmit} className="bg-safedrop-primary hover:bg-safedrop-primary/90">
-                    حفظ التغييرات
-                  </Button>
-                </div>
-              ) : (
-                <Button onClick={() => setIsEditing(true)} className="bg-safedrop-primary hover:bg-safedrop-primary/90">
-                  تعديل الملف الشخصي
-                </Button>
-              )}
-            </div>
+              </form>
+            )}
           </div>
         </main>
       </div>
