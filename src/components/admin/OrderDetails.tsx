@@ -11,13 +11,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface OrderDetailsProps {
   order: any;
@@ -28,9 +21,8 @@ interface OrderDetailsProps {
 
 export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDetailsProps) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState(order.status);
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: 'approved' | 'rejected') => {
     setIsUpdating(true);
     try {
       const { error } = await supabase
@@ -68,7 +60,7 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">تفاصيل الطلب #{order.id.substring(0, 8)}</DialogTitle>
         </DialogHeader>
@@ -93,25 +85,41 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">حالة الطلب</h3>
             <div className="space-y-2">
-              <Select onValueChange={setSelectedStatus} defaultValue={order.status}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="اختر حالة الطلب" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">قيد الإنتظار</SelectItem>
-                  <SelectItem value="approved">مقبول</SelectItem>
-                  <SelectItem value="rejected">مرفوض</SelectItem>
-                  <SelectItem value="in_transit">قيد التوصيل</SelectItem>
-                  <SelectItem value="completed">مكتمل</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                onClick={() => handleStatusChange(selectedStatus)}
-                disabled={isUpdating || selectedStatus === order.status}
-                className="w-full mt-2"
+              <Badge 
+                variant="outline"
+                className={
+                  order.status === "completed" ? "bg-green-100 text-green-800 border-green-200" :
+                  order.status === "approved" ? "bg-blue-100 text-blue-800 border-blue-200" :
+                  order.status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                  order.status === "rejected" ? "bg-red-100 text-red-800 border-red-200" :
+                  "bg-gray-100 text-gray-800 border-gray-200"
+                }
               >
-                تحديث الحالة
-              </Button>
+                {order.status === "completed" ? "مكتمل" :
+                 order.status === "approved" ? "موافق عليه" :
+                 order.status === "pending" ? "قيد الانتظار" :
+                 order.status === "rejected" ? "مرفوض" :
+                 order.status}
+              </Badge>
+              
+              {order.status === "pending" && (
+                <div className="flex gap-2 mt-4">
+                  <Button 
+                    onClick={() => handleStatusChange('approved')}
+                    disabled={isUpdating}
+                    variant="default"
+                  >
+                    قبول الطلب
+                  </Button>
+                  <Button 
+                    onClick={() => handleStatusChange('rejected')}
+                    disabled={isUpdating}
+                    variant="destructive"
+                  >
+                    رفض الطلب
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
