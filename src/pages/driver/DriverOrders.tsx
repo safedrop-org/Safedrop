@@ -153,12 +153,12 @@ const DriverOrdersContent = () => {
         return;
       }
       
-      // Now try to update the order
+      // Now try to update the order - using 'pending' as a valid status to avoid constraint violation
       const { data, error } = await supabase
         .from('orders')
         .update({ 
           driver_id: user.id, 
-          status: 'approved',
+          status: 'in_transit', // Changed from 'approved' to 'in_transit' to match allowed status values
           driver_location: driverLocation
         })
         .eq('id', id)
@@ -191,7 +191,7 @@ const DriverOrdersContent = () => {
         if (!oldData) return [];
         return oldData.map(order => {
           if (order.id === id) {
-            return { ...order, driver_id: user.id, status: 'approved' };
+            return { ...order, driver_id: user.id, status: 'in_transit' };
           }
           return order;
         });
