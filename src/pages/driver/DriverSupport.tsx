@@ -22,18 +22,7 @@ const DriverSupportContent = () => {
         <main className="flex-1 overflow-auto p-4">
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                      <MessageSquare className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <h3 className="font-medium mb-2">المحادثة المباشرة</h3>
-                    <p className="text-sm text-gray-500 mb-4">متاح على مدار الساعة</p>
-                    <Button className="w-full">بدء المحادثة</Button>
-                  </div>
-                </CardContent>
-              </Card>
+              
 
               <Card>
                 <CardContent className="p-6">
