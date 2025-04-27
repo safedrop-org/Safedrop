@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -34,7 +33,6 @@ const DriverDashboardContent = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       
-      // Fetch driver data and user profile separately and then combine them
       const { data: driver, error: driverError } = await supabase
         .from('drivers')
         .select('*')
@@ -46,7 +44,6 @@ const DriverDashboardContent = () => {
         throw driverError;
       }
       
-      // Fetch profile data separately
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -58,7 +55,6 @@ const DriverDashboardContent = () => {
         throw profileError;
       }
       
-      // Combine the data
       return { ...driver, profile };
     },
     enabled: !!user?.id
@@ -376,7 +372,10 @@ const DriverDashboardContent = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-500">التقييم العام</p>
-                      <div className="flex items-center">
+                      <div 
+                        className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => navigate('/driver/ratings')}
+                      >
                         <h3 className="text-2xl font-bold">{(ratingData || 0).toFixed(1)}</h3>
                         <div className="text-yellow-500 ml-2 text-lg">
                           {Array(5).fill(0).map((_, i) => (
@@ -385,7 +384,10 @@ const DriverDashboardContent = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="bg-yellow-100 p-3 rounded-full">
+                    <div 
+                      className="bg-yellow-100 p-3 rounded-full cursor-pointer hover:bg-yellow-200 transition-colors"
+                      onClick={() => navigate('/driver/ratings')}
+                    >
                       <Star className="h-6 w-6 text-yellow-600" />
                     </div>
                   </div>
