@@ -552,7 +552,7 @@ export const translations: Translations = {
     en: "Suitable for urgent orders"
   },
   startWithSafedrop: {
-    ar: "ابدأ رحلت�� م�� سيف دروب اليوم",
+    ar: "ابدأ رحلت�� م�� ��يف دروب اليوم",
     en: "Start your journey with SafeDrop today"
   },
   safeDeliveryExperience: {
@@ -912,7 +912,7 @@ export const translations: Translations = {
     en: "Earnings are transferred weekly every Thursday."
   },
   reportIssueQuestion: {
-    ar: "كيف يمكنني الإبلاغ عن مشكلة في طلب؟",
+    ar: "كي�� يمكنني الإبلاغ عن مشكلة في طلب؟",
     en: "How can I report an issue with an order?"
   },
   reportIssueAnswer: {
@@ -926,6 +926,82 @@ export const translations: Translations = {
   contactEmail: {
     ar: "support@safedrop.com",
     en: "support@safedrop.com"
+  },
+  manageOrders: {
+    ar: "إدارة الطلبات",
+    en: "Manage Orders"
+  },
+  availabilityStatus: {
+    ar: "حالة الاستقبال",
+    en: "Availability Status"
+  },
+  availableForOrders: {
+    ar: "متاح",
+    en: "Available"
+  },
+  notAvailableForOrders: {
+    ar: "غير متاح",
+    en: "Not Available"
+  },
+  currentOrdersTab: {
+    ar: "الطلبات الحالية",
+    en: "Current Orders"
+  },
+  availableOrdersTab: {
+    ar: "طلبات متاحة",
+    en: "Available Orders"
+  },
+  completedOrdersTab: {
+    ar: "مكتملة",
+    en: "Completed"
+  },
+  noCurrentOrders: {
+    ar: "لا توجد طلبات حالية",
+    en: "No current orders"
+  },
+  browseAvailableOrders: {
+    ar: "استعرض الطلبات المتاحة",
+    en: "Browse Available Orders"
+  },
+  notAvailableMessage: {
+    ar: "أنت حالياً غير متاح لاستقبال طلبات جديدة",
+    en: "You are currently not available to receive new orders"
+  },
+  changeToAvailable: {
+    ar: "تغيير الحالة إلى متاح",
+    en: "Change Status to Available"
+  },
+  noAvailableOrders: {
+    ar: "لا توجد طلبات متاحة حالياً",
+    en: "No orders available at the moment"
+  },
+  noCompletedOrders: {
+    ar: "لا توجد طلبات مكتملة",
+    en: "No completed orders"
+  },
+  withdrawEarningsQuestion: {
+    ar: "كيف أسحب أرباحي؟",
+    en: "How do I withdraw my earnings?"
+  },
+  withdrawEarningsAnswer: {
+    ar: "يمكنك سحب أرباحك عبر إعدادات الحساب وإدخال بياناتك البنكية.",
+    en: "You can withdraw your earnings through account settings by entering your banking information."
+  },
+  updateOrderStatusQuestion: {
+    ar: "كيف يمكنني تحديث حالتي أمام العميل؟",
+    en: "How can I update my status to the customer?"
+  },
+  updateOrderStatusAnswer: {
+    ar: "عند تحديث حالة الطلب (مثل \"جار التوصيل\" أو \"تم التوصيل\") من خلال التطبيق، يتم إشعار العميل بحالة الشحنة",
+    en: "When you update the order status (such as \"In Delivery\" or \"Delivered\") through the app, the customer is notified of the shipment status"
+  },
+  troubleshootingQuestion: {
+    ar: "ماذا أفعل عند مواجهة مشكلة؟",
+    en: "What should I do when encountering a problem?"
+  },
+  troubleshootingAnswer: {
+    ar: "تواصل مع فريق الدعم عبر البريد الإلكتروني أو صفحة \"اتصل بنا\".",
+    en: "Contact our support team via email or through the \"Contact Us\" page."
   }
 };
 

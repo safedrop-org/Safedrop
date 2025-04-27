@@ -1,4 +1,3 @@
-
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,31 +56,31 @@ const DriverSupportContent = () => {
                 <div className="space-y-4">
                   <div className="border-b pb-4">
                     <button className="flex justify-between items-center w-full text-right">
-                      <span className="font-medium">{t('updateVehicleInfo')}</span>
+                      <span className="font-medium">{t('withdrawEarningsQuestion')}</span>
                       <HelpCircle className="h-5 w-5 text-gray-400" />
                     </button>
                     <p className="mt-2 text-gray-600 text-sm">
-                      {t('updateVehicleAnswer')}
+                      {t('withdrawEarningsAnswer')}
                     </p>
                   </div>
 
                   <div className="border-b pb-4">
                     <button className="flex justify-between items-center w-full text-right">
-                      <span className="font-medium">{t('earningsTransfer')}</span>
+                      <span className="font-medium">{t('updateOrderStatusQuestion')}</span>
                       <HelpCircle className="h-5 w-5 text-gray-400" />
                     </button>
                     <p className="mt-2 text-gray-600 text-sm">
-                      {t('earningsTransferAnswer')}
+                      {t('updateOrderStatusAnswer')}
                     </p>
                   </div>
 
                   <div className="border-b pb-4">
                     <button className="flex justify-between items-center w-full text-right">
-                      <span className="font-medium">{t('reportIssueQuestion')}</span>
+                      <span className="font-medium">{t('troubleshootingQuestion')}</span>
                       <HelpCircle className="h-5 w-5 text-gray-400" />
                     </button>
                     <p className="mt-2 text-gray-600 text-sm">
-                      {t('reportIssueAnswer')}
+                      {t('troubleshootingAnswer')}
                     </p>
                   </div>
                 </div>

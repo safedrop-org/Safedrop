@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import DriverSidebar from '@/components/driver/DriverSidebar';
-import { PhoneIcon, MapPinIcon, ClockIcon, CheckIcon, XIcon, AlertTriangleIcon } from 'lucide-react';
+import { ClockIcon, AlertTriangleIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrders } from '@/hooks/useOrders';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import OrderDetailsCard from '@/components/driver/OrderDetailsCard';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -195,10 +192,10 @@ const DriverOrdersContent = () => {
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-bold text-gray-900">إدارة الطلبات</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('manageOrders')}</h1>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm">حالة الاستقبال:</span>
+                <span className="text-sm">{t('availabilityStatus')}:</span>
                 <div 
                   className={`relative h-6 w-12 cursor-pointer rounded-full ${isAvailable ? 'bg-green-500' : 'bg-gray-200'}`}
                   onClick={() => setIsAvailable(!isAvailable)}
@@ -208,7 +205,7 @@ const DriverOrdersContent = () => {
                   />
                 </div>
                 <span className={`text-sm font-medium ${isAvailable ? 'text-green-600' : 'text-gray-500'}`}>
-                  {isAvailable ? 'متاح' : 'غير متاح'}
+                  {isAvailable ? t('availableForOrders') : t('notAvailableForOrders')}
                 </span>
               </div>
             </div>
@@ -219,24 +216,24 @@ const DriverOrdersContent = () => {
           <div className="max-w-7xl mx-auto">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="w-full grid grid-cols-3 mb-6">
-                <TabsTrigger value="current">الطلبات الحالية</TabsTrigger>
-                <TabsTrigger value="available">طلبات متاحة</TabsTrigger>
-                <TabsTrigger value="completed">مكتملة</TabsTrigger>
+                <TabsTrigger value="current">{t('currentOrdersTab')}</TabsTrigger>
+                <TabsTrigger value="available">{t('availableOrdersTab')}</TabsTrigger>
+                <TabsTrigger value="completed">{t('completedOrdersTab')}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="current" className="space-y-4">
-                <h3 className="text-xl font-semibold mb-4">الطلبات الحالية</h3>
+                <h3 className="text-xl font-semibold mb-4">{t('currentOrdersTab')}</h3>
                 {currentOrders.length === 0 ? (
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <ClockIcon className="h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-gray-500 mb-4">لا توجد طلبات حالية</p>
+                      <p className="text-gray-500 mb-4">{t('noCurrentOrders')}</p>
                       <Button 
                         variant="default" 
                         className="bg-safedrop-gold hover:bg-safedrop-gold/90"
                         onClick={() => setActiveTab('available')}
                       >
-                        استعرض الطلبات المتاحة
+                        {t('browseAvailableOrders')}
                       </Button>
                     </div>
                   </div>
@@ -253,18 +250,18 @@ const DriverOrdersContent = () => {
               </TabsContent>
               
               <TabsContent value="available" className="space-y-4">
-                <h3 className="text-xl font-semibold mb-4">طلبات متاحة</h3>
+                <h3 className="text-xl font-semibold mb-4">{t('availableOrdersTab')}</h3>
                 {!isAvailable ? (
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <AlertTriangleIcon className="h-12 w-12 text-yellow-500 mb-4" />
-                      <p className="text-gray-600 mb-4">أنت حالياً غير متاح لاستقبال طلبات جديدة</p>
+                      <p className="text-gray-600 mb-4">{t('notAvailableMessage')}</p>
                       <Button 
                         variant="default" 
                         className="bg-safedrop-gold hover:bg-safedrop-gold/90"
                         onClick={() => setIsAvailable(true)}
                       >
-                        تغيير الحالة إلى متاح
+                        {t('changeToAvailable')}
                       </Button>
                     </div>
                   </div>
@@ -272,7 +269,7 @@ const DriverOrdersContent = () => {
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <ClockIcon className="h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-gray-500">لا توجد طلبات متاحة حالياً</p>
+                      <p className="text-gray-500">{t('noAvailableOrders')}</p>
                     </div>
                   </div>
                 ) : (
@@ -290,12 +287,12 @@ const DriverOrdersContent = () => {
               </TabsContent>
               
               <TabsContent value="completed" className="space-y-4">
-                <h3 className="text-xl font-semibold mb-4">الطلبات المكتملة</h3>
+                <h3 className="text-xl font-semibold mb-4">{t('completedOrdersTab')}</h3>
                 {completedOrders.length === 0 ? (
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <ClockIcon className="h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-gray-500">لا توجد طلبات مكتملة</p>
+                      <p className="text-gray-500">{t('noCompletedOrders')}</p>
                     </div>
                   </div>
                 ) : (
