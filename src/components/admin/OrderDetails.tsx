@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -10,7 +11,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MapPinIcon, PhoneIcon, CalendarIcon } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface OrderDetailsProps {
   order: any;
@@ -21,50 +28,27 @@ interface OrderDetailsProps {
 
 export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDetailsProps) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState(order.status);
 
-  const handleAccept = async () => {
+  const handleStatusChange = async (newStatus: string) => {
     setIsUpdating(true);
     try {
       const { error } = await supabase
         .from('orders')
         .update({
-          status: 'approved',
+          status: newStatus,
           updated_at: new Date().toISOString()
         })
         .eq('id', order.id);
 
       if (error) throw error;
       
-      toast.success('تم قبول الطلب بنجاح');
+      toast.success('تم تحديث حالة الطلب بنجاح');
       onStatusUpdate();
       onClose();
     } catch (error) {
-      console.error('Error accepting order:', error);
-      toast.error('حدث خطأ أثناء قبول الطلب');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleReject = async () => {
-    setIsUpdating(true);
-    try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          status: 'rejected',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', order.id);
-
-      if (error) throw error;
-      
-      toast.success('تم رفض الطلب بنجاح');
-      onStatusUpdate();
-      onClose();
-    } catch (error) {
-      console.error('Error rejecting order:', error);
-      toast.error('حدث خطأ أثناء رفض الطلب');
+      console.error('Error updating order status:', error);
+      toast.error('حدث خطأ أثناء تحديث حالة الطلب');
     } finally {
       setIsUpdating(false);
     }
@@ -105,31 +89,51 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
             )}
           </div>
 
-          {/* Order Details */}
+          {/* Order Status */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">تفاصيل الطلب</h3>
+            <h3 className="font-semibold text-lg">حالة الطلب</h3>
             <div className="space-y-2">
-              <p className="text-gray-700">
-                تاريخ الإنشاء: {formatDate(order.created_at)}
-              </p>
-              <p className="text-gray-700">
-                السعر: {order.price ? `${order.price} ر.س` : 'غير محدد'}
-              </p>
+              <Select onValueChange={setSelectedStatus} defaultValue={order.status}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="اختر حالة الطلب" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">قيد الإنتظار</SelectItem>
+                  <SelectItem value="approved">مقبول</SelectItem>
+                  <SelectItem value="rejected">مرفوض</SelectItem>
+                  <SelectItem value="in_transit">قيد التوصيل</SelectItem>
+                  <SelectItem value="completed">مكتمل</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                onClick={() => handleStatusChange(selectedStatus)}
+                disabled={isUpdating || selectedStatus === order.status}
+                className="w-full mt-2"
+              >
+                تحديث الحالة
+              </Button>
             </div>
           </div>
 
-          {/* Location Details */}
+          {/* Pickup Details */}
+          <div className="space-y-4 col-span-2">
+            <h3 className="font-semibold text-lg">معلومات الاستلام</h3>
+            <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
+              <p className="font-medium">العنوان:</p>
+              <p className="text-gray-600">{order.pickup_location?.formatted_address || 'غير محدد'}</p>
+              <p className="font-medium mt-2">تفاصيل إضافية:</p>
+              <p className="text-gray-600">{order.pickup_location?.additional_details || 'لا توجد تفاصيل إضافية'}</p>
+            </div>
+          </div>
+
+          {/* Delivery Details */}
           <div className="space-y-4 col-span-2">
             <h3 className="font-semibold text-lg">معلومات التوصيل</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="font-medium">عنوان الاستلام:</p>
-                <p className="text-gray-600">{order.pickup_location?.formatted_address || 'غير محدد'}</p>
-              </div>
-              <div>
-                <p className="font-medium">عنوان التوصيل:</p>
-                <p className="text-gray-600">{order.dropoff_location?.formatted_address || 'غير محدد'}</p>
-              </div>
+            <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
+              <p className="font-medium">العنوان:</p>
+              <p className="text-gray-600">{order.dropoff_location?.formatted_address || 'غير محدد'}</p>
+              <p className="font-medium mt-2">تفاصيل إضافية:</p>
+              <p className="text-gray-600">{order.dropoff_location?.additional_details || 'لا توجد تفاصيل إضافية'}</p>
             </div>
           </div>
 
@@ -146,7 +150,7 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
           </div>
         </div>
 
-        <DialogFooter className="flex justify-end gap-2 mt-6">
+        <DialogFooter className="mt-6">
           <Button 
             variant="outline" 
             onClick={onClose}
@@ -154,24 +158,6 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
           >
             إغلاق
           </Button>
-          {order.status === 'pending' && (
-            <>
-              <Button 
-                variant="default"
-                onClick={handleAccept}
-                disabled={isUpdating}
-              >
-                قبول الطلب
-              </Button>
-              <Button 
-                variant="destructive"
-                onClick={handleReject}
-                disabled={isUpdating}
-              >
-                رفض الطلب
-              </Button>
-            </>
-          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
