@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -12,128 +11,28 @@ export const useOrders = (isAdmin = false) => {
       if (!user) throw new Error('Not authenticated');
 
       try {
-        // Admin query - fetch all orders
-        if (isAdmin) {
-          console.log("Fetching orders as admin");
-          
-          // Modified query to avoid using foreign key constraints in the select statement
-          const { data: orders, error } = await supabase
-            .from('orders')
-            .select('*')
-            .order('created_at', { ascending: false });
-          
-          if (error) {
-            console.error("Error fetching orders:", error);
-            throw error;
-          }
-          
-          if (!orders || orders.length === 0) {
-            console.log("No orders found");
-            return [];
-          }
-          
-          console.log(`Found ${orders.length} orders`);
-          
-          // Fetch customer and driver profiles separately
-          const enrichedOrders = await Promise.all(
-            orders.map(async (order) => {
-              try {
-                // Get customer profile
-                const { data: customer, error: customerError } = await supabase
-                  .from('profiles')
-                  .select('first_name, last_name, phone')
-                  .eq('id', order.customer_id)
-                  .maybeSingle();
-                
-                if (customerError) {
-                  console.error(`Error fetching customer profile for order ${order.id}:`, customerError);
-                }
-                
-                // Get driver profile if available
-                let driver = null;
-                if (order.driver_id) {
-                  const { data: driverData, error: driverError } = await supabase
-                    .from('profiles')
-                    .select('first_name, last_name, phone')
-                    .eq('id', order.driver_id)
-                    .maybeSingle();
-                    
-                  if (driverError) {
-                    console.error(`Error fetching driver profile for order ${order.id}:`, driverError);
-                  } else {
-                    driver = driverData;
-                  }
-                }
-                
-                return {
-                  ...order,
-                  customer,
-                  driver
-                };
-              } catch (err) {
-                console.error(`Error enriching order ${order.id}:`, err);
-                return { ...order };
-              }
-            })
-          );
-          
-          console.log("Enriched orders data:", enrichedOrders);
-          return enrichedOrders;
-        }
+        // Regular driver query - fetch both available and assigned orders
+        console.log("Fetching orders for driver:", user.id);
         
-        // Regular customer query
-        console.log("Fetching orders for customer:", user.id);
-        
+        // Fetch both available orders and orders assigned to the driver
         const { data: orders, error } = await supabase
           .from('orders')
-          .select('*')
-          .eq('customer_id', user.id)
+          .select('*, customer:profiles(*)')
+          .or(`driver_id.is.null,driver_id.eq.${user.id}`)
           .order('created_at', { ascending: false });
 
         if (error) {
-          console.error("Error fetching customer orders:", error);
+          console.error("Error fetching orders:", error);
           throw error;
         }
         
         if (!orders || orders.length === 0) {
-          console.log("No orders found for customer");
+          console.log("No orders found");
           return [];
         }
         
-        console.log(`Found ${orders.length} orders for customer`);
-        
-        // Fetch driver profiles separately if needed
-        const enrichedOrders = await Promise.all(
-          orders.map(async (order) => {
-            try {
-              let driver = null;
-              if (order.driver_id) {
-                const { data: driverData, error: driverError } = await supabase
-                  .from('profiles')
-                  .select('first_name, last_name, phone')
-                  .eq('id', order.driver_id)
-                  .maybeSingle();
-                  
-                if (driverError) {
-                  console.error(`Error fetching driver profile for order ${order.id}:`, driverError);
-                } else {
-                  driver = driverData;
-                }
-              }
-              
-              return {
-                ...order,
-                driver
-              };
-            } catch (err) {
-              console.error(`Error enriching customer order ${order.id}:`, err);
-              return { ...order };
-            }
-          })
-        );
-        
-        console.log("Enriched customer orders data:", enrichedOrders);
-        return enrichedOrders;
+        console.log(`Found ${orders.length} orders`);
+        return orders;
       } catch (error) {
         console.error("Error in useOrders hook:", error);
         throw error;
