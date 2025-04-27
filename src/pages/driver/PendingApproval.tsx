@@ -200,8 +200,8 @@ const PendingApprovalContent = () => {
           <div className="flex items-start">
             <Clock className="h-6 w-6 text-yellow-500 ml-3" />
             <div>
-              <p className="font-bold text-yellow-800 text-right">حسابك قيد المراجعة</p>
-              <p className="text-yellow-700 mt-2 text-right">
+              <p className="font-bold text-yellow-800 text-center">حسابك قيد المراجعة</p>
+              <p className="text-yellow-700 mt-2 text-center">
                 شكرًا لتسجيلك في منصة سيف دروب. يرجى العلم أن طلبك قيد المراجعة من قبل الإدارة.
                 سيتم إشعارك عبر البريد الإلكتروني فور الانتهاء من مراجعة حسابك.
               </p>
