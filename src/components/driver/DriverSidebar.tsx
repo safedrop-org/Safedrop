@@ -2,6 +2,8 @@ import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign,
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
+import LanguageToggleDashboard from '../ui/language-toggle-dashboard';
+
 const DriverSidebar = () => {
   const {
     t
@@ -48,7 +50,9 @@ const DriverSidebar = () => {
     label: "الإعدادات",
     path: "/driver/settings"
   }];
-  return <div className="bg-safedrop-primary text-white min-h-screen w-64 shadow-lg flex flex-col">
+
+  return (
+    <div className="bg-safedrop-primary text-white min-h-screen w-64 shadow-lg flex flex-col">
       <div className="p-4 flex items-center justify-center">
         <Link to="/">
           <img alt="SafeDrop Logo" src="/lovable-uploads/78b0a264-3066-4690-bdc3-775d48ad5001.png" className="h-20" />
@@ -69,12 +73,23 @@ const DriverSidebar = () => {
         </nav>
       </div>
       
-      <div className="p-4 border-t border-white/10">
-        <Button onClick={handleLogout} variant="outline" className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2">
-          <LogOut className="h-4 w-4" />
-          <span>تسجيل الخروج</span>
-        </Button>
+      <div className="mt-auto">
+        <div className="p-4 border-t border-white/10">
+          <LanguageToggleDashboard />
+        </div>
+        <div className="p-4 border-t border-white/10">
+          <Button 
+            onClick={handleLogout} 
+            variant="outline" 
+            className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>{t('logout')}</span>
+          </Button>
+        </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default DriverSidebar;

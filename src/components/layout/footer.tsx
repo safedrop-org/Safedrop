@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
 import { MapPin, Phone, Mail, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
@@ -17,7 +16,7 @@ const Footer = () => {
               </span>
             </Link>
             <p className="text-sm mb-4">
-              {t('footerDescription')}
+              {t('heroTitle')}
             </p>
             <div className="flex space-x-4 rtl:space-x-reverse">
               <a href="#" className="text-white hover:text-safedrop-gold transition-colors">

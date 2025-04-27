@@ -1,9 +1,9 @@
-
 import { LayoutDashboard, Package, PlusCircle, UserIcon, Settings, LogOut, CreditCard, MessageSquare, Star } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useLanguage } from '@/components/ui/language-context';
+import LanguageToggleDashboard from '../ui/language-toggle-dashboard';
 
 const CustomerSidebar = () => {
   const { t } = useLanguage();
@@ -95,15 +95,20 @@ const CustomerSidebar = () => {
         </nav>
       </div>
       
-      <div className="p-4 border-t border-white/10">
-        <Button 
-          onClick={handleLogout} 
-          variant="outline" 
-          className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
-        >
-          <LogOut className="h-4 w-4" />
-          <span>تسجيل الخروج</span>
-        </Button>
+      <div className="mt-auto">
+        <div className="p-4 border-t border-white/10">
+          <LanguageToggleDashboard />
+        </div>
+        <div className="p-4 border-t border-white/10">
+          <Button 
+            onClick={handleLogout} 
+            variant="outline" 
+            className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>{t('logout')}</span>
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 import { useLanguage } from '@/components/ui/language-context';
 import { UsersIcon, TruckIcon, PackageIcon, BarChart2Icon, SettingsIcon, ShieldIcon, DollarSign, MessageSquareIcon } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import LanguageToggleDashboard from '../ui/language-toggle-dashboard';
 
 const AdminSidebar = () => {
   const { t } = useLanguage();
@@ -81,6 +82,10 @@ const AdminSidebar = () => {
             ))}
           </ul>
         </nav>
+      </div>
+
+      <div className="mt-auto p-4 border-t border-white/10">
+        <LanguageToggleDashboard />
       </div>
     </div>
   );
