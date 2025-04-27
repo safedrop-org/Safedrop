@@ -27,7 +27,7 @@ export const useOrders = (isAdmin = false) => {
             // Get customer profile
             const { data: customer } = await supabase
               .from('profiles')
-              .select('first_name, last_name')
+              .select('first_name, last_name, phone')
               .eq('id', order.customer_id)
               .single();
             
@@ -36,7 +36,7 @@ export const useOrders = (isAdmin = false) => {
             if (order.driver_id) {
               const { data: driverData } = await supabase
                 .from('profiles')
-                .select('first_name, last_name')
+                .select('first_name, last_name, phone')
                 .eq('id', order.driver_id)
                 .single();
               driver = driverData;
@@ -69,7 +69,7 @@ export const useOrders = (isAdmin = false) => {
           if (order.driver_id) {
             const { data: driverData } = await supabase
               .from('profiles')
-              .select('first_name, last_name')
+              .select('first_name, last_name, phone')
               .eq('id', order.driver_id)
               .single();
             driver = driverData;

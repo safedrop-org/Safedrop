@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Info } from "lucide-react";
 
 interface OrderDetailsProps {
   order: any;
@@ -55,6 +56,8 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'غير متوفر';
+    
     return new Date(dateString).toLocaleString('ar-SA', {
       year: 'numeric',
       month: 'long',
@@ -64,7 +67,16 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
     });
   };
 
-  if (!order) return null;
+  // تحقق من وجود بيانات الطلب
+  const isOrderValid = Boolean(order && order.id);
+  
+  if (!isOrderValid) return null;
+
+  // استخراج بيانات المواقع بشكل آمن
+  const pickupAddress = order?.pickup_location?.formatted_address || order?.pickup_location?.address || 'غير محدد';
+  const pickupDetails = order?.pickup_location?.additional_details || 'لا توجد تفاصيل إضافية';
+  const dropoffAddress = order?.dropoff_location?.formatted_address || order?.dropoff_location?.address || 'غير محدد';
+  const dropoffDetails = order?.dropoff_location?.additional_details || 'لا توجد تفاصيل إضافية';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -77,7 +89,7 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
           {/* Customer Information */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">معلومات العميل</h3>
-            {order.customer && (
+            {order.customer ? (
               <div className="space-y-2">
                 <p className="text-gray-700">
                   الاسم: {order.customer.first_name} {order.customer.last_name}
@@ -85,6 +97,11 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
                 <p className="text-gray-700">
                   الهاتف: {order.customer.phone || 'غير متوفر'}
                 </p>
+              </div>
+            ) : (
+              <div className="flex items-center text-amber-600 bg-amber-50 p-2 rounded-md">
+                <Info className="h-4 w-4 mr-2" />
+                <span>معلومات العميل غير متوفرة</span>
               </div>
             )}
           </div>
@@ -117,14 +134,14 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
                     disabled={isUpdating}
                     variant="default"
                   >
-                    قبول الطلب
+                    {isUpdating ? 'جاري المعالجة...' : 'قبول الطلب'}
                   </Button>
                   <Button 
                     onClick={() => handleStatusChange('rejected')}
                     disabled={isUpdating}
                     variant="destructive"
                   >
-                    رفض الطلب
+                    {isUpdating ? 'جاري المعالجة...' : 'رفض الطلب'}
                   </Button>
                 </div>
               )}
@@ -136,9 +153,9 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
             <h3 className="font-semibold text-lg">معلومات الاستلام</h3>
             <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
               <p className="font-medium">العنوان:</p>
-              <p className="text-gray-600">{order.pickup_location?.formatted_address || 'غير محدد'}</p>
+              <p className="text-gray-600">{pickupAddress}</p>
               <p className="font-medium mt-2">تفاصيل إضافية:</p>
-              <p className="text-gray-600">{order.pickup_location?.additional_details || 'لا توجد تفاصيل إضافية'}</p>
+              <p className="text-gray-600">{pickupDetails}</p>
             </div>
           </div>
 
@@ -147,9 +164,9 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
             <h3 className="font-semibold text-lg">معلومات التوصيل</h3>
             <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
               <p className="font-medium">العنوان:</p>
-              <p className="text-gray-600">{order.dropoff_location?.formatted_address || 'غير محدد'}</p>
+              <p className="text-gray-600">{dropoffAddress}</p>
               <p className="font-medium mt-2">تفاصيل إضافية:</p>
-              <p className="text-gray-600">{order.dropoff_location?.additional_details || 'لا توجد تفاصيل إضافية'}</p>
+              <p className="text-gray-600">{dropoffDetails}</p>
             </div>
           </div>
 
@@ -163,6 +180,36 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
           <div className="col-span-2">
             <h3 className="font-semibold text-lg mb-2">ملاحظات للسائق</h3>
             <p className="text-gray-600">{order.notes || 'لا توجد ملاحظات'}</p>
+          </div>
+
+          {/* Payment Information */}
+          <div className="col-span-2">
+            <h3 className="font-semibold text-lg mb-2">معلومات الدفع</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gray-50 p-3 rounded-md">
+                <p className="text-sm text-gray-500 mb-1">المبلغ:</p>
+                <p className="font-medium">{order.price ? `${order.price} ر.س` : 'غير محدد'}</p>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-md">
+                <p className="text-sm text-gray-500 mb-1">طريقة الدفع:</p>
+                <p className="font-medium">{order.payment_method || 'غير محدد'}</p>
+              </div>
+              <div className="bg-gray-50 p-3 rounded-md">
+                <p className="text-sm text-gray-500 mb-1">حالة الدفع:</p>
+                <Badge
+                  variant="outline"
+                  className={
+                    order.payment_status === "paid" ? "bg-green-100 text-green-800 border-green-200" :
+                    order.payment_status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                    "bg-gray-100 text-gray-800 border-gray-200"
+                  }
+                >
+                  {order.payment_status === "paid" ? "مدفوع" :
+                   order.payment_status === "pending" ? "غير مدفوع" :
+                   order.payment_status}
+                </Badge>
+              </div>
+            </div>
           </div>
         </div>
 
