@@ -3,23 +3,23 @@ import { Link } from 'react-router-dom';
 import { Menu, X, ChevronDown, User, LogIn, Play, Box, Users, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
-
 const Navbar = () => {
-  const { t, language, setLanguage } = useLanguage();
+  const {
+    t,
+    language,
+    setLanguage
+  } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const toggleLanguage = () => {
     setLanguage(language === 'ar' ? 'en' : 'ar');
   };
-
-  return (
-    <nav className="bg-safedrop-primary text-white py-4">
+  return <nav className="bg-safedrop-primary text-white py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center">
-                <img alt="SafeDrop" src="/lovable-uploads/9ef7c6f1-f098-4830-9f86-ee33f2bfe655.png" className="h-20 w-auto" />
+                <img alt="SafeDrop" className="h-20 w-auto" src="/lovable-uploads/51de3f5c-4997-4630-bf5f-0280c4045234.png" />
               </Link>
             </div>
             <div className={`hidden md:block ${language === 'ar' ? 'mr-10' : 'ml-10'}`}>
@@ -116,8 +116,6 @@ const Navbar = () => {
             </div>
           </div>
         </div>}
-    </nav>
-  );
+    </nav>;
 };
-
 export default Navbar;
