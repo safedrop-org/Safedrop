@@ -1,8 +1,10 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, ChevronDown, User, LogIn, Play, Box, Users, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
+
 const Navbar = () => {
   const {
     t,
@@ -25,19 +27,19 @@ const Navbar = () => {
             <div className={`hidden md:block ${language === 'ar' ? 'mr-10' : 'ml-10'}`}>
               <div className="flex items-baseline space-x-6 rtl:space-x-reverse">
                 <Link to="/" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:text-safedrop-gold transition-colors">
-                  <Play className="h-5 w-5 mb-1 ml-2" />
+                  <Play className="h-5 w-5 mb-1 mr-2" />
                   {t('getStarted')}
                 </Link>
                 <Link to="/services" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:text-safedrop-gold transition-colors">
-                  <Box className="h-5 w-5 mb-1 ml-2" />
+                  <Box className="h-5 w-5 mb-1 mr-2" />
                   {t('services')}
                 </Link>
                 <Link to="/about" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:text-safedrop-gold transition-colors">
-                  <Users className="h-5 w-5 mb-1 ml-2" />
+                  <Users className="h-5 w-5 mb-1 mr-2" />
                   {t('about')}
                 </Link>
                 <Link to="/contact" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:text-safedrop-gold transition-colors">
-                  <Mail className="h-5 w-5 mb-1 ml-2" />
+                  <Mail className="h-5 w-5 mb-1 mr-2" />
                   {t('contact')}
                 </Link>
               </div>
