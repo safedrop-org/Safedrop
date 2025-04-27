@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,8 +20,6 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
-  // Based on database constraints, valid values for order status are:
-  // 'pending', 'approved', 'rejected', 'in_transit', 'completed', etc.
   const updateOrderStatus = async (newStatus: 'in_transit' | 'approaching') => {
     if (!driverLocation) {
       toast.error('لا يمكن تحديث الحالة بدون تحديد الموقع');
@@ -40,7 +37,6 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
     try {
       console.log(`Updating order ${orderId} status to ${newStatus}`, { driverLocation });
 
-      // Verify the order exists
       const { data: orderExists, error: checkError } = await supabase
         .from('orders')
         .select('id')
@@ -56,9 +52,8 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
         throw new Error('الطلب غير موجود');
       }
 
-      // Check database constraints for status values
-      // For "approaching" status, we use "approved" in the database
-      const dbStatus = newStatus === 'approaching' ? 'approved' : newStatus;
+      // Always use "approved" for database consistency
+      const dbStatus = newStatus === 'approaching' ? 'approved' : 'in_transit';
       
       const { data, error } = await supabase
         .from('orders')
