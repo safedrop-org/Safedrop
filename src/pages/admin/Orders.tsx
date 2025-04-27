@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,7 +38,7 @@ const OrdersTable = ({ orders, status, onViewOrder }) => {
         ) : (
           filteredOrders.map(order => (
             <TableRow key={order.id}>
-              <TableCell className="font-medium">{order.id}</TableCell>
+              <TableCell className="font-medium">{order.id.substring(0, 8)}</TableCell>
               <TableCell>{order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'غير معروف'}</TableCell>
               <TableCell>{order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'غير معين'}</TableCell>
               <TableCell>{new Date(order.created_at).toLocaleDateString('ar-SA')}</TableCell>
@@ -93,8 +94,15 @@ const Orders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const { data: orders = [], isLoading, refetch } = useOrders(true); // Pass true for admin view
+  const { data: orders = [], isLoading, error, refetch } = useOrders(true); // Pass true for admin view
   
+  React.useEffect(() => {
+    if (error) {
+      console.error("Error fetching orders:", error);
+      toast.error('حدث خطأ أثناء تحميل الطلبات');
+    }
+  }, [error]);
+
   const handleViewOrder = (order) => {
     setSelectedOrder(order);
     setIsDetailsOpen(true);
@@ -176,6 +184,17 @@ const Orders = () => {
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 p-4 rounded-md text-red-800">
+          <p>حدث خطأ أثناء تحميل الطلبات. يرجى المحاولة مرة أخرى لاحقاً.</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="mt-2"
+            variant="outline"
+          >
+            إعادة المحاولة
+          </Button>
         </div>
       ) : (
         <Card>

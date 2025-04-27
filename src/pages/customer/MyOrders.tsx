@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Card } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { MapPin, Package, Clock, Truck, Navigation, DollarSign } from 'lucide-re
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 interface OrderMapDialogProps {
   isOpen: boolean;
@@ -19,7 +21,7 @@ const OrderMapDialog: React.FC<OrderMapDialogProps> = ({ isOpen, onClose, order 
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!isOpen || !order) return;
 
     // Load Google Maps script if it's not already loaded
@@ -47,7 +49,10 @@ const OrderMapDialog: React.FC<OrderMapDialogProps> = ({ isOpen, onClose, order 
       const dropoffCoords = order.dropoff_location?.coordinates;
       const driverLocation = order.driver_location;
 
-      if (!pickupCoords || !dropoffCoords) return;
+      if (!pickupCoords || !dropoffCoords) {
+        toast.error('لا يمكن عرض الخريطة: إحداثيات غير متوفرة');
+        return;
+      }
 
       // Create map centered between pickup and dropoff
       const center = {
@@ -113,6 +118,7 @@ const OrderMapDialog: React.FC<OrderMapDialogProps> = ({ isOpen, onClose, order 
       setDirectionsRenderer(directionsRendererInstance);
     } catch (error) {
       console.error('Error initializing map:', error);
+      toast.error('حدث خطأ أثناء تهيئة الخريطة');
     }
   };
 
@@ -165,6 +171,13 @@ const MyOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
 
+  React.useEffect(() => {
+    if (error) {
+      console.error("Error fetching orders:", error);
+      toast.error('حدث خطأ أثناء تحميل الطلبات');
+    }
+  }, [error]);
+
   if (isLoading) {
     return (
       <div className="flex h-screen bg-gray-50">
@@ -184,6 +197,13 @@ const MyOrders = () => {
           <h1 className="text-3xl font-bold mb-6">طلباتي</h1>
           <div className="bg-red-50 p-4 rounded-md text-red-800">
             <p>حدث خطأ أثناء تحميل الطلبات. يرجى المحاولة مرة أخرى لاحقاً.</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-2"
+              variant="outline"
+            >
+              إعادة المحاولة
+            </Button>
           </div>
         </main>
       </div>
@@ -199,6 +219,7 @@ const MyOrders = () => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'accepted': return 'bg-blue-100 text-blue-800';
+      case 'approved': return 'bg-blue-100 text-blue-800';
       case 'approaching': return 'bg-indigo-100 text-indigo-800';
       case 'in_transit': return 'bg-purple-100 text-purple-800';
       case 'completed': return 'bg-green-100 text-green-800';
@@ -211,6 +232,7 @@ const MyOrders = () => {
     switch (status) {
       case 'pending': return 'قيد الانتظار';
       case 'accepted': return 'تم القبول';
+      case 'approved': return 'تم الموافقة';
       case 'approaching': return 'السائق في الطريق';
       case 'in_transit': return 'جاري التوصيل';
       case 'completed': return 'مكتمل';
@@ -309,6 +331,15 @@ const MyOrders = () => {
                         </p>
                       </div>
                     )}
+
+                    {/* Package details */}
+                    <div className="mb-4">
+                      <p className="flex items-center text-sm text-gray-600 mb-1">
+                        <Package className="h-4 w-4 ml-1 text-safedrop-gold" />
+                        <span className="font-semibold">تفاصيل الشحنة:</span>
+                      </p>
+                      <p className="text-sm">{order.package_details || 'لا توجد تفاصيل'}</p>
+                    </div>
                   </div>
                   
                   <div className="mt-4 md:mt-0 md:mr-4 flex md:flex-col md:justify-center gap-2">
