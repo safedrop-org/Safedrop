@@ -12,17 +12,12 @@ export const useDriverRatings = () => {
       if (!user) throw new Error('Not authenticated');
 
       try {
+        // أولا، نقوم بجلب التقييمات من جدول driver_ratings
         const { data: ratings, error } = await supabase
           .from('driver_ratings')
           .select(`
             *,
-            order:orders(
-              id,
-              pickup_location,
-              dropoff_location,
-              created_at
-            ),
-            customer:profiles(first_name, last_name)
+            customer:customer_id(first_name, last_name)
           `)
           .eq('driver_id', user.id)
           .order('created_at', { ascending: false });
@@ -32,6 +27,34 @@ export const useDriverRatings = () => {
           throw error;
         }
 
+        // ثم نقوم بجلب معلومات الطلبات المرتبطة بالتقييمات
+        if (ratings && ratings.length > 0) {
+          // استخراج معرفات الطلبات من التقييمات
+          const orderIds = ratings.map(rating => rating.order_id);
+          
+          // جلب معلومات الطلبات
+          const { data: orders, error: ordersError } = await supabase
+            .from('orders')
+            .select('id, pickup_location, dropoff_location, created_at')
+            .in('id', orderIds);
+          
+          if (ordersError) {
+            console.error("Error fetching orders:", ordersError);
+          } else if (orders) {
+            // دمج معلومات الطلبات مع التقييمات
+            const ratingsWithOrders = ratings.map(rating => {
+              const relatedOrder = orders.find(order => order.id === rating.order_id);
+              return {
+                ...rating,
+                order: relatedOrder || null
+              };
+            });
+            
+            console.log("Fetched ratings with orders:", ratingsWithOrders);
+            return ratingsWithOrders;
+          }
+        }
+        
         console.log("Fetched ratings:", ratings);
         return ratings || [];
       } catch (error) {

@@ -6,6 +6,7 @@ import DriverSidebar from '@/components/driver/DriverSidebar';
 import { Star } from 'lucide-react';
 import { useDriverRatings } from '@/hooks/useDriverRatings';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const DriverRatingsContent = () => {
   const { t } = useLanguage();
@@ -39,6 +40,8 @@ const DriverRatingsContent = () => {
 
   if (error) {
     console.error("Error loading ratings:", error);
+    toast.error("حدث خطأ أثناء تحميل التقييمات");
+    
     return (
       <div className="flex h-screen bg-gray-50">
         <DriverSidebar />
@@ -103,38 +106,38 @@ const DriverRatingsContent = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {ratings && ratings.map((rating) => (
-                    <div key={rating.id} className="border-b border-gray-200 pb-4 last:border-0">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className="flex items-center">
-                            {[...Array(5)].map((_, starIndex) => (
-                              <Star 
-                                key={starIndex} 
-                                className={`h-4 w-4 ${
-                                  starIndex < rating.rating 
-                                    ? 'fill-yellow-400 text-yellow-400' 
-                                    : 'fill-gray-200 text-gray-200'
-                                }`} 
-                              />
-                            ))}
+                  {ratings && ratings.length > 0 ? (
+                    ratings.map((rating) => (
+                      <div key={rating.id} className="border-b border-gray-200 pb-4 last:border-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, starIndex) => (
+                                <Star 
+                                  key={starIndex} 
+                                  className={`h-4 w-4 ${
+                                    starIndex < rating.rating 
+                                      ? 'fill-yellow-400 text-yellow-400' 
+                                      : 'fill-gray-200 text-gray-200'
+                                  }`} 
+                                />
+                              ))}
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {rating.customer?.first_name} {rating.customer?.last_name}
+                            </p>
+                            <p className="text-sm text-gray-600">طلب #{rating.order_id}</p>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {rating.customer?.first_name} {rating.customer?.last_name}
-                          </p>
-                          <p className="text-sm text-gray-600">طلب #{rating.order_id}</p>
+                          <span className="text-sm text-gray-500">
+                            {format(new Date(rating.created_at), 'dd/MM/yyyy')}
+                          </span>
                         </div>
-                        <span className="text-sm text-gray-500">
-                          {format(new Date(rating.created_at), 'dd/MM/yyyy')}
-                        </span>
+                        {rating.comment && (
+                          <p className="text-gray-700">{rating.comment}</p>
+                        )}
                       </div>
-                      {rating.comment && (
-                        <p className="text-gray-700">{rating.comment}</p>
-                      )}
-                    </div>
-                  ))}
-
-                  {ratings && ratings.length === 0 && (
+                    ))
+                  ) : (
                     <div className="text-center text-gray-500 py-8">
                       لا توجد تقييمات بعد
                     </div>
