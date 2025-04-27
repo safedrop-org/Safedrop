@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,13 +16,12 @@ export const useOrders = (isAdmin = false) => {
         let query = supabase.from('orders').select('*');
         
         // For non-admins (drivers), only show:
-        // 1. Orders assigned to them
+        // 1. Orders assigned to them (regardless of status)
         // 2. Pending orders not assigned to any driver
         if (!isAdmin) {
-          query = query.or(`driver_id.is.null,driver_id.eq.${user.id}`);
-          
-          // Only show pending orders that aren't assigned to anyone
-          // or orders that are specifically assigned to this driver
+          // This query gets:
+          // - All pending orders with no driver assigned
+          // - OR any order assigned to this driver
           query = query.or(`and(driver_id.is.null,status.eq.pending),driver_id.eq.${user.id}`);
         }
         

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -125,7 +126,19 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 
   const getLocationAddress = (location: any) => {
     if (!location) return "غير محدد";
-    return location.formatted_address || "غير محدد";
+    
+    // Try to find the address in different possible formats
+    if (location.address) return location.address;
+    if (location.formatted_address) return location.formatted_address;
+    if (typeof location === 'string') return location;
+    
+    // If it's an object without specific address fields, try to convert to string
+    if (typeof location === 'object') {
+      if (location.name) return location.name;
+      if (location.description) return location.description;
+    }
+    
+    return "غير محدد";
   };
 
   return (
@@ -133,7 +146,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
       <CardHeader className="bg-gray-50 pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg flex items-center gap-2">
-            <span>طلب #{order.id}</span>
+            <span>طلب #{order.id.substring(0, 8)}</span>
           </CardTitle>
           <Badge 
             variant="outline" 

@@ -65,7 +65,15 @@ const DriverOrdersContent = () => {
     }
   }, [isAvailable, driverLocation, user?.id]);
 
-  // Filter orders based on their status
+  // Check if orders data has loaded and log for debugging
+  useEffect(() => {
+    if (orders && orders.length > 0) {
+      console.log("Orders loaded:", orders.length, "orders");
+      console.log("First order:", orders[0]);
+    }
+  }, [orders]);
+
+  // Filter orders based on their status and driver assignment
   const availableOrders = orders?.filter(order => 
     !order.driver_id && order.status === 'pending'
   ) ?? [];
@@ -79,6 +87,10 @@ const DriverOrdersContent = () => {
     order.driver_id === user?.id && 
     order.status === 'completed'
   ) ?? [];
+
+  console.log("Available orders:", availableOrders.length);
+  console.log("Current orders:", currentOrders.length);
+  console.log("Completed orders:", completedOrders.length);
 
   const handleAcceptOrder = async (id: string) => {
     try {
@@ -105,12 +117,17 @@ const DriverOrdersContent = () => {
       
       toast.success(`تم قبول الطلب رقم ${id} بنجاح`);
       
-      // Invalidate the entire orders cache to force a fresh fetch
+      // First invalidate the cache
       await queryClient.invalidateQueries({queryKey: ['orders']});
       
-      // After accepting the order, refetch the data and switch to current orders tab
+      // Then fetch fresh data
       await refetch();
-      setActiveTab('current');
+      
+      // Switch to current orders tab after a short delay to allow refetch to complete
+      setTimeout(() => {
+        setActiveTab('current');
+      }, 500);
+      
     } catch (err) {
       console.error('Error accepting order:', err);
       toast.error('حدث خطأ أثناء قبول الطلب');
