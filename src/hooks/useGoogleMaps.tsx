@@ -49,7 +49,8 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     const script = document.createElement('script');
     const apiKey = 'AIzaSyAh7C_dU6EnC0QE1_vor6z96-fShN4A0ow'; // Using the provided API key
     
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=ar&region=SA&callback=initGoogleMaps`;
+    // Set script attributes properly
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMaps`;
     script.async = true;
     script.defer = true;
     

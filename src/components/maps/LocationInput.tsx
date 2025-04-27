@@ -43,17 +43,20 @@ const LocationInput: React.FC<LocationInputProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
 
+  console.log('LocationInput rendered, isLoaded:', isLoaded);
+
   // Initialize Google Maps services when API is loaded
   useEffect(() => {
     if (isLoaded && window.google && window.google.maps && window.google.maps.places) {
       try {
-        console.log('Google Maps loaded, initializing services');
+        console.log('Google Maps loaded, initializing autocomplete services');
         autocompleteService.current = new window.google.maps.places.AutocompleteService();
         autocompleteSessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
         
         // Create a dummy div for PlacesService (required)
         if (divRef.current) {
           placesService.current = new window.google.maps.places.PlacesService(divRef.current);
+          console.log('Places service initialized');
         }
       } catch (error) {
         console.error('Error initializing Google Maps services:', error);
