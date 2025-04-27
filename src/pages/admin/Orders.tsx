@@ -202,12 +202,10 @@ const Orders = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="all" className="w-full">
-              <TabsList className="mb-4 grid grid-cols-6 w-full">
+              <TabsList className="mb-4 grid grid-cols-4 w-full">
                 <TabsTrigger value="all" className="flex-1 text-center whitespace-nowrap px-4">الكل</TabsTrigger>
-                <TabsTrigger value="pending" className="flex-1 text-center whitespace-nowrap px-4">قيد الإنتظار</TabsTrigger>
-                <TabsTrigger value="approved" className="flex-1 text-center whitespace-nowrap px-4">مقبول</TabsTrigger>
-                <TabsTrigger value="rejected" className="flex-1 text-center whitespace-nowrap px-4">مرفوض</TabsTrigger>
-                <TabsTrigger value="in_transit" className="flex-1 text-center whitespace-nowrap px-4">قيد التوصيل</TabsTrigger>
+                <TabsTrigger value="pending" className="flex-1 text-center whitespace-nowrap px-4">في العرض</TabsTrigger>
+                <TabsTrigger value="in_transit" className="flex-1 text-center whitespace-nowrap px-4">جاري التوصيل</TabsTrigger>
                 <TabsTrigger value="completed" className="flex-1 text-center whitespace-nowrap px-4">مكتمل</TabsTrigger>
               </TabsList>
               
@@ -217,14 +215,6 @@ const Orders = () => {
               
               <TabsContent value="pending" className="mt-0">
                 <OrdersTable orders={filteredOrders} status="pending" onViewOrder={handleViewOrder} />
-              </TabsContent>
-              
-              <TabsContent value="approved" className="mt-0">
-                <OrdersTable orders={filteredOrders} status="approved" onViewOrder={handleViewOrder} />
-              </TabsContent>
-              
-              <TabsContent value="rejected" className="mt-0">
-                <OrdersTable orders={filteredOrders} status="rejected" onViewOrder={handleViewOrder} />
               </TabsContent>
               
               <TabsContent value="in_transit" className="mt-0">
