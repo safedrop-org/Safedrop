@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +22,7 @@ const DriverOrdersContent = () => {
   const { data: orders = [], isLoading, error, refetch } = useOrders();
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [activeTab, setActiveTab] = useState('current');
+  const [lastAcceptedOrderId, setLastAcceptedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const getLocation = () => {
@@ -92,6 +92,14 @@ const DriverOrdersContent = () => {
   console.log("Current orders:", currentOrders.length);
   console.log("Completed orders:", completedOrders.length);
 
+  // Switch to current orders tab when an order has been accepted
+  useEffect(() => {
+    if (lastAcceptedOrderId && currentOrders.length > 0) {
+      setActiveTab('current');
+      setLastAcceptedOrderId(null);
+    }
+  }, [currentOrders.length, lastAcceptedOrderId]);
+
   const handleAcceptOrder = async (id: string) => {
     try {
       if (!driverLocation) {
@@ -115,19 +123,20 @@ const DriverOrdersContent = () => {
         throw error;
       }
       
-      toast.success(`تم قبول الطلب رقم ${id} بنجاح`);
+      toast.success(`تم قبول الطلب رقم ${id.substring(0, 8)} بنجاح`);
       
-      // First invalidate the cache
-      await queryClient.invalidateQueries({queryKey: ['orders']});
+      // Track the accepted order ID
+      setLastAcceptedOrderId(id);
       
-      // Then fetch fresh data
-      await refetch();
+      // Completely invalidate the query cache for orders
+      queryClient.invalidateQueries({queryKey: ['orders']});
       
-      // Switch to current orders tab after a short delay to allow refetch to complete
+      // Force a hard refetch
       setTimeout(() => {
+        refetch();
+        // Switch to current orders tab
         setActiveTab('current');
-      }, 500);
-      
+      }, 300);
     } catch (err) {
       console.error('Error accepting order:', err);
       toast.error('حدث خطأ أثناء قبول الطلب');

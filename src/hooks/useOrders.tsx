@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,14 +16,16 @@ export const useOrders = (isAdmin = false) => {
         
         let query = supabase.from('orders').select('*');
         
-        // For non-admins (drivers), only show:
-        // 1. Orders assigned to them (regardless of status)
-        // 2. Pending orders not assigned to any driver
+        // For non-admins (drivers), we need to carefully filter orders:
         if (!isAdmin) {
-          // This query gets:
-          // - All pending orders with no driver assigned
-          // - OR any order assigned to this driver
+          console.log("Filtering for driver:", user.id);
+          
+          // This complicated OR query gets:
+          // 1. Pending orders with no driver assigned (available for pickup)
+          // 2. OR any order assigned specifically to this driver (regardless of status)
           query = query.or(`and(driver_id.is.null,status.eq.pending),driver_id.eq.${user.id}`);
+          
+          console.log("Using filter:", `and(driver_id.is.null,status.eq.pending),driver_id.eq.${user.id}`);
         }
         
         const { data: orders, error } = await query
@@ -38,8 +41,7 @@ export const useOrders = (isAdmin = false) => {
           return [];
         }
         
-        // Fetch customer profiles separately
-        console.log(`Found ${orders.length} orders`);
+        console.log(`Found ${orders.length} orders before filtering`);
         
         // Enrich orders with customer data
         const enrichedOrders = await Promise.all(
@@ -63,6 +65,7 @@ export const useOrders = (isAdmin = false) => {
           })
         );
         
+        console.log("Enriched orders:", enrichedOrders.length);
         return enrichedOrders;
       } catch (error) {
         console.error("Error in useOrders hook:", error);
@@ -71,7 +74,8 @@ export const useOrders = (isAdmin = false) => {
     },
     enabled: !!user,
     retry: 1,
-    refetchInterval: 10000, // Refresh every 10 seconds to keep order list updated
+    refetchInterval: 5000, // Refresh every 5 seconds to keep order list updated
+    refetchOnWindowFocus: true, // Also refresh when window regains focus
   });
 };
 
