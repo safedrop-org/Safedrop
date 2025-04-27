@@ -9,10 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
 const ContactContent = () => {
-  const { t } = useLanguage();
-  const { toast } = useToast();
+  const {
+    t
+  } = useLanguage();
+  const {
+    toast
+  } = useToast();
   const [formState, setFormState] = useState({
     name: '',
     email: '',
@@ -21,7 +24,6 @@ const ContactContent = () => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const {
       name,
@@ -32,7 +34,6 @@ const ContactContent = () => {
       [name]: value
     }));
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -53,9 +54,7 @@ const ContactContent = () => {
       setIsSubmitting(false);
     }, 1500);
   };
-
-  return (
-    <div className="min-h-screen flex flex-col">
+  return <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
@@ -126,101 +125,17 @@ const ContactContent = () => {
                 </div>
               </div>
 
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardContent className="p-8">
-                    <h2 className="text-2xl font-bold mb-6 text-safedrop-primary">{t('sendMessage')}</h2>
-                    
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="name">{t('fullName')}</Label>
-                          <Input 
-                            id="name" 
-                            name="name" 
-                            placeholder={t('fullName')} 
-                            value={formState.name} 
-                            onChange={handleChange} 
-                            required 
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="email">{t('email')}</Label>
-                          <Input 
-                            id="email" 
-                            name="email" 
-                            type="email" 
-                            placeholder={t('emailPlaceholder')} 
-                            value={formState.email} 
-                            onChange={handleChange} 
-                            required 
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="phone">{t('phone')}</Label>
-                          <Input 
-                            id="phone" 
-                            name="phone" 
-                            placeholder={t('phonePlaceholder')} 
-                            value={formState.phone} 
-                            onChange={handleChange} 
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="subject">{t('messageSubject')}</Label>
-                          <Input 
-                            id="subject" 
-                            name="subject" 
-                            placeholder={t('messageSubject')} 
-                            value={formState.subject} 
-                            onChange={handleChange} 
-                            required 
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="message">{t('messageContent')}</Label>
-                        <Textarea 
-                          id="message" 
-                          name="message" 
-                          placeholder={t('messageContent')} 
-                          rows={6} 
-                          value={formState.message} 
-                          onChange={handleChange} 
-                          required 
-                        />
-                      </div>
-                      
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" 
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? t('sending') : t('sendMessage')}
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-              </div>
+              
             </div>
           </div>
         </section>
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 const Contact = () => {
   return <LanguageProvider>
       <ContactContent />
     </LanguageProvider>;
 };
-
 export default Contact;
