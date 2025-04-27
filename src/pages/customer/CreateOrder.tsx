@@ -7,38 +7,27 @@ import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Package, Truck, DollarSign, MapPin, XCircle, CheckCircle } from 'lucide-react';
+import { Package, Truck, DollarSign } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useGoogleMaps } from '@/hooks/useGoogleMaps';
-import LocationInput from '@/components/maps/LocationInput';
-import DistanceDisplay from '@/components/maps/DistanceDisplay';
 
 interface LocationType {
   address: string;
   details?: string;
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
 }
 
 const CreateOrder = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
-  const { isLoaded, loadError, calculateDistance, geocodeAddress } = useGoogleMaps();
-  const [distance, setDistance] = useState<number | null>(null);
-  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
   
   const [formData, setFormData] = useState({
     pickupLocation: { address: '', details: '' } as LocationType,
     dropoffLocation: { address: '', details: '' } as LocationType,
     packageDetails: '',
     notes: '',
-    price: '' // New price field
+    price: ''
   });
 
   useEffect(() => {
@@ -48,80 +37,17 @@ const CreateOrder = () => {
     }
   }, [user, navigate]);
 
-  useEffect(() => {
-    if (isLoaded) {
-      toast.success('تم تحميل خرائط جوجل بنجاح', {
-        icon: <CheckCircle className="h-5 w-5" />,
-      });
-    } else if (loadError) {
-      toast.error('فشل في تحميل خرائط جوجل - تحقق من اتصالك بالإنترنت', {
-        icon: <XCircle className="h-5 w-5" />,
-      });
-    } else {
-      toast('جاري تحميل خرائط جوجل...', {
-        icon: <MapPin className="h-5 w-5" />,
-      });
-    }
-  }, [isLoaded, loadError]);
-
-  useEffect(() => {
-    const calculateDistanceAndPrice = async () => {
-      if (!formData.pickupLocation.address || !formData.dropoffLocation.address) {
-        setDistance(null);
-        setCalculatedPrice(null);
-        return;
-      }
-      
-      if (formData.pickupLocation.address.trim() && formData.dropoffLocation.address.trim()) {
-        setIsCalculating(true);
-        try {
-          console.log('Calculating distance between locations');
-          const distanceKm = await calculateDistance(
-            formData.pickupLocation.address,
-            formData.dropoffLocation.address
-          );
-          
-          if (distanceKm !== null) {
-            console.log(`Distance calculated: ${distanceKm} km`);
-            setDistance(distanceKm);
-            
-            const basePrice = 10;
-            const additionalKm = Math.max(0, distanceKm - 2);
-            const additionalPrice = additionalKm * 1.5;
-            const totalPrice = basePrice + additionalPrice;
-            
-            console.log(`Price calculated: ${totalPrice} SAR`);
-            setCalculatedPrice(totalPrice);
-            
-            setFormData(prev => ({
-              ...prev,
-              price: totalPrice.toFixed(2)
-            }));
-
-            toast.success(`تم حساب المسافة: ${distanceKm.toFixed(2)} كم والتكلفة: ${totalPrice.toFixed(2)} ريال`);
-          } else {
-            console.warn('Distance calculation failed');
-            setDistance(null);
-            setCalculatedPrice(null);
-            toast.error('تعذر حساب المسافة بين الموقعين');
-          }
-        } catch (error) {
-          console.error('Error calculating distance:', error);
-          toast.error('فشل في حساب المسافة');
-        } finally {
-          setIsCalculating(false);
-        }
-      }
-    };
-
-    calculateDistanceAndPrice();
-  }, [formData.pickupLocation.address, formData.dropoffLocation.address, calculateDistance]);
-
-  const handleLocationChange = (type: 'pickupLocation' | 'dropoffLocation', location: LocationType) => {
-    console.log(`Location changed (${type}):`, location);
+  const handleLocationChange = (
+    type: 'pickupLocation' | 'dropoffLocation',
+    field: 'address' | 'details',
+    value: string
+  ) => {
     setFormData(prev => ({
       ...prev,
-      [type]: location
+      [type]: {
+        ...prev[type],
+        [field]: value
+      }
     }));
   };
 
@@ -164,17 +90,6 @@ const CreateOrder = () => {
 
     setSubmitting(true);
     try {
-      console.log('Submitting order with data:', {
-        customer_id: user.id,
-        pickup_location: formData.pickupLocation,
-        dropoff_location: formData.dropoffLocation,
-        package_details: formData.packageDetails,
-        notes: formData.notes,
-        price: price,
-        status: 'available',
-        commission_rate: 0.15,
-      });
-
       const { data, error } = await supabase
         .from('orders')
         .insert([{
@@ -182,12 +97,10 @@ const CreateOrder = () => {
           pickup_location: {
             address: formData.pickupLocation.address,
             details: formData.pickupLocation.details || '',
-            ...(formData.pickupLocation.coordinates && { coordinates: formData.pickupLocation.coordinates })
           },
           dropoff_location: {
             address: formData.dropoffLocation.address,
             details: formData.dropoffLocation.details || '',
-            ...(formData.dropoffLocation.coordinates && { coordinates: formData.dropoffLocation.coordinates })
           },
           package_details: formData.packageDetails,
           notes: formData.notes,
@@ -195,7 +108,6 @@ const CreateOrder = () => {
           status: 'available',
           payment_status: 'pending',
           commission_rate: 0.15,
-          distance_km: distance || null
         }])
         .select();
 
@@ -224,102 +136,116 @@ const CreateOrder = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="p-6">
               <div className="space-y-4">
-                <label className="block text-lg font-semibold mb-2">معلومات الاستلام</label>
-                <LocationInput
-                  label="موقع الاستلام"
-                  placeholder="أدخل عنوان الاستلام"
-                  detailsPlaceholder="رقم المبنى، الطابق، علامات مميزة"
-                  value={formData.pickupLocation}
-                  onChange={(location) => handleLocationChange('pickupLocation', location)}
-                  className="space-y-4"
-                  isLoaded={isLoaded}
-                  geocodeAddress={geocodeAddress}
-                />
+                <h2 className="text-lg font-semibold">معلومات الاستلام</h2>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="pickupAddress">عنوان الاستلام</Label>
+                    <Input
+                      id="pickupAddress"
+                      placeholder="أدخل عنوان الاستلام"
+                      value={formData.pickupLocation.address}
+                      onChange={(e) => handleLocationChange('pickupLocation', 'address', e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="pickupDetails">تفاصيل إضافية</Label>
+                    <Input
+                      id="pickupDetails"
+                      placeholder="رقم المبنى، الطابق، علامات مميزة"
+                      value={formData.pickupLocation.details}
+                      onChange={(e) => handleLocationChange('pickupLocation', 'details', e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
             </Card>
             
             <Card className="p-6">
               <div className="space-y-4">
-                <label className="block text-lg font-semibold mb-2">معلومات التوصيل</label>
-                <LocationInput
-                  label="موقع التوصيل"
-                  placeholder="أدخل عنوان التوصيل"
-                  detailsPlaceholder="رقم المبنى، الطابق، علامات مميزة"
-                  value={formData.dropoffLocation}
-                  onChange={(location) => handleLocationChange('dropoffLocation', location)}
-                  className="space-y-4"
-                  isLoaded={isLoaded}
-                  geocodeAddress={geocodeAddress}
-                />
-              </div>
-            </Card>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <DistanceDisplay 
-              distance={distance}
-              price={calculatedPrice}
-              isCalculating={isCalculating}
-            />
-          
-            <Card className="p-6 md:col-span-2">
-              <h2 className="text-xl font-semibold mb-4 flex items-center">
-                <Package className="h-5 w-5 ml-2 text-safedrop-gold" />
-                تفاصيل الشحنة
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="price" className="block mb-1 font-medium text-gray-700">
-                    السعر (ريال)
-                  </Label>
-                  <div className="relative">
-                    <DollarSign className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                <h2 className="text-lg font-semibold">معلومات التوصيل</h2>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="dropoffAddress">عنوان التوصيل</Label>
                     <Input
-                      id="price"
-                      name="price"
-                      type="text"
-                      className="pl-10 text-left"
-                      placeholder="0.00"
-                      value={formData.price}
-                      onChange={handlePriceChange}
+                      id="dropoffAddress"
+                      placeholder="أدخل عنوان التوصيل"
+                      value={formData.dropoffLocation.address}
+                      onChange={(e) => handleLocationChange('dropoffLocation', 'address', e.target.value)}
                       required
                     />
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
-                    سيحصل السائق على 75% من السعر والمنصة على 15%
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="packageDetails" className="block mb-1 font-medium text-gray-700">
-                    وصف الشحنة
-                  </Label>
-                  <Textarea
-                    id="packageDetails"
-                    name="packageDetails"
-                    placeholder="وصف المحتويات، الحجم، الوزن التقريبي"
-                    rows={3}
-                    value={formData.packageDetails}
-                    onChange={handleTextChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="notes" className="block mb-1 font-medium text-gray-700">
-                    ملاحظات للسائق
-                  </Label>
-                  <Textarea
-                    id="notes"
-                    name="notes"
-                    placeholder="أي تعليمات خاصة للسائق"
-                    rows={3}
-                    value={formData.notes}
-                    onChange={handleTextChange}
-                  />
+                  <div>
+                    <Label htmlFor="dropoffDetails">تفاصيل إضافية</Label>
+                    <Input
+                      id="dropoffDetails"
+                      placeholder="رقم المبنى، الطابق، علامات مميزة"
+                      value={formData.dropoffLocation.details}
+                      onChange={(e) => handleLocationChange('dropoffLocation', 'details', e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
             </Card>
           </div>
+          
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <Package className="h-5 w-5 ml-2 text-safedrop-gold" />
+              تفاصيل الشحنة
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="price" className="block mb-1 font-medium text-gray-700">
+                  السعر (ريال)
+                </Label>
+                <div className="relative">
+                  <DollarSign className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                  <Input
+                    id="price"
+                    name="price"
+                    type="text"
+                    className="pl-10 text-left"
+                    placeholder="0.00"
+                    value={formData.price}
+                    onChange={handlePriceChange}
+                    required
+                  />
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  سيحصل السائق على 75% من السعر والمنصة على 15%
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="packageDetails">
+                  وصف الشحنة
+                </Label>
+                <Textarea
+                  id="packageDetails"
+                  name="packageDetails"
+                  placeholder="وصف المحتويات، الحجم، الوزن التقريبي"
+                  rows={3}
+                  value={formData.packageDetails}
+                  onChange={handleTextChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="notes">
+                  ملاحظات للسائق
+                </Label>
+                <Textarea
+                  id="notes"
+                  name="notes"
+                  placeholder="أي تعليمات خاصة للسائق"
+                  rows={3}
+                  value={formData.notes}
+                  onChange={handleTextChange}
+                />
+              </div>
+            </div>
+          </Card>
           
           <div className="flex justify-between items-center">
             <Button 
