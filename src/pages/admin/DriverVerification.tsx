@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+
 interface Driver {
   id: string;
   first_name: string;
@@ -18,11 +19,13 @@ interface Driver {
   email?: string | null;
   user_type: string;
 }
+
 interface DriverStatusCategory {
   name: string;
   display_name_ar: string;
   color: string;
 }
+
 const DriverVerification = () => {
   const {
     t
@@ -33,6 +36,7 @@ const DriverVerification = () => {
   const [searchEmail, setSearchEmail] = useState("");
   const [currentTab, setCurrentTab] = useState("pending");
   const navigate = useNavigate();
+
   const fetchDriverStatusCategories = async () => {
     try {
       const {
@@ -46,6 +50,7 @@ const DriverVerification = () => {
       toast.error("حدث خطأ أثناء جلب فئات حالة السائقين");
     }
   };
+
   const fetchDrivers = async () => {
     setLoading(true);
     try {
@@ -104,10 +109,12 @@ const DriverVerification = () => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchDriverStatusCategories();
     fetchDrivers();
   }, []);
+
   useEffect(() => {
     const handleFocus = () => {
       console.log("Window focused - refreshing driver data");
@@ -118,19 +125,24 @@ const DriverVerification = () => {
       window.removeEventListener('focus', handleFocus);
     };
   }, []);
+
   const filteredDrivers = drivers.filter(driver => {
     const matchesStatus = currentTab === "all" || driver.status === currentTab;
     const matchesSearch = !searchEmail || driver.email && driver.email.toLowerCase().includes(searchEmail.toLowerCase());
     return matchesStatus && matchesSearch;
   });
+
   const navigateToDriverDetails = (driverId: string) => {
     navigate(`/admin/driver-details/${driverId}`);
   };
+
   const getStatusBadgeColor = (status: string) => {
     const category = statusCategories.find(cat => cat.name === status);
     return category ? category.color : "gray";
   };
-  return <div className="p-6 flex flex-col min-h-svh">
+
+  return (
+    <div className="p-6 flex flex-col min-h-svh">
       <div className="flex justify-between mb-6">
         <h1 className="text-2xl font-bold">إدارة السائقين</h1>
         <Button variant="outline" onClick={fetchDrivers} disabled={loading} className="flex items-center gap-2">
@@ -138,7 +150,7 @@ const DriverVerification = () => {
           تحديث البيانات
         </Button>
       </div>
-      
+
       <div className="mb-6">
         <div className="relative w-full max-w-sm mb-4">
           <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -146,7 +158,7 @@ const DriverVerification = () => {
         </div>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab}>
-          <TabsList className="flex justify-end space-x-2 space-x-reverse">
+          <TabsList className="flex justify-end space-x-2 space-x-reverse mb-4">
             <TabsTrigger value="pending">في الانتظار</TabsTrigger>
             <TabsTrigger value="approved">مقبول</TabsTrigger>
             <TabsTrigger value="rejected">مرفوض</TabsTrigger>
@@ -157,43 +169,49 @@ const DriverVerification = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>الاسم الأول</TableHead>
-                  <TableHead>اسم العائلة</TableHead>
-                  <TableHead>البريد الإلكتروني</TableHead>
-                  <TableHead>الهاتف</TableHead>
-                  <TableHead>الحالة</TableHead>
+                  <TableHead className="text-right">الاسم الأول</TableHead>
+                  <TableHead className="text-right">اسم العائلة</TableHead>
+                  <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                  <TableHead className="text-right">الهاتف</TableHead>
+                  <TableHead className="text-right">الحالة</TableHead>
                   <TableHead className="text-center">إجراءات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredDrivers.map(driver => {
-                const statusCategory = statusCategories.find(cat => cat.name === driver.status);
-                return <TableRow key={driver.id}>
-                      <TableCell>{driver.first_name}</TableCell>
-                      <TableCell>{driver.last_name}</TableCell>
-                      <TableCell>{driver.email || "-"}</TableCell>
-                      <TableCell>{driver.phone}</TableCell>
-                      <TableCell>
+                  const statusCategory = statusCategories.find(cat => cat.name === driver.status);
+                  return (
+                    <TableRow key={driver.id}>
+                      <TableCell className="text-right">{driver.first_name}</TableCell>
+                      <TableCell className="text-right">{driver.last_name}</TableCell>
+                      <TableCell className="text-right">{driver.email || "-"}</TableCell>
+                      <TableCell className="text-right">{driver.phone}</TableCell>
+                      <TableCell className="text-right">
                         <Badge variant="outline" className={`bg-${statusCategory?.color}-50 text-${statusCategory?.color}-600`}>
                           {statusCategory?.display_name_ar || driver.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="flex justify-center gap-2">
+                      <TableCell className="text-center">
                         <Button size="sm" variant="outline" onClick={() => navigateToDriverDetails(driver.id)}>
                           <Eye size={16} className="ml-1" /> عرض التفاصيل
                         </Button>
                       </TableCell>
-                    </TableRow>;
-              })}
+                    </TableRow>
+                  );
+                })}
 
-                {filteredDrivers.length === 0 && !loading && <TableRow>
+                {filteredDrivers.length === 0 && !loading && (
+                  <TableRow>
                     <TableCell colSpan={6} className="text-center">لا يوجد سائقون للعرض</TableCell>
-                  </TableRow>}
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TabsContent>
         </Tabs>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default DriverVerification;

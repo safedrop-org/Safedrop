@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -185,13 +184,13 @@ const Orders = () => {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="all" className="w-full">
-              <TabsList className="mb-4 grid grid-cols-6 max-w-md">
-                <TabsTrigger value="all">الكل</TabsTrigger>
-                <TabsTrigger value="pending">قيد الانتظار</TabsTrigger>
-                <TabsTrigger value="approved">موافق عليه</TabsTrigger>
-                <TabsTrigger value="in_transit">قيد التوصيل</TabsTrigger>
-                <TabsTrigger value="completed">مكتمل</TabsTrigger>
-                <TabsTrigger value="cancelled">ملغي</TabsTrigger>
+              <TabsList className="mb-4 grid grid-cols-6 w-full">
+                <TabsTrigger value="all" className="flex-1 text-center">الكل</TabsTrigger>
+                <TabsTrigger value="pending" className="flex-1 text-center">قيد الانتظار</TabsTrigger>
+                <TabsTrigger value="approved" className="flex-1 text-center">موافق عليه</TabsTrigger>
+                <TabsTrigger value="in_transit" className="flex-1 text-center">قيد التوصيل</TabsTrigger>
+                <TabsTrigger value="completed" className="flex-1 text-center">مكتمل</TabsTrigger>
+                <TabsTrigger value="cancelled" className="flex-1 text-center">ملغي</TabsTrigger>
               </TabsList>
               
               <TabsContent value="all" className="mt-0">
