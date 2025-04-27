@@ -93,7 +93,7 @@ const Orders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const { data: orders = [], isLoading, error, refetch } = useOrders(true); // Pass true for admin view
+  const { data: orders = [], isLoading, error, refetch } = useOrders(true);
   
   React.useEffect(() => {
     if (error) {
@@ -118,7 +118,6 @@ const Orders = () => {
   };
 
   const handleExportOrders = () => {
-    // Create CSV data
     const headers = ["رقم الطلب", "العميل", "السائق", "التاريخ", "السعر", "الحالة", "حالة الدفع"];
     
     const csvData = orders.map(order => [
@@ -131,13 +130,11 @@ const Orders = () => {
       order.payment_status
     ]);
     
-    // Convert to CSV string
     let csvContent = headers.join(",") + "\n";
     csvData.forEach(row => {
       csvContent += row.join(",") + "\n";
     });
     
-    // Create and download the file
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -174,7 +171,7 @@ const Orders = () => {
           </div>
           
           <Button variant="outline" className="gap-2" onClick={handleExportOrders}>
-            <Download size={16} />
+            <Download className="h-4 w-4" />
             تصدير الطلبات
           </Button>
         </div>

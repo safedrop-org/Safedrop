@@ -120,9 +120,9 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
             <h3 className="font-semibold text-lg">معلومات الاستلام</h3>
             <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
               <p className="font-medium">العنوان:</p>
-              <p className="text-gray-600">{order.pickup_location?.formatted_address || 'غير محدد'}</p>
+              <p className="text-gray-600">{order.pickup_location?.address || 'غير محدد'}</p>
               <p className="font-medium mt-2">تفاصيل إضافية:</p>
-              <p className="text-gray-600">{order.pickup_location?.additional_details || 'لا توجد تفاصيل إضافية'}</p>
+              <p className="text-gray-600">{order.pickup_location?.details || 'لا توجد تفاصيل إضافية'}</p>
             </div>
           </div>
 
@@ -131,9 +131,9 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
             <h3 className="font-semibold text-lg">معلومات التوصيل</h3>
             <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
               <p className="font-medium">العنوان:</p>
-              <p className="text-gray-600">{order.dropoff_location?.formatted_address || 'غير محدد'}</p>
+              <p className="text-gray-600">{order.dropoff_location?.address || 'غير محدد'}</p>
               <p className="font-medium mt-2">تفاصيل إضافية:</p>
-              <p className="text-gray-600">{order.dropoff_location?.additional_details || 'لا توجد تفاصيل إضافية'}</p>
+              <p className="text-gray-600">{order.dropoff_location?.details || 'لا توجد تفاصيل إضافية'}</p>
             </div>
           </div>
 
