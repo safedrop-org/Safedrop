@@ -61,6 +61,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
       }
     } else if (isLoaded) {
       console.warn('Google Maps loaded but places library is not available');
+      toast.error('خدمة البحث عن الأماكن غير متاحة');
     }
   }, [isLoaded]);
 
@@ -81,8 +82,32 @@ const LocationInput: React.FC<LocationInputProps> = ({
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
     onChange({ ...value, address: input });
+    
+    console.log('Input value changed:', input);
 
-    if (!autocompleteService.current || input.length < 2) {
+    if (!isLoaded) {
+      console.warn('Google Maps not loaded yet');
+      return;
+    }
+    
+    if (!window.google || !window.google.maps || !window.google.maps.places) {
+      console.error('Google Maps Places API not available');
+      toast.error('خدمة البحث عن الأماكن غير متاحة');
+      return;
+    }
+
+    if (!autocompleteService.current) {
+      console.warn('Autocomplete service not initialized, trying to initialize now');
+      try {
+        autocompleteService.current = new window.google.maps.places.AutocompleteService();
+        autocompleteSessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
+      } catch (error) {
+        console.error('Failed to initialize autocomplete service:', error);
+        return;
+      }
+    }
+
+    if (input.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -101,14 +126,13 @@ const LocationInput: React.FC<LocationInputProps> = ({
         request,
         (predictions, status) => {
           console.log('Autocomplete status:', status);
-          console.log('Predictions:', predictions);
           
-          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions && predictions.length > 0) {
+            console.log('Predictions received:', predictions);
             setSuggestions(predictions);
             setShowSuggestions(true);
-            console.log('Setting suggestions visible with', predictions.length, 'items');
           } else {
-            console.warn('Autocomplete failed or returned no results with status:', status);
+            console.warn('No predictions received or status not OK:', status);
             setSuggestions([]);
             setShowSuggestions(false);
           }
@@ -116,6 +140,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
       );
     } catch (error) {
       console.error('Error fetching address suggestions:', error);
+      toast.error('حدث خطأ في البحث عن العناوين');
       setSuggestions([]);
       setShowSuggestions(false);
     }
@@ -123,27 +148,41 @@ const LocationInput: React.FC<LocationInputProps> = ({
 
   const handleInputFocus = () => {
     setIsInputFocused(true);
-    // Show suggestions if we have any when input is focused
-    if (value.address.length >= 2 && suggestions.length > 0) {
-      setShowSuggestions(true);
-    }
+    console.log('Input focused, current value:', value.address);
     
     // If we have text but no suggestions, try to fetch them again
-    if (value.address.length >= 2 && suggestions.length === 0 && autocompleteService.current) {
+    if (value.address.length >= 2 && isLoaded) {
       handleAddressChange({ target: { value: value.address } } as React.ChangeEvent<HTMLInputElement>);
     }
   };
 
   const handleInputBlur = () => {
     setIsInputFocused(false);
-    // We don't hide suggestions here to allow clicking on them
-    // The click outside handler will take care of hiding them when needed
+    // Delay hiding suggestions to allow clicking on them
+    setTimeout(() => {
+      if (!document.activeElement || !inputRef.current?.contains(document.activeElement)) {
+        setShowSuggestions(false);
+      }
+    }, 200);
   };
 
   const handleSuggestionSelect = async (suggestion: google.maps.places.AutocompletePrediction) => {
+    console.log('Selected suggestion:', suggestion);
+    
+    if (!window.google || !window.google.maps) {
+      toast.error('خرائط جوجل غير متاحة');
+      return;
+    }
+
     if (!placesService.current) {
-      if (divRef.current && isLoaded && window.google) {
-        placesService.current = new window.google.maps.places.PlacesService(divRef.current);
+      if (divRef.current && isLoaded) {
+        try {
+          placesService.current = new window.google.maps.places.PlacesService(divRef.current);
+        } catch (error) {
+          console.error('Error creating PlacesService:', error);
+          toast.error('خدمة الأماكن غير متاحة');
+          return;
+        }
       } else {
         toast.error('خدمة الأماكن غير متاحة');
         return;
@@ -161,8 +200,10 @@ const LocationInput: React.FC<LocationInputProps> = ({
           console.log('Place details status:', status);
           
           if (status === window.google.maps.places.PlacesServiceStatus.OK && place?.geometry) {
+            console.log('Place details received:', place);
             onChange({
               address: place.formatted_address || suggestion.description,
+              details: value.details,
               coordinates: {
                 lat: place.geometry.location.lat(),
                 lng: place.geometry.location.lng()
@@ -170,7 +211,10 @@ const LocationInput: React.FC<LocationInputProps> = ({
             });
             
             // Get a new session token after selection
-            autocompleteSessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
+            if (window.google && window.google.maps && window.google.maps.places) {
+              autocompleteSessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
+            }
+            
             setSuggestions([]);
             setShowSuggestions(false);
           } else {
@@ -202,6 +246,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
             className={`w-full ${isInputFocused ? 'border-safedrop-gold' : ''}`}
+            autoComplete="off"
           />
           
           {showSuggestions && suggestions.length > 0 && (
