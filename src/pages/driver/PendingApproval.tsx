@@ -216,7 +216,7 @@ const PendingApprovalContent = () => {
             <div className="w-8 h-8 bg-safedrop-primary rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
               1
             </div>
-            <p className="mr-4 text-right">يقوم فريقنا بمراجعة المعلومات والوثائق التي قمت بتقديمها</p>
+            <p className="mr-4 text-right">يقوم فريقنا بمراجعة المعلومات التي قمت بتقديمها</p>
           </div>
           
           <div className="flex items-start">
@@ -230,7 +230,7 @@ const PendingApprovalContent = () => {
             <div className="w-8 h-8 bg-safedrop-primary rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
               3
             </div>
-            <p className="mr-4 text-right">سيتم إرسال إشعار إليك فور الموافقة على حسابك أو في حال احتجنا إلى معلومات إضافية</p>
+            <p className="mr-4 text-center">سيتم إرسال إشعار إليك فور الموافقة على حسابك أو في حال احتجنا إلى معلومات إضافية</p>
           </div>
         </div>
         
