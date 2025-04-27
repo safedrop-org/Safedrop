@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,43 +57,15 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
     try {
       console.log(`Updating order ${orderId} status to ${newStatus}`, { driverLocation });
 
-      // First verify the order exists and belongs to this driver
-      const { data: orderExists, error: checkError } = await supabase
-        .from('orders')
-        .select('id, driver_id')
-        .eq('id', orderId)
-        .maybeSingle();
-        
-      if (checkError) {
-        console.error("Error checking if order exists:", checkError);
-        throw checkError;
-      }
-      
-      if (!orderExists) {
-        throw new Error('الطلب غير موجود');
-      }
-      
-      // Verify the driver is authorized
-      if (orderExists.driver_id !== user.id) {
-        throw new Error('لا يمكنك تعديل طلب غير مسند إليك');
-      }
-
-      // Map UI status values to valid database status values
-      // IMPORTANT: The database has constraints on the status field values
-      // We need to ensure we're setting a valid value
-      const dbStatus = newStatus === 'approaching' ? 'approved' : newStatus;
-      
-      console.log("Setting database status to:", dbStatus);
-      
       const { data, error } = await supabase
         .from('orders')
         .update({ 
-          status: dbStatus,
+          status: newStatus,
           driver_location: driverLocation,
           updated_at: new Date().toISOString()
         })
         .eq('id', orderId)
-        .eq('driver_id', user.id) // Extra safety: ensure we only update if driver_id matches
+        .eq('driver_id', user.id)
         .select();
 
       if (error) {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -67,7 +66,6 @@ const DriverOrdersContent = () => {
     }
   }, [isAvailable, driverLocation, user?.id]);
 
-  // Check if orders data has loaded and log for debugging
   useEffect(() => {
     if (orders && orders.length > 0) {
       console.log("Orders loaded:", orders.length, "orders");
@@ -75,14 +73,13 @@ const DriverOrdersContent = () => {
     }
   }, [orders]);
 
-  // Filter orders based on their status and driver assignment
   const availableOrders = orders?.filter(order => 
-    !order.driver_id && order.status === 'pending'
+    !order.driver_id && order.status === 'approved'
   ) ?? [];
   
   const currentOrders = orders?.filter(order => 
     order.driver_id === user?.id && 
-    ['approved', 'in_transit', 'approaching', 'five_minutes_away'].includes(order.status)
+    ['picked_up', 'in_transit', 'approaching', 'five_minutes_away'].includes(order.status)
   ) ?? [];
   
   const completedOrders = orders?.filter(order => 
@@ -94,17 +91,15 @@ const DriverOrdersContent = () => {
   console.log("Current orders:", currentOrders.length);
   console.log("Completed orders:", completedOrders.length);
 
-  // Switch to current orders tab when an order has been accepted
   useEffect(() => {
-    if (lastAcceptedOrderId && currentOrders.length > 0) {
+    if (currentOrders.length > 0) {
       setActiveTab('current');
       setLastAcceptedOrderId(null);
     }
-  }, [currentOrders.length, lastAcceptedOrderId]);
+  }, [currentOrders.length]);
 
   const handleAcceptOrder = async (id: string) => {
     try {
-      // Prevent multiple clicks
       if (isProcessing) {
         return;
       }
@@ -125,7 +120,6 @@ const DriverOrdersContent = () => {
       
       console.log("Accepting order:", id, "with driver:", user.id);
 
-      // Verify the order exists and is still available before attempting to accept it
       const { data: orderCheck, error: checkError } = await supabase
         .from('orders')
         .select('id, status, driver_id')
@@ -146,19 +140,18 @@ const DriverOrdersContent = () => {
         return;
       }
         
-      if (orderCheck.status !== 'pending' || orderCheck.driver_id) {
+      if (orderCheck.status !== 'approved' || orderCheck.driver_id) {
         console.error("Order is no longer available for acceptance", orderCheck);
         toast.error('هذا الطلب لم يعد متاحاً للقبول');
         setIsProcessing(false);
         return;
       }
       
-      // Now try to update the order - using 'pending' as a valid status to avoid constraint violation
       const { data, error } = await supabase
         .from('orders')
         .update({ 
           driver_id: user.id, 
-          status: 'in_transit', // Changed from 'approved' to 'in_transit' to match allowed status values
+          status: 'picked_up',
           driver_location: driverLocation
         })
         .eq('id', id)
@@ -180,30 +173,12 @@ const DriverOrdersContent = () => {
         return;
       }
       
-      // Success! The order was updated successfully
       toast.success(`تم قبول الطلب رقم ${id.substring(0, 8)} بنجاح`);
-      
-      // Track the accepted order ID
       setLastAcceptedOrderId(id);
       
-      // Immediately update the local data to reflect the change
-      queryClient.setQueryData(['orders', user.id, false], (oldData: any[]) => {
-        if (!oldData) return [];
-        return oldData.map(order => {
-          if (order.id === id) {
-            return { ...order, driver_id: user.id, status: 'in_transit' };
-          }
-          return order;
-        });
-      });
-      
-      // Force a complete invalidation and refetch
       queryClient.invalidateQueries({queryKey: ['orders']});
-      
-      // After invalidating the cache, explicitly refetch
       await refetch();
       
-      // Switch to current orders tab
       setActiveTab('current');
     } catch (err) {
       console.error('Error accepting order:', err);
