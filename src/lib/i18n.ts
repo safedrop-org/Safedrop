@@ -388,8 +388,8 @@ export const translations: Translations = {
     en: "Express Delivery"
   },
   termsAndConditions: {
-    ar: "الشروط والأحكام",
-    en: "Terms & Conditions"
+    ar: "Terms & Conditions / الشروط والأحكام",
+    en: "Terms & Conditions / الشروط والأحكام"
   },
   location: {
     ar: "المملكة العربية السعودية، الرياض",
