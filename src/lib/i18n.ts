@@ -172,7 +172,7 @@ export const translations: Translations = {
     en: "Your account has been created successfully. You can now log in."
   },
   registrationError: {
-    ar: "خطأ ��ي التسجيل",
+    ar: "خطأ ���ي التسجيل",
     en: "Registration Error"
   },
   nationalId: {
@@ -552,7 +552,7 @@ export const translations: Translations = {
     en: "Suitable for urgent orders"
   },
   startWithSafedrop: {
-    ar: "ابدأ رحلتك مع سيف دروب اليوم",
+    ar: "ابدأ رحلتك م�� سيف دروب اليوم",
     en: "Start your journey with SafeDrop today"
   },
   safeDeliveryExperience: {
@@ -654,6 +654,122 @@ export const translations: Translations = {
   workingDays: {
     ar: "الأحد - السبت : 9:00 ص - 9:00 م",
     en: "Sunday - Saturday: 9:00 AM - 9:00 PM"
+  },
+  driverDashboardTitle: {
+    ar: "لوحة تحكم السائق",
+    en: "Driver Dashboard"
+  },
+  availableOrdersCount: {
+    ar: "الطلبات المتاحة",
+    en: "Available Orders"
+  },
+  completedOrdersCount: {
+    ar: "الطلبات المكتملة",
+    en: "Completed Orders"
+  },
+  totalEarnings: {
+    ar: "إجمالي الأرباح",
+    en: "Total Earnings"
+  },
+  averageRating: {
+    ar: "متوسط التقييم",
+    en: "Average Rating"
+  },
+  currentLocation: {
+    ar: "موقعك الحالي",
+    en: "Current Location"
+  },
+  noOrdersAvailable: {
+    ar: "لا توجد طلبات متاحة حالياً",
+    en: "No orders available"
+  },
+  viewAllOrders: {
+    ar: "عرض جميع الطلبات",
+    en: "View All Orders"
+  },
+  viewAllEarnings: {
+    ar: "عرض جميع الأرباح",
+    en: "View All Earnings"
+  },
+  viewAllRatings: {
+    ar: "عرض جميع التقييمات",
+    en: "View All Ratings"
+  },
+  recentOrders: {
+    ar: "آخر الطلبات",
+    en: "Recent Orders"
+  },
+  orderDetails: {
+    ar: "تفاصيل الطلب",
+    en: "Order Details"
+  },
+  orderDate: {
+    ar: "تاريخ الطلب",
+    en: "Order Date"
+  },
+  orderStatus: {
+    ar: "حالة الطلب",
+    en: "Order Status"
+  },
+  customerName: {
+    ar: "اسم العميل",
+    en: "Customer Name"
+  },
+  acceptOrder: {
+    ar: "قبول الطلب",
+    en: "Accept Order"
+  },
+  completeOrder: {
+    ar: "إكمال الطلب",
+    en: "Complete Order"
+  },
+  orderAccepted: {
+    ar: "تم قبول الطلب بنجاح",
+    en: "Order accepted successfully"
+  },
+  orderCompleted: {
+    ar: "تم إكمال الطلب بنجاح",
+    en: "Order completed successfully"
+  },
+  errorAcceptingOrder: {
+    ar: "حدث خطأ أثناء قبول الطلب",
+    en: "Error accepting order"
+  },
+  errorCompletingOrder: {
+    ar: "حدث خطأ أثناء إكمال الطلب",
+    en: "Error completing order"
+  },
+  loadingOrders: {
+    ar: "جاري تحميل الطلبات...",
+    en: "Loading orders..."
+  },
+  retryLoading: {
+    ar: "إعادة المحاولة",
+    en: "Retry"
+  },
+  errorLoadingOrders: {
+    ar: "حدث خطأ أثناء تحميل الطلبات",
+    en: "Error loading orders"
+  },
+  noRatingsYet: {
+    ar: "لا توجد تقييمات بعد",
+    en: "No ratings yet"
+  },
+  ratingStats: {
+    ar: "إحصائيات التقييمات",
+    en: "Rating Statistics"
+  },
+  lastUpdated: {
+    ar: "آخر تحديث",
+    en: "Last Updated"
+  },
+  availabilityStatus: {
+    ar: "حالة الاستقبال",
+    en: "Availability Status"
+  },
+  updateAvailability: {
+    ar: "��حديث الحالة",
+    en: "Update Status"
   }
 };
 
