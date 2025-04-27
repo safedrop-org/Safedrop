@@ -228,7 +228,7 @@ const PendingApprovalContent = () => {
             <div className="w-8 h-8 bg-safedrop-primary rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
               3
             </div>
-            <p className="mr-4 text-center">سيتم إرسال إشعار إليك فور الموافقة على حسابك أو في حال احتجنا إلى معلومات إضافية</p>
+            <p className="mr-4 text-center">ستستطيع العمل معنا بعد قبول طلب إنضمامك   </p>
           </div>
         </div>
         
