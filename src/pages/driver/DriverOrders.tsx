@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +20,6 @@ const DriverOrdersContent = () => {
   const { data: orders = [], isLoading, error, refetch } = useOrders();
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Get driver's current location
   useEffect(() => {
     const getLocation = () => {
       if (navigator.geolocation) {
@@ -41,13 +39,11 @@ const DriverOrdersContent = () => {
     };
 
     getLocation();
-    // Set up periodic location updates
     const locationInterval = setInterval(getLocation, 30000); // Update every 30 seconds
 
     return () => clearInterval(locationInterval);
   }, []);
 
-  // Update driver availability status
   useEffect(() => {
     if (user?.id) {
       const updateDriverAvailability = async () => {
@@ -86,6 +82,8 @@ const DriverOrdersContent = () => {
         toast.error("يجب تحديد موقعك الحالي لقبول الطلب");
         return;
       }
+      
+      console.log("Setting order status to approved for acceptance");
 
       const { error } = await supabase
         .from('orders')
@@ -96,7 +94,10 @@ const DriverOrdersContent = () => {
         })
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error accepting order:", error);
+        throw error;
+      }
       
       toast.success(`تم قبول الطلب رقم ${id} بنجاح`);
       refetch();

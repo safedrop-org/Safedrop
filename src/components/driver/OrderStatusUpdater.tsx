@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,8 +53,11 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
         throw new Error('الطلب غير موجود');
       }
 
-      // Always use "approved" for database consistency
+      // Only use database-allowed values: 'pending', 'approved', 'in_transit', 'completed', 'cancelled'
+      // 'approaching' in UI maps to 'approved' in database
       const dbStatus = newStatus === 'approaching' ? 'approved' : 'in_transit';
+      
+      console.log("Setting database status to:", dbStatus);
       
       const { data, error } = await supabase
         .from('orders')

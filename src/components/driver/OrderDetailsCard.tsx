@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +61,9 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   const handleCompleteOrder = async () => {
     setIsUpdating(true);
     try {
+      // Use valid database status value: 'completed'
+      console.log("Setting order status to completed");
+      
       const { error } = await supabase
         .from('orders')
         .update({ 
@@ -70,7 +72,10 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
         })
         .eq('id', order.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error completing order:", error);
+        throw error;
+      }
       
       toast.success('تم تسليم الطلب بنجاح');
       onOrderUpdate();
@@ -90,15 +95,21 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 
     setIsUpdating(true);
     try {
+      // Always use valid database status: 'approved' for five minutes away UI status
+      console.log("Setting order status to approved (five minutes away)");
+      
       const { error } = await supabase
         .from('orders')
         .update({ 
-          status: 'approved', // Always use "approved" for database consistency
+          status: 'approved', 
           driver_location: driverLocation 
         })
         .eq('id', order.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating order status:", error);
+        throw error;
+      }
 
       toast.success('تم تحديث حالة الطلب إلى متبقي 5 دقائق');
       onOrderUpdate();
@@ -107,6 +118,37 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
       toast.error('حدث خطأ أثناء تحديث حالة الطلب');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleAcceptOrder = async (id: string) => {
+    try {
+      if (!driverLocation) {
+        toast.error("يجب تحديد موقعك الحالي لقبول الطلب");
+        return;
+      }
+
+      console.log("Accepting order - setting status to approved");
+      
+      const { error } = await supabase
+        .from('orders')
+        .update({ 
+          driver_id: order.id, 
+          status: 'approved', // Valid database status value
+          driver_location: driverLocation
+        })
+        .eq('id', id);
+      
+      if (error) {
+        console.error("Error accepting order:", error);
+        throw error;
+      }
+      
+      toast.success(`تم قبول الطلب رقم ${id} بنجاح`);
+      onOrderUpdate();
+    } catch (err) {
+      console.error('Error accepting order:', err);
+      toast.error('حدث خطأ أثناء قبول الطلب');
     }
   };
 
