@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Eye, Download } from "lucide-react";
+import { Search, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useOrders } from "@/hooks/useOrders";
 import { OrderDetails } from "@/components/admin/OrderDetails";
@@ -203,12 +203,12 @@ const Orders = () => {
           <CardContent>
             <Tabs defaultValue="all" className="w-full">
               <TabsList className="mb-4 grid grid-cols-6 w-full">
-                <TabsTrigger value="all" className="flex-1 text-center">الكل</TabsTrigger>
-                <TabsTrigger value="pending" className="flex-1 text-center">قيد الإنتظار</TabsTrigger>
-                <TabsTrigger value="approved" className="flex-1 text-center">مقبول</TabsTrigger>
-                <TabsTrigger value="rejected" className="flex-1 text-center">مرفوض</TabsTrigger>
-                <TabsTrigger value="in_transit" className="flex-1 text-center">قيد التوصيل</TabsTrigger>
-                <TabsTrigger value="completed" className="flex-1 text-center">مكتمل</TabsTrigger>
+                <TabsTrigger value="all" className="flex-1 text-center whitespace-nowrap px-4">الكل</TabsTrigger>
+                <TabsTrigger value="pending" className="flex-1 text-center whitespace-nowrap px-4">قيد الإنتظار</TabsTrigger>
+                <TabsTrigger value="approved" className="flex-1 text-center whitespace-nowrap px-4">مقبول</TabsTrigger>
+                <TabsTrigger value="rejected" className="flex-1 text-center whitespace-nowrap px-4">مرفوض</TabsTrigger>
+                <TabsTrigger value="in_transit" className="flex-1 text-center whitespace-nowrap px-4">قيد التوصيل</TabsTrigger>
+                <TabsTrigger value="completed" className="flex-1 text-center whitespace-nowrap px-4">مكتمل</TabsTrigger>
               </TabsList>
               
               <TabsContent value="all" className="mt-0">

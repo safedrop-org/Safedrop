@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Eye, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Clock, Package, MapPin, DollarSign, Navigation } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const CustomerOrders = () => {
   const { user } = useAuth();
@@ -120,7 +119,7 @@ const CustomerOrders = () => {
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
         <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">طلباتي</h1>
-
+        
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-safedrop-primary"></div>
@@ -145,7 +144,6 @@ const CustomerOrders = () => {
                         <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">إلى</th>
                         <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">السائق</th>
                         <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -168,12 +166,6 @@ const CustomerOrders = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {getStatusBadge(order.status)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4 mr-1" />
-                              تفاصيل
-                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -201,7 +193,6 @@ const CustomerOrders = () => {
                         <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">إلى</th>
                         <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">السائق</th>
                         <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -225,19 +216,13 @@ const CustomerOrders = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {getStatusBadge(order.status)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4 mr-1" />
-                              تفاصيل
-                            </Button>
-                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 ) : (
                   <div className="text-center py-10 text-gray-500">
-                    <CheckCircle className="mx-auto h-10 w-10 text-gray-400 mb-2" />
+                    <Clock className="mx-auto h-10 w-10 text-gray-400 mb-2" />
                     <p>لا يوجد سجل للطلبات السابقة</p>
                   </div>
                 )}
