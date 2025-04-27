@@ -14,11 +14,20 @@ export const useOrders = (isAdmin = false) => {
       try {
         console.log("Fetching orders for driver:", user.id);
         
-        // Fetch both available orders and orders assigned to the driver
-        const { data: orders, error } = await supabase
-          .from('orders')
-          .select('*')
-          .or(`driver_id.is.null,driver_id.eq.${user.id}`)
+        let query = supabase.from('orders').select('*');
+        
+        // For non-admins (drivers), only show:
+        // 1. Orders assigned to them
+        // 2. Pending orders not assigned to any driver
+        if (!isAdmin) {
+          query = query.or(`driver_id.is.null,driver_id.eq.${user.id}`);
+          
+          // Only show pending orders that aren't assigned to anyone
+          // or orders that are specifically assigned to this driver
+          query = query.or(`and(driver_id.is.null,status.eq.pending),driver_id.eq.${user.id}`);
+        }
+        
+        const { data: orders, error } = await query
           .order('created_at', { ascending: false });
 
         if (error) {

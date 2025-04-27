@@ -13,11 +13,13 @@ import { useOrders } from '@/hooks/useOrders';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import OrderDetailsCard from '@/components/driver/OrderDetailsCard';
+import { useQueryClient } from '@tanstack/react-query';
 
 const DriverOrdersContent = () => {
   const { t } = useLanguage();
   const [isAvailable, setIsAvailable] = useState(true);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { data: orders = [], isLoading, error, refetch } = useOrders();
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [activeTab, setActiveTab] = useState('current');
@@ -102,6 +104,10 @@ const DriverOrdersContent = () => {
       }
       
       toast.success(`تم قبول الطلب رقم ${id} بنجاح`);
+      
+      // Invalidate the entire orders cache to force a fresh fetch
+      await queryClient.invalidateQueries({queryKey: ['orders']});
+      
       // After accepting the order, refetch the data and switch to current orders tab
       await refetch();
       setActiveTab('current');
@@ -214,15 +220,24 @@ const DriverOrdersContent = () => {
               
               <TabsContent value="completed" className="space-y-4">
                 <h3 className="text-xl font-semibold mb-4">الطلبات المكتملة</h3>
-                {completedOrders.map((order) => (
-                  <OrderDetailsCard 
-                    key={order.id}
-                    order={order}
-                    onOrderUpdate={refetch}
-                    driverLocation={driverLocation}
-                    showCompleteButton={false}
-                  />
-                ))}
+                {completedOrders.length === 0 ? (
+                  <div className="bg-white rounded-lg shadow p-6 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <ClockIcon className="h-12 w-12 text-gray-400 mb-4" />
+                      <p className="text-gray-500">لا توجد طلبات مكتملة</p>
+                    </div>
+                  </div>
+                ) : (
+                  completedOrders.map((order) => (
+                    <OrderDetailsCard 
+                      key={order.id}
+                      order={order}
+                      onOrderUpdate={refetch}
+                      driverLocation={driverLocation}
+                      showCompleteButton={false}
+                    />
+                  ))
+                )}
               </TabsContent>
             </Tabs>
           </div>
