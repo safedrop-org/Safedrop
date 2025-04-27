@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { LanguageKey } from '@/lib/i18n';
+import { LanguageKey } from '@/lib/language-key';
 
 interface LanguageContextType {
   language: LanguageKey;
