@@ -100,7 +100,7 @@ const Navbar = () => {
           <div className="pt-4 pb-3 border-t border-gray-700">
             <div className="flex items-center px-5">
               <Button variant="ghost" onClick={toggleLanguage} className="w-full justify-center text-white">
-                {language === 'ar' ? 'English' : 'العربية'}
+                {language === 'ar' ? 'English' : 'Arabic'}
               </Button>
             </div>
             <div className="mt-3 px-2 space-y-1">
