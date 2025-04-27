@@ -24,6 +24,7 @@ const DriverOrdersContent = () => {
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [activeTab, setActiveTab] = useState('current');
   const [lastAcceptedOrderId, setLastAcceptedOrderId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const getLocation = () => {
@@ -81,7 +82,7 @@ const DriverOrdersContent = () => {
   
   const currentOrders = orders?.filter(order => 
     order.driver_id === user?.id && 
-    ['approved', 'in_transit'].includes(order.status)
+    ['approved', 'in_transit', 'approaching', 'five_minutes_away'].includes(order.status)
   ) ?? [];
   
   const completedOrders = orders?.filter(order => 
@@ -103,21 +104,60 @@ const DriverOrdersContent = () => {
 
   const handleAcceptOrder = async (id: string) => {
     try {
-      if (!driverLocation) {
-        toast.error("يجب تحديد موقعك الحالي لقبول الطلب");
+      // Prevent multiple clicks
+      if (isProcessing) {
         return;
       }
       
-      console.log("Accepting order:", id, "with driver:", user?.id);
+      setIsProcessing(true);
       
-      // Store original tab
-      const originalTab = activeTab;
+      if (!driverLocation) {
+        toast.error("يجب تحديد موقعك الحالي لقبول الطلب");
+        setIsProcessing(false);
+        return;
+      }
       
-      // Attempt to update order in database
+      if (!user?.id) {
+        toast.error("يجب تسجيل الدخول لقبول الطلب");
+        setIsProcessing(false);
+        return;
+      }
+      
+      console.log("Accepting order:", id, "with driver:", user.id);
+
+      // Verify the order exists and is still available before attempting to accept it
+      const { data: orderCheck, error: checkError } = await supabase
+        .from('orders')
+        .select('id, status, driver_id')
+        .eq('id', id)
+        .maybeSingle();
+        
+      if (checkError) {
+        console.error("Error checking order status:", checkError);
+        toast.error('حدث خطأ أثناء التحقق من حالة الطلب');
+        setIsProcessing(false);
+        return;
+      }
+        
+      if (!orderCheck) {
+        console.error("Order not found in database");
+        toast.error('لم يتم العثور على الطلب');
+        setIsProcessing(false);
+        return;
+      }
+        
+      if (orderCheck.status !== 'pending' || orderCheck.driver_id) {
+        console.error("Order is no longer available for acceptance", orderCheck);
+        toast.error('هذا الطلب لم يعد متاحاً للقبول');
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Now try to update the order
       const { data, error } = await supabase
         .from('orders')
         .update({ 
-          driver_id: user?.id, 
+          driver_id: user.id, 
           status: 'approved',
           driver_location: driverLocation
         })
@@ -127,6 +167,7 @@ const DriverOrdersContent = () => {
       if (error) {
         console.error("Error accepting order:", error);
         toast.error('حدث خطأ أثناء قبول الطلب');
+        setIsProcessing(false);
         return;
       }
       
@@ -135,6 +176,7 @@ const DriverOrdersContent = () => {
       if (!data || data.length === 0) {
         console.error("No data returned from update operation");
         toast.error('حدث خطأ أثناء قبول الطلب - لم يتم العثور على الطلب');
+        setIsProcessing(false);
         return;
       }
       
@@ -144,8 +186,19 @@ const DriverOrdersContent = () => {
       // Track the accepted order ID
       setLastAcceptedOrderId(id);
       
+      // Immediately update the local data to reflect the change
+      queryClient.setQueryData(['orders', user.id, false], (oldData: any[]) => {
+        if (!oldData) return [];
+        return oldData.map(order => {
+          if (order.id === id) {
+            return { ...order, driver_id: user.id, status: 'approved' };
+          }
+          return order;
+        });
+      });
+      
       // Force a complete invalidation and refetch
-      queryClient.removeQueries({queryKey: ['orders']});
+      queryClient.invalidateQueries({queryKey: ['orders']});
       
       // After invalidating the cache, explicitly refetch
       await refetch();
@@ -155,6 +208,8 @@ const DriverOrdersContent = () => {
     } catch (err) {
       console.error('Error accepting order:', err);
       toast.error('حدث خطأ أثناء قبول الطلب');
+    } finally {
+      setIsProcessing(false);
     }
   };
 

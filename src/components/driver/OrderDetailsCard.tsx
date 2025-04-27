@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPinIcon, PhoneIcon, ClockIcon, CheckIcon } from "lucide-react";
+import { MapPinIcon, PhoneIcon, ClockIcon, CheckIcon, Loader2Icon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import OrderStatusUpdater from "./OrderStatusUpdater";
@@ -25,6 +25,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   onAcceptOrder
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isAccepting, setIsAccepting] = useState(false);
 
   const getStatusLabel = (status: string) => {
     switch(status) {
@@ -95,6 +96,17 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
       toast.error('حدث خطأ أثناء تحديث حالة الطلب');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleAcceptClick = async (orderId: string) => {
+    if (!onAcceptOrder) return;
+    
+    setIsAccepting(true);
+    try {
+      await onAcceptOrder(orderId);
+    } finally {
+      setIsAccepting(false);
     }
   };
 
@@ -217,15 +229,15 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
         <div className="grid grid-cols-3 gap-4 mt-4 text-center">
           <div className="bg-gray-50 rounded p-2">
             <p className="text-sm text-gray-500">المسافة</p>
-            <p className="font-medium">{order.estimated_distance} كم</p>
+            <p className="font-medium">{order.estimated_distance ? `${order.estimated_distance} كم` : 'غير محدد'}</p>
           </div>
           <div className="bg-gray-50 rounded p-2">
             <p className="text-sm text-gray-500">الوقت المتوقع</p>
-            <p className="font-medium">{order.estimated_duration} دقيقة</p>
+            <p className="font-medium">{order.estimated_duration ? `${order.estimated_duration} دقيقة` : 'غير محدد'}</p>
           </div>
           <div className="bg-gray-50 rounded p-2">
             <p className="text-sm text-gray-500">المبلغ</p>
-            <p className="font-medium">{order.price} ر.س</p>
+            <p className="font-medium">{order.price ? `${order.price} ر.س` : 'غير محدد'}</p>
           </div>
         </div>
         
@@ -256,7 +268,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
                 variant="outline"
                 onClick={() => handleContactCustomer(order.customer.phone)}
                 className="flex items-center gap-1"
-                disabled={isUpdating}
+                disabled={isUpdating || isAccepting}
               >
                 <PhoneIcon className="h-4 w-4" />
                 <span>اتصال بالعميل</span>
@@ -267,10 +279,17 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
               <Button 
                 variant="default" 
                 className="bg-safedrop-gold hover:bg-safedrop-gold/90"
-                onClick={() => onAcceptOrder(order.id)}
-                disabled={isUpdating}
+                onClick={() => handleAcceptClick(order.id)}
+                disabled={isUpdating || isAccepting}
               >
-                قبول الطلب
+                {isAccepting ? (
+                  <>
+                    <Loader2Icon className="h-4 w-4 animate-spin mr-1" />
+                    <span>جاري القبول...</span>
+                  </>
+                ) : (
+                  <span>قبول الطلب</span>
+                )}
               </Button>
             )}
             
@@ -279,9 +298,13 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
                 variant="default" 
                 className="bg-green-600 hover:bg-green-700"
                 onClick={handleCompleteOrder}
-                disabled={isUpdating}
+                disabled={isUpdating || isAccepting}
               >
-                <CheckIcon className="h-4 w-4 ml-1" />
+                {isUpdating ? (
+                  <Loader2Icon className="h-4 w-4 animate-spin ml-1" />
+                ) : (
+                  <CheckIcon className="h-4 w-4 ml-1" />
+                )}
                 <span>تم التوصيل</span>
               </Button>
             )}
@@ -291,9 +314,13 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
                 variant="outline" 
                 className="text-amber-800 border-amber-300 bg-amber-50 hover:bg-amber-100"
                 onClick={handleFiveMinutesAway}
-                disabled={isUpdating || !driverLocation}
+                disabled={isUpdating || isAccepting || !driverLocation}
               >
-                <ClockIcon className="h-4 w-4 ml-1" />
+                {isUpdating ? (
+                  <Loader2Icon className="h-4 w-4 animate-spin ml-1" />
+                ) : (
+                  <ClockIcon className="h-4 w-4 ml-1" />
+                )}
                 <span>متبقي 5 دقائق</span>
               </Button>
             )}

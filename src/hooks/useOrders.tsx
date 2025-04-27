@@ -46,22 +46,27 @@ export const useOrders = (isAdmin = false) => {
         // Enrich orders with customer data
         const enrichedOrders = await Promise.all(
           orders.map(async (order) => {
-            // Get customer data
-            const { data: customer, error: customerError } = await supabase
-              .from('profiles')
-              .select('first_name, last_name, phone')
-              .eq('id', order.customer_id)
-              .maybeSingle();
-            
-            if (customerError) {
-              console.error("Error fetching customer data:", customerError);
+            try {
+              // Get customer data
+              const { data: customer, error: customerError } = await supabase
+                .from('profiles')
+                .select('first_name, last_name, phone')
+                .eq('id', order.customer_id)
+                .maybeSingle();
+              
+              if (customerError) {
+                console.error(`Error fetching customer data for order ${order.id}:`, customerError);
+                return { ...order, customer: null };
+              }
+              
+              return { 
+                ...order, 
+                customer 
+              };
+            } catch (err) {
+              console.error(`Error enriching order ${order.id}:`, err);
               return { ...order, customer: null };
             }
-            
-            return { 
-              ...order, 
-              customer 
-            };
           })
         );
         
@@ -75,7 +80,7 @@ export const useOrders = (isAdmin = false) => {
     enabled: !!user,
     refetchOnMount: true,
     retry: 2,
-    refetchInterval: 3000, // Refresh every 3 seconds to keep order list updated
+    refetchInterval: 5000, // Refresh every 5 seconds to keep order list updated
     refetchOnWindowFocus: true, // Also refresh when window regains focus
     refetchOnReconnect: true, // Refresh on reconnection
     staleTime: 2000, // Consider data stale after 2 seconds
