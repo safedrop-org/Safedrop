@@ -1,9 +1,7 @@
-
 import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
-import LanguageToggleDashboard from '../ui/language-toggle-dashboard';
 
 const DriverSidebar = () => {
   const { t, language } = useLanguage();
@@ -90,9 +88,6 @@ const DriverSidebar = () => {
       </div>
       
       <div className="mt-auto">
-        <div className="p-4 border-t border-white/10">
-          <LanguageToggleDashboard />
-        </div>
         <div className="p-4 border-t border-white/10">
           <Button 
             onClick={handleLogout} 

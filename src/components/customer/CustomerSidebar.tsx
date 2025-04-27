@@ -1,10 +1,8 @@
-
 import { LayoutDashboard, Package, PlusCircle, UserIcon, Settings, LogOut, CreditCard, MessageSquare, Star } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/auth/AuthContext';
 import { useLanguage } from '@/components/ui/language-context';
-import LanguageToggleDashboard from '../ui/language-toggle-dashboard';
 
 const CustomerSidebar = () => {
   const { t, language } = useLanguage();
@@ -97,9 +95,6 @@ const CustomerSidebar = () => {
       </div>
       
       <div className="mt-auto">
-        <div className="p-4 border-t border-white/10">
-          <LanguageToggleDashboard />
-        </div>
         <div className="p-4 border-t border-white/10">
           <Button 
             onClick={handleLogout} 

@@ -86,7 +86,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">
-                  {t('shipmentTracking')}
+                  {t('verifiedDrivers')}
                 </Link>
               </li>
               <li>
