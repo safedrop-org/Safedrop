@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -101,6 +100,54 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
     } catch (error) {
       console.error('Error updating order:', error);
       toast.error('حدث خطأ أثناء تحديث حالة الطلب');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleAccept = async () => {
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          status: 'approved',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', order.id);
+
+      if (error) throw error;
+      
+      toast.success('تم قبول الطلب بنجاح');
+      onStatusUpdate();
+      onClose();
+    } catch (error) {
+      console.error('Error accepting order:', error);
+      toast.error('حدث خطأ أثناء قبول الطلب');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleReject = async () => {
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          status: 'rejected',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', order.id);
+
+      if (error) throw error;
+      
+      toast.success('تم رفض الطلب بنجاح');
+      onStatusUpdate();
+      onClose();
+    } catch (error) {
+      console.error('Error rejecting order:', error);
+      toast.error('حدث خطأ أثناء رفض الطلب');
     } finally {
       setIsUpdating(false);
     }
@@ -271,20 +318,26 @@ export function OrderDetails({ order, isOpen, onClose, onStatusUpdate }: OrderDe
               )}
             />
 
-            <DialogFooter className="flex justify-end">
+            <DialogFooter className="flex justify-end gap-2">
               <Button 
-                type="button" 
                 variant="outline" 
                 onClick={onClose}
-                className="ml-2"
               >
-                إلغاء
+                إغلاق
               </Button>
               <Button 
-                type="submit" 
-                disabled={isUpdating}
+                variant="default"
+                onClick={handleAccept}
+                disabled={isUpdating || order.status !== 'pending'}
               >
-                {isUpdating ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                قبول الطلب
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={handleReject}
+                disabled={isUpdating || order.status !== 'pending'}
+              >
+                رفض الطلب
               </Button>
             </DialogFooter>
           </form>

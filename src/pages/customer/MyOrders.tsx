@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
@@ -263,7 +262,7 @@ const MyOrders = () => {
           <div className="space-y-4">
             {orders.map((order: any) => (
               <Card key={order.id} className="p-4">
-                <div className="flex flex-col md:flex-row justify-between">
+                <div className="flex flex-col">
                   <div className="flex-1">
                     <div className="flex justify-between mb-2">
                       <h3 className="text-lg font-semibold">طلب #{order.id.substring(0, 8)}</h3>
@@ -319,18 +318,6 @@ const MyOrders = () => {
                         </div>
                       )}
                     </div>
-                    
-                    {order.driver && (
-                      <div className="mb-4">
-                        <p className="flex items-center text-sm text-gray-600 mb-1">
-                          <Truck className="h-4 w-4 ml-1 text-safedrop-gold" />
-                          <span className="font-semibold">السائق:</span>
-                        </p>
-                        <p className="text-sm">
-                          {order.driver.first_name} {order.driver.last_name}
-                        </p>
-                      </div>
-                    )}
 
                     {/* Package details */}
                     <div className="mb-4">
@@ -340,19 +327,6 @@ const MyOrders = () => {
                       </p>
                       <p className="text-sm">{order.package_details || 'لا توجد تفاصيل'}</p>
                     </div>
-                  </div>
-                  
-                  <div className="mt-4 md:mt-0 md:mr-4 flex md:flex-col md:justify-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleViewMap(order)}
-                      disabled={!order.pickup_location?.coordinates || !order.dropoff_location?.coordinates}
-                      className="w-full"
-                    >
-                      <MapPin className="h-4 w-4 ml-1" />
-                      عرض المسار
-                    </Button>
                   </div>
                 </div>
               </Card>
