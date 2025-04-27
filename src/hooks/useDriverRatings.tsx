@@ -24,6 +24,7 @@ export const useDriverRatings = () => {
             ),
             customer:profiles(first_name, last_name)
           `)
+          .eq('driver_id', user.id)
           .order('created_at', { ascending: false });
 
         if (error) {
