@@ -360,7 +360,7 @@ export const translations: Translations = {
     en: "Start using SafeDrop services now to deliver your shipments safely"
   },
   ctaDescription: {
-    ar: "سجل الآن واستمتع بتجربة توصيل آمنة سريعة وآمنة",
+    ar: " سجل الآن واستمتع بتجربة توصيل سريعة وآمنة للمقتنيات الثمينة",
     en: "Register now and enjoy a fast and secure delivery experience"
   },
   heroTitle: {
