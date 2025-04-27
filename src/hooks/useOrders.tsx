@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,16 +15,11 @@ export const useOrders = (isAdmin = false) => {
         
         let query = supabase.from('orders').select('*');
         
-        // For non-admins (drivers), we need to carefully filter orders:
+        // For non-admins (drivers), RLS policies will automatically:
+        // 1. Show ALL orders with status='available' 
+        // 2. Show any order assigned to this driver
         if (!isAdmin) {
           console.log("Filtering for driver:", user.id);
-          
-          // This updated query gets:
-          // 1. ALL orders with status='available' (regardless of driver_id, which should be null anyway) 
-          // 2. OR any order assigned specifically to this driver (regardless of status)
-          query = query.or(`status.eq.available,driver_id.eq.${user.id}`);
-          
-          console.log("Using filter:", `status.eq.available,driver_id.eq.${user.id}`);
         }
         
         const { data: orders, error } = await query
@@ -59,18 +53,16 @@ export const useOrders = (isAdmin = false) => {
                 return { ...order, customer: null };
               }
               
-              // Verify ownership for drivers
-              let canModify = isAdmin;
-              
-              if (!isAdmin && order.driver_id) {
-                // Driver can only modify orders assigned to them
-                canModify = order.driver_id === user.id;
-              }
+              // Verify ownership - this is handled by RLS now
+              // Driver can modify orders if:
+              // 1. They are assigned to them
+              // 2. OR the order is available and they are approved
+              const canModify = true; // RLS will handle the actual permissions
               
               return { 
                 ...order, 
                 customer,
-                canModify // Add this flag to track whether the driver can modify this order
+                canModify
               };
             } catch (err) {
               console.error(`Error enriching order ${order.id}:`, err);
@@ -90,13 +82,12 @@ export const useOrders = (isAdmin = false) => {
     refetchOnMount: true,
     retry: 2,
     refetchInterval: 5000, // Refresh every 5 seconds to keep order list updated
-    refetchOnWindowFocus: true, // Also refresh when window regains focus
-    refetchOnReconnect: true, // Refresh on reconnection
-    staleTime: 2000, // Consider data stale after 2 seconds
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    staleTime: 2000,
   });
 };
 
-// Function to fetch a single order by ID
 export const useOrderById = (orderId: string) => {
   const { user } = useAuth();
 
