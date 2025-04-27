@@ -13,32 +13,76 @@ export const useOrders = (isAdmin = false) => {
 
       // Admin query - fetch all orders
       if (isAdmin) {
+        // Modified query to avoid using foreign key constraints in the select statement
         const { data: orders, error } = await supabase
           .from('orders')
-          .select(`
-            *,
-            customer:profiles!orders_customer_id_fkey(first_name, last_name),
-            driver:profiles!orders_driver_id_fkey(first_name, last_name)
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
         
         if (error) throw error;
-        return orders;
+        
+        // Fetch customer and driver profiles separately
+        const enrichedOrders = await Promise.all(
+          orders.map(async (order) => {
+            // Get customer profile
+            const { data: customer } = await supabase
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('id', order.customer_id)
+              .single();
+            
+            // Get driver profile if available
+            let driver = null;
+            if (order.driver_id) {
+              const { data: driverData } = await supabase
+                .from('profiles')
+                .select('first_name, last_name')
+                .eq('id', order.driver_id)
+                .single();
+              driver = driverData;
+            }
+            
+            return {
+              ...order,
+              customer,
+              driver
+            };
+          })
+        );
+        
+        return enrichedOrders;
       }
       
       // Regular customer query
       const { data: orders, error } = await supabase
         .from('orders')
-        .select(`
-          *,
-          customer:profiles(first_name, last_name),
-          driver:profiles(first_name, last_name)
-        `)
+        .select('*')
         .eq('customer_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return orders;
+      
+      // Fetch driver profiles separately if needed
+      const enrichedOrders = await Promise.all(
+        orders.map(async (order) => {
+          let driver = null;
+          if (order.driver_id) {
+            const { data: driverData } = await supabase
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('id', order.driver_id)
+              .single();
+            driver = driverData;
+          }
+          
+          return {
+            ...order,
+            driver
+          };
+        })
+      );
+      
+      return enrichedOrders;
     },
     enabled: !!user
   });
@@ -53,18 +97,39 @@ export const useOrderById = (orderId: string) => {
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
 
+      // Modified query to avoid using foreign key constraints
       const { data: order, error } = await supabase
         .from('orders')
-        .select(`
-          *,
-          customer:profiles!orders_customer_id_fkey(first_name, last_name, phone),
-          driver:profiles!orders_driver_id_fkey(first_name, last_name, phone)
-        `)
+        .select('*')
         .eq('id', orderId)
         .single();
       
       if (error) throw error;
-      return order;
+      
+      // Fetch customer and driver profiles separately
+      // Customer profile
+      const { data: customer } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, phone')
+        .eq('id', order.customer_id)
+        .single();
+      
+      // Driver profile if available
+      let driver = null;
+      if (order.driver_id) {
+        const { data: driverData } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, phone')
+          .eq('id', order.driver_id)
+          .single();
+        driver = driverData;
+      }
+      
+      return {
+        ...order,
+        customer,
+        driver
+      };
     },
     enabled: !!user && !!orderId
   });

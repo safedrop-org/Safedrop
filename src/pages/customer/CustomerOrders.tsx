@@ -23,29 +23,50 @@ const CustomerOrders = () => {
         // Fetch active orders (pending, assigned, in_progress)
         const { data: activeData, error: activeError } = await supabase
           .from('orders')
-          .select(`
-            *,
-            driver:profiles!orders_driver_id_fkey(first_name, last_name)
-          `)
+          .select('*')
           .eq('customer_id', user.id)
-          .in('status', ['pending', 'assigned', 'in_progress']);
+          .in('status', ['pending', 'approved', 'in_transit', 'approaching']);
         
         if (activeError) throw activeError;
         
         // Fetch completed or cancelled orders
         const { data: historyData, error: historyError } = await supabase
           .from('orders')
-          .select(`
-            *,
-            driver:profiles!orders_driver_id_fkey(first_name, last_name)
-          `)
+          .select('*')
           .eq('customer_id', user.id)
           .in('status', ['completed', 'cancelled']);
           
         if (historyError) throw historyError;
+        
+        // Fetch driver information for orders with drivers assigned
+        const enrichActiveOrders = await Promise.all((activeData || []).map(async (order) => {
+          if (order.driver_id) {
+            const { data: driver } = await supabase
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('id', order.driver_id)
+              .single();
+            
+            return { ...order, driver };
+          }
+          return order;
+        }));
+        
+        const enrichHistoryOrders = await Promise.all((historyData || []).map(async (order) => {
+          if (order.driver_id) {
+            const { data: driver } = await supabase
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('id', order.driver_id)
+              .single();
+            
+            return { ...order, driver };
+          }
+          return order;
+        }));
 
-        setActiveOrders(activeData || []);
-        setHistoryOrders(historyData || []);
+        setActiveOrders(enrichActiveOrders || []);
+        setHistoryOrders(enrichHistoryOrders || []);
       } catch (error) {
         console.error('Error fetching orders:', error);
         toast.error('حدث خطأ أثناء تحميل الطلبات');

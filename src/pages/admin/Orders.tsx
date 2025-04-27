@@ -189,7 +189,7 @@ const Orders = () => {
         <div className="bg-red-50 p-4 rounded-md text-red-800">
           <p>حدث خطأ أثناء تحميل الطلبات. يرجى المحاولة مرة أخرى لاحقاً.</p>
           <Button 
-            onClick={() => window.location.reload()} 
+            onClick={() => refetch()} 
             className="mt-2"
             variant="outline"
           >
