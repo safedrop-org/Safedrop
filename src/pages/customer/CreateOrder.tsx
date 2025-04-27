@@ -68,6 +68,14 @@ const CreateOrder = () => {
 
     setSubmitting(true);
     try {
+      console.log('Submitting order with data:', {
+        customer_id: user.id,
+        pickup_location: formData.pickupLocation,
+        dropoff_location: formData.dropoffLocation,
+        package_details: formData.packageDetails,
+        notes: formData.notes,
+      });
+
       const { data, error } = await supabase
         .from('orders')
         .insert({
@@ -82,17 +90,21 @@ const CreateOrder = () => {
           },
           package_details: formData.packageDetails,
           notes: formData.notes,
-          status: 'pending'
+          status: 'available', // تعديل الحالة لتكون 'available' بدلاً من 'pending' بما يتوافق مع التعديلات الجديدة
+          payment_status: 'pending'
         })
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating order:', error);
+        throw error;
+      }
       
       toast.success('تم إنشاء الطلب بنجاح');
       navigate('/customer/orders');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating order:', error);
-      toast.error('حدث خطأ أثناء إنشاء الطلب');
+      toast.error('حدث خطأ أثناء إنشاء الطلب: ' + (error.message || ''));
     } finally {
       setSubmitting(false);
     }

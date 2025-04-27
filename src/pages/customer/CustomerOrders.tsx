@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -5,7 +6,7 @@ import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Clock, Package, MapPin, DollarSign, Navigation } from 'lucide-react';
+import { Clock, Package, MapPin, DollarSign, Navigation, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const CustomerOrders = () => {
@@ -19,12 +20,12 @@ const CustomerOrders = () => {
 
     const fetchOrders = async () => {
       try {
-        // Fetch active orders (pending, assigned, in_progress)
+        // Fetch active orders (available, picked_up, in_transit, approaching)
         const { data: activeData, error: activeError } = await supabase
           .from('orders')
           .select('*')
           .eq('customer_id', user.id)
-          .in('status', ['pending', 'approved', 'in_transit', 'approaching']);
+          .in('status', ['available', 'picked_up', 'in_transit', 'approaching']);
         
         if (activeError) throw activeError;
         
@@ -42,7 +43,7 @@ const CustomerOrders = () => {
           if (order.driver_id) {
             const { data: driver } = await supabase
               .from('profiles')
-              .select('first_name, last_name')
+              .select('first_name, last_name, phone')
               .eq('id', order.driver_id)
               .single();
             
@@ -55,7 +56,7 @@ const CustomerOrders = () => {
           if (order.driver_id) {
             const { data: driver } = await supabase
               .from('profiles')
-              .select('first_name, last_name')
+              .select('first_name, last_name, phone')
               .eq('id', order.driver_id)
               .single();
             
@@ -92,26 +93,65 @@ const CustomerOrders = () => {
   const getStatusBadge = (status) => {
     const badgeClasses = {
       base: "px-2 py-1 rounded-full text-xs font-medium",
-      pending: "bg-yellow-100 text-yellow-800",
-      assigned: "bg-blue-100 text-blue-800",
-      in_progress: "bg-indigo-100 text-indigo-800",
+      available: "bg-gray-100 text-gray-800",
+      picked_up: "bg-blue-100 text-blue-800",
+      in_transit: "bg-indigo-100 text-indigo-800",
+      approaching: "bg-yellow-100 text-yellow-800",
       completed: "bg-green-100 text-green-800",
       cancelled: "bg-red-100 text-red-800"
     };
     
     const statusTranslation = {
-      pending: "قيد الانتظار",
-      assigned: "تم التعيين",
-      in_progress: "قيد التنفيذ",
+      available: "متاح",
+      picked_up: "ملتقط",
+      in_transit: "جاري التوصيل",
+      approaching: "اقترب",
       completed: "مكتمل",
       cancelled: "ملغي"
     };
 
     return (
-      <span className={`${badgeClasses.base} ${badgeClasses[status]}`}>
+      <span className={`${badgeClasses.base} ${badgeClasses[status] || badgeClasses.base}`}>
         {statusTranslation[status] || status}
       </span>
     );
+  };
+
+  const handleCompleteOrder = async (orderId) => {
+    try {
+      setLoading(true);
+      
+      // 1. تحديث حالة الطلب إلى مكتمل
+      const { error: orderError } = await supabase
+        .from('orders')
+        .update({ status: 'completed' })
+        .eq('id', orderId);
+        
+      if (orderError) throw orderError;
+
+      // 2. إنشاء إحصائيات الدفع
+      const { error: statsError } = await supabase
+        .from('order_payment_stats')
+        .insert({
+          order_id: orderId,
+          driver_percentage: 75.0,
+          platform_percentage: 15.0,
+          customer_percentage: 10.0
+        });
+        
+      if (statsError) throw statsError;
+      
+      toast.success('تم تأكيد استلام الطلب بنجاح');
+      
+      // إعادة تحميل الطلبات
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('Error completing order:', error);
+      toast.error('حدث خطأ أثناء تأكيد استلام الطلب');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -144,6 +184,7 @@ const CustomerOrders = () => {
                         <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">إلى</th>
                         <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">السائق</th>
                         <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -166,6 +207,19 @@ const CustomerOrders = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {getStatusBadge(order.status)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            {order.status === 'approaching' && (
+                              <Button 
+                                onClick={() => handleCompleteOrder(order.id)}
+                                variant="default" 
+                                size="sm"
+                                className="gap-1"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                                تم الاستلام
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       ))}
