@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -107,36 +108,50 @@ const DriverOrdersContent = () => {
         return;
       }
       
-      console.log("Setting order status to approved for acceptance");
-
-      const { error } = await supabase
+      console.log("Accepting order:", id, "with driver:", user?.id);
+      
+      // Store original tab
+      const originalTab = activeTab;
+      
+      // Attempt to update order in database
+      const { data, error } = await supabase
         .from('orders')
         .update({ 
           driver_id: user?.id, 
           status: 'approved',
           driver_location: driverLocation
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select();
       
       if (error) {
         console.error("Error accepting order:", error);
-        throw error;
+        toast.error('حدث خطأ أثناء قبول الطلب');
+        return;
       }
       
+      console.log("Order update response:", data);
+      
+      if (!data || data.length === 0) {
+        console.error("No data returned from update operation");
+        toast.error('حدث خطأ أثناء قبول الطلب - لم يتم العثور على الطلب');
+        return;
+      }
+      
+      // Success! The order was updated successfully
       toast.success(`تم قبول الطلب رقم ${id.substring(0, 8)} بنجاح`);
       
       // Track the accepted order ID
       setLastAcceptedOrderId(id);
       
-      // Completely invalidate the query cache for orders
-      queryClient.invalidateQueries({queryKey: ['orders']});
+      // Force a complete invalidation and refetch
+      queryClient.removeQueries({queryKey: ['orders']});
       
-      // Force a hard refetch
-      setTimeout(() => {
-        refetch();
-        // Switch to current orders tab
-        setActiveTab('current');
-      }, 300);
+      // After invalidating the cache, explicitly refetch
+      await refetch();
+      
+      // Switch to current orders tab
+      setActiveTab('current');
     } catch (err) {
       console.error('Error accepting order:', err);
       toast.error('حدث خطأ أثناء قبول الطلب');

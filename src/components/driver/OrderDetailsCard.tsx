@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,17 +67,25 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
     try {
       console.log("Setting order status to completed");
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('orders')
         .update({ 
           status: 'completed', 
           actual_delivery_time: new Date().toISOString() 
         })
-        .eq('id', order.id);
+        .eq('id', order.id)
+        .select();
       
       if (error) {
         console.error("Error completing order:", error);
-        throw error;
+        toast.error('حدث خطأ أثناء تحديث حالة الطلب');
+        return;
+      }
+      
+      if (!data || data.length === 0) {
+        console.error("No data returned from update operation");
+        toast.error('حدث خطأ أثناء تحديث حالة الطلب - لم يتم العثور على الطلب');
+        return;
       }
       
       toast.success('تم تسليم الطلب بنجاح');
@@ -101,17 +108,25 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
     try {
       console.log("Setting order status to approved (five minutes away)");
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('orders')
         .update({ 
           status: 'approved', 
           driver_location: driverLocation 
         })
-        .eq('id', order.id);
+        .eq('id', order.id)
+        .select();
 
       if (error) {
         console.error("Error updating order status:", error);
-        throw error;
+        toast.error('حدث خطأ أثناء تحديث حالة الطلب');
+        return;
+      }
+      
+      if (!data || data.length === 0) {
+        console.error("No data returned from update operation");
+        toast.error('حدث خطأ أثناء تحديث حالة الطلب - لم يتم العثور على الطلب');
+        return;
       }
 
       toast.success('تم تحديث حالة الطلب إلى متبقي 5 دقائق');

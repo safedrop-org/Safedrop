@@ -73,9 +73,12 @@ export const useOrders = (isAdmin = false) => {
       }
     },
     enabled: !!user,
-    retry: 1,
-    refetchInterval: 5000, // Refresh every 5 seconds to keep order list updated
+    refetchOnMount: true,
+    retry: 2,
+    refetchInterval: 3000, // Refresh every 3 seconds to keep order list updated
     refetchOnWindowFocus: true, // Also refresh when window regains focus
+    refetchOnReconnect: true, // Refresh on reconnection
+    staleTime: 2000, // Consider data stale after 2 seconds
   });
 };
 
