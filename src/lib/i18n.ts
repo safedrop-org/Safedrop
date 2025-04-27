@@ -172,7 +172,7 @@ export const translations: Translations = {
     en: "Your account has been created successfully. You can now log in."
   },
   registrationError: {
-    ar: "خطأ في التسجيل",
+    ar: "خطأ ��ي التسجيل",
     en: "Registration Error"
   },
   nationalId: {
@@ -472,7 +472,7 @@ export const translations: Translations = {
     en: "Verified Drivers"
   },
   verifiedDriversDescription: {
-    ar: "كل السائقين في منصتنا يمرون بعملية تحقق شاملة من بياناتهم ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
+    ar: "كل السائقين في منصتنا يمرون بعملية تحقق شاملة من بيانات��م ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
     en: "All drivers on our platform undergo a comprehensive verification process of their credentials and licenses before acceptance. We ensure you deal with reliable and highly competent individuals."
   },
   licenseVerification: {
