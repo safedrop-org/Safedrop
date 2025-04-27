@@ -8,7 +8,7 @@ import DriverSidebar from '@/components/driver/DriverSidebar';
 import { Bell, Globe, Shield, Moon } from 'lucide-react';
 
 const DriverSettingsContent = () => {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const [notifications, setNotifications] = useState({
     orders: true,
     messages: true,
@@ -24,7 +24,7 @@ const DriverSettingsContent = () => {
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">الإعدادات</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('settings')}</h1>
           </div>
         </header>
 
@@ -34,15 +34,15 @@ const DriverSettingsContent = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="h-5 w-5" />
-                  إعدادات الإشعارات
+                  {t('notificationSettings')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">إشعارات الطلبات</p>
-                      <p className="text-sm text-gray-500">استلام إشعارات عن الطلبات الجديدة</p>
+                      <p className="font-medium">{t('orderNotifications')}</p>
+                      <p className="text-sm text-gray-500">{t('receiveOrderNotifications')}</p>
                     </div>
                     <Switch 
                       checked={notifications.orders}
@@ -52,8 +52,8 @@ const DriverSettingsContent = () => {
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">إشعارات الرسائل</p>
-                      <p className="text-sm text-gray-500">استلام إشعارات عن الرسائل الجديدة</p>
+                      <p className="font-medium">{t('messageNotifications')}</p>
+                      <p className="text-sm text-gray-500">{t('receiveMessageNotifications')}</p>
                     </div>
                     <Switch 
                       checked={notifications.messages}
@@ -63,8 +63,8 @@ const DriverSettingsContent = () => {
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">إشعارات الأرباح</p>
-                      <p className="text-sm text-gray-500">استلام إشعارات عن الأرباح والمدفوعات</p>
+                      <p className="font-medium">{t('earningsNotifications')}</p>
+                      <p className="text-sm text-gray-500">{t('receiveEarningsNotifications')}</p>
                     </div>
                     <Switch 
                       checked={notifications.earnings}
@@ -74,8 +74,8 @@ const DriverSettingsContent = () => {
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">إشعارات التحديثات</p>
-                      <p className="text-sm text-gray-500">استلام إشعارات عن تحديثات النظام</p>
+                      <p className="font-medium">{t('systemNotifications')}</p>
+                      <p className="text-sm text-gray-500">{t('receiveUpdateNotifications')}</p>
                     </div>
                     <Switch 
                       checked={notifications.updates}
@@ -90,14 +90,18 @@ const DriverSettingsContent = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5" />
-                  إعدادات اللغة
+                  {t('languageSettings')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">اللغة المفضلة</label>
-                    <select className="w-full border rounded-md p-2">
+                    <label className="block text-sm font-medium mb-2">{t('preferredLanguage')}</label>
+                    <select 
+                      className="w-full border rounded-md p-2"
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value as 'ar' | 'en')}
+                    >
                       <option value="ar">العربية</option>
                       <option value="en">English</option>
                     </select>
@@ -110,19 +114,19 @@ const DriverSettingsContent = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
-                  الأمان والخصوصية
+                  {t('securitySettings')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <Button variant="outline" className="w-full">تغيير كلمة المرور</Button>
+                    <Button variant="outline" className="w-full">{t('changePassword')}</Button>
                   </div>
                   <div>
-                    <Button variant="outline" className="w-full">تفعيل التحقق بخطوتين</Button>
+                    <Button variant="outline" className="w-full">{t('twoFactorAuth')}</Button>
                   </div>
                   <div>
-                    <Button variant="outline" className="w-full">إدارة الأجهزة المتصلة</Button>
+                    <Button variant="outline" className="w-full">{t('connectedDevices')}</Button>
                   </div>
                 </div>
               </CardContent>
@@ -132,14 +136,14 @@ const DriverSettingsContent = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Moon className="h-5 w-5" />
-                  المظهر
+                  {t('darkMode')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">الوضع الليلي</p>
-                    <p className="text-sm text-gray-500">تفعيل المظهر الداكن للتطبيق</p>
+                    <p className="font-medium">{t('darkMode')}</p>
+                    <p className="text-sm text-gray-500">{t('enableDarkMode')}</p>
                   </div>
                   <Switch 
                     checked={darkMode}
@@ -151,7 +155,7 @@ const DriverSettingsContent = () => {
 
             <div className="flex justify-end">
               <Button className="bg-safedrop-gold hover:bg-safedrop-gold/90">
-                حفظ التغييرات
+                {t('saveChanges')}
               </Button>
             </div>
           </div>

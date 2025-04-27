@@ -1,14 +1,15 @@
+
 import { useLanguage } from '@/components/ui/language-context';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
+
 const CallToAction = () => {
-  const {
-    t,
-    language
-  } = useLanguage();
+  const { t, language } = useLanguage();
   const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
-  return <section className="py-20 bg-safedrop-primary">
+
+  return (
+    <section className="py-20 bg-safedrop-primary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gradient-to-r from-safedrop-primary to-safedrop-primary/70 rounded-2xl p-12 relative overflow-hidden">
           {/* Background Pattern */}
@@ -22,9 +23,9 @@ const CallToAction = () => {
 
           <div className="max-w-3xl mx-auto text-center relative z-10">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              ابدأ الآن في استخدام خدمات سيف دروب لتوصيل شحناتك بكل أمان
+              {t('ctaTitle')}
             </h2>
-            <p className="text-lg text-gray-300 mb-8">سجل الآن واستمتع بتجربة توصيل آمنة سريعة وآمنة </p>
+            <p className="text-lg text-gray-300 mb-8">{t('ctaDescription')}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-white">
                 <Link to="/register/customer" className="flex items-center gap-2">
@@ -42,6 +43,8 @@ const CallToAction = () => {
           </div>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
+
 export default CallToAction;
