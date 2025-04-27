@@ -59,13 +59,22 @@ export const useOrders = (isAdmin = false) => {
                 return { ...order, customer: null };
               }
               
+              // Verify ownership for drivers
+              let canModify = isAdmin;
+              
+              if (!isAdmin && order.driver_id) {
+                // Driver can only modify orders assigned to them
+                canModify = order.driver_id === user.id;
+              }
+              
               return { 
                 ...order, 
-                customer 
+                customer,
+                canModify // Add this flag to track whether the driver can modify this order
               };
             } catch (err) {
               console.error(`Error enriching order ${order.id}:`, err);
-              return { ...order, customer: null };
+              return { ...order, customer: null, canModify: false };
             }
           })
         );

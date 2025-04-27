@@ -6,6 +6,7 @@ import { MapPinIcon, PhoneIcon, ClockIcon, CheckIcon, Loader2Icon } from "lucide
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import OrderStatusUpdater from "./OrderStatusUpdater";
+import { useAuth } from "@/hooks/useAuth";
 
 interface OrderDetailsCardProps {
   order: any;
@@ -26,6 +27,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
+  const { user } = useAuth();
 
   const getStatusLabel = (status: string) => {
     switch(status) {
@@ -64,6 +66,11 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   };
 
   const handleCompleteOrder = async () => {
+    if (!user || (order.driver_id && order.driver_id !== user.id)) {
+      toast.error('لا يمكنك تعديل طلب غير مسند إليك');
+      return;
+    }
+
     setIsUpdating(true);
     try {
       console.log("Setting order status to completed");
@@ -75,6 +82,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
           actual_delivery_time: new Date().toISOString() 
         })
         .eq('id', order.id)
+        .eq('driver_id', user.id)
         .select();
       
       if (error) {
@@ -85,7 +93,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
       
       if (!data || data.length === 0) {
         console.error("No data returned from update operation");
-        toast.error('حدث خطأ أثناء تحديث حالة الطلب - لم يتم العثور على الطلب');
+        toast.error('حدث خطأ أثناء تحديث حالة الطلب - لم يتم العثور على الطلب أو ليس لديك صلاحية');
         return;
       }
       
@@ -111,6 +119,11 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   };
 
   const handleFiveMinutesAway = async () => {
+    if (!user || (order.driver_id && order.driver_id !== user.id)) {
+      toast.error('لا يمكنك تعديل طلب غير مسند إليك');
+      return;
+    }
+
     if (!driverLocation) {
       toast.error('لا يمكن تحديث الحالة بدون تحديد الموقع');
       return;
@@ -127,6 +140,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
           driver_location: driverLocation 
         })
         .eq('id', order.id)
+        .eq('driver_id', user.id)
         .select();
 
       if (error) {
@@ -137,7 +151,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
       
       if (!data || data.length === 0) {
         console.error("No data returned from update operation");
-        toast.error('حدث خطأ أثناء تحديث حالة الطلب - لم يتم العثور على الطلب');
+        toast.error('حدث خطأ أثناء تحديث حالة الطلب - لم يتم العثور على الطلب أو ليس لديك صلاحية');
         return;
       }
 
@@ -154,12 +168,10 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   const getLocationAddress = (location: any) => {
     if (!location) return "غير محدد";
     
-    // Try to find the address in different possible formats
     if (location.address) return location.address;
     if (location.formatted_address) return location.formatted_address;
     if (typeof location === 'string') return location;
     
-    // If it's an object without specific address fields, try to convert to string
     if (typeof location === 'object') {
       if (location.name) return location.name;
       if (location.description) return location.description;
@@ -335,6 +347,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
               currentStatus={order.status}
               driverLocation={driverLocation}
               onStatusUpdated={onOrderUpdate}
+              driverId={order.driver_id}
             />
           </div>
         )}
