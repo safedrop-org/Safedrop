@@ -1,10 +1,9 @@
-
 import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, Menu } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/components/ui/language-context';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useLanguage } from '@/components/ui/language-context';
 
 const DriverSidebar = () => {
   const { t, language } = useLanguage();
@@ -64,47 +63,88 @@ const DriverSidebar = () => {
     }
   ];
 
-  // النسخة الخاصة بالهواتف المحمولة
-  const MobileSidebar = () => (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="md:hidden fixed top-4 right-4 z-50"
-        >
-          <Menu className="h-6 w-6" />
-          <span className="sr-only">فتح القائمة</span>
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="right" className="w-[280px] sm:w-[340px] p-0">
-        <div className="bg-safedrop-primary text-white h-full flex flex-col">
-          <div className="p-4">
-            <Link to="/" className="flex flex-col items-center">
-              <img alt="SafeDrop Logo" src="/lovable-uploads/78b0a264-3066-4690-bdc3-775d48ad5001.png" className="h-20" />
-              <div className="text-center mt-2 font-bold">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</div>
-            </Link>
+  return (
+    <>
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="md:hidden fixed top-4 right-4 z-50"
+        onClick={() => setIsOpen(true)}
+      >
+        <Menu className="h-6 w-6" />
+        <span className="sr-only">Toggle Menu</span>
+      </Button>
+
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetContent side={language === 'ar' ? 'right' : 'left'} className="w-[280px] sm:w-[340px] p-0">
+          <div className="bg-safedrop-primary text-white h-full flex flex-col">
+            <div className="p-4">
+              <Link to="/" className="flex flex-col items-center">
+                <img alt="SafeDrop Logo" src="/lovable-uploads/78b0a264-3066-4690-bdc3-775d48ad5001.png" className="h-20" />
+                <div className="text-center mt-2 font-bold">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</div>
+              </Link>
+            </div>
+            
+            <nav className="flex-1">
+              <ul>
+                {menuItems.map((item, index) => (
+                  <li key={index}>
+                    <Link
+                      to={item.path}
+                      className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
+                        isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            
+            <div className="p-4 border-t border-white/10">
+              <Button 
+                onClick={handleLogout} 
+                variant="outline" 
+                className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>{t('logout')}</span>
+              </Button>
+            </div>
           </div>
-          
-          <nav className="flex-1">
-            <ul>
-              {menuItems.map((item, index) => (
-                <li key={index}>
-                  <Link
-                    to={item.path}
-                    className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                      isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                    }`}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          
+        </SheetContent>
+      </Sheet>
+
+      <div className="hidden md:flex bg-safedrop-primary text-white min-h-screen w-64 shadow-lg flex-col">
+        <div className="p-4 flex items-center justify-center">
+          <Link to="/">
+            <img alt="SafeDrop Logo" src="/lovable-uploads/78b0a264-3066-4690-bdc3-775d48ad5001.png" className="h-20" />
+            <div className="text-center mt-2 font-bold">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</div>
+          </Link>
+        </div>
+        
+        <nav className="flex-1">
+          <ul>
+            {menuItems.map((item, index) => (
+              <li key={index}>
+                <Link
+                  to={item.path}
+                  className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
+                    isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        
+        <div className="mt-auto">
           <div className="p-4 border-t border-white/10">
             <Button 
               onClick={handleLogout} 
@@ -116,57 +156,7 @@ const DriverSidebar = () => {
             </Button>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
-  );
-
-  // النسخة الخاصة بأجهزة سطح المكتب
-  const DesktopSidebar = () => (
-    <div className="hidden md:flex bg-safedrop-primary text-white min-h-screen w-64 shadow-lg flex-col">
-      <div className="p-4 flex items-center justify-center">
-        <Link to="/">
-          <img alt="SafeDrop Logo" src="/lovable-uploads/78b0a264-3066-4690-bdc3-775d48ad5001.png" className="h-20" />
-          <div className="text-center mt-2 font-bold">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</div>
-        </Link>
       </div>
-      
-      <nav className="flex-1">
-        <ul>
-          {menuItems.map((item, index) => (
-            <li key={index}>
-              <Link
-                to={item.path}
-                className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                  isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                }`}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      
-      <div className="mt-auto">
-        <div className="p-4 border-t border-white/10">
-          <Button 
-            onClick={handleLogout} 
-            variant="outline" 
-            className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            <span>{t('logout')}</span>
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <>
-      <MobileSidebar />
-      <DesktopSidebar />
     </>
   );
 };
