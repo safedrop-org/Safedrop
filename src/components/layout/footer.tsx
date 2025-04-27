@@ -1,12 +1,9 @@
-
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
 import { MapPin, Mail, Instagram, Video, Ghost } from 'lucide-react';
 
 const Footer = () => {
-  const {
-    t
-  } = useLanguage();
+  const { t } = useLanguage();
   return <footer className="bg-safedrop-primary text-white pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -78,17 +75,24 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">{t('services')}</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">توصيل الطرود</Link>
+                <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">
+                  {t('parcelDelivery')}
+                </Link>
               </li>
               <li>
-                <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">حماية المعاملات</Link>
+                <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">
+                  {t('transactionProtection')}
+                </Link>
               </li>
               <li>
-                <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">تتبع الشحنات</Link>
+                <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">
+                  {t('shipmentTracking')}
+                </Link>
               </li>
               <li>
-                <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">سائقون معتمدون
-              </Link>
+                <Link to="/services" className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm">
+                  {t('verifiedDrivers')}
+                </Link>
               </li>
             </ul>
           </div>

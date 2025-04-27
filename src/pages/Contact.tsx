@@ -9,13 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
 const ContactContent = () => {
-  const {
-    t
-  } = useLanguage();
-  const {
-    toast
-  } = useToast();
+  const { t } = useLanguage();
+  const { toast } = useToast();
   const [formState, setFormState] = useState({
     name: '',
     email: '',
@@ -24,6 +21,7 @@ const ContactContent = () => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const {
       name,
@@ -34,6 +32,7 @@ const ContactContent = () => {
       [name]: value
     }));
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -54,15 +53,17 @@ const ContactContent = () => {
       setIsSubmitting(false);
     }, 1500);
   };
-  return <div className="min-h-screen flex flex-col">
+
+  return (
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="bg-safedrop-primary text-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">اتصل بنا</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">{t('contact')}</h1>
             <p className="text-xl max-w-3xl mx-auto">
-              نحن هنا للإجابة على أسئلتك ومساعدتك في كل ما تحتاجه
+              {t('contactDescription')}
             </p>
           </div>
         </section>
@@ -72,7 +73,7 @@ const ContactContent = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div className="lg:col-span-1">
-                <h2 className="text-2xl font-bold mb-6 text-safedrop-primary">معلومات التواصل</h2>
+                <h2 className="text-2xl font-bold mb-6 text-safedrop-primary">{t('contact')}</h2>
                 
                 <div className="space-y-6">
                   <Card>
@@ -84,16 +85,11 @@ const ContactContent = () => {
                           </div>
                         </div>
                         <div>
-                          <h3 className="font-semibold text-lg mb-1">العنوان</h3>
-                          <p className="text-gray-600">المملكة العربية السعودية، الرياض</p>
-                          
+                          <h3 className="font-semibold text-lg mb-1">{t('location')}</h3>
+                          <p className="text-gray-600">{t('location')}</p>
                         </div>
                       </div>
                     </CardContent>
-                  </Card>
-
-                  <Card>
-                    
                   </Card>
 
                   <Card>
@@ -105,9 +101,8 @@ const ContactContent = () => {
                           </div>
                         </div>
                         <div>
-                          <h3 className="font-semibold text-lg mb-1">البريد الإلكتروني</h3>
+                          <h3 className="font-semibold text-lg mb-1">{t('email')}</h3>
                           <p className="text-gray-600">info@safedropksa.com</p>
-                          <p className="text-gray-600">support@safedropksa.com</p>
                         </div>
                       </div>
                     </CardContent>
@@ -122,10 +117,8 @@ const ContactContent = () => {
                           </div>
                         </div>
                         <div>
-                          <h3 className="font-semibold text-lg mb-1">ساعات العمل</h3>
-                          <p className="text-gray-600">الأحد - السبت : 9:00 ص - 9:00 م</p>
-                          
-                          
+                          <h3 className="font-semibold text-lg mb-1">{t('workingHours')}</h3>
+                          <p className="text-gray-600">{t('workingDays')}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -136,40 +129,80 @@ const ContactContent = () => {
               <div className="lg:col-span-2">
                 <Card>
                   <CardContent className="p-8">
-                    <h2 className="text-2xl font-bold mb-6 text-safedrop-primary">أرسل لنا رسالة</h2>
+                    <h2 className="text-2xl font-bold mb-6 text-safedrop-primary">{t('sendMessage')}</h2>
                     
                     <form onSubmit={handleSubmit} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label htmlFor="name">الاسم الكامل</Label>
-                          <Input id="name" name="name" placeholder="أدخل اسمك الكامل" value={formState.name} onChange={handleChange} required />
+                          <Label htmlFor="name">{t('fullName')}</Label>
+                          <Input 
+                            id="name" 
+                            name="name" 
+                            placeholder={t('fullName')} 
+                            value={formState.name} 
+                            onChange={handleChange} 
+                            required 
+                          />
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="email">البريد الإلكتروني</Label>
-                          <Input id="email" name="email" type="email" placeholder="example@email.com" value={formState.email} onChange={handleChange} required />
+                          <Label htmlFor="email">{t('email')}</Label>
+                          <Input 
+                            id="email" 
+                            name="email" 
+                            type="email" 
+                            placeholder={t('emailPlaceholder')} 
+                            value={formState.email} 
+                            onChange={handleChange} 
+                            required 
+                          />
                         </div>
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label htmlFor="phone">رقم الهاتف</Label>
-                          <Input id="phone" name="phone" placeholder="05XXXXXXXX" value={formState.phone} onChange={handleChange} />
+                          <Label htmlFor="phone">{t('phone')}</Label>
+                          <Input 
+                            id="phone" 
+                            name="phone" 
+                            placeholder={t('phonePlaceholder')} 
+                            value={formState.phone} 
+                            onChange={handleChange} 
+                          />
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="subject">الموضوع</Label>
-                          <Input id="subject" name="subject" placeholder="موضوع الرسالة" value={formState.subject} onChange={handleChange} required />
+                          <Label htmlFor="subject">{t('messageSubject')}</Label>
+                          <Input 
+                            id="subject" 
+                            name="subject" 
+                            placeholder={t('messageSubject')} 
+                            value={formState.subject} 
+                            onChange={handleChange} 
+                            required 
+                          />
                         </div>
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="message">الرسالة</Label>
-                        <Textarea id="message" name="message" placeholder="اكتب رسالتك هنا..." rows={6} value={formState.message} onChange={handleChange} required />
+                        <Label htmlFor="message">{t('messageContent')}</Label>
+                        <Textarea 
+                          id="message" 
+                          name="message" 
+                          placeholder={t('messageContent')} 
+                          rows={6} 
+                          value={formState.message} 
+                          onChange={handleChange} 
+                          required 
+                        />
                       </div>
                       
-                      <Button type="submit" className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" disabled={isSubmitting}>
-                        {isSubmitting ? "جاري الإرسال..." : "إرسال الرسالة"}
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" 
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? t('sending') : t('sendMessage')}
                       </Button>
                     </form>
                   </CardContent>
@@ -178,16 +211,16 @@ const ContactContent = () => {
             </div>
           </div>
         </section>
-
-        {/* Map */}
-        
       </main>
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 const Contact = () => {
   return <LanguageProvider>
       <ContactContent />
     </LanguageProvider>;
 };
+
 export default Contact;
