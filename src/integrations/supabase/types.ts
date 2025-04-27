@@ -200,6 +200,44 @@ export type Database = {
           },
         ]
       }
+      order_payment_stats: {
+        Row: {
+          created_at: string | null
+          customer_percentage: number
+          driver_percentage: number
+          id: string
+          order_id: string
+          platform_percentage: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_percentage?: number
+          driver_percentage?: number
+          id?: string
+          order_id: string
+          platform_percentage?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_percentage?: number
+          driver_percentage?: number
+          id?: string
+          order_id?: string
+          platform_percentage?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_payment_stats_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           actual_delivery_time: string | null

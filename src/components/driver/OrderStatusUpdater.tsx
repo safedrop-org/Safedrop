@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,9 +5,11 @@ import { toast } from 'sonner';
 import { Truck, Clock, Loader2, AlertCircle, Package } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
+type OrderStatus = 'available' | 'picked_up' | 'in_transit' | 'approaching' | 'completed' | 'cancelled';
+
 interface OrderStatusUpdaterProps {
   orderId: string;
-  currentStatus: string;
+  currentStatus: OrderStatus;
   driverLocation?: { lat: number; lng: number } | null;
   onStatusUpdated?: () => void;
   driverId?: string | null;
@@ -22,11 +23,11 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
   driverId
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<OrderStatus | null>(null);
   const { user } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const updateOrderStatus = async (newStatus: 'picked_up' | 'in_transit' | 'approaching') => {
+  const updateOrderStatus = async (newStatus: OrderStatus) => {
     // Reset error state
     setErrorMessage(null);
     
@@ -108,6 +109,9 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
     }
   };
 
+  const isCompleted = currentStatus === 'completed';
+  const isDriverAuthorized = !driverId || driverId === user?.id;
+
   return (
     <div className="space-y-2">
       {errorMessage && (
@@ -122,7 +126,7 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
           <Button
             variant={currentStatus === 'picked_up' ? "default" : "outline"}
             onClick={() => updateOrderStatus('picked_up')}
-            disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
+            disabled={isUpdating || !driverLocation || isCompleted || !isDriverAuthorized}
             className="gap-1"
           >
             {isUpdating && updatingStatus === 'picked_up' ? (
@@ -138,7 +142,7 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
           <Button
             variant={currentStatus === 'in_transit' ? "default" : "outline"}
             onClick={() => updateOrderStatus('in_transit')}
-            disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
+            disabled={isUpdating || !driverLocation || isCompleted || !isDriverAuthorized}
             className="gap-1"
           >
             {isUpdating && updatingStatus === 'in_transit' ? (
@@ -154,7 +158,7 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
           <Button
             variant={currentStatus === 'approaching' ? "default" : "outline"}
             onClick={() => updateOrderStatus('approaching')}
-            disabled={isUpdating || !driverLocation || currentStatus === 'completed'}
+            disabled={isUpdating || !driverLocation || isCompleted || !isDriverAuthorized}
             className="gap-1"
           >
             {isUpdating && updatingStatus === 'approaching' ? (
