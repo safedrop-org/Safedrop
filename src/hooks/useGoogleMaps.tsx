@@ -38,6 +38,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
           if (!window.google || !window.google.maps || !window.google.maps.places) {
             console.error('Timeout waiting for Google Maps to load');
             setLoadError(new Error('Timeout loading Google Maps API'));
+            toast.error('فشل في تحميل خرائط جوجل - انتهت المهلة');
           }
         }, 10000);
       }
@@ -47,17 +48,24 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
     // Load the script if it doesn't exist
     console.log('Loading Google Maps script');
     const script = document.createElement('script');
-    const apiKey = 'AIzaSyAh7C_dU6EnC0QE1_vor6z96-fShN4A0ow'; // Using the provided API key
+    const apiKey = 'AIzaSyAh7C_dU6EnC0QE1_vor6z96-fShN4A0ow';
     
-    // Set script attributes properly
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleMaps`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&region=SA&language=ar&callback=initGoogleMaps`;
     script.async = true;
     script.defer = true;
     
     // Define the callback globally
     window.initGoogleMaps = () => {
       console.log('Google Maps loaded via callback');
-      setIsLoaded(true);
+      if (window.google && window.google.maps && window.google.maps.places) {
+        console.log('Places API confirmed loaded');
+        setIsLoaded(true);
+        toast.success('تم تحميل خرائط جوجل بنجاح');
+      } else {
+        console.error('Google Maps loaded but Places API not available');
+        setLoadError(new Error('Places API not available'));
+        toast.error('فشل في تحميل مكتبة الأماكن');
+      }
     };
     
     script.onerror = (error: Event | string) => {
@@ -66,6 +74,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
         : new Error(typeof error === 'string' ? error : 'Script load error');
       console.error('Error loading Google Maps:', errorObj);
       setLoadError(errorObj);
+      toast.error('فشل في تحميل خرائط جوجل');
     };
     
     document.head.appendChild(script);
@@ -81,6 +90,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
   const geocodeAddress = useCallback(async (address: string): Promise<google.maps.LatLngLiteral | null> => {
     if (!isLoaded || !window.google) {
       console.error('Google Maps not loaded for geocoding');
+      toast.error('خرائط جوجل غير متاحة للبحث عن العناوين');
       return null;
     }
 
@@ -112,6 +122,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       return null;
     } catch (error) {
       console.error('خطأ في تحويل العنوان:', error);
+      toast.error('فشل في تحويل العنوان إلى إحداثيات');
       return null;
     }
   }, [isLoaded]);
@@ -122,6 +133,7 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
   ): Promise<number | null> => {
     if (!isLoaded || !window.google) {
       console.error('Google Maps not loaded for distance calculation');
+      toast.error('خرائط جوجل غير متاحة لحساب المسافة');
       return null;
     }
 
@@ -159,9 +171,11 @@ export const useGoogleMaps = (): UseGoogleMapsResult => {
       }
       
       console.warn('Distance calculation returned invalid result');
+      toast.error('تعذر حساب المسافة بين الموقعين');
       return null;
     } catch (error) {
       console.error('خطأ في حساب المسافة:', error);
+      toast.error('حدث خطأ أثناء حساب المسافة');
       return null;
     }
   }, [isLoaded]);

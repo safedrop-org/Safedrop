@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -66,18 +67,22 @@ const CreateOrder = () => {
   useEffect(() => {
     const calculateDistanceAndPrice = async () => {
       if (!formData.pickupLocation.address || !formData.dropoffLocation.address) {
+        setDistance(null);
+        setCalculatedPrice(null);
         return;
       }
       
       if (formData.pickupLocation.address.trim() && formData.dropoffLocation.address.trim()) {
         setIsCalculating(true);
         try {
+          console.log('Calculating distance between locations');
           const distanceKm = await calculateDistance(
             formData.pickupLocation.address,
             formData.dropoffLocation.address
           );
           
           if (distanceKm !== null) {
+            console.log(`Distance calculated: ${distanceKm} km`);
             setDistance(distanceKm);
             
             const basePrice = 10;
@@ -85,15 +90,20 @@ const CreateOrder = () => {
             const additionalPrice = additionalKm * 1.5;
             const totalPrice = basePrice + additionalPrice;
             
+            console.log(`Price calculated: ${totalPrice} SAR`);
             setCalculatedPrice(totalPrice);
             
             setFormData(prev => ({
               ...prev,
               price: totalPrice.toFixed(2)
             }));
+
+            toast.success(`تم حساب المسافة: ${distanceKm.toFixed(2)} كم والتكلفة: ${totalPrice.toFixed(2)} ريال`);
           } else {
+            console.warn('Distance calculation failed');
             setDistance(null);
             setCalculatedPrice(null);
+            toast.error('تعذر حساب المسافة بين الموقعين');
           }
         } catch (error) {
           console.error('Error calculating distance:', error);
@@ -108,6 +118,7 @@ const CreateOrder = () => {
   }, [formData.pickupLocation.address, formData.dropoffLocation.address, calculateDistance]);
 
   const handleLocationChange = (type: 'pickupLocation' | 'dropoffLocation', location: LocationType) => {
+    console.log(`Location changed (${type}):`, location);
     setFormData(prev => ({
       ...prev,
       [type]: location

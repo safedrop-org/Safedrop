@@ -218,6 +218,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
               autocompleteSessionToken.current = new window.google.maps.places.AutocompleteSessionToken();
             }
             
+            toast.success('تم اختيار الموقع بنجاح');
             setSuggestions([]);
             setShowSuggestions(false);
           } else {

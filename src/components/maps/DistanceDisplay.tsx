@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { MapPin, Navigation } from 'lucide-react';
+import { MapPin, Navigation, AlertCircle } from 'lucide-react';
 
 interface DistanceDisplayProps {
   distance: number | null;
@@ -28,23 +28,24 @@ const DistanceDisplay: React.FC<DistanceDisplayProps> = ({
             <span className="mr-2">جاري الحساب...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {distance !== null && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {distance !== null ? (
               <div className="bg-gray-100 p-3 rounded-md">
                 <span className="text-sm text-gray-500">المسافة:</span>
                 <p className="font-semibold text-safedrop-primary">{distance.toFixed(2)} كم</p>
               </div>
-            )}
+            ) : null}
             
-            {price !== null && (
+            {price !== null ? (
               <div className="bg-gray-100 p-3 rounded-md">
                 <span className="text-sm text-gray-500">السعر المتوقع:</span>
                 <p className="font-semibold text-safedrop-primary">{price.toFixed(2)} ريال</p>
               </div>
-            )}
+            ) : null}
 
             {distance === null && price === null && !isCalculating && (
-              <div className="col-span-2 text-center py-4 text-gray-500">
+              <div className="col-span-2 text-center py-4 text-gray-500 flex flex-col items-center">
+                <AlertCircle className="h-6 w-6 mb-2 text-amber-500" />
                 <p>أدخل موقع الاستلام والتوصيل لحساب التكلفة</p>
               </div>
             )}
