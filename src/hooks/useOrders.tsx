@@ -20,12 +20,12 @@ export const useOrders = (isAdmin = false) => {
         if (!isAdmin) {
           console.log("Filtering for driver:", user.id);
           
-          // This complicated OR query gets:
-          // 1. Available orders with no driver assigned 
+          // This updated query gets:
+          // 1. ALL orders with status='available' (regardless of driver_id, which should be null anyway) 
           // 2. OR any order assigned specifically to this driver (regardless of status)
-          query = query.or(`and(driver_id.is.null,status.eq.available),driver_id.eq.${user.id}`);
+          query = query.or(`status.eq.available,driver_id.eq.${user.id}`);
           
-          console.log("Using filter:", `and(driver_id.is.null,status.eq.available),driver_id.eq.${user.id}`);
+          console.log("Using filter:", `status.eq.available,driver_id.eq.${user.id}`);
         }
         
         const { data: orders, error } = await query
