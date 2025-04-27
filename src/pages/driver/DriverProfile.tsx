@@ -1,154 +1,128 @@
-
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import DriverSidebar from '@/components/driver/DriverSidebar';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DriverSidebar from '@/components/driver/DriverSidebar';
+import { UserIcon, FileTextIcon, ShieldIcon, UploadIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useQuery } from '@tanstack/react-query';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 const DriverProfileContent = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    name: '',
+  const [isLoading, setIsLoading] = useState(false);
+  const [profileData, setProfileData] = useState({
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
-    vehicle_model: '',
-    vehicle_year: '',
-    license_number: '',
+    address: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [avatar, setAvatar] = useState<File | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState('');
-
-  const { data: profileData, isLoading, error, refetch } = useQuery({
-    queryKey: ['driver-profile', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('drivers')
-        .select('*, profiles(*)')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id
+  
+  const [documentData, setDocumentData] = useState({
+    nationalId: '',
+    licenseNumber: '',
+    nationalIdExpiry: '',
+    licenseExpiry: ''
   });
 
   useEffect(() => {
-    if (profileData) {
-      setFormData({
-        name: profileData.profiles?.full_name || '',
-        email: profileData.profiles?.email || '',
-        phone: profileData.phone || '',
-        vehicle_model: profileData.vehicle_model || '',
-        vehicle_year: profileData.vehicle_year || '',
-        license_number: profileData.license_number || '',
-      });
+    const fetchProfileData = async () => {
+      if (!user?.id) return;
+      
+      try {
+        // Fetch profile data
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
 
-      if (profileData.profiles?.avatar_url) {
-        setAvatarUrl(profileData.profiles.avatar_url);
-      }
-    }
-  }, [profileData]);
+        if (profileError) throw profileError;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+        // Fetch driver data
+        const { data: driverData, error: driverError } = await supabase
+          .from('drivers')
+          .select('*')
+          .eq('id', user.id)
+          .single();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      if (file.size > 2 * 1024 * 1024) {
-        toast({
-          title: "حجم الملف كبير جداً",
-          description: "يرجى اختيار صورة بحجم أقل من 2 ميجابايت",
-          variant: "destructive",
+        if (driverError) throw driverError;
+
+        setProfileData({
+          firstName: profileData.first_name || '',
+          lastName: profileData.last_name || '',
+          email: profileData.email || '',
+          phone: profileData.phone || '',
+          address: profileData.address || ''
         });
-        return;
+
+        setDocumentData({
+          nationalId: driverData.national_id || '',
+          licenseNumber: driverData.license_number || '',
+          nationalIdExpiry: '',
+          licenseExpiry: ''
+        });
+
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        toast.error('حدث خطأ أثناء تحميل البيانات');
       }
-      setAvatar(file);
-      setAvatarUrl(URL.createObjectURL(file));
-    }
-  };
+    };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    fetchProfileData();
+  }, [user]);
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
+    setIsLoading(true);
+    
     try {
-      // Update profile information
-      const profileUpdates = {
-        phone: formData.phone,
-        vehicle_model: formData.vehicle_model,
-        vehicle_year: formData.vehicle_year,
-        license_number: formData.license_number,
-        updated_at: new Date().toISOString(),
-      };
-
       const { error: profileError } = await supabase
-        .from('drivers')
-        .update(profileUpdates)
+        .from('profiles')
+        .update({
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          phone: profileData.phone,
+          address: profileData.address
+        })
         .eq('id', user?.id);
 
       if (profileError) throw profileError;
-
-      // Upload avatar if changed
-      if (avatar) {
-        const filePath = `avatars/${user?.id}/${Date.now()}-${avatar.name}`;
-        
-        const { error: uploadError } = await supabase
-          .storage
-          .from('profiles')
-          .upload(filePath, avatar);
-
-        if (uploadError) throw uploadError;
-
-        const { data } = await supabase
-          .storage
-          .from('profiles')
-          .getPublicUrl(filePath);
-
-        // Update avatar URL in the profile
-        const { error: avatarError } = await supabase
-          .from('profiles')
-          .update({ avatar_url: data.publicUrl })
-          .eq('id', user?.id);
-
-        if (avatarError) throw avatarError;
-      }
-
-      toast({
-        title: "تم تحديث الملف الشخصي بنجاح",
-        variant: "default",
-        className: "bg-green-500 text-white",
-      });
-
-      // Refresh data
-      refetch();
+      
+      toast.success('تم تحديث البيانات الشخصية بنجاح');
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast({
-        title: "فشل تحديث الملف الشخصي",
-        description: "حدث خطأ أثناء تحديث البيانات",
-        variant: "destructive",
-      });
+      toast.error('حدث خطأ أثناء تحديث البيانات');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
+  };
+
+  const handleDocumentUpload = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      toast.success('تم رفع الوثائق بنجاح، وسيتم مراجعتها');
+    }, 1500);
+  };
+
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      toast.success('تم تغيير كلمة المرور بنجاح');
+    }, 1000);
   };
 
   return (
@@ -158,154 +132,311 @@ const DriverProfileContent = () => {
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex justify-between items-center">
-              <h1 className="text-xl font-bold text-gray-900">الملف الشخصي</h1>
-              <SidebarTrigger />
-            </div>
+            <h1 className="text-xl font-bold text-gray-900">الملف الشخصي</h1>
           </div>
         </header>
 
         <main className="flex-1 overflow-auto p-4">
-          <div className="max-w-3xl mx-auto space-y-6">
-            {isLoading ? (
-              <Card>
-                <CardContent className="p-4 flex justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-safedrop-primary"></div>
-                </CardContent>
-              </Card>
-            ) : error ? (
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-red-500">حدث خطأ أثناء تحميل البيانات. يرجى المحاولة مرة أخرى.</div>
-                  <Button onClick={() => refetch()} className="mt-2">إعادة المحاولة</Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <form onSubmit={handleSubmit}>
+          <div className="max-w-7xl mx-auto">
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="w-full grid grid-cols-3 mb-6">
+                <TabsTrigger value="profile">
+                  <UserIcon className="h-4 w-4 mr-2" />
+                  البيانات الشخصية
+                </TabsTrigger>
+                <TabsTrigger value="documents">
+                  <FileTextIcon className="h-4 w-4 mr-2" />
+                  الوثائق والمستندات
+                </TabsTrigger>
+                <TabsTrigger value="security">
+                  <ShieldIcon className="h-4 w-4 mr-2" />
+                  الأمان
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="profile" className="space-y-4">
                 <Card>
-                  <CardContent className="p-6">
-                    <div className="space-y-6">
-                      {/* Avatar Section */}
-                      <div className="flex flex-col items-center space-y-4">
-                        <div className="h-32 w-32 rounded-full overflow-hidden border-4 border-gray-200">
-                          {avatarUrl ? (
-                            <img 
-                              src={avatarUrl} 
-                              alt="Profile" 
-                              className="h-full w-full object-cover" 
-                            />
-                          ) : (
-                            <div className="h-full w-full bg-gray-200 flex items-center justify-center text-gray-400">
-                              <svg className="h-16 w-16" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <Input
-                            type="file"
-                            id="avatar"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="hidden"
-                          />
-                          <label 
-                            htmlFor="avatar" 
-                            className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                          >
-                            تغيير الصورة
-                          </label>
-                        </div>
-                      </div>
-                      
-                      {/* Basic Information */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل</label>
+                  <CardHeader>
+                    <CardTitle>البيانات الشخصية</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleProfileUpdate} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="firstName">الاسم الأول</Label>
                           <Input 
-                            type="text" 
-                            id="name" 
-                            name="name" 
-                            value={formData.name} 
-                            onChange={handleChange} 
-                            disabled
+                            id="firstName" 
+                            value={profileData.firstName}
+                            onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
                           />
                         </div>
-                        <div>
-                          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
+                        <div className="space-y-2">
+                          <Label htmlFor="lastName">اسم العائلة</Label>
                           <Input 
-                            type="email" 
+                            id="lastName" 
+                            value={profileData.lastName}
+                            onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">البريد الإلكتروني</Label>
+                          <Input 
                             id="email" 
-                            name="email" 
-                            value={formData.email} 
-                            onChange={handleChange} 
-                            disabled
+                            type="email" 
+                            value={profileData.email}
+                            onChange={(e) => setProfileData({...profileData, email: e.target.value})}
                           />
                         </div>
-                        <div>
-                          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">رقم الجوال</label>
+                        <div className="space-y-2">
+                          <Label htmlFor="phone">رقم الهاتف</Label>
                           <Input 
-                            type="tel" 
                             id="phone" 
-                            name="phone" 
-                            value={formData.phone} 
-                            onChange={handleChange}
+                            value={profileData.phone}
+                            onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="address">العنوان</Label>
+                          <Input 
+                            id="address" 
+                            value={profileData.address}
+                            onChange={(e) => setProfileData({...profileData, address: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      <Button 
+                        type="submit" 
+                        className="bg-safedrop-gold hover:bg-safedrop-gold/90 mt-4"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="documents" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>الوثائق والمستندات</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleDocumentUpload} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="nationalId">رقم الهوية الوطنية</Label>
+                          <Input 
+                            id="nationalId" 
+                            value={documentData.nationalId}
+                            onChange={(e) => setDocumentData({...documentData, nationalId: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="nationalIdExpiry">تاريخ انتهاء الهوية</Label>
+                          <Input 
+                            id="nationalIdExpiry" 
+                            type="date" 
+                            value={documentData.nationalIdExpiry}
+                            onChange={(e) => setDocumentData({...documentData, nationalIdExpiry: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="licenseNumber">رقم رخصة القيادة</Label>
+                          <Input 
+                            id="licenseNumber" 
+                            value={documentData.licenseNumber}
+                            onChange={(e) => setDocumentData({...documentData, licenseNumber: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="licenseExpiry">تاريخ انتهاء الرخصة</Label>
+                          <Input 
+                            id="licenseExpiry" 
+                            type="date" 
+                            value={documentData.licenseExpiry}
+                            onChange={(e) => setDocumentData({...documentData, licenseExpiry: e.target.value})}
                           />
                         </div>
                       </div>
                       
-                      {/* Vehicle Information */}
-                      <div className="border-t pt-6 mt-6">
-                        <h3 className="text-lg font-medium mb-4">معلومات المركبة</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <label htmlFor="vehicle_model" className="block text-sm font-medium text-gray-700 mb-1">طراز المركبة</label>
-                            <Input 
-                              type="text" 
-                              id="vehicle_model" 
-                              name="vehicle_model" 
-                              value={formData.vehicle_model} 
-                              onChange={handleChange}
-                            />
+                      <div className="space-y-4 mt-6">
+                        <div>
+                          <Label className="block mb-2">صورة الهوية الوطنية</Label>
+                          <div className="flex items-center gap-2">
+                            <div className="border border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center w-full">
+                              <UploadIcon className="h-10 w-10 text-gray-400 mb-2" />
+                              <p className="text-sm text-gray-500">اسحب الملف هنا أو انقر للتحميل</p>
+                              <input 
+                                type="file" 
+                                className="hidden" 
+                                id="nationalIdFile" 
+                                accept=".jpg,.jpeg,.png,.pdf" 
+                              />
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => document.getElementById('nationalIdFile')?.click()}
+                                className="mt-2"
+                              >
+                                اختر ملف
+                              </Button>
+                            </div>
                           </div>
-                          <div>
-                            <label htmlFor="vehicle_year" className="block text-sm font-medium text-gray-700 mb-1">سنة الصنع</label>
-                            <Input 
-                              type="text" 
-                              id="vehicle_year" 
-                              name="vehicle_year" 
-                              value={formData.vehicle_year} 
-                              onChange={handleChange}
-                            />
+                          <p className="text-xs text-gray-500 mt-1">الصيغ المدعومة: JPG, JPEG, PNG, PDF</p>
+                        </div>
+                        
+                        <div>
+                          <Label className="block mb-2">صورة رخصة القيادة</Label>
+                          <div className="flex items-center gap-2">
+                            <div className="border border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center w-full">
+                              <UploadIcon className="h-10 w-10 text-gray-400 mb-2" />
+                              <p className="text-sm text-gray-500">اسحب الملف هنا أو انقر للتحميل</p>
+                              <input 
+                                type="file" 
+                                className="hidden" 
+                                id="licenseFile" 
+                                accept=".jpg,.jpeg,.png,.pdf" 
+                              />
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => document.getElementById('licenseFile')?.click()}
+                                className="mt-2"
+                              >
+                                اختر ملف
+                              </Button>
+                            </div>
                           </div>
-                          <div>
-                            <label htmlFor="license_number" className="block text-sm font-medium text-gray-700 mb-1">رقم رخصة القيادة</label>
-                            <Input 
-                              type="text" 
-                              id="license_number" 
-                              name="license_number" 
-                              value={formData.license_number} 
-                              onChange={handleChange}
-                            />
+                          <p className="text-xs text-gray-500 mt-1">الصيغ المدعومة: JPG, JPEG, PNG, PDF</p>
+                        </div>
+                        
+                        <div>
+                          <Label className="block mb-2">شهادة حسن السيرة والسلوك (اختياري)</Label>
+                          <div className="flex items-center gap-2">
+                            <div className="border border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center w-full">
+                              <UploadIcon className="h-10 w-10 text-gray-400 mb-2" />
+                              <p className="text-sm text-gray-500">اسحب الملف هنا أو انقر للتحميل</p>
+                              <input 
+                                type="file" 
+                                className="hidden" 
+                                id="goodConductFile" 
+                                accept=".jpg,.jpeg,.png,.pdf" 
+                              />
+                              <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => document.getElementById('goodConductFile')?.click()}
+                                className="mt-2"
+                              >
+                                اختر ملف
+                              </Button>
+                            </div>
                           </div>
+                          <p className="text-xs text-gray-500 mt-1">الصيغ المدعومة: JPG, JPEG, PNG, PDF</p>
                         </div>
                       </div>
-
-                      <div className="flex justify-end mt-6">
-                        <Button 
-                          type="submit" 
-                          className="bg-safedrop-primary hover:bg-safedrop-primary/90"
-                          disabled={isSubmitting}
-                        >
-                          {isSubmitting ? 'جاري الحفظ...' : 'حفظ التغييرات'}
-                        </Button>
+                      
+                      <Button 
+                        type="submit" 
+                        className="bg-safedrop-gold hover:bg-safedrop-gold/90 mt-6"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'جاري رفع الوثائق...' : 'رفع الوثائق'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>حالة الوثائق</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-md border border-green-200">
+                        <div className="flex items-center gap-2">
+                          <ShieldIcon className="h-5 w-5 text-green-600" />
+                          <span>الهوية الوطنية</span>
+                        </div>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">تمت الموافقة</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-md border border-green-200">
+                        <div className="flex items-center gap-2">
+                          <ShieldIcon className="h-5 w-5 text-green-600" />
+                          <span>رخصة القيادة</span>
+                        </div>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">تمت الموافقة</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-md border border-yellow-200">
+                        <div className="flex items-center gap-2">
+                          <ShieldIcon className="h-5 w-5 text-yellow-600" />
+                          <span>شهادة حسن السيرة والسلوك</span>
+                        </div>
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">غير مرفقة</span>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              </form>
-            )}
+              </TabsContent>
+              
+              <TabsContent value="security" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>تغيير كلمة المرور</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handlePasswordChange} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="currentPassword">كلمة المرور الحالية</Label>
+                        <Input id="currentPassword" type="password" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
+                        <Input id="newPassword" type="password" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">تأكيد كلمة المرور الجديدة</Label>
+                        <Input id="confirmPassword" type="password" />
+                      </div>
+                      <Button 
+                        type="submit" 
+                        className="bg-safedrop-gold hover:bg-safedrop-gold/90 mt-4"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'جاري التغيير...' : 'تغيير كلمة المرور'}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>أمان الحساب</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium">التحقق بخطوتين</p>
+                          <p className="text-sm text-gray-500">تفعيل التحقق بخطوتين لتعزيز أمان حسابك</p>
+                        </div>
+                        <Button variant="outline">تفعيل</Button>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium">سجل تسجيل الدخول</p>
+                          <p className="text-sm text-gray-500">عرض سجل عمليات تسجيل الدخول الأخيرة</p>
+                        </div>
+                        <Button variant="outline">عرض السجل</Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
       </div>
@@ -316,11 +447,7 @@ const DriverProfileContent = () => {
 const DriverProfile = () => {
   return (
     <LanguageProvider>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <DriverProfileContent />
-        </div>
-      </SidebarProvider>
+      <DriverProfileContent />
     </LanguageProvider>
   );
 };

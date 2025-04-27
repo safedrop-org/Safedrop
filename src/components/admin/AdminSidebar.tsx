@@ -1,25 +1,13 @@
-
 import { useLanguage } from '@/components/ui/language-context';
 import { UsersIcon, TruckIcon, PackageIcon, BarChart2Icon, SettingsIcon, ShieldIcon, DollarSign, MessageSquareIcon } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarTrigger,
-  SidebarProvider,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from "@/components/ui/sidebar";
 
 const AdminSidebar = () => {
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const location = useLocation();
 
   const isActive = (path: string) => {
-    return location.pathname === path || 
-           (path === '/admin/dashboard' && location.pathname === '/admin');
+    return location.pathname === path;
   };
 
   const menuItems = [
@@ -61,41 +49,44 @@ const AdminSidebar = () => {
   ];
 
   return (
-    <Sidebar>
-      <SidebarHeader className="p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-            <ShieldIcon className="h-6 w-6 text-safedrop-primary" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-white">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</h2>
-            <p className="text-xs text-white/75">{language === 'ar' ? 'لوحة تحكم المشرف' : 'Admin Dashboard'}</p>
-          </div>
+    <div className="bg-safedrop-primary text-white min-h-screen w-64 shadow-lg">
+      <div className="p-4 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
+          <ShieldIcon className="h-6 w-6 text-safedrop-primary" />
         </div>
-      </SidebarHeader>
+        <div>
+          <h2 className="text-xl font-bold">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</h2>
+          <p className="text-xs opacity-75">{language === 'ar' ? 'لوحة تحكم المشرف' : 'Admin Dashboard'}</p>
+        </div>
+      </div>
       
-      <SidebarContent>
-        <SidebarMenu>
-          {menuItems.map((item, index) => (
-            <SidebarMenuItem key={index}>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive(item.path)}
-                className="w-full"
-              >
+      <div className="mt-6">
+        <nav>
+          <ul>
+            {menuItems.map((item, index) => (
+              <li key={index}>
                 <Link
                   to={item.path}
-                  className="flex items-center gap-3 w-full"
+                  className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
+                    (isActive(item.path) || 
+                     (item.path === '/admin/dashboard' && location.pathname === '/admin')) ? 
+                    'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                  }`}
                 >
                   {item.icon}
                   <span>{item.label}</span>
                 </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarContent>
-    </Sidebar>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+
+      <div className="mt-auto">
+        <div className="p-4 border-t border-white/10">
+        </div>
+      </div>
+    </div>
   );
 };
 
