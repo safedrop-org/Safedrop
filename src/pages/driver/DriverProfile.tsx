@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,17 +34,22 @@ const DriverProfileContent = () => {
     const fetchProfileData = async () => {
       if (!user?.id) return;
       try {
-        const {
-          data: profileData,
-          error: profileError
-        } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
         if (profileError) throw profileError;
 
-        const {
-          data: driverData,
-          error: driverError
-        } = await supabase.from('drivers').select('*').eq('id', user.id).single();
+        const { data: driverData, error: driverError } = await supabase
+          .from('drivers')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
         if (driverError) throw driverError;
+        
         setProfileData({
           firstName: profileData.first_name || '',
           lastName: profileData.last_name || '',
@@ -51,6 +57,7 @@ const DriverProfileContent = () => {
           phone: profileData.phone || '',
           address: profileData.address || ''
         });
+        
         setDocumentData({
           nationalId: driverData.national_id || '',
           licenseNumber: driverData.license_number || '',
@@ -59,29 +66,32 @@ const DriverProfileContent = () => {
         });
       } catch (error) {
         console.error('Error fetching profile:', error);
-        toast.error('حدث خطأ أثناء تحميل البيانات');
+        toast.error(t('errorLoadingProfile'));
       }
     };
+    
     fetchProfileData();
-  }, [user]);
+  }, [user, t]);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const {
-        error: profileError
-      } = await supabase.from('profiles').update({
-        first_name: profileData.firstName,
-        last_name: profileData.lastName,
-        phone: profileData.phone,
-        address: profileData.address
-      }).eq('id', user?.id);
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          phone: profileData.phone,
+          address: profileData.address
+        })
+        .eq('id', user?.id);
+      
       if (profileError) throw profileError;
-      toast.success('تم تحديث البيانات الشخصية بنجاح');
+      toast.success(t('profileUpdatedSuccessfully'));
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('حدث خطأ أثناء تحديث البيانات');
+      toast.error(t('errorUpdatingProfile'));
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +104,7 @@ const DriverProfileContent = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      toast.success('تم رفع الوثائق بنجاح، وسيتم مراجعتها');
+      toast.success(t('documentsUploadedSuccessfully'));
     }, 1500);
   };
 
@@ -105,17 +115,18 @@ const DriverProfileContent = () => {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      toast.success('تم تغيير كلمة المرور بنجاح');
+      toast.success(t('passwordChangedSuccessfully'));
     }, 1000);
   };
 
-  return <div className="flex h-screen bg-gray-50">
+  return (
+    <div className="flex h-screen bg-gray-50">
       <DriverSidebar />
       
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">{t('profileTitle')}</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('profile')}</h1>
           </div>
         </header>
 
@@ -142,43 +153,68 @@ const DriverProfileContent = () => {
                     <form onSubmit={handleProfileUpdate} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="firstName">الاسم الأول</Label>
-                          <Input id="firstName" value={profileData.firstName} onChange={e => setProfileData({
-                          ...profileData,
-                          firstName: e.target.value
-                        })} />
+                          <Label htmlFor="firstName">{t('firstName')}</Label>
+                          <Input 
+                            id="firstName" 
+                            value={profileData.firstName} 
+                            onChange={e => setProfileData({
+                              ...profileData,
+                              firstName: e.target.value
+                            })} 
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="lastName">اسم العائلة</Label>
-                          <Input id="lastName" value={profileData.lastName} onChange={e => setProfileData({
-                          ...profileData,
-                          lastName: e.target.value
-                        })} />
+                          <Label htmlFor="lastName">{t('lastName')}</Label>
+                          <Input 
+                            id="lastName" 
+                            value={profileData.lastName} 
+                            onChange={e => setProfileData({
+                              ...profileData,
+                              lastName: e.target.value
+                            })} 
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="email">البريد الإلكتروني</Label>
-                          <Input id="email" type="email" value={profileData.email} onChange={e => setProfileData({
-                          ...profileData,
-                          email: e.target.value
-                        })} />
+                          <Label htmlFor="email">{t('email')}</Label>
+                          <Input 
+                            id="email" 
+                            type="email" 
+                            value={profileData.email} 
+                            onChange={e => setProfileData({
+                              ...profileData,
+                              email: e.target.value
+                            })} 
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="phone">رقم الهاتف</Label>
-                          <Input id="phone" value={profileData.phone} onChange={e => setProfileData({
-                          ...profileData,
-                          phone: e.target.value
-                        })} />
+                          <Label htmlFor="phone">{t('phone')}</Label>
+                          <Input 
+                            id="phone" 
+                            value={profileData.phone} 
+                            onChange={e => setProfileData({
+                              ...profileData,
+                              phone: e.target.value
+                            })} 
+                          />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="address">العنوان</Label>
-                          <Input id="address" value={profileData.address} onChange={e => setProfileData({
-                          ...profileData,
-                          address: e.target.value
-                        })} />
+                          <Label htmlFor="address">{t('address')}</Label>
+                          <Input 
+                            id="address" 
+                            value={profileData.address} 
+                            onChange={e => setProfileData({
+                              ...profileData,
+                              address: e.target.value
+                            })} 
+                          />
                         </div>
                       </div>
-                      <Button type="submit" className="bg-safedrop-gold hover:bg-safedrop-gold/90 mt-4" disabled={isLoading}>
-                        {isLoading ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                      <Button 
+                        type="submit" 
+                        className="bg-safedrop-gold hover:bg-safedrop-gold/90 mt-4" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? t('savingChanges') : t('saveChanges')}
                       </Button>
                     </form>
                   </CardContent>
@@ -194,45 +230,59 @@ const DriverProfileContent = () => {
                     <form onSubmit={handleDocumentUpload} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="nationalId">رقم الهوية الوطنية</Label>
-                          <Input id="nationalId" value={documentData.nationalId} onChange={e => setDocumentData({
-                          ...documentData,
-                          nationalId: e.target.value
-                        })} />
+                          <Label htmlFor="nationalId">{t('nationalId')}</Label>
+                          <Input 
+                            id="nationalId" 
+                            value={documentData.nationalId} 
+                            onChange={e => setDocumentData({
+                              ...documentData,
+                              nationalId: e.target.value
+                            })} 
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="nationalIdExpiry">تاريخ انتهاء الهوية</Label>
-                          <Input id="nationalIdExpiry" type="date" value={documentData.nationalIdExpiry} onChange={e => setDocumentData({
-                          ...documentData,
-                          nationalIdExpiry: e.target.value
-                        })} />
+                          <Label htmlFor="nationalIdExpiry">{t('nationalIdExpiry')}</Label>
+                          <Input 
+                            id="nationalIdExpiry" 
+                            type="date" 
+                            value={documentData.nationalIdExpiry} 
+                            onChange={e => setDocumentData({
+                              ...documentData,
+                              nationalIdExpiry: e.target.value
+                            })} 
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="licenseNumber">رقم رخصة القيادة</Label>
-                          <Input id="licenseNumber" value={documentData.licenseNumber} onChange={e => setDocumentData({
-                          ...documentData,
-                          licenseNumber: e.target.value
-                        })} />
+                          <Label htmlFor="licenseNumber">{t('licenseNumber')}</Label>
+                          <Input 
+                            id="licenseNumber" 
+                            value={documentData.licenseNumber} 
+                            onChange={e => setDocumentData({
+                              ...documentData,
+                              licenseNumber: e.target.value
+                            })} 
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="licenseExpiry">تاريخ انتهاء الرخصة</Label>
-                          <Input id="licenseExpiry" type="date" value={documentData.licenseExpiry} onChange={e => setDocumentData({
-                          ...documentData,
-                          licenseExpiry: e.target.value
-                        })} />
+                          <Label htmlFor="licenseExpiry">{t('licenseExpiry')}</Label>
+                          <Input 
+                            id="licenseExpiry" 
+                            type="date" 
+                            value={documentData.licenseExpiry} 
+                            onChange={e => setDocumentData({
+                              ...documentData,
+                              licenseExpiry: e.target.value
+                            })} 
+                          />
                         </div>
                       </div>
                       
-                      <div className="space-y-4 mt-6">
-                        
-                        
-                        
-                        
-                        
-                      </div>
-                      
-                      <Button type="submit" className="bg-safedrop-gold hover:bg-safedrop-gold/90 mt-6" disabled={isLoading}>
-                        {isLoading ? 'جاري رفع الوثائق...' : 'رفع الوثائق'}
+                      <Button 
+                        type="submit" 
+                        className="bg-safedrop-gold hover:bg-safedrop-gold/90 mt-6" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? t('uploadingDocuments') : t('uploadDocuments')}
                       </Button>
                     </form>
                   </CardContent>
@@ -247,70 +297,17 @@ const DriverProfileContent = () => {
                       <div className="flex justify-between items-center p-3 bg-green-50 rounded-md border border-green-200">
                         <div className="flex items-center gap-2">
                           <ShieldIcon className="h-5 w-5 text-green-600" />
-                          <span>الهوية الوطنية</span>
+                          <span>{t('nationalId')}</span>
                         </div>
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">تمت الموافقة</span>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">{t('approved')}</span>
                       </div>
                       
                       <div className="flex justify-between items-center p-3 bg-green-50 rounded-md border border-green-200">
                         <div className="flex items-center gap-2">
                           <ShieldIcon className="h-5 w-5 text-green-600" />
-                          <span>رخصة القيادة</span>
+                          <span>{t('licenseNumber')}</span>
                         </div>
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">تمت الموافقة</span>
-                      </div>
-                      
-                      
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="security" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>تغيير كلمة المرور</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handlePasswordChange} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="currentPassword">كلمة المرور الحالية</Label>
-                        <Input id="currentPassword" type="password" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="newPassword">كلمة المرور الجديدة</Label>
-                        <Input id="newPassword" type="password" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">تأكيد كلمة المرور الجديدة</Label>
-                        <Input id="confirmPassword" type="password" />
-                      </div>
-                      <Button type="submit" className="bg-safedrop-gold hover:bg-safedrop-gold/90 mt-4" disabled={isLoading}>
-                        {isLoading ? 'جاري التغيير...' : 'تغيير كلمة المرور'}
-                      </Button>
-                    </form>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>أمان الحساب</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-medium">التحقق بخطوتين</p>
-                          <p className="text-sm text-gray-500">تفعيل التحقق بخطوتين لتعزيز أمان حسابك</p>
-                        </div>
-                        <Button variant="outline">تفعيل</Button>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <p className="font-medium">سجل تسجيل الدخول</p>
-                          <p className="text-sm text-gray-500">عرض سجل عمليات تسجيل الدخول الأخيرة</p>
-                        </div>
-                        <Button variant="outline">عرض السجل</Button>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">{t('approved')}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -320,13 +317,16 @@ const DriverProfileContent = () => {
           </div>
         </main>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 const DriverProfile = () => {
-  return <LanguageProvider>
+  return (
+    <LanguageProvider>
       <DriverProfileContent />
-    </LanguageProvider>;
+    </LanguageProvider>
+  );
 };
 
 export default DriverProfile;

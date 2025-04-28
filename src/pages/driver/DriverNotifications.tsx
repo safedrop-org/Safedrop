@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,10 +49,10 @@ const DriverNotificationsContent = () => {
       if (error) throw error;
 
       setNotifications(notifications.map(n => ({ ...n, read: true })));
-      toast.success('تم تحديد جميع الإشعارات كمقروءة');
+      toast.success(t('allNotificationsMarkedAsRead'));
     } catch (error) {
       console.error('Error marking notifications as read:', error);
-      toast.error('حدث خطأ أثناء تحديث الإشعارات');
+      toast.error(t('errorUpdatingNotifications'));
     }
   };
 
@@ -78,7 +79,7 @@ const DriverNotificationsContent = () => {
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-between items-center">
-              <h1 className="text-xl font-bold text-gray-900">{t('notificationsTitle')}</h1>
+              <h1 className="text-xl font-bold text-gray-900">{t('notifications')}</h1>
               <Button variant="outline" size="sm" onClick={markAllAsRead}>
                 {t('markAllAsRead')}
               </Button>
@@ -88,36 +89,36 @@ const DriverNotificationsContent = () => {
 
         <main className="flex-1 overflow-auto p-4">
           <div className="max-w-3xl mx-auto space-y-4">
-            {notifications.map((notification) => (
-              <Card key={notification.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                      notification.read ? 'bg-gray-100' : 'bg-blue-100'
-                    }`}>
-                      {getNotificationIcon(notification.type)}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium">{notification.title}</p>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {notification.message}
-                          </p>
+            {notifications.length > 0 ? (
+              notifications.map((notification) => (
+                <Card key={notification.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                        notification.read ? 'bg-gray-100' : 'bg-blue-100'
+                      }`}>
+                        {getNotificationIcon(notification.type)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{notification.title}</p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {notification.message}
+                            </p>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {format(new Date(notification.created_at), 'dd/MM/yyyy HH:mm')}
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {format(new Date(notification.created_at), 'dd/MM/yyyy HH:mm')}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {notifications.length === 0 && (
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
               <div className="text-center py-8 text-gray-500">
-                لا توجد إشعارات جديدة
+                {t('noNotifications')}
               </div>
             )}
           </div>

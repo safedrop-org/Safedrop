@@ -1,4 +1,5 @@
-import { LanguageKey } from './language-key'; // We'll create this type file to centralize language key definition
+
+import { LanguageKey } from './language-key';
 
 export type Translations = {
   [key: string]: {
@@ -996,5 +997,109 @@ export const translations: Translations = {
   profileTitle: {
     ar: "الملف الشخصي",
     en: "Profile"
+  },
+  // Additional translations for profile and documents section
+  address: {
+    ar: "العنوان",
+    en: "Address"
+  },
+  savingChanges: {
+    ar: "جاري الحفظ...",
+    en: "Saving..."
+  },
+  uploadingDocuments: {
+    ar: "جاري رفع الوثائق...",
+    en: "Uploading Documents..."
+  },
+  uploadDocuments: {
+    ar: "رفع الوثائق",
+    en: "Upload Documents"
+  },
+  nationalIdExpiry: {
+    ar: "تاريخ انتهاء الهوية",
+    en: "National ID Expiry Date"
+  },
+  licenseExpiry: {
+    ar: "تاريخ انتهاء الرخصة",
+    en: "License Expiry Date"
+  },
+  passwordChangedSuccessfully: {
+    ar: "تم تغيير كلمة المرور بنجاح",
+    en: "Password changed successfully"
+  },
+  documentsUploadedSuccessfully: {
+    ar: "تم رفع الوثائق بنجاح، وسيتم مراجعتها",
+    en: "Documents uploaded successfully and will be reviewed"
+  },
+  profileUpdatedSuccessfully: {
+    ar: "تم تحديث البيانات الشخصية بنجاح",
+    en: "Personal information updated successfully"
+  },
+  errorLoadingProfile: {
+    ar: "حدث خطأ أثناء تحميل البيانات",
+    en: "Error loading profile data"
+  },
+  errorUpdatingProfile: {
+    ar: "حدث خطأ أثناء تحديث البيانات",
+    en: "Error updating profile data"
+  },
+  // Translations for earnings page
+  earningsTitle: {
+    ar: "الأرباح",
+    en: "Earnings"
+  },
+  todayEarnings: {
+    ar: "الأرباح اليوم",
+    en: "Today's Earnings"
+  },
+  weeklyEarnings: {
+    ar: "الأرباح هذا الأسبوع",
+    en: "This Week's Earnings"
+  },
+  monthlyEarnings: {
+    ar: "الأرباح هذا الشهر",
+    en: "This Month's Earnings"
+  },
+  earningsAnalysis: {
+    ar: "تحليل الأرباح",
+    en: "Earnings Analysis"
+  },
+  // Translations for notifications page
+  markAllAsRead: {
+    ar: "تحديد الكل كمقروء",
+    en: "Mark All as Read"
+  },
+  allNotificationsMarkedAsRead: {
+    ar: "تم تحديد جميع الإشعارات كمقروءة",
+    en: "All notifications marked as read"
+  },
+  errorUpdatingNotifications: {
+    ar: "حدث خطأ أثناء تحديث الإشعارات",
+    en: "Error updating notifications"
+  },
+  // Translations for ratings page
+  ratingsTitle: {
+    ar: "التقييمات",
+    en: "Ratings"
+  },
+  stars: {
+    ar: "نجوم",
+    en: "stars"
+  },
+  loadingRatings: {
+    ar: "جاري تحميل التقييمات...",
+    en: "Loading ratings..."
+  },
+  errorLoadingRatings: {
+    ar: "حدث خطأ أثناء تحميل التقييمات",
+    en: "Error loading ratings"
+  },
+  latestRatings: {
+    ar: "آخر التقييمات",
+    en: "Latest Ratings"
+  },
+  notificationsTitle: {
+    ar: "الإشعارات",
+    en: "Notifications"
   }
 };

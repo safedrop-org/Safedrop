@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,29 +8,27 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
+
 const DriverEarningsContent = () => {
-  const {
-    t
-  } = useLanguage();
-  const {
-    user
-  } = useAuth();
+  const { t, language } = useLanguage();
+  const { user } = useAuth();
   const [earnings, setEarnings] = useState<any[]>([]);
   const [summary, setSummary] = useState({
     today: 0,
     weekly: 0,
     monthly: 0
   });
+
   useEffect(() => {
     const fetchEarnings = async () => {
       if (!user?.id) return;
       try {
-        const {
-          data,
-          error
-        } = await supabase.from('driver_earnings').select('*').eq('driver_id', user.id).order('created_at', {
-          ascending: false
-        });
+        const { data, error } = await supabase
+          .from('driver_earnings')
+          .select('*')
+          .eq('driver_id', user.id)
+          .order('created_at', { ascending: false });
+        
         if (error) throw error;
         setEarnings(data || []);
 
@@ -38,9 +37,11 @@ const DriverEarningsContent = () => {
         const today = now.toISOString().split('T')[0];
         const weekStart = new Date(now.setDate(now.getDate() - 7)).toISOString();
         const monthStart = new Date(now.setDate(now.getDate() - 30)).toISOString();
+        
         const todayEarnings = data?.filter(e => e.created_at.startsWith(today)).reduce((sum, e) => sum + Number(e.amount), 0);
         const weeklyEarnings = data?.filter(e => e.created_at >= weekStart).reduce((sum, e) => sum + Number(e.amount), 0);
         const monthlyEarnings = data?.filter(e => e.created_at >= monthStart).reduce((sum, e) => sum + Number(e.amount), 0);
+        
         setSummary({
           today: todayEarnings,
           weekly: weeklyEarnings,
@@ -50,6 +51,7 @@ const DriverEarningsContent = () => {
         console.error('Error fetching earnings:', error);
       }
     };
+    
     fetchEarnings();
   }, [user]);
 
@@ -58,13 +60,17 @@ const DriverEarningsContent = () => {
     name: format(new Date(earning.created_at), 'dd/MM'),
     amount: Number(earning.amount)
   })).reverse();
-  return <div className="flex h-screen bg-gray-50">
+
+  const currencySymbol = language === 'ar' ? 'ريال' : 'SAR';
+  
+  return (
+    <div className="flex h-screen bg-gray-50">
       <DriverSidebar />
       
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">{t('earningsTitle')}</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('earnings')}</h1>
           </div>
         </header>
 
@@ -75,8 +81,10 @@ const DriverEarningsContent = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-500">الأرباح اليوم</p>
-                      <p className="text-2xl font-bold mt-1">{summary.today} ريال</p>
+                      <p className="text-sm text-gray-500">{t('todayEarnings')}</p>
+                      <p className="text-2xl font-bold mt-1">
+                        {summary.today} {currencySymbol}
+                      </p>
                     </div>
                     <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
                       <DollarSign className="h-6 w-6 text-green-600" />
@@ -89,8 +97,10 @@ const DriverEarningsContent = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-500">الأرباح هذا الأسبوع</p>
-                      <p className="text-2xl font-bold mt-1">{summary.weekly} ريال</p>
+                      <p className="text-sm text-gray-500">{t('weeklyEarnings')}</p>
+                      <p className="text-2xl font-bold mt-1">
+                        {summary.weekly} {currencySymbol}
+                      </p>
                     </div>
                     <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
                       <TrendingUp className="h-6 w-6 text-blue-600" />
@@ -103,8 +113,10 @@ const DriverEarningsContent = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-500">الأرباح هذا الشهر</p>
-                      <p className="text-2xl font-bold mt-1">{summary.monthly} ريال</p>
+                      <p className="text-sm text-gray-500">{t('monthlyEarnings')}</p>
+                      <p className="text-2xl font-bold mt-1">
+                        {summary.monthly} {currencySymbol}
+                      </p>
                     </div>
                     <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
                       <Calendar className="h-6 w-6 text-purple-600" />
@@ -116,7 +128,7 @@ const DriverEarningsContent = () => {
 
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-center">تحليل الأرباح</CardTitle>
+                <CardTitle className="text-center">{t('earningsAnalysis')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
@@ -134,17 +146,21 @@ const DriverEarningsContent = () => {
             </Card>
 
             <Card>
-              
-              
+              {/* Additional earnings information could go here */}
             </Card>
           </div>
         </main>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 const DriverEarnings = () => {
-  return <LanguageProvider>
+  return (
+    <LanguageProvider>
       <DriverEarningsContent />
-    </LanguageProvider>;
+    </LanguageProvider>
+  );
 };
+
 export default DriverEarnings;

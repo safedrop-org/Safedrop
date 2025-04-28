@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,7 @@ const DriverRatingsContent = () => {
   const [ratingStats, setRatingStats] = useState([0, 0, 0, 0, 0]);
 
   const handleRetry = () => {
-    toast.info("جاري إعادة تحميل التقييمات...");
+    toast.info(t('loadingRatings'));
     refetch();
   };
 
@@ -41,7 +42,7 @@ const DriverRatingsContent = () => {
       <div className="flex h-screen bg-gray-50">
         <DriverSidebar />
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-lg">جاري التحميل...</div>
+          <div className="text-lg">{t('loading')}</div>
         </div>
       </div>
     );
@@ -54,12 +55,12 @@ const DriverRatingsContent = () => {
       <div className="flex h-screen bg-gray-50">
         <DriverSidebar />
         <div className="flex-1 flex flex-col items-center justify-center p-4">
-          <div className="text-lg text-red-500 mb-4">حدث خطأ أثناء تحميل التقييمات</div>
+          <div className="text-lg text-red-500 mb-4">{t('errorLoadingRatings')}</div>
           <button 
             onClick={handleRetry}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
-            إعادة المحاولة
+            {t('retryLoading')}
           </button>
         </div>
       </div>
@@ -73,7 +74,7 @@ const DriverRatingsContent = () => {
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">{t('ratingsTitle')}</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('ratings')}</h1>
           </div>
         </header>
 
@@ -82,7 +83,7 @@ const DriverRatingsContent = () => {
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>متوسط التقييم</span>
+                  <span>{t('averageRating')}</span>
                   <div className="flex items-center">
                     <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
                     <span className="text-2xl font-bold mr-2">{averageRating}</span>
@@ -97,7 +98,7 @@ const DriverRatingsContent = () => {
                     
                     return (
                       <div key={stars} className="flex items-center">
-                        <span className="ml-2 w-12 text-sm">{stars} نجوم</span>
+                        <span className="ml-2 w-12 text-sm">{stars} {t('stars')}</span>
                         <div className="flex-1">
                           <div className="h-2 bg-gray-200 rounded">
                             <div 
@@ -116,7 +117,7 @@ const DriverRatingsContent = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>آخر التقييمات</CardTitle>
+                <CardTitle>{t('latestRatings')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -138,9 +139,9 @@ const DriverRatingsContent = () => {
                               ))}
                             </div>
                             <p className="text-sm text-gray-600 mt-1">
-                              {rating.customer?.first_name} {rating.customer?.last_name || 'عميل'}
+                              {rating.customer?.first_name} {rating.customer?.last_name || t('customer')}
                             </p>
-                            <p className="text-sm text-gray-600">طلب #{rating.order_id}</p>
+                            <p className="text-sm text-gray-600">{t('order')} #{rating.order_id}</p>
                           </div>
                           <span className="text-sm text-gray-500">
                             {rating.created_at ? format(new Date(rating.created_at), 'dd/MM/yyyy') : ''}
@@ -153,7 +154,7 @@ const DriverRatingsContent = () => {
                     ))
                   ) : (
                     <div className="text-center text-gray-500 py-8">
-                      لا توجد تقييمات بعد
+                      {t('noRatingsYet')}
                     </div>
                   )}
                 </div>
