@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { useNavigate } from 'react-router-dom';
 import { UserIcon, LockIcon, MailIcon, PhoneIcon, Calendar } from 'lucide-react';
-
 const driverRegisterSchema = z.object({
   firstName: z.string().min(2, {
     message: "الاسم الأول مطلوب"
@@ -51,11 +50,11 @@ const driverRegisterSchema = z.object({
     })
   })
 });
-
 type DriverFormValues = z.infer<typeof driverRegisterSchema>;
-
 const DriverRegisterContent = () => {
-  const { t } = useLanguage();
+  const {
+    t
+  } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [submitAttempts, setSubmitAttempts] = useState(0);
@@ -63,7 +62,6 @@ const DriverRegisterContent = () => {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [showDebugConsole, setShowDebugConsole] = useState(false);
   const [waitTime, setWaitTime] = useState(0);
-
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (waitTime > 0) {
@@ -75,7 +73,6 @@ const DriverRegisterContent = () => {
       if (timer) clearTimeout(timer);
     };
   }, [waitTime]);
-
   const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverRegisterSchema),
     defaultValues: {
@@ -95,12 +92,10 @@ const DriverRegisterContent = () => {
       }
     }
   });
-
   const handleRateLimitError = () => {
     setWaitTime(60);
     toast.error('تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار دقيقة واحدة قبل المحاولة مرة أخرى');
   };
-
   const checkEmailExists = async (email: string) => {
     try {
       const {
@@ -119,16 +114,18 @@ const DriverRegisterContent = () => {
       return null;
     }
   };
-
   const onSubmit = async (data: DriverFormValues) => {
     if (waitTime > 0) {
       toast.error(`يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى`);
       return;
     }
     setIsLoading(true);
-
+    setDebugInfo(null);
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const {
+        data: authData,
+        error: signUpError
+      } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -139,51 +136,105 @@ const DriverRegisterContent = () => {
             user_type: 'driver',
             birth_date: data.birthDate
           },
-          emailRedirectTo: window.location.origin + '/driver/dashboard'
+          emailRedirectTo: window.location.origin + '/email-verification'
         }
       });
-
       if (signUpError) {
-        throw signUpError;
+        setDebugInfo({
+          stage: 'auth_signup',
+          error: signUpError
+        });
+        if (signUpError.message.includes('rate limit') || signUpError.message.toLowerCase().includes('email rate limit exceeded') || signUpError.code === 'over_email_send_rate_limit') {
+          handleRateLimitError();
+        } else if (signUpError.message.includes('already registered')) {
+          toast.error('البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول');
+        } else {
+          toast.error('خطأ أثناء إنشاء الحساب: ' + signUpError.message);
+        }
+        setIsLoading(false);
+        return;
       }
-
-      const { error: profileError } = await supabase.from('profiles').insert({
+      if (!authData.user) {
+        setDebugInfo({
+          stage: 'auth_signup',
+          error: 'No user data returned',
+          response: authData
+        });
+        toast.error('فشل إنشاء الحساب، يرجى المحاولة مرة أخرى');
+        setIsLoading(false);
+        return;
+      }
+      const userId = authData.user.id;
+      const profileData = {
+        id: userId,
         first_name: data.firstName,
         last_name: data.lastName,
         phone: data.phone,
         user_type: 'driver',
         birth_date: data.birthDate
-      });
-
+      };
+      const {
+        error: profileError
+      } = await supabase.from('profiles').insert(profileData);
       if (profileError) {
-        throw profileError;
+        setDebugInfo({
+          stage: 'profile_insert',
+          error: profileError,
+          attempted_data: profileData
+        });
+        toast.error('خطأ أثناء حفظ بيانات الحساب، يرجى المحاولة لاحقًا');
+        setIsLoading(false);
+        return;
       }
-
-      const { error: driverError } = await supabase.from('drivers').insert({
+      const driverData = {
+        id: userId,
         national_id: data.nationalId,
         license_number: data.licenseNumber,
-        vehicle_info: data.vehicleInfo,
+        vehicle_info: {
+          make: data.vehicleInfo.make,
+          model: data.vehicleInfo.model,
+          year: data.vehicleInfo.year,
+          plateNumber: data.vehicleInfo.plateNumber
+        },
         status: 'pending',
         is_available: false
-      });
-
-      if (driverError) {
-        throw driverError;
+      };
+      const {
+        error: driverInsertError
+      } = await supabase.from('drivers').insert(driverData);
+      if (driverInsertError) {
+        setDebugInfo({
+          stage: 'driver_insert',
+          error: driverInsertError,
+          attempted_data: driverData
+        });
+        toast.error('خطأ أثناء حفظ بيانات السائق، يرجى المحاولة لاحقًا');
+        setIsLoading(false);
+        return;
       }
-
-      toast.success(t('registrationSuccess'), {
-        description: t('checkEmailConfirmation')
+      const {
+        error: roleError
+      } = await supabase.from('user_roles').insert({
+        user_id: userId,
+        role: 'driver'
       });
-      navigate('/login');
+      if (roleError) {
+        console.error("Error assigning driver role:", roleError);
+        toast.warning("تم إنشاء الحساب، لكن حدثت مشكلة في تعيين الدور");
+      }
+      setRegistrationComplete(true);
+      toast.success(t('registrationSuccess'));
     } catch (error: any) {
-      toast.error(t('registrationError'), {
-        description: error.message
+      setDebugInfo({
+        stage: 'unexpected_error',
+        error
       });
+      toast.error('حدث خطأ غير متوقع أثناء التسجيل، يرجى المحاولة مرة أخرى');
+      setSubmitAttempts(prev => prev + 1);
     } finally {
       setIsLoading(false);
     }
   };
-
   if (registrationComplete) {
     return <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
@@ -206,7 +257,6 @@ const DriverRegisterContent = () => {
         </div>
       </div>;
   }
-
   return <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8">
         <div className="text-center">
@@ -219,6 +269,8 @@ const DriverRegisterContent = () => {
             <p className="text-amber-700 mt-1">الوقت المتبقي: {waitTime} ثانية</p>
             <p className="text-amber-600 text-sm mt-1">تم تجاوز الحد المسموح لمحاولات التسجيل. يرجى الانتظار قليلاً.</p>
           </div>}
+
+        
 
         {showDebugConsole}
 
@@ -398,11 +450,9 @@ const DriverRegisterContent = () => {
       </div>
     </div>;
 };
-
 const DriverRegister = () => {
   return <LanguageProvider>
       <DriverRegisterContent />
     </LanguageProvider>;
 };
-
 export default DriverRegister;
