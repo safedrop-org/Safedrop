@@ -1,3 +1,4 @@
+
 import { LanguageKey } from "./language-key";
 
 // Translation keys for the entire application
@@ -426,5 +427,11 @@ export const translations = {
   modifyAddressAnswer: {
     ar: "بعد قبول الطلب، قد تتوفر خيارات محددة للتعديل حسب حالة الطلب، يمكنك التواصل مع الدعم للمساعدة.",
     en: "After order acceptance, specific modification options may be available depending on the order status. You can contact support for assistance."
+  },
+  
+  // Customer Orders additional translations
+  order: {
+    ar: "طلب",
+    en: "Order"
   }
 };

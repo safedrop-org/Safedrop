@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,17 +11,17 @@ import { Package, Truck, DollarSign } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useLanguage } from '@/components/ui/language-context';
+import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
 interface LocationType {
   address: string;
   details?: string;
 }
 
-const CreateOrder = () => {
+const CreateOrderContent = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     pickupLocation: {
@@ -38,10 +39,10 @@ const CreateOrder = () => {
 
   useEffect(() => {
     if (!user) {
-      toast.error('يرجى تسجيل الدخول أولاً');
+      toast.error(language === 'ar' ? 'يرجى تسجيل الدخول أولاً' : 'Please login first');
       navigate('/login');
     }
-  }, [user, navigate]);
+  }, [user, navigate, language]);
 
   const handleLocationChange = (type: 'pickupLocation' | 'dropoffLocation', field: 'address' | 'details', value: string) => {
     setFormData(prev => ({
@@ -77,16 +78,16 @@ const CreateOrder = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      toast.error('يرجى تسجيل الدخول أولاً');
+      toast.error(language === 'ar' ? 'يرجى تسجيل الدخول أولاً' : 'Please login first');
       return;
     }
     if (!formData.pickupLocation.address || !formData.dropoffLocation.address || !formData.packageDetails || !formData.price) {
-      toast.error('يرجى ملء جميع الحقول الإلزامية');
+      toast.error(language === 'ar' ? 'يرجى ملء جميع الحقول الإلزامية' : 'Please fill in all required fields');
       return;
     }
     const price = parseFloat(formData.price);
     if (isNaN(price) || price <= 0) {
-      toast.error('يرجى إدخال سعر صحيح');
+      toast.error(language === 'ar' ? 'يرجى إدخال سعر صحيح' : 'Please enter a valid price');
       return;
     }
     setSubmitting(true);
@@ -115,11 +116,11 @@ const CreateOrder = () => {
         console.error('Error creating order:', error);
         throw error;
       }
-      toast.success('تم إنشاء الطلب بنجاح');
+      toast.success(language === 'ar' ? 'تم إنشاء الطلب بنجاح' : 'Order created successfully');
       navigate('/customer/orders');
     } catch (error: any) {
       console.error('Error creating order:', error);
-      toast.error('حدث خطأ أثناء إنشاء الطلب: ' + (error.message || ''));
+      toast.error((language === 'ar' ? 'حدث خطأ أثناء إنشاء الطلب: ' : 'Error creating order: ') + (error.message || ''));
     } finally {
       setSubmitting(false);
     }
@@ -264,6 +265,14 @@ const CreateOrder = () => {
         </form>
       </main>
     </div>
+  );
+};
+
+const CreateOrder = () => {
+  return (
+    <LanguageProvider>
+      <CreateOrderContent />
+    </LanguageProvider>
   );
 };
 

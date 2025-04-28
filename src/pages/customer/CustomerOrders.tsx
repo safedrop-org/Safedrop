@@ -8,12 +8,14 @@ import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Clock, Package, MapPin, DollarSign, Navigation, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
-const CustomerOrders = () => {
+const CustomerOrdersContent = () => {
   const { user } = useAuth();
   const [activeOrders, setActiveOrders] = useState([]);
   const [historyOrders, setHistoryOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     if (!user) return;
@@ -69,19 +71,19 @@ const CustomerOrders = () => {
         setHistoryOrders(enrichHistoryOrders || []);
       } catch (error) {
         console.error('Error fetching orders:', error);
-        toast.error('حدث خطأ أثناء تحميل الطلبات');
+        toast.error(language === 'ar' ? 'حدث خطأ أثناء تحميل الطلبات' : 'Error loading orders');
       } finally {
         setLoading(false);
       }
     };
 
     fetchOrders();
-  }, [user]);
+  }, [user, language]);
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ar-SA', { 
+    return new Intl.DateTimeFormat(language === 'ar' ? 'ar-SA' : 'en-US', { 
       year: 'numeric', 
       month: 'short', 
       day: 'numeric',
@@ -101,18 +103,15 @@ const CustomerOrders = () => {
       cancelled: "bg-red-100 text-red-800"
     };
     
-    const statusTranslation = {
-      available: "متاح",
-      picked_up: "ملتقط",
-      in_transit: "جاري التوصيل",
-      approaching: "اقترب",
-      completed: "مكتمل",
-      cancelled: "ملغي"
-    };
-
     return (
       <span className={`${badgeClasses.base} ${badgeClasses[status] || badgeClasses.base}`}>
-        {statusTranslation[status] || status}
+        {status === "available" ? t('available') :
+         status === "picked_up" ? t('pickedUp') :
+         status === "in_transit" ? t('inTransit') :
+         status === "approaching" ? t('approaching') :
+         status === "completed" ? t('completed') :
+         status === "cancelled" ? t('cancelled') :
+         status}
       </span>
     );
   };
@@ -121,7 +120,7 @@ const CustomerOrders = () => {
     try {
       setLoading(true);
       
-      // 1. تحديث حالة الطلب إلى مكتمل
+      // Update order status to completed
       const { error: orderError } = await supabase
         .from('orders')
         .update({ status: 'completed' })
@@ -129,7 +128,7 @@ const CustomerOrders = () => {
         
       if (orderError) throw orderError;
 
-      // 2. إنشاء إحصائيات الدفع
+      // Create payment statistics
       const { error: statsError } = await supabase
         .from('order_payment_stats')
         .insert({
@@ -141,14 +140,14 @@ const CustomerOrders = () => {
         
       if (statsError) throw statsError;
       
-      toast.success('تم تأكيد استلام الطلب بنجاح');
+      toast.success(language === 'ar' ? 'تم تأكيد استلام الطلب بنجاح' : 'Order delivery confirmed successfully');
       
-      // إعادة تحميل الطلبات
+      // Reload orders
       window.location.reload();
       
     } catch (error) {
       console.error('Error completing order:', error);
-      toast.error('حدث خطأ أثناء تأكيد استلام الطلب');
+      toast.error(language === 'ar' ? 'حدث خطأ أثناء تأكيد استلام الطلب' : 'Error confirming order delivery');
     } finally {
       setLoading(false);
     }
@@ -158,7 +157,7 @@ const CustomerOrders = () => {
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">طلباتي</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">{t('orders')}</h1>
         
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -167,24 +166,24 @@ const CustomerOrders = () => {
         ) : (
           <Tabs defaultValue="active" className="w-full">
             <TabsList className="w-full grid grid-cols-2 mb-6">
-              <TabsTrigger value="active">الطلبات النشطة</TabsTrigger>
-              <TabsTrigger value="history">سجل الطلبات</TabsTrigger>
+              <TabsTrigger value="active">{t('Active Orders')}</TabsTrigger>
+              <TabsTrigger value="history">{t('Order History')}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="active" className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-xl font-semibold mb-4">الطلبات النشطة</h3>
+              <h3 className="text-xl font-semibold mb-4">{t('Active Orders')}</h3>
               <div className="overflow-x-auto">
                 {activeOrders.length > 0 ? (
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">رقم الطلب</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">من</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">إلى</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">السائق</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('Order ID')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('orderDate')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('from')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('to')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('Driver')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('Status')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('Actions')}</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -197,13 +196,13 @@ const CustomerOrders = () => {
                             {formatDate(order.created_at)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.pickup_location?.address || 'غير محدد'}
+                            {order.pickup_location?.address || (language === 'ar' ? 'غير محدد' : 'Not specified')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.dropoff_location?.address || 'غير محدد'}
+                            {order.dropoff_location?.address || (language === 'ar' ? 'غير محدد' : 'Not specified')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'لم يتم التعيين بعد'}
+                            {order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : (language === 'ar' ? 'لم يتم التعيين بعد' : 'Not assigned yet')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {getStatusBadge(order.status)}
@@ -217,7 +216,7 @@ const CustomerOrders = () => {
                                 className="gap-1"
                               >
                                 <CheckCircle className="h-4 w-4" />
-                                تم الاستلام
+                                {t('Order Received')}
                               </Button>
                             )}
                           </td>
@@ -228,25 +227,25 @@ const CustomerOrders = () => {
                 ) : (
                   <div className="text-center py-10 text-gray-500">
                     <Clock className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                    <p>لا توجد طلبات نشطة حالياً</p>
+                    <p>{t('noCurrentOrders')}</p>
                   </div>
                 )}
               </div>
             </TabsContent>
             
             <TabsContent value="history" className="bg-white p-4 rounded-lg shadow">
-              <h3 className="text-xl font-semibold mb-4">سجل الطلبات</h3>
+              <h3 className="text-xl font-semibold mb-4">{t('Order History')}</h3>
               <div className="overflow-x-auto">
                 {historyOrders.length > 0 ? (
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">رقم الطلب</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">من</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">إلى</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">السائق</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('Order ID')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('orderDate')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('from')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('to')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('Driver')}</th>
+                        <th scope="col" className={`px-6 py-3 text-${language === 'ar' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>{t('Status')}</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -259,13 +258,13 @@ const CustomerOrders = () => {
                             {formatDate(order.created_at)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.pickup_location?.address || 'غير محدد'}
+                            {order.pickup_location?.address || (language === 'ar' ? 'غير محدد' : 'Not specified')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.dropoff_location?.address || 'غير محدد'}
+                            {order.dropoff_location?.address || (language === 'ar' ? 'غير محدد' : 'Not specified')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'غير متوفر'}
+                            {order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : (language === 'ar' ? 'غير متوفر' : 'Not available')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {getStatusBadge(order.status)}
@@ -277,7 +276,7 @@ const CustomerOrders = () => {
                 ) : (
                   <div className="text-center py-10 text-gray-500">
                     <Clock className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                    <p>لا يوجد سجل للطلبات السابقة</p>
+                    <p>{language === 'ar' ? 'لا يوجد سجل للطلبات السابقة' : 'No order history available'}</p>
                   </div>
                 )}
               </div>
@@ -286,6 +285,14 @@ const CustomerOrders = () => {
         )}
       </main>
     </div>
+  );
+};
+
+const CustomerOrders = () => {
+  return (
+    <LanguageProvider>
+      <CustomerOrdersContent />
+    </LanguageProvider>
   );
 };
 
