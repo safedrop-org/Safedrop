@@ -20,6 +20,11 @@ const CustomerSettingsContent = () => {
     }, 1000);
   };
 
+  // Function to format phone number correctly based on language
+  const getFormattedPhoneNumber = () => {
+    return language === 'ar' ? '0601 616 55 966+' : '+966 55 616 0601';
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
@@ -68,7 +73,7 @@ const CustomerSettingsContent = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">{t('contactPhone')}</label>
-                    <p className="text-base font-medium">+966 55 616 0601</p>
+                    <p className="text-base font-medium">{getFormattedPhoneNumber()}</p>
                   </div>
                 </div>
               </CardContent>
