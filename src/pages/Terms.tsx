@@ -1,4 +1,3 @@
-
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
@@ -7,25 +6,41 @@ const TermsContent = () => {
   const { language } = useLanguage();
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-grow bg-gray-50 py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-safedrop-primary mb-8 text-center">
-            {language === 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions'}
-          </h1>
-          
-          <div className="bg-white rounded-lg shadow-sm p-6 space-y-8">
+      <main className="flex-grow">
+        <div className="bg-[#0A192F] py-12 mb-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
+              {language === 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions'}
+            </h1>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+          <div className="bg-white rounded-lg shadow-sm p-8 space-y-8">
             {language === 'ar' ? (
               // Arabic content
               <>
-                <section>
-                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">1. تعريفات</h2>
-                  <ul className="space-y-2 text-gray-700">
-                    <li><strong>المنصة:</strong> تشير إلى "SafeDrop"، وهي منصة إلكترونية تربط بين مستخدمين يرغبون في إرسال شحنات وسائقين مرخصين ومستقلين.</li>
-                    <li><strong>العميل:</strong> هو أي مستخدم يطلب خدمة التوصيل عبر المنصة.</li>
-                    <li><strong>السائق:</strong> هو أي شخص مُسجل ومعتمد من قبل إدارة المنصة لتقديم خدمة التوصيل.</li>
-                    <li><strong>الشحنة:</strong> أي غرض أو طرد يتم طلب توصيله من العميل عبر المنصة.</li>
+                <section className="space-y-6">
+                  <h2 className="text-2xl font-bold text-safedrop-primary mb-4">1. تعريفات</h2>
+                  <ul className="space-y-4 text-gray-700 text-lg">
+                    <li className="flex gap-2">
+                      <span className="font-semibold">المنصة:</span>
+                      <span>تشير إلى "SafeDrop"، وهي منصة إلكترونية تربط بين مستخدمين يرغبون في إرسال شحنات وسائقين مرخصين ومستقلين.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-semibold">العميل:</span>
+                      <span>هو أي مستخدم يطلب خدمة التوصيل عبر المنصة.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-semibold">السائق:</span>
+                      <span>هو أي شخص مُسجل ومعتمد من قبل إدارة المنصة لتقديم خدمة التوصيل.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-semibold">الشحنة:</span>
+                      <span>أي غرض أو طرد يتم طلب توصيله من العميل عبر المنصة.</span>
+                    </li>
                   </ul>
                 </section>
 
@@ -90,13 +105,25 @@ const TermsContent = () => {
             ) : (
               // English content
               <>
-                <section>
-                  <h2 className="text-xl font-semibold text-safedrop-primary mb-4">1. Definitions</h2>
-                  <ul className="space-y-2 text-gray-700">
-                    <li><strong>Platform:</strong> Refers to "SafeDrop", an electronic platform connecting users who want to send packages with licensed and independent drivers.</li>
-                    <li><strong>Customer:</strong> Any user requesting delivery service through the platform.</li>
-                    <li><strong>Driver:</strong> Any person registered and approved by the platform management to provide delivery service.</li>
-                    <li><strong>Package:</strong> Any item or parcel requested for delivery by the customer through the platform.</li>
+                <section className="space-y-6">
+                  <h2 className="text-2xl font-bold text-safedrop-primary mb-4">1. Definitions</h2>
+                  <ul className="space-y-4 text-gray-700 text-lg">
+                    <li className="flex gap-2">
+                      <span className="font-semibold">Platform:</span>
+                      <span>Refers to "SafeDrop", an electronic platform connecting users who want to send packages with licensed and independent drivers.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-semibold">Customer:</span>
+                      <span>Any user requesting delivery service through the platform.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-semibold">Driver:</span>
+                      <span>Any person registered and approved by the platform management to provide delivery service.</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="font-semibold">Package:</span>
+                      <span>Any item or parcel requested for delivery by the customer through the platform.</span>
+                    </li>
                   </ul>
                 </section>
 
