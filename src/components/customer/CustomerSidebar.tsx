@@ -9,55 +9,56 @@ import {
   MessageSquare, 
   Star, 
   Settings,
-  PlusCircle
+  PlusCircle,
+  LogOut
 } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
 const CustomerSidebar = () => {
   const { t } = useLanguage();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
 
   const menuItems = [
     {
       path: '/customer/dashboard',
       icon: <LayoutDashboard className="h-5 w-5" />,
-      label: 'Dashboard'
+      label: t('Dashboard')
     },
     {
       path: '/customer/create-order',
       icon: <PlusCircle className="h-5 w-5" />,
-      label: 'New Order'
+      label: t('New Order')
     },
     {
       path: '/customer/my-orders',
       icon: <Package className="h-5 w-5" />,
-      label: 'My Orders'
+      label: t('My Orders')
     },
     {
       path: '/customer/billing',
       icon: <CreditCard className="h-5 w-5" />,
-      label: 'Billing & Payment'
+      label: t('Billing & Payment')
     },
     {
       path: '/customer/profile',
       icon: <User className="h-5 w-5" />,
-      label: 'Profile'
+      label: t('Profile')
     },
     {
       path: '/customer/support',
       icon: <MessageSquare className="h-5 w-5" />,
-      label: 'Technical Support'
+      label: t('Technical Support')
     },
     {
       path: '/customer/feedback',
       icon: <Star className="h-5 w-5" />,
-      label: 'Feedback & Rating'
+      label: t('Feedback & Rating')
     },
     {
       path: '/customer/settings',
       icon: <Settings className="h-5 w-5" />,
-      label: 'Settings'
+      label: t('Settings')
     }
   ];
 
@@ -66,7 +67,7 @@ const CustomerSidebar = () => {
   };
 
   const handleLogout = () => {
-    logout();
+    signOut();
   };
 
   return (
@@ -105,12 +106,8 @@ const CustomerSidebar = () => {
           onClick={handleLogout}
           className="flex items-center justify-center w-full gap-2 py-2 px-4 rounded-md border border-white/20 hover:bg-white/10 transition-colors"
         >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 17L21 12L16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M21 12H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Logout
+          <LogOut className="h-5 w-5" />
+          <span>{t('Logout')}</span>
         </button>
       </div>
     </aside>
