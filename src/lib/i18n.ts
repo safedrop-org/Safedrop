@@ -619,7 +619,7 @@ export const translations: Translations = {
     en: "Innovation"
   },
   innovationDescription: {
-    ar: "نسعى دائماً لتطوير خدماتنا وتقديم حلول مبتكرة تلبي احتياجات عملائنا المتنوعة.",
+    ar: "نسعى دائمًا لتطوير خدماتنا وتقديم حلول مبتكرة تلبي احتياجات عملائنا المتنوعة.",
     en: "We always strive to develop our services and provide innovative solutions that meet the diverse needs of our customers."
   },
   sendMessage: {
