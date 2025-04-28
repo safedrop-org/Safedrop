@@ -134,24 +134,8 @@ const DriverEarningsContent = () => {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>آخر المعاملات</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {earnings.slice(0, 5).map(earning => <div key={earning.id} className="flex items-center justify-between p-4 border-b last:border-0">
-                      <div>
-                        <p className="font-medium">طلب #{earning.order_id}</p>
-                        <p className="text-sm text-gray-500">
-                          {format(new Date(earning.created_at), 'dd/MM/yyyy HH:mm')}
-                        </p>
-                      </div>
-                      <span className="text-green-600 font-medium">
-                        +{earning.amount} ريال
-                      </span>
-                    </div>)}
-                </div>
-              </CardContent>
+              
+              
             </Card>
           </div>
         </main>
