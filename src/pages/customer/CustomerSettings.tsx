@@ -22,7 +22,8 @@ const CustomerSettingsContent = () => {
 
   // Function to format phone number correctly based on language
   const getFormattedPhoneNumber = () => {
-    return language === 'ar' ? '0601 616 55 966+' : '+966 55 616 0601';
+    // في اللغة العربية، رقم الهاتف يظهر بالترتيب الصحيح وليس معكوساً
+    return '+966 55 616 0601';
   };
 
   return (
