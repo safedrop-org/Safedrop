@@ -4,33 +4,26 @@ import { supabase } from '@/integrations/supabase/client';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { toast } from 'sonner';
-import { MessageSquare, Loader2, Send, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { MessageSquare, Loader2, Send, Clock, CheckCircle, XCircle, Phone, Mail } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
+
 const CustomerSupportContent = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    t
-  } = useLanguage();
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
+  const { user } = useAuth();
+  const { t } = useLanguage();
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     const fetchTickets = async () => {
       try {
-        const {
-          data,
-          error
-        } = await supabase.from('complaints').select('*, complaint_responses(*)').eq('user_id', user.id).order('created_at', {
-          ascending: false
-        });
+        const { data, error } = await supabase
+          .from('complaints')
+          .select('*, complaint_responses(*)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
         if (error) throw error;
         setTickets(data || []);
       } catch (error) {
@@ -42,99 +35,82 @@ const CustomerSupportContent = () => {
     };
     fetchTickets();
   }, [user]);
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) {
-      toast.error('Please login first');
-      return;
-    }
-    if (!subject.trim() || !message.trim()) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    setSubmitting(true);
-    try {
-      const {
-        data,
-        error
-      } = await supabase.from('complaints').insert({
-        subject: subject,
-        description: message,
-        user_id: user.id,
-        status: 'pending'
-      }).select();
-      if (error) throw error;
-      toast.success('Support request sent successfully');
-      setSubject('');
-      setMessage('');
 
-      // Add the new ticket to the list
-      if (data && data.length > 0) {
-        setTickets([data[0], ...tickets]);
-      }
-    } catch (error) {
-      console.error('Error submitting support ticket:', error);
-      toast.error('Error sending support request');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-  const getStatusBadge = (status: string) => {
-    const badgeClasses = {
-      base: "px-2 py-1 rounded-full text-xs font-medium",
-      pending: "bg-yellow-100 text-yellow-800",
-      in_progress: "bg-blue-100 text-blue-800",
-      resolved: "bg-green-100 text-green-800",
-      closed: "bg-gray-100 text-gray-800",
-      rejected: "bg-red-100 text-red-800"
-    };
-    const statusTranslation = {
-      pending: "Pending",
-      in_progress: "In Progress",
-      resolved: "Resolved",
-      closed: "Closed",
-      rejected: "Rejected"
-    };
-    const statusIcons = {
-      pending: <Clock className="h-3 w-3 mr-1" />,
-      in_progress: <Loader2 className="h-3 w-3 mr-1" />,
-      resolved: <CheckCircle className="h-3 w-3 mr-1" />,
-      closed: <XCircle className="h-3 w-3 mr-1" />,
-      rejected: <XCircle className="h-3 w-3 mr-1" />
-    };
-    return <span className={`${badgeClasses.base} ${badgeClasses[status]} flex items-center`}>
-        {statusIcons[status]}
-        {statusTranslation[status] || status}
-      </span>;
-  };
-  return <div className="flex h-screen bg-gray-50">
+  return (
+    <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">Technical Support</h1>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          
-          
-        </div>
-      </main>
-    </div>;
-};
-const CustomerSupport = () => {
-  return <LanguageProvider>
-      <CustomerSupportContent />
-    </LanguageProvider>;
-};
-export default CustomerSupport;
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">Support & Help</h1>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Call Us Card */}
+          <Card className="flex flex-col items-center justify-center p-6">
+            <div className="bg-green-100 p-3 rounded-full mb-4">
+              <Phone className="text-green-600 w-6 h-6" />
+            </div>
+            <h2 className="text-lg font-semibold mb-2">Call Us</h2>
+            <p className="text-sm mb-4">+966 55 616 0601</p>
+            <Button variant="outline" onClick={() => window.open('tel:+966556160601')}>Call Us</Button>
+          </Card>
+
+          {/* Email Support Card */}
+          <Card className="flex flex-col items-center justify-center p-6">
+            <div className="bg-purple-100 p-3 rounded-full mb-4">
+              <Mail className="text-purple-600 w-6 h-6" />
+            </div>
+            <h2 className="text-lg font-semibold mb-2">Email Support</h2>
+            <p className="text-sm mb-4">support@safedropksa.com</p>
+            <Button variant="outline" onClick={() => window.open('mailto:support@safedropksa.com')}>Email Support</Button>
+          </Card>
+        </div>
+
+        {/* FAQs */}
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger>كيف أتابع حالة طلبي؟</AccordionTrigger>
+              <AccordionContent>
+                يمكن للعميل متابعة حالة الطلب بناءً على تحديثات السائق لحالته أثناء الرحلة.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2">
+              <AccordionTrigger>ماذا أفعل إذا احتجت للمساعدة بخصوص طلبي؟</AccordionTrigger>
+              <AccordionContent>
+                يمكنك التواصل مع فريق الدعم عبر التطبيق أو البريد الإلكتروني في أي وقت.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-3">
+              <AccordionTrigger>هل يمكنني التواصل مع السائق أثناء التوصيل؟</AccordionTrigger>
+              <AccordionContent>
+                نعم، يمكنك التواصل مع السائق عبر خاصية الرسائل أو الاتصال داخل التطبيق.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-4">
+              <AccordionTrigger>كيف أطلب استرجاع مبلغ أو أرفع شكوى؟</AccordionTrigger>
+              <AccordionContent>
+                يمكنك فتح طلب عبر قسم الدعم، وسيتم التعامل معه حسب السياسة المعتمدة لدينا.
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-5">
+              <AccordionTrigger>هل يمكنني تعديل عنوان التوصيل بعد إرسال الطلب؟</AccordionTrigger>
+              <AccordionContent>
+                بعد قبول الطلب، قد تتوفر خيارات محددة للتعديل حسب حالة الطلب، يمكنك التواصل مع الدعم للمساعدة.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </Card>
+      </main>
+    </div>
+  );
+};
+
+const CustomerSupport = () => {
+  return (
+    <LanguageProvider>
+      <CustomerSupportContent />
+    </LanguageProvider>
+  );
+};
+
+export default CustomerSupport;
