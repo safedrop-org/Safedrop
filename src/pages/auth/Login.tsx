@@ -11,10 +11,14 @@ import { LockIcon, MailIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-
 const LoginContent = () => {
-  const { t } = useLanguage();
-  const { user, userType } = useAuth();
+  const {
+    t
+  } = useLanguage();
+  const {
+    user,
+    userType
+  } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,35 +29,42 @@ const LoginContent = () => {
   useEffect(() => {
     console.log("User in login page:", user);
     console.log("User type in login page:", userType);
-    
     if (user) {
       console.log("User already logged in, redirecting based on type:", userType);
       // First check localStorage for user type flags
       if (localStorage.getItem('adminAuth') === 'true') {
         console.log("Redirecting to admin dashboard based on localStorage");
-        navigate('/admin/dashboard', { replace: true });
+        navigate('/admin/dashboard', {
+          replace: true
+        });
         return;
       }
-      
       if (localStorage.getItem('customerAuth') === 'true') {
         console.log("Redirecting to customer dashboard based on localStorage");
-        navigate('/customer/dashboard', { replace: true });
+        navigate('/customer/dashboard', {
+          replace: true
+        });
         return;
       }
-      
       if (localStorage.getItem('driverAuth') === 'true') {
         console.log("Redirecting to driver dashboard based on localStorage");
-        navigate('/driver/dashboard', { replace: true });
+        navigate('/driver/dashboard', {
+          replace: true
+        });
         return;
       }
-      
+
       // If no localStorage flags, try to use the userType from context
       if (userType === 'admin') {
         console.log("Redirecting to admin dashboard based on userType");
-        navigate('/admin/dashboard', { replace: true });
+        navigate('/admin/dashboard', {
+          replace: true
+        });
       } else if (userType === 'customer') {
         console.log("Redirecting to customer dashboard based on userType");
-        navigate('/customer/dashboard', { replace: true });
+        navigate('/customer/dashboard', {
+          replace: true
+        });
       } else if (userType === 'driver') {
         console.log("Redirecting to driver dashboard based on userType");
         checkDriverStatusAndRedirect(user.id);
@@ -69,15 +80,18 @@ const LoginContent = () => {
       }
     }
   }, [user, userType, navigate]);
-
   const redirectBasedOnUserType = (type: string, userId: string) => {
     console.log("Redirecting based on user type:", type);
     if (type === 'admin') {
       localStorage.setItem('adminAuth', 'true');
-      navigate('/admin/dashboard', { replace: true });
+      navigate('/admin/dashboard', {
+        replace: true
+      });
     } else if (type === 'customer') {
       localStorage.setItem('customerAuth', 'true');
-      navigate('/customer/dashboard', { replace: true });
+      navigate('/customer/dashboard', {
+        replace: true
+      });
     } else if (type === 'driver') {
       localStorage.setItem('driverAuth', 'true');
       checkDriverStatusAndRedirect(userId);
@@ -85,58 +99,58 @@ const LoginContent = () => {
       toast.error("نوع المستخدم غي�� معروف");
     }
   };
-
   const checkDriverStatusAndRedirect = async (userId: string) => {
     try {
       console.log("Checking driver status for:", userId);
-      const { data, error } = await supabase
-        .from('drivers')
-        .select('status')
-        .eq('id', userId)
-        .maybeSingle();
-      
+      const {
+        data,
+        error
+      } = await supabase.from('drivers').select('status').eq('id', userId).maybeSingle();
       if (error) {
         console.error("Error checking driver status:", error);
-        navigate('/driver/pending-approval', { replace: true });
+        navigate('/driver/pending-approval', {
+          replace: true
+        });
         return;
       }
-      
       console.log("Driver status:", data);
-      
       if (data?.status === 'approved') {
-        navigate('/driver/dashboard', { replace: true });
+        navigate('/driver/dashboard', {
+          replace: true
+        });
       } else {
-        navigate('/driver/pending-approval', { replace: true });
+        navigate('/driver/pending-approval', {
+          replace: true
+        });
       }
     } catch (err) {
       console.error("Error checking driver status:", err);
-      navigate('/driver/pending-approval', { replace: true });
+      navigate('/driver/pending-approval', {
+        replace: true
+      });
     }
   };
-
   const redirectBasedOnProfile = async (userId: string) => {
     try {
       console.log("Checking profile for user ID:", userId);
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', userId)
-        .maybeSingle();
-        
+      const {
+        data: profile,
+        error
+      } = await supabase.from('profiles').select('user_type').eq('id', userId).maybeSingle();
       if (error) {
         console.error("Error fetching profile:", error);
         toast.error("حدث خطأ أثناء التحقق من نوع المستخدم");
         return;
       }
-      
       console.log("Found profile:", profile);
-      
       if (profile) {
         // Redirect based on user type
         redirectBasedOnUserType(profile.user_type, userId);
       } else {
         console.log("No profile found, checking user metadata");
-        const { data: userData } = await supabase.auth.getUser();
+        const {
+          data: userData
+        } = await supabase.auth.getUser();
         if (userData?.user?.user_metadata?.user_type) {
           redirectBasedOnUserType(userData.user.user_metadata.user_type, userId);
         } else {
@@ -149,27 +163,26 @@ const LoginContent = () => {
       toast.error("حدث خطأ أثناء التحقق من الملف الشخصي");
     }
   };
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     if (!email || !password) {
       toast.error('يرجى إدخال البريد الإلكتروني وكلمة المرور');
       setIsLoading(false);
       return;
     }
-
     try {
       console.log('Attempting login with:', email);
-      
+
       // If email is admin email, handle admin login
       if (email.toLowerCase() === 'admin@safedrop.com') {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const {
+          data,
+          error
+        } = await supabase.auth.signInWithPassword({
           email,
-          password,
+          password
         });
-
         if (error) {
           console.error('Login error:', error);
           toast.error('كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى');
@@ -180,21 +193,22 @@ const LoginContent = () => {
         // Ensure admin is redirected to dashboard
         localStorage.setItem('adminAuth', 'true');
         toast.success('تم تسجيل الدخول كمسؤول');
-        
+
         // Forceful redirect
         window.location.href = '/admin/dashboard';
         return;
       }
 
       // Sign in with email and password
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const {
+        data,
+        error
+      } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
-
       if (error) {
         console.error('Login error:', error);
-        
         if (error.message === 'Email not confirmed') {
           toast.error('البريد الإلكتروني غير مؤكد، يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك');
         } else if (error.message.includes('Invalid login')) {
@@ -205,24 +219,19 @@ const LoginContent = () => {
         setIsLoading(false);
         return;
       }
-      
       if (!data.user) {
         toast.error('فشل الحصول على معلومات المستخدم');
         setIsLoading(false);
         return;
       }
-
       console.log('Login successful, user:', data.user);
       console.log('User metadata:', data.user.user_metadata);
-      
       toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
-      
+
       // Try to redirect based on user metadata first
       if (data.user.user_metadata?.user_type) {
         console.log("Found user_type in metadata:", data.user.user_metadata.user_type);
-        
         const userType = data.user.user_metadata.user_type;
-        
         if (userType === 'admin') {
           localStorage.setItem('adminAuth', 'true');
           window.location.href = '/admin/dashboard';
@@ -237,16 +246,13 @@ const LoginContent = () => {
         // Fallback to profile check
         console.log("No user_type in metadata, checking profile");
         await redirectBasedOnProfile(data.user.id);
-        
+
         // Force redirect after a short delay if still on login page
         setTimeout(() => {
           const currentPath = window.location.pathname;
           if (currentPath === '/login') {
             console.log("Still on login page after 1000ms, forcing redirect based on localStorage");
-            const userType = localStorage.getItem('adminAuth') ? 'admin' : 
-                          localStorage.getItem('customerAuth') ? 'customer' : 
-                          localStorage.getItem('driverAuth') ? 'driver' : null;
-            
+            const userType = localStorage.getItem('adminAuth') ? 'admin' : localStorage.getItem('customerAuth') ? 'customer' : localStorage.getItem('driverAuth') ? 'driver' : null;
             if (userType === 'admin') {
               window.location.href = '/admin/dashboard';
             } else if (userType === 'customer') {
@@ -275,9 +281,7 @@ const LoginContent = () => {
       setIsLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen flex flex-col">
+  return <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow py-16 bg-gray-50">
         <div className="max-w-md mx-auto px-4">
@@ -286,9 +290,7 @@ const LoginContent = () => {
               <CardTitle className="text-2xl font-bold text-safedrop-primary">
                 {t('login')}
               </CardTitle>
-              <CardDescription>
-                دخول إلى ��سابك في منصة سيف دروب
-              </CardDescription>
+              <CardDescription>دخول إلى حسابك في منصة سيف دروب</CardDescription>
             </CardHeader>
 
             <form onSubmit={handleLogin}>
@@ -297,14 +299,7 @@ const LoginContent = () => {
                   <Label htmlFor="email">{t('email')}</Label>
                   <div className="relative">
                     <MailIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                    <Input
-                      id="email"
-                      type="email"
-                      className="pl-10 rtl:pl-4 rtl:pr-10"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
+                    <Input id="email" type="email" className="pl-10 rtl:pl-4 rtl:pr-10" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
                   </div>
                 </div>
 
@@ -312,26 +307,13 @@ const LoginContent = () => {
                   <Label htmlFor="password">{t('password')}</Label>
                   <div className="relative">
                     <LockIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                    <Input
-                      id="password"
-                      type="password"
-                      className="pl-10 rtl:pl-4 rtl:pr-10"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
+                    <Input id="password" type="password" className="pl-10 rtl:pl-4 rtl:pr-10" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <input
-                      type="checkbox"
-                      id="remember"
-                      className="w-4 h-4 text-safedrop-gold border-gray-300 rounded focus:ring-safedrop-gold"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
+                    <input type="checkbox" id="remember" className="w-4 h-4 text-safedrop-gold border-gray-300 rounded focus:ring-safedrop-gold" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />
                     <Label htmlFor="remember" className="text-sm">تذكرني</Label>
                   </div>
                   <Link to="/forgot-password" className="text-sm text-safedrop-gold hover:underline">
@@ -341,11 +323,7 @@ const LoginContent = () => {
               </CardContent>
 
               <CardFooter className="flex flex-col space-y-4">
-                <Button
-                  type="submit"
-                  className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-                  disabled={isLoading}
-                >
+                <Button type="submit" className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" disabled={isLoading}>
                   {isLoading ? "جاري تسجيل الدخول..." : t('login')}
                 </Button>
 
@@ -367,16 +345,11 @@ const LoginContent = () => {
         </div>
       </main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 const Login = () => {
-  return (
-    <LanguageProvider>
+  return <LanguageProvider>
       <LoginContent />
-    </LanguageProvider>
-  );
+    </LanguageProvider>;
 };
-
 export default Login;
