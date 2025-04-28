@@ -7,30 +7,30 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
-
 const DriverEarningsContent = () => {
-  const { t } = useLanguage();
-  const { user } = useAuth();
+  const {
+    t
+  } = useLanguage();
+  const {
+    user
+  } = useAuth();
   const [earnings, setEarnings] = useState<any[]>([]);
   const [summary, setSummary] = useState({
     today: 0,
     weekly: 0,
     monthly: 0
   });
-
   useEffect(() => {
     const fetchEarnings = async () => {
       if (!user?.id) return;
-
       try {
-        const { data, error } = await supabase
-          .from('driver_earnings')
-          .select('*')
-          .eq('driver_id', user.id)
-          .order('created_at', { ascending: false });
-
+        const {
+          data,
+          error
+        } = await supabase.from('driver_earnings').select('*').eq('driver_id', user.id).order('created_at', {
+          ascending: false
+        });
         if (error) throw error;
-
         setEarnings(data || []);
 
         // Calculate summaries
@@ -38,27 +38,18 @@ const DriverEarningsContent = () => {
         const today = now.toISOString().split('T')[0];
         const weekStart = new Date(now.setDate(now.getDate() - 7)).toISOString();
         const monthStart = new Date(now.setDate(now.getDate() - 30)).toISOString();
-
-        const todayEarnings = data?.filter(e => e.created_at.startsWith(today))
-          .reduce((sum, e) => sum + Number(e.amount), 0);
-
-        const weeklyEarnings = data?.filter(e => e.created_at >= weekStart)
-          .reduce((sum, e) => sum + Number(e.amount), 0);
-
-        const monthlyEarnings = data?.filter(e => e.created_at >= monthStart)
-          .reduce((sum, e) => sum + Number(e.amount), 0);
-
+        const todayEarnings = data?.filter(e => e.created_at.startsWith(today)).reduce((sum, e) => sum + Number(e.amount), 0);
+        const weeklyEarnings = data?.filter(e => e.created_at >= weekStart).reduce((sum, e) => sum + Number(e.amount), 0);
+        const monthlyEarnings = data?.filter(e => e.created_at >= monthStart).reduce((sum, e) => sum + Number(e.amount), 0);
         setSummary({
           today: todayEarnings,
           weekly: weeklyEarnings,
           monthly: monthlyEarnings
         });
-
       } catch (error) {
         console.error('Error fetching earnings:', error);
       }
     };
-
     fetchEarnings();
   }, [user]);
 
@@ -67,9 +58,7 @@ const DriverEarningsContent = () => {
     name: format(new Date(earning.created_at), 'dd/MM'),
     amount: Number(earning.amount)
   })).reverse();
-
-  return (
-    <div className="flex h-screen bg-gray-50">
+  return <div className="flex h-screen bg-gray-50">
       <DriverSidebar />
       
       <div className="flex-1 flex flex-col overflow-auto">
@@ -127,7 +116,7 @@ const DriverEarningsContent = () => {
 
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>تحليل الأرباح</CardTitle>
+                <CardTitle className="text-center">تحليل الأرباح</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px]">
@@ -150,8 +139,7 @@ const DriverEarningsContent = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {earnings.slice(0, 5).map((earning) => (
-                    <div key={earning.id} className="flex items-center justify-between p-4 border-b last:border-0">
+                  {earnings.slice(0, 5).map(earning => <div key={earning.id} className="flex items-center justify-between p-4 border-b last:border-0">
                       <div>
                         <p className="font-medium">طلب #{earning.order_id}</p>
                         <p className="text-sm text-gray-500">
@@ -161,24 +149,18 @@ const DriverEarningsContent = () => {
                       <span className="text-green-600 font-medium">
                         +{earning.amount} ريال
                       </span>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </CardContent>
             </Card>
           </div>
         </main>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 const DriverEarnings = () => {
-  return (
-    <LanguageProvider>
+  return <LanguageProvider>
       <DriverEarningsContent />
-    </LanguageProvider>
-  );
+    </LanguageProvider>;
 };
-
 export default DriverEarnings;
