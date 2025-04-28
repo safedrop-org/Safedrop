@@ -11,7 +11,6 @@ import { LanguageProvider, useLanguage } from '@/components/ui/language-context'
 import { useNavigate, Link } from 'react-router-dom';
 import { UserIcon, LockIcon, MailIcon, PhoneIcon, CheckCircle2 } from 'lucide-react';
 
-// Validation schema
 const customerRegisterSchema = z.object({
   firstName: z.string().min(2, {
     message: "الاسم الأول مطلوب"
@@ -30,14 +29,12 @@ const customerRegisterSchema = z.object({
   })
 });
 type CustomerFormValues = z.infer<typeof customerRegisterSchema>;
+
 const CustomerRegisterContent = () => {
-  const {
-    t,
-    language
-  } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [registrationComplete, setRegistrationComplete] = useState(false);
+
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerRegisterSchema),
     defaultValues: {
@@ -48,14 +45,11 @@ const CustomerRegisterContent = () => {
       password: ''
     }
   });
+
   const onSubmit = async (data: CustomerFormValues) => {
     setIsLoading(true);
     try {
-      // Sign up user
-      const {
-        data: authData,
-        error: signUpError
-      } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -68,54 +62,40 @@ const CustomerRegisterContent = () => {
           emailRedirectTo: window.location.origin + '/customer/dashboard'
         }
       });
+
       if (signUpError) {
         throw signUpError;
       }
 
       // Create profile record
-      const {
-        error: profileError
-      } = await supabase.from('profiles').insert({
-        id: authData.user?.id,
+      const { error: profileError } = await supabase.from('profiles').insert({
         first_name: data.firstName,
         last_name: data.lastName,
         phone: data.phone,
         user_type: 'customer'
       });
+
       if (profileError) {
         console.error("Error creating profile:", profileError);
-        toast.error("حدث خطأ أثناء إنشاء الملف الشخصي");
+        toast.error(t('registrationError'));
         setIsLoading(false);
         return;
       }
-      setRegistrationComplete(true);
+
+      // Show success message and redirect to login
+      toast.success(t('registrationSuccess'), {
+        description: t('checkEmailConfirmation')
+      });
+      navigate('/login');
     } catch (error: any) {
       toast.error(t('registrationError'), {
         description: error.message
       });
+    } finally {
       setIsLoading(false);
     }
   };
-  if (registrationComplete) {
-    return <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <div className="mx-auto flex items-center justify-center">
-            <CheckCircle2 className="h-16 w-16 text-green-500" />
-          </div>
-          <h2 className="text-2xl font-bold text-safedrop-primary">
-            تم إنشاء حسابك بنجاح!
-          </h2>
-          <p className="mt-2 text-gray-600">
-            لقد تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك قبل تسجيل الدخول.
-          </p>
-          <div className="mt-6">
-            <Button onClick={() => navigate('/login')} className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90">
-              الذهاب إلى صفحة تسجيل الدخول
-            </Button>
-          </div>
-        </div>
-      </div>;
-  }
+
   return <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8">
         <div className="text-center">
@@ -209,10 +189,10 @@ const CustomerRegisterContent = () => {
     </div>;
 };
 
-// Wrap the component with LanguageProvider
 const CustomerRegister = () => {
   return <LanguageProvider>
       <CustomerRegisterContent />
     </LanguageProvider>;
 };
+
 export default CustomerRegister;
