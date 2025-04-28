@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -25,6 +24,7 @@ import CustomerProfile from './pages/customer/CustomerProfile';
 import CustomerBilling from './pages/customer/CustomerBilling';
 import CustomerSupport from './pages/customer/CustomerSupport';
 import CustomerFeedback from './pages/customer/CustomerFeedback';
+import CustomerSettings from './pages/customer/CustomerSettings';
 import Logout from './pages/customer/Logout';
 
 // Admin Pages
@@ -207,6 +207,7 @@ const AppContent = () => {
           <Route path="profile" element={<CustomerProfile />} />
           <Route path="support" element={<CustomerSupport />} />
           <Route path="feedback" element={<CustomerFeedback />} />
+          <Route path="settings" element={<CustomerSettings />} />
           <Route path="logout" element={<Logout />} />
         </Route>
 
