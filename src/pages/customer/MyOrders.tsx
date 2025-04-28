@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useOrders } from '@/hooks/useOrders';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Card } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { LanguageProvider, useLanguage } from '@/components/ui/language-context'
 const MyOrdersContent = () => {
   const { data: orders, isLoading } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
@@ -25,7 +25,7 @@ const MyOrdersContent = () => {
         <main className="flex-1 p-6">
           <div className="flex justify-center items-center h-full">
             <LoaderIcon className="animate-spin" />
-            <span className="ml-2">Loading map...</span>
+            <span className="ml-2">{t('loading')}</span>
           </div>
         </main>
       </div>
@@ -34,32 +34,25 @@ const MyOrdersContent = () => {
 
   const getStatusBadge = (status: string) => {
     let badgeColor: "default" | "destructive" | "outline" | "secondary" = "default";
-    let statusText = status;
-
+    
     switch (status) {
       case "available":
         badgeColor = "default";
-        statusText = "Available";
         break;
       case "picked_up":
         badgeColor = "secondary";
-        statusText = "Picked Up";
         break;
       case "in_transit":
         badgeColor = "default";
-        statusText = "In Transit";
         break;
       case "approaching":
         badgeColor = "default";
-        statusText = "Approaching";
         break;
       case "completed":
         badgeColor = "default";
-        statusText = "Completed";
         break;
       case "cancelled":
         badgeColor = "destructive";
-        statusText = "Cancelled";
         break;
       default:
         break;
@@ -67,14 +60,20 @@ const MyOrdersContent = () => {
 
     return (
       <Badge variant={badgeColor}>
-        {statusText}
+        {status === "available" ? t('available') :
+         status === "picked_up" ? t('pickedUp') :
+         status === "in_transit" ? t('inTransit') :
+         status === "approaching" ? t('approaching') :
+         status === "completed" ? t('completed') :
+         status === "cancelled" ? t('cancelled') :
+         status}
       </Badge>
     );
   };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -85,7 +84,7 @@ const MyOrdersContent = () => {
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">My Orders</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">{t('orders')}</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Orders List */}
@@ -94,7 +93,7 @@ const MyOrdersContent = () => {
               <Card className="p-4">
                 <div className="flex justify-center items-center">
                   <LoaderIcon className="animate-spin" />
-                  <span className="ml-2">Loading orders...</span>
+                  <span className="ml-2">{t('loading')}</span>
                 </div>
               </Card>
             ) : orders && orders.length > 0 ? (
@@ -106,20 +105,20 @@ const MyOrdersContent = () => {
                 >
                   <div className="flex justify-between items-center">
                     <div>
-                      <h2 className="text-lg font-semibold">Order #{order.id.substring(0, 8)}</h2>
-                      <p className="text-gray-500">Order Date: {formatDate(order.created_at)}</p>
+                      <h2 className="text-lg font-semibold">{t('order')} #{order.id.substring(0, 8)}</h2>
+                      <p className="text-gray-500">{t('orderDate')}: {formatDate(order.created_at)}</p>
                     </div>
                     {getStatusBadge(order.status)}
                   </div>
                   <p className="text-sm mt-2 text-gray-600">
-                    From: {order.pickup_location?.address} <br />
-                    To: {order.dropoff_location?.address}
+                    {t('from')}: {order.pickup_location?.address} <br />
+                    {t('to')}: {order.dropoff_location?.address}
                   </p>
                 </Card>
               ))
             ) : (
               <Card className="p-4">
-                <p className="text-center text-gray-500">No current orders</p>
+                <p className="text-center text-gray-500">{t('noCurrentOrders')}</p>
               </Card>
             )}
           </div>

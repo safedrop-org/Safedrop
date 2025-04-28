@@ -2,12 +2,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/components/ui/language-context";
 
 export const useProfile = () => {
   const { user } = useAuth();
+  const { language } = useLanguage();
 
   return useQuery({
-    queryKey: ['profile', user?.id],
+    queryKey: ['profile', user?.id, language],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
       

@@ -474,7 +474,7 @@ export const translations: Translations = {
     en: "Verified Drivers"
   },
   verifiedDriversDescription: {
-    ar: "كل السائق��ن في منصتنا يمرون بعملية تحقق شاملة من بياناتهم ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
+    ar: "كل السائقين في منصتنا يمرون بعملية تحقق شاملة من بياناتهم ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
     en: "All drivers on our platform undergo a comprehensive verification process of their credentials and licenses before acceptance. We ensure you deal with reliable and highly competent individuals."
   },
   licenseVerification: {
@@ -554,7 +554,7 @@ export const translations: Translations = {
     en: "Suitable for urgent orders"
   },
   startWithSafedrop: {
-    ar: "ابدأ رحلتك م�� سيف دروب اليوم",
+    ar: "ابدأ رحلتك مع سيف دروب اليوم",
     en: "Start your journey with SafeDrop today"
   },
   safeDeliveryExperience: {
@@ -750,7 +750,7 @@ export const translations: Translations = {
     en: "You can withdraw your earnings through account settings by entering your bank details."
   },
   updateOrderStatusQuestion: {
-    ar: "كيف يمكنني تحديث حالتي أما�� العميل؟",
+    ar: "كيف يمكنني تحديث حالتي أمام العميل؟",
     en: "How can I update my status for the customer?"
   },
   updateOrderStatusAnswer: {
@@ -967,10 +967,3 @@ export const translations: Translations = {
   },
   price: {
     ar: "السعر (ريال)",
-    en: "Price (SAR)"
-  },
-  settingsSaved: {
-    ar: "تم حفظ الإعدادات بنجاح",
-    en: "Settings saved successfully"
-  }
-}

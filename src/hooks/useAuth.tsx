@@ -44,7 +44,7 @@ export const useAuth = () => {
                 .from('profiles')
                 .select('user_type')
                 .eq('id', newSession.user.id)
-                .single();
+                .maybeSingle();
                 
               console.log("User type from profile:", data?.user_type);
               
@@ -99,7 +99,7 @@ export const useAuth = () => {
               .from('profiles')
               .select('user_type')
               .eq('id', initialSession.user.id)
-              .single();
+              .maybeSingle();
               
             console.log("Initial user type from profile:", data?.user_type);
             

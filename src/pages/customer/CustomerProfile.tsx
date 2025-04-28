@@ -6,14 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { LanguageProvider } from '@/components/ui/language-context';
+import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
 const CustomerProfileContent = () => {
   const { data: profile, isLoading } = useProfile();
   const { user } = useAuth();
   const [saving, setSaving] = React.useState(false);
+  const { t, language } = useLanguage();
   const [formData, setFormData] = React.useState({
     firstName: '',
     lastName: '',
@@ -58,10 +59,10 @@ const CustomerProfileContent = () => {
         .eq('id', user.id);
 
       if (error) throw error;
-      toast.success('تم تحديث الملف الشخصي بنجاح');
+      toast.success(t('profileUpdatedSuccessfully'));
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('حدث خطأ أثناء تحديث الملف الشخصي');
+      toast.error(t('errorUpdatingProfile'));
     } finally {
       setSaving(false);
     }
@@ -82,14 +83,14 @@ const CustomerProfileContent = () => {
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6">الملف الشخصي</h1>
+        <h1 className="text-3xl font-bold mb-6">{t('profile')}</h1>
         
         <div className="max-w-2xl bg-white rounded-lg shadow p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-700">
-                  الاسم الأول
+                  {t('firstName')}
                 </label>
                 <Input
                   id="firstName"
@@ -102,7 +103,7 @@ const CustomerProfileContent = () => {
               
               <div>
                 <label htmlFor="lastName" className="block mb-2 text-sm font-medium text-gray-700">
-                  اسم العائلة
+                  {t('lastName')}
                 </label>
                 <Input
                   id="lastName"
@@ -116,7 +117,7 @@ const CustomerProfileContent = () => {
 
             <div>
               <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-700">
-                رقم الهاتف
+                {t('phone')}
               </label>
               <Input
                 id="phone"
@@ -130,7 +131,7 @@ const CustomerProfileContent = () => {
 
             <div>
               <label htmlFor="address" className="block mb-2 text-sm font-medium text-gray-700">
-                العنوان
+                {t('address')}
               </label>
               <Textarea
                 id="address"
@@ -147,7 +148,7 @@ const CustomerProfileContent = () => {
               className="w-full sm:w-auto"
               disabled={saving}
             >
-              {saving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+              {saving ? t('savingChanges') : t('saveChanges')}
             </Button>
           </form>
         </div>
