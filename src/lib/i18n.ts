@@ -1243,4 +1243,3 @@ export const translations: Translations = {
     en: "Feedback & Rating"
   }
 };
-
