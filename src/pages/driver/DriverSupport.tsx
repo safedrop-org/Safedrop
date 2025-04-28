@@ -1,11 +1,33 @@
+
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import DriverSidebar from '@/components/driver/DriverSidebar';
 import { Phone, Mail, HelpCircle } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const DriverSupportContent = () => {
   const { t } = useLanguage();
+
+  const faqItems = [
+    {
+      question: t('withdrawEarningsQuestion'),
+      answer: t('withdrawEarningsAnswer')
+    },
+    {
+      question: t('updateOrderStatusQuestion'),
+      answer: t('updateOrderStatusAnswer')
+    },
+    {
+      question: t('troubleshootingQuestion'),
+      answer: t('troubleshootingAnswer')
+    }
+  ];
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -53,37 +75,16 @@ const DriverSupportContent = () => {
                 <CardTitle>{t('faqTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="border-b pb-4">
-                    <button className="flex justify-between items-center w-full text-right">
-                      <span className="font-medium">{t('withdrawEarningsQuestion')}</span>
-                      <HelpCircle className="h-5 w-5 text-gray-400" />
-                    </button>
-                    <p className="mt-2 text-gray-600 text-sm">
-                      {t('withdrawEarningsAnswer')}
-                    </p>
-                  </div>
-
-                  <div className="border-b pb-4">
-                    <button className="flex justify-between items-center w-full text-right">
-                      <span className="font-medium">{t('updateOrderStatusQuestion')}</span>
-                      <HelpCircle className="h-5 w-5 text-gray-400" />
-                    </button>
-                    <p className="mt-2 text-gray-600 text-sm">
-                      {t('updateOrderStatusAnswer')}
-                    </p>
-                  </div>
-
-                  <div className="border-b pb-4">
-                    <button className="flex justify-between items-center w-full text-right">
-                      <span className="font-medium">{t('troubleshootingQuestion')}</span>
-                      <HelpCircle className="h-5 w-5 text-gray-400" />
-                    </button>
-                    <p className="mt-2 text-gray-600 text-sm">
-                      {t('troubleshootingAnswer')}
-                    </p>
-                  </div>
-                </div>
+                <Accordion type="single" collapsible>
+                  {faqItems.map((item, index) => (
+                    <AccordionItem key={index} value={`item-${index}`}>
+                      <AccordionTrigger>{item.question}</AccordionTrigger>
+                      <AccordionContent>
+                        <p className="text-gray-600">{item.answer}</p>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
               </CardContent>
             </Card>
           </div>

@@ -1,4 +1,3 @@
-
 import { LanguageKey } from './language-key';
 
 export type Translations = {
@@ -979,8 +978,28 @@ export const translations: Translations = {
     en: "No completed orders"
   },
   withdrawEarningsQuestion: {
-    ar: "كيف يمكنني سحب أرباحي؟",
+    ar: "كيف أسحب أرباحي؟",
     en: "How can I withdraw my earnings?"
+  },
+  withdrawEarningsAnswer: {
+    ar: "يمكنك سحب أرباحك عبر إعدادات الحساب وإدخال بياناتك البنكية.",
+    en: "You can withdraw your earnings through account settings by entering your bank details."
+  },
+  updateOrderStatusQuestion: {
+    ar: "كيف يمكنني تحديث حالتي أمام العميل؟",
+    en: "How can I update my status for the customer?"
+  },
+  updateOrderStatusAnswer: {
+    ar: "عند تحديث حالة الطلب (مثل \"جار التوصيل\" أو \"تم التوصيل\") من خلال التطبيق، يتم إشعار العميل بحالة الشحنة",
+    en: "When updating the order status (such as 'In Delivery' or 'Delivered') through the app, the customer is notified of the shipment status."
+  },
+  troubleshootingQuestion: {
+    ar: "ماذا أفعل عند مواجهة مشكلة؟",
+    en: "What should I do when encountering a problem?"
+  },
+  troubleshootingAnswer: {
+    ar: "تواصل مع فريق الدعم عبر البريد الإلكتروني أو صفحة \"اتصل بنا\".",
+    en: "Contact our support team via email or through the 'Contact Us' page."
   },
   personalInformation: {
     ar: "البيانات الشخصية",
@@ -998,7 +1017,6 @@ export const translations: Translations = {
     ar: "الملف الشخصي",
     en: "Profile"
   },
-  // Additional translations for profile and documents section
   address: {
     ar: "العنوان",
     en: "Address"
@@ -1043,7 +1061,6 @@ export const translations: Translations = {
     ar: "حدث خطأ أثناء تحديث البيانات",
     en: "Error updating profile data"
   },
-  // Translations for earnings page
   earningsTitle: {
     ar: "الأرباح",
     en: "Earnings"
@@ -1064,7 +1081,6 @@ export const translations: Translations = {
     ar: "تحليل الأرباح",
     en: "Earnings Analysis"
   },
-  // Translations for notifications page
   markAllAsRead: {
     ar: "تحديد الكل كمقروء",
     en: "Mark All as Read"
@@ -1077,7 +1093,6 @@ export const translations: Translations = {
     ar: "حدث خطأ أثناء تحديث الإشعارات",
     en: "Error updating notifications"
   },
-  // Translations for ratings page
   ratingsTitle: {
     ar: "التقييمات",
     en: "Ratings"
