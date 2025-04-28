@@ -1,97 +1,140 @@
-
-import { useLanguage } from '@/components/ui/language-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/components/auth/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Button } from '@/components/ui/button';
-import DriverSidebar from '@/components/driver/DriverSidebar';
-import { Phone, Mail, HelpCircle } from 'lucide-react';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-
-const CustomerSupport = () => {
-  const { t } = useLanguage();
-
-  const faqItems = [
-    {
-      question: t('withdrawEarningsQuestion'),
-      answer: t('withdrawEarningsAnswer')
-    },
-    {
-      question: t('updateOrderStatusQuestion'),
-      answer: t('updateOrderStatusAnswer')
-    },
-    {
-      question: t('troubleshootingQuestion'),
-      answer: t('troubleshootingAnswer')
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { MessageSquare, Loader2, Send, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
+const CustomerSupportContent = () => {
+  const {
+    user
+  } = useAuth();
+  const {
+    t
+  } = useLanguage();
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    const fetchTickets = async () => {
+      try {
+        const {
+          data,
+          error
+        } = await supabase.from('complaints').select('*, complaint_responses(*)').eq('user_id', user.id).order('created_at', {
+          ascending: false
+        });
+        if (error) throw error;
+        setTickets(data || []);
+      } catch (error) {
+        console.error('Error fetching support tickets:', error);
+        toast.error('Error loading support tickets');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTickets();
+  }, [user]);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error('Please login first');
+      return;
     }
-  ];
+    if (!subject.trim() || !message.trim()) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const {
+        data,
+        error
+      } = await supabase.from('complaints').insert({
+        subject: subject,
+        description: message,
+        user_id: user.id,
+        status: 'pending'
+      }).select();
+      if (error) throw error;
+      toast.success('Support request sent successfully');
+      setSubject('');
+      setMessage('');
 
-  return (
-    <div className="flex h-screen bg-gray-50">
-      <DriverSidebar />
-      
-      <div className="flex-1 flex flex-col overflow-auto">
-        <header className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">{t('supportTitle')}</h1>
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-auto p-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                      <Phone className="h-6 w-6 text-green-600" />
-                    </div>
-                    <h3 className="font-medium mb-2">{t('callUs')}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{t('contactPhone')}</p>
-                    <Button variant="outline" className="w-full">{t('callUs')}</Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                      <Mail className="h-6 w-6 text-purple-600" />
-                    </div>
-                    <h3 className="font-medium mb-2">{t('emailSupport')}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{t('contactEmail')}</p>
-                    <Button variant="outline" className="w-full">{t('emailSupport')}</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('faqTitle')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Accordion type="single" collapsible>
-                  {faqItems.map((item, index) => (
-                    <AccordionItem key={index} value={`item-${index}`}>
-                      <AccordionTrigger>{item.question}</AccordionTrigger>
-                      <AccordionContent>
-                        <p className="text-gray-600">{item.answer}</p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
-      </div>
-    </div>
-  );
+      // Add the new ticket to the list
+      if (data && data.length > 0) {
+        setTickets([data[0], ...tickets]);
+      }
+    } catch (error) {
+      console.error('Error submitting support ticket:', error);
+      toast.error('Error sending support request');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+  const getStatusBadge = (status: string) => {
+    const badgeClasses = {
+      base: "px-2 py-1 rounded-full text-xs font-medium",
+      pending: "bg-yellow-100 text-yellow-800",
+      in_progress: "bg-blue-100 text-blue-800",
+      resolved: "bg-green-100 text-green-800",
+      closed: "bg-gray-100 text-gray-800",
+      rejected: "bg-red-100 text-red-800"
+    };
+    const statusTranslation = {
+      pending: "Pending",
+      in_progress: "In Progress",
+      resolved: "Resolved",
+      closed: "Closed",
+      rejected: "Rejected"
+    };
+    const statusIcons = {
+      pending: <Clock className="h-3 w-3 mr-1" />,
+      in_progress: <Loader2 className="h-3 w-3 mr-1" />,
+      resolved: <CheckCircle className="h-3 w-3 mr-1" />,
+      closed: <XCircle className="h-3 w-3 mr-1" />,
+      rejected: <XCircle className="h-3 w-3 mr-1" />
+    };
+    return <span className={`${badgeClasses.base} ${badgeClasses[status]} flex items-center`}>
+        {statusIcons[status]}
+        {statusTranslation[status] || status}
+      </span>;
+  };
+  return <div className="flex h-screen bg-gray-50">
+      <CustomerSidebar />
+      <main className="flex-1 p-6 overflow-auto">
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">Technical Support</h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          
+          
+        </div>
+      </main>
+    </div>;
 };
-
+const CustomerSupport = () => {
+  return <LanguageProvider>
+      <CustomerSupportContent />
+    </LanguageProvider>;
+};
 export default CustomerSupport;
+
