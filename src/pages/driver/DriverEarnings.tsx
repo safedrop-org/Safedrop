@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,7 +75,7 @@ const DriverEarningsContent = () => {
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">الأرباح</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('earningsTitle')}</h1>
           </div>
         </header>
 

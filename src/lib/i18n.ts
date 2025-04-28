@@ -1,4 +1,3 @@
-
 import { LanguageKey } from './language-key'; // We'll create this type file to centralize language key definition
 
 export type Translations = {
@@ -171,7 +170,7 @@ export const translations: Translations = {
     en: "Registration Successful"
   },
   registrationSuccessDescription: {
-    ar: "تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول.",
+    ar: "تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل ال��خول.",
     en: "Your account has been created successfully. You can now log in."
   },
   registrationError: {
@@ -1001,5 +1000,65 @@ export const translations: Translations = {
   troubleshootingAnswer: {
     ar: "جرّب تسجيل الخروج وإعادة تسجيل الدخول أولاً. إذا استمرت المشكلة، تأكد من تحديث التطبيق للإصدار الأحدث أو تواصل مع الدعم الفني.",
     en: "Try logging out and logging back in first. If the problem persists, make sure to update the app to the latest version or contact technical support."
+  },
+  profileTitle: {
+    ar: "الملف الشخصي",
+    en: "Profile"
+  },
+  personalInformation: {
+    ar: "المعلومات الشخصية",
+    en: "Personal Information"
+  },
+  documents: {
+    ar: "الوثائق والمستندات",
+    en: "Documents"
+  },
+  security: {
+    ar: "الأمان",
+    en: "Security"
+  },
+  earningsTitle: {
+    ar: "الأرباح",
+    en: "Earnings"
+  },
+  todayEarnings: {
+    ar: "أرباح اليوم",
+    en: "Today's Earnings"
+  },
+  weeklyEarnings: {
+    ar: "الأرباح الأسبوعية",
+    en: "Weekly Earnings"
+  },
+  monthlyEarnings: {
+    ar: "الأرباح الشهرية",
+    en: "Monthly Earnings"
+  },
+  ratingsTitle: {
+    ar: "التقييمات",
+    en: "Ratings"
+  },
+  averageRating: {
+    ar: "متوسط التقييم",
+    en: "Average Rating"
+  },
+  latestRatings: {
+    ar: "آخر التقييمات",
+    en: "Latest Ratings"
+  },
+  noRatingsYet: {
+    ar: "لا توجد تقييمات بعد",
+    en: "No ratings yet"
+  },
+  notificationsTitle: {
+    ar: "الإشعارات",
+    en: "Notifications"
+  },
+  markAllAsRead: {
+    ar: "تحديد الكل كمقروء",
+    en: "Mark all as read"
+  },
+  noNotifications: {
+    ar: "لا توجد إشعارات جديدة",
+    en: "No new notifications"
   }
 };

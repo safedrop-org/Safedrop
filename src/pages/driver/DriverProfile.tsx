@@ -132,7 +132,7 @@ const DriverProfileContent = () => {
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">الملف الشخصي</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('profileTitle')}</h1>
           </div>
         </header>
 
@@ -142,28 +142,28 @@ const DriverProfileContent = () => {
               <TabsList className="w-full grid grid-cols-3 mb-6">
                 <TabsTrigger value="profile">
                   <UserIcon className="h-4 w-4 mr-2" />
-                  البيانات الشخصية
+                  {t('personalInformation')}
                 </TabsTrigger>
                 <TabsTrigger value="documents">
                   <FileTextIcon className="h-4 w-4 mr-2" />
-                  الوثائق والمستندات
+                  {t('documents')}
                 </TabsTrigger>
                 <TabsTrigger value="security">
                   <ShieldIcon className="h-4 w-4 mr-2" />
-                  الأمان
+                  {t('security')}
                 </TabsTrigger>
               </TabsList>
               
               <TabsContent value="profile" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>البيانات الشخصية</CardTitle>
+                    <CardTitle>{t('personalInformation')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleProfileUpdate} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="firstName">الاسم الأول</Label>
+                          <Label htmlFor="firstName">{t('firstName')}</Label>
                           <Input 
                             id="firstName" 
                             value={profileData.firstName}
@@ -171,7 +171,7 @@ const DriverProfileContent = () => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="lastName">اسم العائلة</Label>
+                          <Label htmlFor="lastName">{t('lastName')}</Label>
                           <Input 
                             id="lastName" 
                             value={profileData.lastName}
@@ -179,7 +179,7 @@ const DriverProfileContent = () => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="email">البريد الإلكتروني</Label>
+                          <Label htmlFor="email">{t('email')}</Label>
                           <Input 
                             id="email" 
                             type="email" 
@@ -188,7 +188,7 @@ const DriverProfileContent = () => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="phone">رقم الهاتف</Label>
+                          <Label htmlFor="phone">{t('phone')}</Label>
                           <Input 
                             id="phone" 
                             value={profileData.phone}
@@ -196,7 +196,7 @@ const DriverProfileContent = () => {
                           />
                         </div>
                         <div className="space-y-2 md:col-span-2">
-                          <Label htmlFor="address">العنوان</Label>
+                          <Label htmlFor="address">{t('address')}</Label>
                           <Input 
                             id="address" 
                             value={profileData.address}
@@ -219,7 +219,7 @@ const DriverProfileContent = () => {
               <TabsContent value="documents" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>الوثائق والمستندات</CardTitle>
+                    <CardTitle>{t('documents')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleDocumentUpload} className="space-y-4">
@@ -385,7 +385,7 @@ const DriverProfileContent = () => {
               <TabsContent value="security" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>تغيير كلمة المرور</CardTitle>
+                    <CardTitle>{t('security')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handlePasswordChange} className="space-y-4">

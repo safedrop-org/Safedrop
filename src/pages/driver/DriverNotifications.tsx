@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent } from '@/components/ui/card';
@@ -79,9 +78,9 @@ const DriverNotificationsContent = () => {
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-between items-center">
-              <h1 className="text-xl font-bold text-gray-900">الإشعارات</h1>
+              <h1 className="text-xl font-bold text-gray-900">{t('notificationsTitle')}</h1>
               <Button variant="outline" size="sm" onClick={markAllAsRead}>
-                تحديد الكل كمقروء
+                {t('markAllAsRead')}
               </Button>
             </div>
           </div>
