@@ -695,7 +695,7 @@ const AdminDashboardContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <TruckIcon className="h-5 w-5 text-safedrop-gold" />
-                    <span>السائقين</span>
+                    <span>السائقون</span>
                   </CardTitle>
                   <CardDescription>إجمالي عدد السائقين المسجلين</CardDescription>
                 </CardHeader>
