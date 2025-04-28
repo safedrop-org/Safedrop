@@ -357,7 +357,7 @@ export const translations: Translations = {
     ar: "التقييم",
     en: "Rating"
   },
-   ctaTitle: {
+  ctaTitle: {
     ar: "ابدأ الآن في استخدام خدمات سيف دروب لتوصيل شحناتك بكل أمان",
     en: "Start using SafeDrop services now to deliver your shipments safely"
   },
@@ -373,7 +373,7 @@ export const translations: Translations = {
     ar: "توصيل آمن وأمن ومحمي للأشياء الثمينة",
     en: "Secure and protected delivery for valuable items"
   },
-   parcelDelivery: {
+  parcelDelivery: {
     ar: "توصيل الطرود",
     en: "Parcel Delivery"
   },
@@ -469,7 +469,7 @@ export const translations: Translations = {
     ar: "حفظ التغييرات",
     en: "Save Changes"
   },
-   verifiedDrivers: {
+  verifiedDrivers: {
     ar: "سائقون معتمدون",
     en: "Verified Drivers"
   },
@@ -489,7 +489,7 @@ export const translations: Translations = {
     ar: "خدمة احترافية وآمنة",
     en: "Professional and secure service"
   },
-   servicesHeroTitle: {
+  servicesHeroTitle: {
     ar: "خدماتنا",
     en: "Our Services"
   },
@@ -505,7 +505,7 @@ export const translations: Translations = {
     ar: "تسجيل كسائق",
     en: "Register as Driver"
   },
-   parcelDeliveryDescription: {
+  parcelDeliveryDescription: {
     ar: "نقدّم خدمة توصيل الطرود بكل أمان وسرعة إلى باب العميل، مع تحديثات مستمرة، لضمان أن تصل شحنتك بحالة ممتازة وفي الوقت الذي تريده تمامًا.",
     en: "We provide a secure and fast parcel delivery service to your doorstep, with continuous updates, ensuring your shipment arrives in excellent condition exactly when you want it."
   },
@@ -521,7 +521,7 @@ export const translations: Translations = {
     ar: "تسليم مباشر للمستلم",
     en: "Direct delivery to recipient"
   },
-   transactionProtectionDescription: {
+  transactionProtectionDescription: {
     ar: "نؤمن تعاملاتك من خلال نظام ضمان مالي (Escrow) يحفظ أموالك حتى يتم تأكيد استلام الطرد، مما يوفّر تجربة موثوقة وعادلة للطرفين ويمنع أي محاولة احتيال أو تلاعب.",
     en: "We secure your transactions through an Escrow system that protects your money until package delivery is confirmed, providing a reliable and fair experience for both parties and preventing any fraud attempts."
   },
@@ -537,7 +537,7 @@ export const translations: Translations = {
     ar: "نظام موثوق ومعتمد",
     en: "Trusted and certified system"
   },
-   expressDeliveryDescription: {
+  expressDeliveryDescription: {
     ar: "نوفّر لك خدمة توصيل سريعة وفعالة في نفس اليوم أو خلال ساعات، لتلبية احتياجاتك الطارئة بسهولة واحترافية مع أولوية كاملة في التنفيذ والتوصيل.",
     en: "We provide you with fast and efficient same-day or within-hours delivery service, meeting your urgent needs easily and professionally with full priority in execution and delivery."
   },
@@ -553,7 +553,7 @@ export const translations: Translations = {
     ar: "مناسب للطلبات المستعجلة",
     en: "Suitable for urgent orders"
   },
-   startWithSafedrop: {
+  startWithSafedrop: {
     ar: "ابدأ رحلتك مع سيف دروب اليوم",
     en: "Start your journey with SafeDrop today"
   },
@@ -561,7 +561,7 @@ export const translations: Translations = {
     ar: "سجل الآن واستمتع بتجربة توصيل آمنة ومضمونة لطرودك الثمينة",
     en: "Register now and enjoy a safe and guaranteed delivery experience for your valuable packages"
   },
-   aboutHero: {
+  aboutHero: {
     ar: "من نحن",
     en: "About Us"
   },
@@ -569,7 +569,7 @@ export const translations: Translations = {
     ar: "سيف دروب هي منصة متخصصة في توفير خدمات توصيل سريع وآمن للمقتنيات الثمينة",
     en: "SafeDrop is a specialized platform providing fast and secure delivery services for valuable items"
   },
-   ourStory: {
+  ourStory: {
     ar: "قصتنا",
     en: "Our Story"
   },
@@ -581,7 +581,7 @@ export const translations: Translations = {
     ar: "أنشأنا SafeDrop لنكون حلًا موثوقًا لكل من يحتاج إلى توصيل آمن وسهل. اعتمدنا على البساطة، الوضوح، ونظام حماية مالي لضمان حقوق الجميع.",
     en: "We created SafeDrop to be a reliable solution for anyone who needs secure and easy delivery. We relied on simplicity, clarity, and a financial protection system to ensure everyone's rights."
   },
-   ourValues: {
+  ourValues: {
     ar: "قيمنا",
     en: "Our Values"
   },
@@ -589,7 +589,7 @@ export const translations: Translations = {
     ar: "المبادئ التي نعمل بها كل يوم",
     en: "The principles we work with every day"
   },
-   security: {
+  security: {
     ar: "الأمان",
     en: "Security"
   },
@@ -597,7 +597,7 @@ export const translations: Translations = {
     ar: "نضع أمان العملاء والمنتجات في مقدمة أولوياتنا ونتخذ كافة الإجراءات لضمان حماية كاملة.",
     en: "We put customer and product safety at the forefront of our priorities. We take all measures to ensure complete protection."
   },
-   quality: {
+  quality: {
     ar: "الجودة",
     en: "Quality"
   },
@@ -605,7 +605,7 @@ export const translations: Translations = {
     ar: "نلتزم بتقديم خدمة عالية الجودة في كل تفاصيلها، من اختيار السائقين إلى تسليم الشحنات.",
     en: "We are committed to providing high-quality service in all its details, from selecting drivers to delivering shipments."
   },
-   transparency: {
+  transparency: {
     ar: "الشفافية",
     en: "Transparency"
   },
@@ -613,7 +613,7 @@ export const translations: Translations = {
     ar: "نؤمن بالشفافية التامة في تعاملاتنا ونوفر متابعة مستمرة ومعلومات واضحة في كل مرحلة.",
     en: "We believe in complete transparency in our dealings. We provide continuous monitoring and clear information at every stage."
   },
-   innovation: {
+  innovation: {
     ar: "الابتكار",
     en: "Innovation"
   },
@@ -621,7 +621,7 @@ export const translations: Translations = {
     ar: "نسعى دائمًا لتطوير خدماتنا وتقديم حلول مبتكرة تلبي احتياجات عملائنا المتنوعة.",
     en: "We always strive to develop our services and provide innovative solutions that meet the diverse needs of our customers."
   },
-   sendMessage: {
+  sendMessage: {
     ar: "أرسل لنا رسالة",
     en: "Send us a message"
   },
@@ -637,7 +637,7 @@ export const translations: Translations = {
     ar: "الرسالة",
     en: "Message"
   },
-   messageSent: {
+  messageSent: {
     ar: "تم إرسال رسالتك بنجاح",
     en: "Your message has been sent successfully"
   },
@@ -645,11 +645,11 @@ export const translations: Translations = {
     ar: "سنتواصل معك في أقرب وقت ممكن",
     en: "We will contact you as soon as possible"
   },
-   sending: {
+  sending: {
     ar: "جاري الإرسال...",
     en: "Sending..."
   },
-   workingHours: {
+  workingHours: {
     ar: "ساعات العمل",
     en: "Working Hours"
   },
@@ -977,5 +977,24 @@ export const translations: Translations = {
     ar: "لا توجد طلبات مكتملة",
     en: "No completed orders"
   },
-   withdrawEarningsQuestion: {
-    ar: "كيف يمكنني سحب أرباحي
+  withdrawEarningsQuestion: {
+    ar: "كيف يمكنني سحب أرباحي؟",
+    en: "How can I withdraw my earnings?"
+  },
+  personalInformation: {
+    ar: "البيانات الشخصية",
+    en: "Personal Information"
+  },
+  documents: {
+    ar: "الوثائق والمستندات",
+    en: "Documents"
+  },
+  documentStatus: {
+    ar: "حالة الوثائق",
+    en: "Document Status"
+  },
+  profileTitle: {
+    ar: "الملف الشخصي",
+    en: "Profile"
+  }
+};
