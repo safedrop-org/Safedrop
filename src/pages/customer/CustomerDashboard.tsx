@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -9,14 +10,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Package, Clock, CheckCircle, PlusCircle, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
+
 const CustomerDashboardContent = () => {
   const navigate = useNavigate();
-  const {
-    t
-  } = useLanguage();
-  const {
-    user
-  } = useAuth();
+  const { t } = useLanguage();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalOrders: 0,
@@ -25,8 +23,10 @@ const CustomerDashboardContent = () => {
   });
   const [activeOrders, setActiveOrders] = useState([]);
   const [historyOrders, setHistoryOrders] = useState([]);
+  
   useEffect(() => {
     if (!user) return;
+    
     const fetchDashboardData = async () => {
       try {
         // Fetch orders statistics
@@ -71,20 +71,23 @@ const CustomerDashboardContent = () => {
         setHistoryOrders(history || []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        toast.error('حدث خطأ أثناء تحميل البيانات');
+        toast.error('Error loading data');
       } finally {
         setLoading(false);
       }
     };
+    
     fetchDashboardData();
   }, [user]);
+
   const handleCreateOrder = () => {
     navigate('/customer/create-order');
   };
+
   const formatDate = dateString => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ar-SA', {
+    return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -92,6 +95,7 @@ const CustomerDashboardContent = () => {
       minute: '2-digit'
     }).format(date);
   };
+
   const getStatusBadge = status => {
     const badgeClasses = {
       base: "px-2 py-1 rounded-full text-xs font-medium",
@@ -101,17 +105,20 @@ const CustomerDashboardContent = () => {
       completed: "bg-green-100 text-green-800",
       cancelled: "bg-red-100 text-red-800"
     };
+    
     const statusTranslation = {
-      pending: "قيد الانتظار",
-      assigned: "تم التعيين",
-      in_progress: "قيد التنفيذ",
-      completed: "مكتمل",
-      cancelled: "ملغي"
+      pending: "Pending",
+      assigned: "Assigned",
+      in_progress: "In Progress",
+      completed: "Completed",
+      cancelled: "Cancelled"
     };
+    
     return <span className={`${badgeClasses.base} ${badgeClasses[status]}`}>
         {statusTranslation[status] || status}
       </span>;
   };
+
   if (loading) {
     return <div className="flex h-screen bg-gray-50">
         <CustomerSidebar />
@@ -120,23 +127,24 @@ const CustomerDashboardContent = () => {
         </div>
       </div>;
   }
+
   return <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-bold text-gray-900">لوحة تحكم العميل</h1>
+            <h1 className="text-xl font-bold text-gray-900">Customer Dashboard</h1>
           </div>
         </header>
 
         <main className="flex-1 overflow-auto p-4">
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">نظرة عامة</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Overview</h2>
               <Button onClick={handleCreateOrder} className="bg-safedrop-gold hover:bg-safedrop-gold/90 gap-2">
                 <PlusCircle size={16} />
-                طلب جديد
+                New Order
               </Button>
             </div>
             
@@ -145,7 +153,7 @@ const CustomerDashboardContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Package className="h-5 w-5 text-safedrop-gold" />
-                    <span>إجمالي الطلبات</span>
+                    <span>Total Orders</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -157,7 +165,7 @@ const CustomerDashboardContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Clock className="h-5 w-5 text-safedrop-gold" />
-                    <span>قيد التوصيل</span>
+                    <span>In Progress</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -169,7 +177,7 @@ const CustomerDashboardContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-safedrop-gold" />
-                    <span>تم توصيلها</span>
+                    <span>Completed</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -177,16 +185,16 @@ const CustomerDashboardContent = () => {
                 </CardContent>
               </Card>
             </div>
-
-            
           </div>
         </main>
       </div>
     </div>;
 };
+
 const CustomerDashboard = () => {
   return <LanguageProvider>
       <CustomerDashboardContent />
     </LanguageProvider>;
 };
+
 export default CustomerDashboard;

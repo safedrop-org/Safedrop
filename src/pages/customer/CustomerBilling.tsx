@@ -7,12 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { CreditCard, DollarSign, Receipt, AlertCircle } from 'lucide-react';
+import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
-const CustomerBilling = () => {
+const CustomerBillingContent = () => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalSpent, setTotalSpent] = useState(0);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!user) return;
@@ -35,7 +37,7 @@ const CustomerBilling = () => {
         setTransactions(orders || []);
       } catch (error) {
         console.error('Error fetching billing data:', error);
-        toast.error('حدث خطأ أثناء تحميل بيانات الفواتير');
+        toast.error('Error loading billing data');
       } finally {
         setLoading(false);
       }
@@ -47,7 +49,7 @@ const CustomerBilling = () => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ar-SA', { 
+    return new Intl.DateTimeFormat('en-US', { 
       year: 'numeric', 
       month: 'short', 
       day: 'numeric',
@@ -55,7 +57,7 @@ const CustomerBilling = () => {
   };
   
   const formatCurrency = (amount) => {
-    return amount ? `${amount.toFixed(2)} ريال` : '0.00 ريال';
+    return amount ? `${amount.toFixed(2)} SAR` : '0.00 SAR';
   };
 
   const getPaymentStatusBadge = (status) => {
@@ -67,9 +69,9 @@ const CustomerBilling = () => {
     };
     
     const statusTranslation = {
-      paid: "تم الدفع",
-      pending: "قيد الانتظار",
-      failed: "فشل الدفع"
+      paid: "Paid",
+      pending: "Pending",
+      failed: "Failed"
     };
 
     return (
@@ -83,7 +85,7 @@ const CustomerBilling = () => {
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">الفواتير والدفع</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">Billing & Payment</h1>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -96,7 +98,7 @@ const CustomerBilling = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-safedrop-gold" />
-                    <span>إجمالي المدفوعات</span>
+                    <span>Total Payments</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -108,12 +110,12 @@ const CustomerBilling = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <CreditCard className="h-5 w-5 text-safedrop-gold" />
-                    <span>وسيلة الدفع</span>
+                    <span>Payment Method</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-lg">تحتاج لإضافة وسيلة دفع</p>
-                  <p className="text-sm text-gray-500">لم يتم تسجيل وسائل دفع</p>
+                  <p className="text-lg">You need to add a payment method</p>
+                  <p className="text-sm text-gray-500">No payment methods registered</p>
                 </CardContent>
               </Card>
               
@@ -121,7 +123,7 @@ const CustomerBilling = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Receipt className="h-5 w-5 text-safedrop-gold" />
-                    <span>عدد الفواتير</span>
+                    <span>Number of Invoices</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -132,7 +134,7 @@ const CustomerBilling = () => {
 
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-xl">سجل المدفوعات</CardTitle>
+                <CardTitle className="text-xl">Payment History</CardTitle>
               </CardHeader>
               <CardContent>
                 {transactions.length > 0 ? (
@@ -140,10 +142,10 @@ const CustomerBilling = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">رقم الفاتورة</th>
-                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
-                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المبلغ</th>
-                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">حالة الدفع</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice ID</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -169,7 +171,7 @@ const CustomerBilling = () => {
                 ) : (
                   <div className="text-center py-10 text-gray-500">
                     <AlertCircle className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                    <p>لا توجد معاملات مالية حالياً</p>
+                    <p>No financial transactions currently</p>
                   </div>
                 )}
               </CardContent>
@@ -178,6 +180,14 @@ const CustomerBilling = () => {
         )}
       </main>
     </div>
+  );
+};
+
+const CustomerBilling = () => {
+  return (
+    <LanguageProvider>
+      <CustomerBillingContent />
+    </LanguageProvider>
   );
 };
 

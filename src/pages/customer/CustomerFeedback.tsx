@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,10 +10,11 @@ import { Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOrders } from '@/hooks/useOrders';
 import { useQueryClient } from '@tanstack/react-query';
-import { LanguageProvider } from '@/components/ui/language-context';
+import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
 const CustomerFeedbackContent = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const { data: orders, isLoading } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
@@ -28,7 +30,7 @@ const CustomerFeedbackContent = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !selectedOrder || !rating) {
-      toast.error('يرجى اختيار طلب وتقييم');
+      toast.error('Please select an order and rating');
       return;
     }
 
@@ -36,7 +38,7 @@ const CustomerFeedbackContent = () => {
     try {
       const order = orders?.find(o => o.id === selectedOrder);
       if (!order?.driver_id) {
-        throw new Error('لا يمكن العثور على معرف السائق');
+        throw new Error('Driver ID not found');
       }
 
       // Check if rating already exists for this order
@@ -51,7 +53,7 @@ const CustomerFeedbackContent = () => {
       }
 
       if (existingRating) {
-        toast.error('لقد قمت بالفعل بتقييم هذا الطلب');
+        toast.error('You have already rated this order');
         setSubmitting(false);
         return;
       }
@@ -72,7 +74,7 @@ const CustomerFeedbackContent = () => {
         throw error;
       }
 
-      toast.success('تم إرسال تقييمك بنجاح');
+      toast.success('Your rating was submitted successfully');
       setSelectedOrder(null);
       setRating(null);
       setComment('');
@@ -82,7 +84,7 @@ const CustomerFeedbackContent = () => {
       queryClient.invalidateQueries({ queryKey: ['driver_ratings'] });
     } catch (error) {
       console.error('Error submitting rating:', error);
-      toast.error('حدث خطأ أثناء إرسال التقييم');
+      toast.error('Error submitting rating');
     } finally {
       setSubmitting(false);
     }
@@ -91,7 +93,7 @@ const CustomerFeedbackContent = () => {
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ar-SA', { 
+    return new Intl.DateTimeFormat('en-US', { 
       year: 'numeric', 
       month: 'short', 
       day: 'numeric',
@@ -115,15 +117,15 @@ const CustomerFeedbackContent = () => {
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">التقييم والملاحظات</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">Ratings & Feedback</h1>
         
         <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">تقييم الخدمة</h2>
+          <h2 className="text-xl font-semibold mb-4">Service Rating</h2>
           {unratedCompletedOrders.length > 0 ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="order" className="block mb-1 font-semibold text-gray-700">
-                  اختر الطلب للتقييم
+                  Select order to rate
                 </label>
                 <select 
                   id="order"
@@ -132,7 +134,7 @@ const CustomerFeedbackContent = () => {
                   onChange={(e) => setSelectedOrder(e.target.value)}
                   required
                 >
-                  <option value="">اختر طلباً</option>
+                  <option value="">Select an order</option>
                   {unratedCompletedOrders.map((order) => (
                     <option key={order.id} value={order.id}>
                       {formatDate(order.created_at)} - {order.driver?.first_name} {order.driver?.last_name}
@@ -142,7 +144,7 @@ const CustomerFeedbackContent = () => {
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-gray-700">التقييم</label>
+                <label className="block mb-1 font-semibold text-gray-700">Rating</label>
                 <div className="flex gap-2 mb-2">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <button
@@ -163,13 +165,13 @@ const CustomerFeedbackContent = () => {
 
               <div>
                 <label htmlFor="comment" className="block mb-1 font-semibold text-gray-700">
-                  ملاحظات (اختياري)
+                  Comments (optional)
                 </label>
                 <Textarea
                   id="comment"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="أضف ملاحظاتك حول الخدمة هنا"
+                  placeholder="Add your comments about the service here"
                   rows={4}
                 />
               </div>
@@ -179,12 +181,12 @@ const CustomerFeedbackContent = () => {
                 className="w-full md:w-auto"
                 disabled={submitting || !rating || !selectedOrder}
               >
-                {submitting ? 'جاري الإرسال...' : 'إرسال التقييم'}
+                {submitting ? 'Submitting...' : 'Submit Rating'}
               </Button>
             </form>
           ) : (
             <div className="text-center py-10 text-gray-500">
-              <p>لا توجد طلبات مكتملة متاحة للتقييم</p>
+              <p>No completed orders available for rating</p>
             </div>
           )}
         </Card>

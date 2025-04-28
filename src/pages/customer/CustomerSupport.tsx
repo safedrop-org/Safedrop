@@ -9,9 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { MessageSquare, Loader2, Send, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
-const CustomerSupport = () => {
+const CustomerSupportContent = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [tickets, setTickets] = useState<any[]>([]);
@@ -33,7 +35,7 @@ const CustomerSupport = () => {
         setTickets(data || []);
       } catch (error) {
         console.error('Error fetching support tickets:', error);
-        toast.error('حدث خطأ أثناء تحميل تذاكر الدعم الفني');
+        toast.error('Error loading support tickets');
       } finally {
         setLoading(false);
       }
@@ -45,12 +47,12 @@ const CustomerSupport = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      toast.error('يرجى تسجيل الدخول أولاً');
+      toast.error('Please login first');
       return;
     }
     
     if (!subject.trim() || !message.trim()) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
+      toast.error('Please fill in all required fields');
       return;
     }
     
@@ -68,7 +70,7 @@ const CustomerSupport = () => {
       
       if (error) throw error;
       
-      toast.success('تم إرسال طلب الدعم بنجاح');
+      toast.success('Support request sent successfully');
       setSubject('');
       setMessage('');
       
@@ -78,7 +80,7 @@ const CustomerSupport = () => {
       }
     } catch (error) {
       console.error('Error submitting support ticket:', error);
-      toast.error('حدث خطأ أثناء إرسال طلب الدعم');
+      toast.error('Error sending support request');
     } finally {
       setSubmitting(false);
     }
@@ -87,7 +89,7 @@ const CustomerSupport = () => {
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ar-SA', { 
+    return new Intl.DateTimeFormat('en-US', { 
       year: 'numeric', 
       month: 'short', 
       day: 'numeric',
@@ -107,11 +109,11 @@ const CustomerSupport = () => {
     };
     
     const statusTranslation = {
-      pending: "قيد الانتظار",
-      in_progress: "قيد المعالجة",
-      resolved: "تم الحل",
-      closed: "مغلق",
-      rejected: "مرفوض"
+      pending: "Pending",
+      in_progress: "In Progress",
+      resolved: "Resolved",
+      closed: "Closed",
+      rejected: "Rejected"
     };
     
     const statusIcons = {
@@ -134,33 +136,33 @@ const CustomerSupport = () => {
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">الدعم الفني</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">Technical Support</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-1 p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
               <MessageSquare className="h-5 w-5 mr-2 text-safedrop-gold" />
-              فتح تذكرة جديدة
+              Open New Ticket
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="subject" className="block mb-1 font-semibold text-gray-700">الموضوع</label>
+                <label htmlFor="subject" className="block mb-1 font-semibold text-gray-700">Subject</label>
                 <Input
                   id="subject"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="عنوان المشكلة"
+                  placeholder="Issue title"
                   required
                 />
               </div>
               
               <div>
-                <label htmlFor="message" className="block mb-1 font-semibold text-gray-700">الرسالة</label>
+                <label htmlFor="message" className="block mb-1 font-semibold text-gray-700">Message</label>
                 <Textarea
                   id="message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="اشرح مشكلتك بالتفصيل"
+                  placeholder="Explain your issue in detail"
                   rows={5}
                   required
                 />
@@ -174,12 +176,12 @@ const CustomerSupport = () => {
                 {submitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    جاري الإرسال...
+                    Sending...
                   </>
                 ) : (
                   <>
                     <Send className="mr-2 h-4 w-4" />
-                    إرسال
+                    Send
                   </>
                 )}
               </Button>
@@ -187,7 +189,7 @@ const CustomerSupport = () => {
           </Card>
           
           <Card className="lg:col-span-2 p-6">
-            <h2 className="text-xl font-semibold mb-4">تذاكر الدعم الفني</h2>
+            <h2 className="text-xl font-semibold mb-4">Support Tickets</h2>
             
             {loading ? (
               <div className="flex justify-center items-center h-64">
@@ -206,7 +208,7 @@ const CustomerSupport = () => {
                     
                     {ticket.complaint_responses && ticket.complaint_responses.length > 0 ? (
                       <div className="border-t pt-3 mt-3">
-                        <h4 className="font-medium mb-2">الردود:</h4>
+                        <h4 className="font-medium mb-2">Responses:</h4>
                         <div className="space-y-3">
                           {ticket.complaint_responses.map((response) => (
                             <div key={response.id} className="bg-blue-50 p-3 rounded">
@@ -217,7 +219,7 @@ const CustomerSupport = () => {
                         </div>
                       </div>
                     ) : ticket.status === 'pending' ? (
-                      <p className="text-sm text-gray-500 italic">في انتظار الرد...</p>
+                      <p className="text-sm text-gray-500 italic">Awaiting response...</p>
                     ) : null}
                   </Card>
                 ))}
@@ -225,14 +227,22 @@ const CustomerSupport = () => {
             ) : (
               <div className="text-center py-10 text-gray-500 border border-dashed border-gray-300 rounded-lg">
                 <MessageSquare className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                <p>لا توجد تذاكر دعم فني حالياً</p>
-                <p className="text-sm">استخدم النموذج لإنشاء تذكرة جديدة</p>
+                <p>No support tickets currently</p>
+                <p className="text-sm">Use the form to create a new ticket</p>
               </div>
             )}
           </Card>
         </div>
       </main>
     </div>
+  );
+};
+
+const CustomerSupport = () => {
+  return (
+    <LanguageProvider>
+      <CustomerSupportContent />
+    </LanguageProvider>
   );
 };
 

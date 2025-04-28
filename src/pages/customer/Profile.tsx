@@ -62,7 +62,7 @@ const ProfileContent = () => {
         });
       } catch (error) {
         console.error('Error fetching profile:', error);
-        toast.error('حدث خطأ أثناء تحميل بيانات الملف الشخصي');
+        toast.error('Error loading profile data');
       } finally {
         setIsLoading(false);
       }
@@ -104,10 +104,10 @@ const ProfileContent = () => {
 
       if (error) throw error;
 
-      toast.success('تم تحديث الملف الشخصي بنجاح');
+      toast.success('Profile updated successfully');
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('فشل تحديث الملف الشخصي');
+      toast.error('Failed to update profile');
     } finally {
       setIsSaving(false);
     }
@@ -128,84 +128,84 @@ const ProfileContent = () => {
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">الملف الشخصي</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">Profile</h1>
         
         <div className="bg-white rounded-lg shadow-md p-6">
           <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label htmlFor="firstName" className="block font-medium text-gray-700">الاسم الأول</label>
+                <label htmlFor="firstName" className="block font-medium text-gray-700">First Name</label>
                 <div className="relative">
-                  <UserIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <Input
                     id="firstName"
                     name="firstName"
                     value={profileData.firstName}
                     onChange={handleChange}
-                    placeholder="الاسم الأول"
-                    className="pr-10"
+                    placeholder="First Name"
+                    className="pl-10"
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <label htmlFor="lastName" className="block font-medium text-gray-700">اسم العائلة</label>
+                <label htmlFor="lastName" className="block font-medium text-gray-700">Last Name</label>
                 <div className="relative">
-                  <UserIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <Input
                     id="lastName"
                     name="lastName"
                     value={profileData.lastName}
                     onChange={handleChange}
-                    placeholder="اسم العائلة"
-                    className="pr-10"
+                    placeholder="Last Name"
+                    className="pl-10"
                   />
                 </div>
               </div>
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="email" className="block font-medium text-gray-700">البريد الإلكتروني</label>
+              <label htmlFor="email" className="block font-medium text-gray-700">Email</label>
               <div className="relative">
-                <MailIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
                   id="email"
                   name="email"
                   value={profileData.email}
                   readOnly
                   disabled
-                  className="pr-10 bg-gray-50"
+                  className="pl-10 bg-gray-50"
                 />
               </div>
-              <p className="text-sm text-gray-500">لا يمكن تغيير البريد الإلكتروني</p>
+              <p className="text-sm text-gray-500">Email cannot be changed</p>
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="phone" className="block font-medium text-gray-700">رقم الهاتف</label>
+              <label htmlFor="phone" className="block font-medium text-gray-700">Phone Number</label>
               <div className="relative">
-                <PhoneIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
                   id="phone"
                   name="phone"
                   value={profileData.phone}
                   onChange={handleChange}
-                  placeholder="رقم الهاتف"
-                  className="pr-10"
+                  placeholder="Phone Number"
+                  className="pl-10"
                 />
               </div>
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="address" className="block font-medium text-gray-700">العنوان</label>
+              <label htmlFor="address" className="block font-medium text-gray-700">Address</label>
               <div className="relative">
-                <MapPinIcon className="absolute right-3 top-3 text-gray-400" />
+                <MapPinIcon className="absolute left-3 top-3 text-gray-400" />
                 <Textarea
                   id="address"
                   name="address"
                   value={profileData.address}
                   onChange={handleChange}
-                  placeholder="العنوان التفصيلي"
-                  className="pr-10 min-h-[100px]"
+                  placeholder="Detailed Address"
+                  className="pl-10 min-h-[100px]"
                   rows={4}
                 />
               </div>
@@ -217,7 +217,7 @@ const ProfileContent = () => {
                 className="bg-safedrop-gold hover:bg-safedrop-gold/90 w-full md:w-auto"
                 disabled={isSaving}
               >
-                {isSaving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </form>

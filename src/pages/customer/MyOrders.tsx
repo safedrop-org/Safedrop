@@ -6,10 +6,12 @@ import { Card } from '@/components/ui/card';
 import { LoaderIcon } from 'lucide-react';
 import { useLoadScript, GoogleMap, MarkerF } from '@react-google-maps/api';
 import { Badge } from '@/components/ui/badge';
+import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
-const MyOrders = () => {
+const MyOrdersContent = () => {
   const { data: orders, isLoading } = useOrders();
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const { t } = useLanguage();
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
@@ -23,7 +25,7 @@ const MyOrders = () => {
         <main className="flex-1 p-6">
           <div className="flex justify-center items-center h-full">
             <LoaderIcon className="animate-spin" />
-            <span className="mr-2">جاري تحميل الخريطة...</span>
+            <span className="ml-2">Loading map...</span>
           </div>
         </main>
       </div>
@@ -37,27 +39,27 @@ const MyOrders = () => {
     switch (status) {
       case "available":
         badgeColor = "default";
-        statusText = "متاح";
+        statusText = "Available";
         break;
       case "picked_up":
         badgeColor = "secondary";
-        statusText = "تم الالتقاط";
+        statusText = "Picked Up";
         break;
       case "in_transit":
         badgeColor = "default";
-        statusText = "في الطريق";
+        statusText = "In Transit";
         break;
       case "approaching":
         badgeColor = "default";
-        statusText = "قريب";
+        statusText = "Approaching";
         break;
       case "completed":
         badgeColor = "default";
-        statusText = "مكتمل";
+        statusText = "Completed";
         break;
       case "cancelled":
         badgeColor = "destructive";
-        statusText = "ملغي";
+        statusText = "Cancelled";
         break;
       default:
         break;
@@ -70,11 +72,20 @@ const MyOrders = () => {
     );
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">طلباتي</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">My Orders</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Orders List */}
@@ -83,7 +94,7 @@ const MyOrders = () => {
               <Card className="p-4">
                 <div className="flex justify-center items-center">
                   <LoaderIcon className="animate-spin" />
-                  <span className="mr-2">جاري تحميل الطلبات...</span>
+                  <span className="ml-2">Loading orders...</span>
                 </div>
               </Card>
             ) : orders && orders.length > 0 ? (
@@ -95,20 +106,20 @@ const MyOrders = () => {
                 >
                   <div className="flex justify-between items-center">
                     <div>
-                      <h2 className="text-lg font-semibold">الطلب #{order.id.substring(0, 8)}</h2>
-                      <p className="text-gray-500">تاريخ الطلب: {new Date(order.created_at).toLocaleDateString()}</p>
+                      <h2 className="text-lg font-semibold">Order #{order.id.substring(0, 8)}</h2>
+                      <p className="text-gray-500">Order Date: {formatDate(order.created_at)}</p>
                     </div>
                     {getStatusBadge(order.status)}
                   </div>
                   <p className="text-sm mt-2 text-gray-600">
-                    من: {order.pickup_location?.address} <br />
-                    إلى: {order.dropoff_location?.address}
+                    From: {order.pickup_location?.address} <br />
+                    To: {order.dropoff_location?.address}
                   </p>
                 </Card>
               ))
             ) : (
               <Card className="p-4">
-                <p className="text-center text-gray-500">لا توجد طلبات حالية</p>
+                <p className="text-center text-gray-500">No current orders</p>
               </Card>
             )}
           </div>
@@ -153,6 +164,14 @@ const MyOrders = () => {
         </div>
       </main>
     </div>
+  );
+};
+
+const MyOrders = () => {
+  return (
+    <LanguageProvider>
+      <MyOrdersContent />
+    </LanguageProvider>
   );
 };
 
