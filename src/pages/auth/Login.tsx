@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -26,6 +25,7 @@ const LoginContent = () => {
   useEffect(() => {
     console.log("User in login page:", user);
     if (user) {
+      console.log("User already logged in, redirecting...");
       redirectBasedOnProfile(user.id);
     }
   }, [user, navigate]);
@@ -41,6 +41,7 @@ const LoginContent = () => {
         
       if (error) {
         console.error("Error fetching profile:", error);
+        toast.error("حدث خطأ أثناء التحقق من نوع المستخدم");
         return;
       }
       
@@ -48,17 +49,24 @@ const LoginContent = () => {
       
       // Redirect based on user type
       if (profile?.user_type === 'admin') {
+        console.log("Redirecting to admin dashboard");
         localStorage.setItem('adminAuth', 'true');
-        navigate('/admin/dashboard');
+        navigate('/admin/dashboard', { replace: true });
       } else if (profile?.user_type === 'driver') {
+        console.log("Redirecting to driver area");
         localStorage.setItem('driverAuth', 'true');
         checkDriverStatus(userId);
       } else if (profile?.user_type === 'customer') {
+        console.log("Redirecting to customer dashboard");
         localStorage.setItem('customerAuth', 'true');
-        navigate('/customer/dashboard');
+        navigate('/customer/dashboard', { replace: true });
+      } else {
+        console.log("Unknown user type:", profile?.user_type);
+        toast.error("نوع المستخدم غير معروف");
       }
     } catch (err) {
       console.error("Error checking profile:", err);
+      toast.error("حدث خطأ أثناء التحقق من الملف الشخصي");
     }
   };
 
@@ -72,20 +80,20 @@ const LoginContent = () => {
       
       if (error) {
         console.error("Error checking driver status:", error);
-        navigate('/driver/pending-approval');
+        navigate('/driver/pending-approval', { replace: true });
         return;
       }
       
       console.log("Driver status:", data);
       
       if (data?.status === 'approved') {
-        navigate('/driver/dashboard');
+        navigate('/driver/dashboard', { replace: true });
       } else {
-        navigate('/driver/pending-approval');
+        navigate('/driver/pending-approval', { replace: true });
       }
     } catch (err) {
       console.error("Error checking driver status:", err);
-      navigate('/driver/pending-approval');
+      navigate('/driver/pending-approval', { replace: true });
     }
   };
 
@@ -119,7 +127,7 @@ const LoginContent = () => {
         // Ensure admin is redirected to dashboard
         localStorage.setItem('adminAuth', 'true');
         toast.success('تم تسجيل الدخول كمسؤول');
-        navigate('/admin/dashboard');
+        navigate('/admin/dashboard', { replace: true });
         setIsLoading(false);
         return;
       }
@@ -134,7 +142,7 @@ const LoginContent = () => {
         console.error('Login error:', error);
         
         if (error.message === 'Email not confirmed') {
-          toast.error('البريد الإلكتروني غير مؤكد، يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك');
+          toast.error('البريد الإلكتروني غير مؤ��د، يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك');
         } else if (error.message.includes('Invalid login')) {
           toast.error('بيانات الدخول غير صحيحة، يرجى التحقق من البريد الإلكتروني وكلمة المرور');
         } else {
@@ -155,9 +163,27 @@ const LoginContent = () => {
       
       toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
       
-      // Immediately redirect based on profile instead of waiting for auth state change
+      // Force immediate redirect
       await redirectBasedOnProfile(data.user.id);
-      setIsLoading(false);
+      
+      // Double check that redirection happened
+      setTimeout(() => {
+        console.log("Current location after login:", window.location.pathname);
+        if (window.location.pathname === '/login') {
+          console.log("Still on login page after 500ms, forcing redirect");
+          const userType = localStorage.getItem('adminAuth') ? 'admin' : 
+                          localStorage.getItem('customerAuth') ? 'customer' : 
+                          localStorage.getItem('driverAuth') ? 'driver' : null;
+          
+          if (userType === 'admin') {
+            window.location.href = '/admin/dashboard';
+          } else if (userType === 'customer') {
+            window.location.href = '/customer/dashboard';
+          } else if (userType === 'driver') {
+            window.location.href = '/driver/dashboard';
+          }
+        }
+      }, 500);
       
     } catch (error: any) {
       console.error('Login exception:', error);

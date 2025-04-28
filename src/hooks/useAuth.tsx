@@ -11,39 +11,55 @@ export const useAuth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Setting up auth state listener");
     // 1. First: Set up the auth state listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth state changed:", session);
-      setSession(session);
-      setUser(session?.user || null);
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      console.log("Auth state changed:", event, newSession?.user?.id);
+      setSession(newSession);
+      setUser(newSession?.user || null);
       setLoading(false);
     });
 
     // 2. Then: Fetch the current session after setting up the listener
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("Initial session fetched:", session);
-      setSession(session);
-      setUser(session?.user || null);
-      setLoading(false);
-    });
+    const getInitialSession = async () => {
+      try {
+        console.log("Fetching initial session");
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        console.log("Initial session fetched:", initialSession?.user?.id);
+        setSession(initialSession);
+        setUser(initialSession?.user || null);
+      } catch (error) {
+        console.error("Error fetching initial session:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    getInitialSession();
 
     // Clean up subscription when component unmounts
     return () => {
+      console.log("Cleaning up auth state listener");
       subscription.unsubscribe();
     };
   }, []);
 
   // Sign out function
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    localStorage.removeItem('adminAuth');
-    localStorage.removeItem('customerAuth');
-    localStorage.removeItem('driverAuth');
-    navigate('/login');
+    console.log("Signing out...");
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      localStorage.removeItem('adminAuth');
+      localStorage.removeItem('customerAuth');
+      localStorage.removeItem('driverAuth');
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   // Check user profile without throwing errors
@@ -88,5 +104,13 @@ export const useAuth = () => {
     }
   };
 
-  return { user, session, loading, signOut, checkUserProfile, checkDriverStatus };
+  return { 
+    user, 
+    session, 
+    loading, 
+    signOut, 
+    checkUserProfile, 
+    checkDriverStatus,
+    isAuthenticated: !!session || !!user
+  };
 };
