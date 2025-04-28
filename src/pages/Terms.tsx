@@ -1,3 +1,4 @@
+
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
@@ -22,7 +23,7 @@ const TermsContent = () => {
             {language === 'ar' ? (
               // Arabic content
               <>
-                <section className="space-y-6">
+                <section className="space-y-6" dir="rtl">
                   <h2 className="text-2xl font-bold text-safedrop-primary mb-4">1. تعريفات</h2>
                   <ul className="space-y-4 text-gray-700 text-lg">
                     <li className="flex gap-2">
@@ -44,7 +45,7 @@ const TermsContent = () => {
                   </ul>
                 </section>
 
-                <section>
+                <section dir="rtl">
                   <h2 className="text-xl font-semibold text-safedrop-primary mb-4">2. دور المنصة</h2>
                   <ul className="space-y-2 text-gray-700">
                     <li>SafeDrop تعمل كـ وسيط تقني بين العميل والسائق.</li>
@@ -53,7 +54,7 @@ const TermsContent = () => {
                   </ul>
                 </section>
 
-                <section>
+                <section dir="rtl">
                   <h2 className="text-xl font-semibold text-safedrop-primary mb-4">3. التحقق من السائقين</h2>
                   <ul className="space-y-2 text-gray-700">
                     <li>تخضع بيانات السائقين للمراجعة والموافقة.</li>
@@ -62,7 +63,7 @@ const TermsContent = () => {
                   </ul>
                 </section>
 
-                <section>
+                <section dir="rtl">
                   <h2 className="text-xl font-semibold text-safedrop-primary mb-4">4. استخدام المنصة</h2>
                   <ul className="space-y-2 text-gray-700">
                     <li>التسجيل بمعلومات صحيحة إلزامي لجميع المستخدمين.</li>
@@ -71,7 +72,7 @@ const TermsContent = () => {
                   </ul>
                 </section>
 
-                <section>
+                <section dir="rtl">
                   <h2 className="text-xl font-semibold text-safedrop-primary mb-4">5. المسؤولية</h2>
                   <ul className="space-y-2 text-gray-700">
                     <li>المنصة غير مسؤولة عن تلف أو ضياع الشحنة بعد استلامها.</li>
@@ -80,7 +81,7 @@ const TermsContent = () => {
                   </ul>
                 </section>
 
-                <section>
+                <section dir="rtl">
                   <h2 className="text-xl font-semibold text-safedrop-primary mb-4">6. المدفوعات والعمولة</h2>
                   <ul className="space-y-2 text-gray-700">
                     <li>يتم حجز قيمة الطلب حتى تأكيد الاستلام.</li>
@@ -89,7 +90,7 @@ const TermsContent = () => {
                   </ul>
                 </section>
 
-                <section>
+                <section dir="rtl">
                   <h2 className="text-xl font-semibold text-safedrop-primary mb-4">7. الشروط الخاصة</h2>
                   <ul className="space-y-2 text-gray-700">
                     <li>لا يُسمح بإعادة تسجيل السائقين المرفوضين نهائيًا.</li>
@@ -97,7 +98,7 @@ const TermsContent = () => {
                   </ul>
                 </section>
 
-                <section>
+                <section dir="rtl">
                   <h2 className="text-xl font-semibold text-safedrop-primary mb-4">8. التعديلات</h2>
                   <p className="text-gray-700">للمنصة الحق في تعديل الشروط في أي وقت مع إشعار المستخدمين.</p>
                 </section>

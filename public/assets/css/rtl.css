@@ -75,3 +75,19 @@
 [dir="rtl"] .md\:order-2 {
   order: 1;
 }
+
+/* Footer specific RTL fixes */
+[dir="rtl"] .footer-grid {
+  direction: rtl;
+}
+
+[dir="rtl"] .space-x-reverse > * + * {
+  margin-right: 1rem;
+  margin-left: 0;
+}
+
+/* Fix for email addresses and phone numbers */
+[dir="rtl"] [dir="ltr"] {
+  direction: ltr;
+  display: inline-block;
+}

@@ -1,24 +1,25 @@
+
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
 import { MapPin, Mail, Instagram, Video, Ghost } from 'lucide-react';
+
 const Footer = () => {
-  const {
-    t
-  } = useLanguage();
-  return <footer className="bg-safedrop-primary text-white pt-12 pb-6">
+  const { t, language } = useLanguage();
+
+  return (
+    <footer className="bg-safedrop-primary text-white pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className={`grid grid-cols-1 md:grid-cols-4 gap-8 ${language === 'ar' ? 'md:flex md:flex-row-reverse' : ''}`}>
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center mb-4">
-              
-              <span className="ml-2 text-xl font-bold rtl:mr-2 rtl:ml-0">
+              <span className={`text-xl font-bold ${language === 'ar' ? 'mr-2' : 'ml-2'}`}>
                 {t('siteTitle')}
               </span>
             </Link>
             <p className="text-sm mb-4">
               {t('tagline')}
             </p>
-            <div className="flex space-x-4 rtl:space-x-reverse">
+            <div className={`flex ${language === 'ar' ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
               <a href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Instagram size={20} />
               </a>
@@ -87,17 +88,17 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">{t('contact')}</h3>
             <ul className="space-y-4">
               <li className="flex items-start">
-                <MapPin className="mr-2 h-5 w-5 text-safedrop-gold shrink-0 rtl:ml-2 rtl:mr-0" />
-                <span className="text-sm"> Saudi Arabia</span>
+                <MapPin className={`h-5 w-5 text-safedrop-gold shrink-0 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                <span className="text-sm" dir="auto">Saudi Arabia</span>
               </li>
               
               <li className="flex items-start">
-                <Mail className="mr-2 h-5 w-5 text-safedrop-gold shrink-0 rtl:ml-2 rtl:mr-0" />
-                <span className="text-sm">info@safedropksa.com</span>
+                <Mail className={`h-5 w-5 text-safedrop-gold shrink-0 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+                <span className="text-sm" dir="ltr">info@safedropksa.com</span>
               </li>
             </ul>
 
-            <div className="flex space-x-4 rtl:space-x-reverse mt-4">
+            <div className={`flex mt-4 ${language === 'ar' ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
               <a href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Instagram size={20} />
               </a>
@@ -114,14 +115,16 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-gray-700">
           <div className="flex flex-wrap justify-center gap-4 mb-4 text-sm text-gray-400">
             <Link to="/terms" className="hover:text-safedrop-gold transition-colors">
-              Terms & Conditions / الشروط والأحكام
+              {language === 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions'}
             </Link>
           </div>
-          <p className="text-center text-sm text-gray-400">
+          <p className="text-center text-sm text-gray-400" dir="auto">
             {t('footer')}
           </p>
         </div>
       </div>
-    </footer>;
+    </footer>
+  );
 };
+
 export default Footer;
