@@ -10,13 +10,10 @@ import { UserIcon, FileTextIcon, ShieldIcon, UploadIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+
 const DriverProfileContent = () => {
-  const {
-    t
-  } = useLanguage();
-  const {
-    user
-  } = useAuth();
+  const { t } = useLanguage();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: '',
@@ -31,18 +28,17 @@ const DriverProfileContent = () => {
     nationalIdExpiry: '',
     licenseExpiry: ''
   });
+
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!user?.id) return;
       try {
-        // Fetch profile data
         const {
           data: profileData,
           error: profileError
         } = await supabase.from('profiles').select('*').eq('id', user.id).single();
         if (profileError) throw profileError;
 
-        // Fetch driver data
         const {
           data: driverData,
           error: driverError
@@ -68,6 +64,7 @@ const DriverProfileContent = () => {
     };
     fetchProfileData();
   }, [user]);
+
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -89,6 +86,7 @@ const DriverProfileContent = () => {
       setIsLoading(false);
     }
   };
+
   const handleDocumentUpload = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -99,6 +97,7 @@ const DriverProfileContent = () => {
       toast.success('تم رفع الوثائق بنجاح، وسيتم مراجعتها');
     }, 1500);
   };
+
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -109,13 +108,14 @@ const DriverProfileContent = () => {
       toast.success('تم تغيير كلمة المرور بنجاح');
     }, 1000);
   };
+
   return <div className="flex h-screen bg-gray-50">
       <DriverSidebar />
       
       <div className="flex-1 flex flex-col overflow-auto">
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-xl font-bold text-gray-900">الملف الشخصي</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('profileTitle')}</h1>
           </div>
         </header>
 
@@ -125,19 +125,18 @@ const DriverProfileContent = () => {
               <TabsList className="w-full grid grid-cols-3 mb-6">
                 <TabsTrigger value="profile">
                   <UserIcon className="h-4 w-4 mr-2" />
-                  البيانات الشخصية
+                  {t('personalInformation')}
                 </TabsTrigger>
                 <TabsTrigger value="documents">
                   <FileTextIcon className="h-4 w-4 mr-2" />
-                  الوثائق والمستندات
+                  {t('documents')}
                 </TabsTrigger>
-                
               </TabsList>
               
               <TabsContent value="profile" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>البيانات الشخصية</CardTitle>
+                    <CardTitle>{t('personalInformation')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleProfileUpdate} className="space-y-4">
@@ -189,7 +188,7 @@ const DriverProfileContent = () => {
               <TabsContent value="documents" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>الوثائق والمستندات</CardTitle>
+                    <CardTitle>{t('documents')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleDocumentUpload} className="space-y-4">
@@ -241,7 +240,7 @@ const DriverProfileContent = () => {
                 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-center">حالة الوثائق</CardTitle>
+                    <CardTitle className="text-center">{t('documentStatus')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -323,9 +322,11 @@ const DriverProfileContent = () => {
       </div>
     </div>;
 };
+
 const DriverProfile = () => {
   return <LanguageProvider>
       <DriverProfileContent />
     </LanguageProvider>;
 };
+
 export default DriverProfile;
