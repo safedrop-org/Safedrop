@@ -372,7 +372,7 @@ export const translations = {
     en: "Call Us"
   },
   contactPhone: {
-    ar: "+966 55 616 0601",
+    ar: "1060 616 55 669+",
     en: "+966 55 616 0601"
   },
   emailSupport: {
