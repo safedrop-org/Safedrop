@@ -20,9 +20,9 @@ const CustomerSettingsContent = () => {
     }, 1000);
   };
 
-  // Function to format phone number correctly based on language
+  // Function to format phone number correctly regardless of language direction
   const getFormattedPhoneNumber = () => {
-    // في اللغة العربية، رقم الهاتف يظهر بالترتيب الصحيح وليس معكوساً
+    // Using dir="ltr" in the actual rendering to ensure the number is always displayed left-to-right
     return '+966 55 616 0601';
   };
 
@@ -74,7 +74,7 @@ const CustomerSettingsContent = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">{t('contactPhone')}</label>
-                    <p className="text-base font-medium">{getFormattedPhoneNumber()}</p>
+                    <p className="text-base font-medium" dir="ltr">{getFormattedPhoneNumber()}</p>
                   </div>
                 </div>
               </CardContent>

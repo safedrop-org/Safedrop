@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthContext';
@@ -45,13 +44,10 @@ const CustomerDashboardContent = () => {
         };
         setStats(stats);
 
-        // Fetch active orders with details
+        // Fetch active orders - remove the foreign table join that's causing errors
         const { data: active, error: activeError } = await supabase
           .from('orders')
-          .select(`
-            *,
-            driver:profiles!orders_driver_id_fkey(first_name, last_name)
-          `)
+          .select('*')
           .eq('customer_id', user.id)
           .in('status', ['pending', 'assigned', 'in_progress'])
           .order('created_at', { ascending: false })
@@ -60,13 +56,10 @@ const CustomerDashboardContent = () => {
         if (activeError) throw activeError;
         setActiveOrders(active || []);
 
-        // Fetch recent history orders
+        // Fetch recent history orders - remove the foreign table join that's causing errors
         const { data: history, error: historyError } = await supabase
           .from('orders')
-          .select(`
-            *,
-            driver:profiles!orders_driver_id_fkey(first_name, last_name)
-          `)
+          .select('*')
           .eq('customer_id', user.id)
           .in('status', ['completed', 'cancelled'])
           .order('created_at', { ascending: false })
@@ -76,14 +69,14 @@ const CustomerDashboardContent = () => {
         setHistoryOrders(history || []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        toast.error('Error loading data');
+        toast.error(t('Error loading data'));
       } finally {
         setLoading(false);
       }
     };
     
     fetchDashboardData();
-  }, [user]);
+  }, [user, t]);
 
   const handleCreateOrder = () => {
     navigate('/customer/create-order');
