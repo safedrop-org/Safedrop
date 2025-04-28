@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { LanguageKey } from '@/lib/language-key';
+import { translations } from '@/lib/i18n';
 
 interface LanguageContextType {
   language: LanguageKey;
@@ -13,8 +14,6 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 interface LanguageProviderProps {
   children: ReactNode;
 }
-
-import { translations } from '@/lib/i18n';
 
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   const [language, setLanguage] = useState<LanguageKey>(() => {

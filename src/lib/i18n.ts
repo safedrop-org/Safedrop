@@ -1,3 +1,4 @@
+
 import { LanguageKey } from './language-key'; // We'll create this type file to centralize language key definition
 
 export type Translations = {
@@ -1013,10 +1014,6 @@ export const translations: Translations = {
     ar: "الوثائق والمستندات",
     en: "Documents"
   },
-  security: {
-    ar: "الأمان",
-    en: "Security"
-  },
   earningsTitle: {
     ar: "الأرباح",
     en: "Earnings"
@@ -1037,17 +1034,9 @@ export const translations: Translations = {
     ar: "التقييمات",
     en: "Ratings"
   },
-  averageRating: {
-    ar: "متوسط التقييم",
-    en: "Average Rating"
-  },
   latestRatings: {
     ar: "آخر التقييمات",
     en: "Latest Ratings"
-  },
-  noRatingsYet: {
-    ar: "لا توجد تقييمات بعد",
-    en: "No ratings yet"
   },
   notificationsTitle: {
     ar: "الإشعارات",
@@ -1057,8 +1046,8 @@ export const translations: Translations = {
     ar: "تحديد الكل كمقروء",
     en: "Mark all as read"
   },
-  noNotifications: {
-    ar: "لا توجد إشعارات جديدة",
-    en: "No new notifications"
+  address: {
+    ar: "العنوان",
+    en: "Address"
   }
 };
