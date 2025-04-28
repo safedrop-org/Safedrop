@@ -10,15 +10,17 @@ import { Package, Truck, DollarSign } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useLanguage } from '@/components/ui/language-context';
+
 interface LocationType {
   address: string;
   details?: string;
 }
+
 const CreateOrder = () => {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const { t } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     pickupLocation: {
@@ -33,12 +35,14 @@ const CreateOrder = () => {
     notes: '',
     price: ''
   });
+
   useEffect(() => {
     if (!user) {
       toast.error('يرجى تسجيل الدخول أولاً');
       navigate('/login');
     }
   }, [user, navigate]);
+
   const handleLocationChange = (type: 'pickupLocation' | 'dropoffLocation', field: 'address' | 'details', value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -48,6 +52,7 @@ const CreateOrder = () => {
       }
     }));
   };
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const {
       name,
@@ -58,6 +63,7 @@ const CreateOrder = () => {
       [name]: value
     }));
   };
+
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
@@ -67,6 +73,7 @@ const CreateOrder = () => {
       }));
     }
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -117,24 +124,37 @@ const CreateOrder = () => {
       setSubmitting(false);
     }
   };
-  return <div className="flex h-screen bg-gray-50">
+
+  return (
+    <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">طلب جديد</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">{t('createOrder')}</h1>
         
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="p-6">
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">معلومات الاستلا</h2>
+                <h2 className="text-lg font-semibold">{t('pickupInfo')}</h2>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="pickupAddress">عنوان الاستلام</Label>
-                    <Input id="pickupAddress" placeholder="أدخل عنوان الاستلام" value={formData.pickupLocation.address} onChange={e => handleLocationChange('pickupLocation', 'address', e.target.value)} required />
+                    <Label htmlFor="pickupAddress">{t('pickupAddress')}</Label>
+                    <Input 
+                      id="pickupAddress" 
+                      placeholder={t('enterPickupAddress')} 
+                      value={formData.pickupLocation.address} 
+                      onChange={e => handleLocationChange('pickupLocation', 'address', e.target.value)} 
+                      required 
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="pickupDetails">تفاصيل إضافية</Label>
-                    <Input id="pickupDetails" placeholder="رقم المبنى، الطابق، علامات مميزة" value={formData.pickupLocation.details} onChange={e => handleLocationChange('pickupLocation', 'details', e.target.value)} />
+                    <Label htmlFor="pickupDetails">{t('additionalDetails')}</Label>
+                    <Input 
+                      id="pickupDetails" 
+                      placeholder={t('buildingNumFloor')} 
+                      value={formData.pickupLocation.details} 
+                      onChange={e => handleLocationChange('pickupLocation', 'details', e.target.value)} 
+                    />
                   </div>
                 </div>
               </div>
@@ -142,15 +162,26 @@ const CreateOrder = () => {
             
             <Card className="p-6">
               <div className="space-y-4">
-                <h2 className="text-lg font-semibold">معلومات التوصيل</h2>
+                <h2 className="text-lg font-semibold">{t('deliveryInfo')}</h2>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="dropoffAddress">عنوان التوصيل</Label>
-                    <Input id="dropoffAddress" placeholder="أدخل عنوان التوصيل" value={formData.dropoffLocation.address} onChange={e => handleLocationChange('dropoffLocation', 'address', e.target.value)} required />
+                    <Label htmlFor="dropoffAddress">{t('deliveryAddress')}</Label>
+                    <Input 
+                      id="dropoffAddress" 
+                      placeholder={t('enterDeliveryAddress')} 
+                      value={formData.dropoffLocation.address} 
+                      onChange={e => handleLocationChange('dropoffLocation', 'address', e.target.value)} 
+                      required 
+                    />
                   </div>
                   <div>
-                    <Label htmlFor="dropoffDetails">تفاصيل إضافية</Label>
-                    <Input id="dropoffDetails" placeholder="رقم المبنى، الطابق، علامات مميزة" value={formData.dropoffLocation.details} onChange={e => handleLocationChange('dropoffLocation', 'details', e.target.value)} />
+                    <Label htmlFor="dropoffDetails">{t('additionalDetails')}</Label>
+                    <Input 
+                      id="dropoffDetails" 
+                      placeholder={t('buildingNumFloor')} 
+                      value={formData.dropoffLocation.details} 
+                      onChange={e => handleLocationChange('dropoffLocation', 'details', e.target.value)} 
+                    />
                   </div>
                 </div>
               </div>
@@ -160,50 +191,80 @@ const CreateOrder = () => {
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
               <Package className="h-5 w-5 ml-2 text-safedrop-gold" />
-              تفاصيل الشحنة
+              {t('shipmentDetails')}
             </h2>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="price" className="block mb-1 font-medium text-gray-700">
-                  السعر (ريال)
+                  {t('price')}
                 </Label>
                 <div className="relative">
                   <DollarSign className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                  <Input id="price" name="price" type="text" className="pl-10 text-left" placeholder="0.00" value={formData.price} onChange={handlePriceChange} required />
+                  <Input 
+                    id="price" 
+                    name="price" 
+                    type="text" 
+                    className="pl-10 text-left" 
+                    placeholder="0.00" 
+                    value={formData.price} 
+                    onChange={handlePriceChange} 
+                    required 
+                  />
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
-                  سيحصل السائق على 75% من السعر والمنصة على 15%
-                </p>
+                <p className="text-sm text-gray-500 mt-1">{t('driverCommission')}</p>
               </div>
 
               <div>
-                <Label htmlFor="packageDetails">
-                  وصف الشحنة
-                </Label>
-                <Textarea id="packageDetails" name="packageDetails" placeholder="وصف المحتويات، الحجم، الوزن التقريبي" rows={3} value={formData.packageDetails} onChange={handleTextChange} required />
+                <Label htmlFor="packageDetails">{t('packageDescription')}</Label>
+                <Textarea 
+                  id="packageDetails" 
+                  name="packageDetails" 
+                  placeholder={t('contentsSizeWeight')} 
+                  rows={3} 
+                  value={formData.packageDetails} 
+                  onChange={handleTextChange} 
+                  required 
+                />
               </div>
               <div>
-                <Label htmlFor="notes">
-                  ملاحظات للسائق
-                </Label>
-                <Textarea id="notes" name="notes" placeholder="أي تعليمات خاصة للسائق" rows={3} value={formData.notes} onChange={handleTextChange} />
+                <Label htmlFor="notes">{t('driverNotes')}</Label>
+                <Textarea 
+                  id="notes" 
+                  name="notes" 
+                  placeholder={t('specialInstructions')} 
+                  rows={3} 
+                  value={formData.notes} 
+                  onChange={handleTextChange} 
+                />
               </div>
             </div>
           </Card>
           
           <div className="flex justify-between items-center">
-            <Button type="button" variant="outline" onClick={() => navigate('/customer/dashboard')}>
-              إلغاء
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => navigate('/customer/dashboard')}
+            >
+              {t('cancel')}
             </Button>
-            <Button type="submit" className="bg-safedrop-gold hover:bg-safedrop-gold/90 gap-2" disabled={submitting}>
-              {submitting ? 'جاري الإرسال...' : <>
+            <Button 
+              type="submit" 
+              className="bg-safedrop-gold hover:bg-safedrop-gold/90 gap-2" 
+              disabled={submitting}
+            >
+              {submitting ? t('sending') : (
+                <>
                   <Truck className="h-4 w-4" />
-                  إرسال الطلب
-                </>}
+                  {t('submitOrder')}
+                </>
+              )}
             </Button>
           </div>
         </form>
       </main>
-    </div>;
+    </div>
+  );
 };
+
 export default CreateOrder;

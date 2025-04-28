@@ -62,7 +62,7 @@ export const translations: Translations = {
     en: "Orders"
   },
   createOrder: {
-    ar: "إنشاء طلب",
+    ar: "طلب جديد",
     en: "Create Order"
   },
   trackOrder: {
@@ -474,7 +474,7 @@ export const translations: Translations = {
     en: "Verified Drivers"
   },
   verifiedDriversDescription: {
-    ar: "كل السائقين في منصتنا ��مرون بعملية تحقق شاملة من بياناتهم ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
+    ar: "كل السائ��ين في منصتنا ��مرون بعملية تحقق شاملة من بياناتهم ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
     en: "All drivers on our platform undergo a comprehensive verification process of their credentials and licenses before acceptance. We ensure you deal with reliable and highly competent individuals."
   },
   licenseVerification: {
@@ -638,7 +638,7 @@ export const translations: Translations = {
     en: "Message"
   },
   messageSent: {
-    ar: "تم إرسال رسالتك بنجاح",
+    ar: "تم إرسال رسالتك ��نجاح",
     en: "Your message has been sent successfully"
   },
   messageWillReply: {
@@ -750,7 +750,7 @@ export const translations: Translations = {
     en: "You can withdraw your earnings through account settings by entering your bank details."
   },
   updateOrderStatusQuestion: {
-    ar: "كيف يمكنني تحديث حالتي أمام العميل؟",
+    ar: "كيف يمكنني تحديث حالت�� أمام العميل؟",
     en: "How can I update my status for the customer?"
   },
   updateOrderStatusAnswer: {
@@ -968,5 +968,41 @@ export const translations: Translations = {
   price: {
     ar: "السعر (ريال)",
     en: "Price (SAR)"
+  },
+  enterPickupAddress: {
+    ar: "أدخل عنوان الاستلام",
+    en: "Enter pickup address"
+  },
+  enterDeliveryAddress: {
+    ar: "أدخل عنوان التوصيل",
+    en: "Enter delivery address"
+  },
+  buildingNumFloor: {
+    ar: "رقم المبنى، الطابق، علامات مميزة",
+    en: "Building number, floor, landmarks"
+  },
+  packageDescription: {
+    ar: "وصف الشحنة",
+    en: "Package Description"
+  },
+  contentsSizeWeight: {
+    ar: "وصف المحتويات، الحجم، الوزن التقريبي",
+    en: "Contents description, size, approximate weight"
+  },
+  driverNotes: {
+    ar: "ملاحظات للسائق",
+    en: "Notes for Driver"
+  },
+  specialInstructions: {
+    ar: "أي تعليمات خاصة للسائق",
+    en: "Any special instructions for the driver"
+  },
+  driverCommission: {
+    ar: "سيحصل السائق على 75% من السعر والمنصة على 15%",
+    en: "Driver will receive 75% of the price and platform 15%"
+  },
+  submitOrder: {
+    ar: "إرسال الطلب",
+    en: "Submit Order"
   }
 };
