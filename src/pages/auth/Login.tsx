@@ -10,11 +10,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LockIcon, MailIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const LoginContent = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, userType } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,54 +24,71 @@ const LoginContent = () => {
   // Redirect if already logged in
   useEffect(() => {
     console.log("User in login page:", user);
+    console.log("User type in login page:", userType);
+    
     if (user) {
-      console.log("User already logged in, redirecting...");
-      redirectBasedOnProfile(user.id);
-    }
-  }, [user, navigate]);
-
-  const redirectBasedOnProfile = async (userId: string) => {
-    try {
-      console.log("Checking profile for user:", userId);
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', userId)
-        .maybeSingle();
-        
-      if (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("حدث خطأ أثناء التحقق من نوع المستخدم");
+      console.log("User already logged in, redirecting based on type:", userType);
+      // First check localStorage for user type flags
+      if (localStorage.getItem('adminAuth') === 'true') {
+        console.log("Redirecting to admin dashboard based on localStorage");
+        navigate('/admin/dashboard', { replace: true });
         return;
       }
       
-      console.log("Found profile:", profile);
-      
-      // Redirect based on user type
-      if (profile?.user_type === 'admin') {
-        console.log("Redirecting to admin dashboard");
-        localStorage.setItem('adminAuth', 'true');
-        navigate('/admin/dashboard', { replace: true });
-      } else if (profile?.user_type === 'driver') {
-        console.log("Redirecting to driver area");
-        localStorage.setItem('driverAuth', 'true');
-        checkDriverStatus(userId);
-      } else if (profile?.user_type === 'customer') {
-        console.log("Redirecting to customer dashboard");
-        localStorage.setItem('customerAuth', 'true');
+      if (localStorage.getItem('customerAuth') === 'true') {
+        console.log("Redirecting to customer dashboard based on localStorage");
         navigate('/customer/dashboard', { replace: true });
-      } else {
-        console.log("Unknown user type:", profile?.user_type);
-        toast.error("نوع المستخدم غير معروف");
+        return;
       }
-    } catch (err) {
-      console.error("Error checking profile:", err);
-      toast.error("حدث خطأ أثناء التحقق من الملف الشخصي");
+      
+      if (localStorage.getItem('driverAuth') === 'true') {
+        console.log("Redirecting to driver dashboard based on localStorage");
+        navigate('/driver/dashboard', { replace: true });
+        return;
+      }
+      
+      // If no localStorage flags, try to use the userType from context
+      if (userType === 'admin') {
+        console.log("Redirecting to admin dashboard based on userType");
+        navigate('/admin/dashboard', { replace: true });
+      } else if (userType === 'customer') {
+        console.log("Redirecting to customer dashboard based on userType");
+        navigate('/customer/dashboard', { replace: true });
+      } else if (userType === 'driver') {
+        console.log("Redirecting to driver dashboard based on userType");
+        checkDriverStatusAndRedirect(user.id);
+      } else {
+        // If still no user type, check the user metadata
+        if (user.user_metadata?.user_type) {
+          redirectBasedOnUserType(user.user_metadata.user_type, user.id);
+        } else {
+          // Last resort: check profile directly
+          console.log("Checking profile for user:", user.id);
+          redirectBasedOnProfile(user.id);
+        }
+      }
+    }
+  }, [user, userType, navigate]);
+
+  const redirectBasedOnUserType = (type: string, userId: string) => {
+    console.log("Redirecting based on user type:", type);
+    if (type === 'admin') {
+      localStorage.setItem('adminAuth', 'true');
+      navigate('/admin/dashboard', { replace: true });
+    } else if (type === 'customer') {
+      localStorage.setItem('customerAuth', 'true');
+      navigate('/customer/dashboard', { replace: true });
+    } else if (type === 'driver') {
+      localStorage.setItem('driverAuth', 'true');
+      checkDriverStatusAndRedirect(userId);
+    } else {
+      toast.error("نوع المستخدم غي�� معروف");
     }
   };
 
-  const checkDriverStatus = async (userId: string) => {
+  const checkDriverStatusAndRedirect = async (userId: string) => {
     try {
+      console.log("Checking driver status for:", userId);
       const { data, error } = await supabase
         .from('drivers')
         .select('status')
@@ -97,6 +114,42 @@ const LoginContent = () => {
     }
   };
 
+  const redirectBasedOnProfile = async (userId: string) => {
+    try {
+      console.log("Checking profile for user ID:", userId);
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', userId)
+        .maybeSingle();
+        
+      if (error) {
+        console.error("Error fetching profile:", error);
+        toast.error("حدث خطأ أثناء التحقق من نوع المستخدم");
+        return;
+      }
+      
+      console.log("Found profile:", profile);
+      
+      if (profile) {
+        // Redirect based on user type
+        redirectBasedOnUserType(profile.user_type, userId);
+      } else {
+        console.log("No profile found, checking user metadata");
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user?.user_metadata?.user_type) {
+          redirectBasedOnUserType(userData.user.user_metadata.user_type, userId);
+        } else {
+          console.log("No user type found in metadata");
+          toast.error("نوع المستخدم غير معروف");
+        }
+      }
+    } catch (err) {
+      console.error("Error checking profile:", err);
+      toast.error("حدث خطأ أثناء التحقق من الملف الشخصي");
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -110,7 +163,7 @@ const LoginContent = () => {
     try {
       console.log('Attempting login with:', email);
       
-      // If email is admin email, redirect to admin login page
+      // If email is admin email, handle admin login
       if (email.toLowerCase() === 'admin@safedrop.com') {
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
@@ -127,8 +180,9 @@ const LoginContent = () => {
         // Ensure admin is redirected to dashboard
         localStorage.setItem('adminAuth', 'true');
         toast.success('تم تسجيل الدخول كمسؤول');
-        navigate('/admin/dashboard', { replace: true });
-        setIsLoading(false);
+        
+        // Forceful redirect
+        window.location.href = '/admin/dashboard';
         return;
       }
 
@@ -142,7 +196,7 @@ const LoginContent = () => {
         console.error('Login error:', error);
         
         if (error.message === 'Email not confirmed') {
-          toast.error('البريد الإلكتروني غير مؤ��د، يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك');
+          toast.error('البريد الإلكتروني غير مؤكد، يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك');
         } else if (error.message.includes('Invalid login')) {
           toast.error('بيانات الدخول غير صحيحة، يرجى التحقق من البريد الإلكتروني وكلمة المرور');
         } else {
@@ -159,32 +213,62 @@ const LoginContent = () => {
       }
 
       console.log('Login successful, user:', data.user);
-      console.log('Session:', data.session);
+      console.log('User metadata:', data.user.user_metadata);
       
       toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
       
-      // Force immediate redirect
-      await redirectBasedOnProfile(data.user.id);
-      
-      // Double check that redirection happened
-      setTimeout(() => {
-        console.log("Current location after login:", window.location.pathname);
-        if (window.location.pathname === '/login') {
-          console.log("Still on login page after 500ms, forcing redirect");
-          const userType = localStorage.getItem('adminAuth') ? 'admin' : 
+      // Try to redirect based on user metadata first
+      if (data.user.user_metadata?.user_type) {
+        console.log("Found user_type in metadata:", data.user.user_metadata.user_type);
+        
+        const userType = data.user.user_metadata.user_type;
+        
+        if (userType === 'admin') {
+          localStorage.setItem('adminAuth', 'true');
+          window.location.href = '/admin/dashboard';
+        } else if (userType === 'customer') {
+          localStorage.setItem('customerAuth', 'true');
+          window.location.href = '/customer/dashboard';
+        } else if (userType === 'driver') {
+          localStorage.setItem('driverAuth', 'true');
+          checkDriverStatusAndRedirect(data.user.id);
+        }
+      } else {
+        // Fallback to profile check
+        console.log("No user_type in metadata, checking profile");
+        await redirectBasedOnProfile(data.user.id);
+        
+        // Force redirect after a short delay if still on login page
+        setTimeout(() => {
+          const currentPath = window.location.pathname;
+          if (currentPath === '/login') {
+            console.log("Still on login page after 1000ms, forcing redirect based on localStorage");
+            const userType = localStorage.getItem('adminAuth') ? 'admin' : 
                           localStorage.getItem('customerAuth') ? 'customer' : 
                           localStorage.getItem('driverAuth') ? 'driver' : null;
-          
-          if (userType === 'admin') {
-            window.location.href = '/admin/dashboard';
-          } else if (userType === 'customer') {
-            window.location.href = '/customer/dashboard';
-          } else if (userType === 'driver') {
-            window.location.href = '/driver/dashboard';
+            
+            if (userType === 'admin') {
+              window.location.href = '/admin/dashboard';
+            } else if (userType === 'customer') {
+              window.location.href = '/customer/dashboard';
+            } else if (userType === 'driver') {
+              window.location.href = '/driver/dashboard';
+            } else {
+              // Last resort - check if we have user data in the response
+              if (data.user?.user_metadata?.user_type) {
+                const metaUserType = data.user.user_metadata.user_type;
+                if (metaUserType === 'admin') {
+                  window.location.href = '/admin/dashboard';
+                } else if (metaUserType === 'customer') {
+                  window.location.href = '/customer/dashboard';
+                } else if (metaUserType === 'driver') {
+                  window.location.href = '/driver/pending-approval';
+                }
+              }
+            }
           }
-        }
-      }, 500);
-      
+        }, 1000);
+      }
     } catch (error: any) {
       console.error('Login exception:', error);
       toast.error('فشل تسجيل الدخول: ' + (error.message || 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.'));
@@ -203,7 +287,7 @@ const LoginContent = () => {
                 {t('login')}
               </CardTitle>
               <CardDescription>
-                دخول إلى حسابك في منصة سيف دروب
+                دخول إلى ��سابك في منصة سيف دروب
               </CardDescription>
             </CardHeader>
 

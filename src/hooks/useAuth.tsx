@@ -8,10 +8,12 @@ export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userType, setUserType] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     console.log("Setting up auth state listener");
+    
     // 1. First: Set up the auth state listener
     const {
       data: { subscription },
@@ -19,6 +21,52 @@ export const useAuth = () => {
       console.log("Auth state changed:", event, newSession?.user?.id);
       setSession(newSession);
       setUser(newSession?.user || null);
+      
+      // Check for user type in user_metadata
+      if (newSession?.user?.user_metadata?.user_type) {
+        console.log("User type from metadata:", newSession.user.user_metadata.user_type);
+        setUserType(newSession.user.user_metadata.user_type);
+        
+        // Store authentication flags in localStorage based on user type
+        if (newSession.user.user_metadata.user_type === 'customer') {
+          localStorage.setItem('customerAuth', 'true');
+        } else if (newSession.user.user_metadata.user_type === 'driver') {
+          localStorage.setItem('driverAuth', 'true');
+        } else if (newSession.user.user_metadata.user_type === 'admin') {
+          localStorage.setItem('adminAuth', 'true');
+        }
+      } else {
+        // If not in metadata, try to fetch from profiles table
+        if (newSession?.user) {
+          setTimeout(async () => {
+            try {
+              const { data } = await supabase
+                .from('profiles')
+                .select('user_type')
+                .eq('id', newSession.user.id)
+                .single();
+                
+              console.log("User type from profile:", data?.user_type);
+              
+              if (data?.user_type) {
+                setUserType(data.user_type);
+                
+                // Store authentication flags in localStorage
+                if (data.user_type === 'customer') {
+                  localStorage.setItem('customerAuth', 'true');
+                } else if (data.user_type === 'driver') {
+                  localStorage.setItem('driverAuth', 'true');
+                } else if (data.user_type === 'admin') {
+                  localStorage.setItem('adminAuth', 'true');
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching user type:", error);
+            }
+          }, 0);
+        }
+      }
+      
       setLoading(false);
     });
 
@@ -30,6 +78,47 @@ export const useAuth = () => {
         console.log("Initial session fetched:", initialSession?.user?.id);
         setSession(initialSession);
         setUser(initialSession?.user || null);
+        
+        // Check for user type in user_metadata
+        if (initialSession?.user?.user_metadata?.user_type) {
+          console.log("Initial user type from metadata:", initialSession.user.user_metadata.user_type);
+          setUserType(initialSession.user.user_metadata.user_type);
+          
+          // Store authentication flags
+          if (initialSession.user.user_metadata.user_type === 'customer') {
+            localStorage.setItem('customerAuth', 'true');
+          } else if (initialSession.user.user_metadata.user_type === 'driver') {
+            localStorage.setItem('driverAuth', 'true');
+          } else if (initialSession.user.user_metadata.user_type === 'admin') {
+            localStorage.setItem('adminAuth', 'true');
+          }
+        } else if (initialSession?.user) {
+          // If not in metadata, try to fetch from profiles table
+          try {
+            const { data } = await supabase
+              .from('profiles')
+              .select('user_type')
+              .eq('id', initialSession.user.id)
+              .single();
+              
+            console.log("Initial user type from profile:", data?.user_type);
+            
+            if (data?.user_type) {
+              setUserType(data.user_type);
+              
+              // Store authentication flags
+              if (data.user_type === 'customer') {
+                localStorage.setItem('customerAuth', 'true');
+              } else if (data.user_type === 'driver') {
+                localStorage.setItem('driverAuth', 'true');
+              } else if (data.user_type === 'admin') {
+                localStorage.setItem('adminAuth', 'true');
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching initial user type:", error);
+          }
+        }
       } catch (error) {
         console.error("Error fetching initial session:", error);
       } finally {
@@ -53,6 +142,7 @@ export const useAuth = () => {
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      setUserType(null);
       localStorage.removeItem('adminAuth');
       localStorage.removeItem('customerAuth');
       localStorage.removeItem('driverAuth');
@@ -111,6 +201,7 @@ export const useAuth = () => {
     signOut, 
     checkUserProfile, 
     checkDriverStatus,
+    userType,
     isAuthenticated: !!session || !!user
   };
 };
