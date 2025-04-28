@@ -967,4 +967,6 @@ export const translations: Translations = {
   },
   price: {
     ar: "السعر",
-    en:
+    en: "Price"
+  }
+};
