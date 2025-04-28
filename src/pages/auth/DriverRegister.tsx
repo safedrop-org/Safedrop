@@ -270,30 +270,9 @@ const DriverRegisterContent = () => {
             <p className="text-amber-600 text-sm mt-1">تم تجاوز الحد المسموح لمحاولات التسجيل. يرجى الانتظار قليلاً.</p>
           </div>}
 
-        <div className="flex justify-end mb-2">
-          <Button variant="outline" size="sm" onClick={() => setShowDebugConsole(!showDebugConsole)} className="text-xs">
-            {showDebugConsole ? 'إخفاء وضع المطور' : 'وضع المطور'}
-          </Button>
-        </div>
+        
 
-        {showDebugConsole && <div className="bg-gray-800 text-green-400 rounded-md p-4 mb-4 overflow-auto max-h-48 text-xs">
-            <p>▶️ وضع المطور: هذه المعلومات تساعد في تشخيص المشكلات</p>
-            <p>📡 API URL: https://lawatugvcjmrbxzgjfqm.supabase.co</p>
-            <p>🖥️ تطبيق ويب: {window.location.origin}</p>
-            {debugInfo && <>
-                <p className="font-bold mt-2">⚠️ آخر خطأ:</p>
-                <p>المرحلة: {debugInfo.stage}</p>
-                <pre className="whitespace-pre-wrap overflow-x-auto">
-                  {JSON.stringify(debugInfo.error, null, 2)}
-                </pre>
-                {debugInfo.attempted_data && <>
-                    <p className="font-bold mt-1">البيانات المرسلة:</p>
-                    <pre className="whitespace-pre-wrap overflow-x-auto">
-                      {JSON.stringify(debugInfo.attempted_data, null, 2)}
-                    </pre>
-                  </>}
-              </>}
-          </div>}
+        {showDebugConsole}
 
         {debugInfo && <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
             <h3 className="text-red-800 font-medium">معلومات تشخيص الخطأ:</h3>
