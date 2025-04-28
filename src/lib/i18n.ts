@@ -1,4 +1,3 @@
-
 import { LanguageKey } from "./language-key";
 
 // Translation keys for the entire application
@@ -353,6 +352,14 @@ export const translations = {
   settings: {
     ar: "الإعدادات",
     en: "Settings" 
+  },
+  "Support Contact": {
+    ar: "معلومات الاتصال بالدعم",
+    en: "Support Contact"
+  },
+  settingsSaved: {
+    ar: "تم حفظ الإعدادات بنجاح",
+    en: "Settings saved successfully"
   },
   
   // Support Page

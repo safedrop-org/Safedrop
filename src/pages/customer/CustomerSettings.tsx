@@ -4,7 +4,7 @@ import { LanguageProvider, useLanguage } from '@/components/ui/language-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
-import { Globe } from 'lucide-react';
+import { Globe, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CustomerSettingsContent = () => {
@@ -52,6 +52,23 @@ const CustomerSettingsContent = () => {
                       <option value="ar">العربية</option>
                       <option value="en">English</option>
                     </select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="h-5 w-5" />
+                  {t('Support Contact')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">{t('contactPhone')}</label>
+                    <p className="text-base font-medium">+966 55 616 0601</p>
                   </div>
                 </div>
               </CardContent>
