@@ -1,4 +1,3 @@
-
 import { LanguageKey } from './language-key';
 
 export type Translations = {
@@ -658,186 +657,6 @@ export const translations: Translations = {
     ar: "الأحد - السبت : 9:00 ص - 9:00 م",
     en: "Sunday - Saturday: 9:00 AM - 9:00 PM"
   },
-  driverDashboardTitle: {
-    ar: "لوحة تحكم السائق",
-    en: "Driver Dashboard"
-  },
-  availableOrdersCount: {
-    ar: "الطلبات المتاحة",
-    en: "Available Orders"
-  },
-  completedOrdersCount: {
-    ar: "الطلبات المكتملة",
-    en: "Completed Orders"
-  },
-  totalEarnings: {
-    ar: "إجمالي الأرباح",
-    en: "Total Earnings"
-  },
-  averageRating: {
-    ar: "متوسط التقييم",
-    en: "Average Rating"
-  },
-  currentLocation: {
-    ar: "موقعك الحالي",
-    en: "Current Location"
-  },
-  noOrdersAvailable: {
-    ar: "لا توجد طلبات متاحة حالياً",
-    en: "No orders available"
-  },
-  viewAllOrders: {
-    ar: "عرض جميع الطلبات",
-    en: "View All Orders"
-  },
-  viewAllEarnings: {
-    ar: "عرض جميع الأرباح",
-    en: "View All Earnings"
-  },
-  viewAllRatings: {
-    ar: "عرض جميع التقييمات",
-    en: "View All Ratings"
-  },
-  recentOrders: {
-    ar: "آخر الطلبات",
-    en: "Recent Orders"
-  },
-  orderDetails: {
-    ar: "تفاصيل الطلب",
-    en: "Order Details"
-  },
-  orderDate: {
-    ar: "تاريخ الطلب",
-    en: "Order Date"
-  },
-  orderStatus: {
-    ar: "حالة الطلب",
-    en: "Order Status"
-  },
-  customerName: {
-    ar: "اسم العميل",
-    en: "Customer Name"
-  },
-  acceptOrder: {
-    ar: "قبول الطلب",
-    en: "Accept Order"
-  },
-  completeOrder: {
-    ar: "إكمال الطلب",
-    en: "Complete Order"
-  },
-  orderAccepted: {
-    ar: "تم قبول الطلب بنجاح",
-    en: "Order accepted successfully"
-  },
-  orderCompleted: {
-    ar: "تم إكمال الطلب بنجاح",
-    en: "Order completed successfully"
-  },
-  errorAcceptingOrder: {
-    ar: "حدث خطأ أثناء قبول الطلب",
-    en: "Error accepting order"
-  },
-  errorCompletingOrder: {
-    ar: "حدث خطأ أثناء إكمال الطلب",
-    en: "Error completing order"
-  },
-  loadingOrders: {
-    ar: "جاري تحميل الطلبات...",
-    en: "Loading orders..."
-  },
-  retryLoading: {
-    ar: "إعادة المحاولة",
-    en: "Retry"
-  },
-  errorLoadingOrders: {
-    ar: "حدث خطأ أثناء تحميل الطلبات",
-    en: "Error loading orders"
-  },
-  noRatingsYet: {
-    ar: "لا توجد تقييمات بعد",
-    en: "No ratings yet"
-  },
-  ratingStats: {
-    ar: "إحصائيات التقييمات",
-    en: "Rating Statistics"
-  },
-  lastUpdated: {
-    ar: "آخر تحديث",
-    en: "Last Updated"
-  },
-  availabilityStatus: {
-    ar: "حالة الاستقبال",
-    en: "Availability Status"
-  },
-  updateAvailability: {
-    ar: "تحديث الحالة",
-    en: "Update Status"
-  },
-  noNotifications: {
-    ar: "لا توجد إشعارات جديدة",
-    en: "No new notifications"
-  },
-  viewAllNotifications: {
-    ar: "عرض كافة الإشعارات",
-    en: "View all notifications"
-  },
-  earningsSummary: {
-    ar: "ملخص الأرباح",
-    en: "Earnings Summary"
-  },
-  platformFee: {
-    ar: "عمولة المنصة (15%)",
-    en: "Platform Fee (15%)"
-  },
-  availableBalance: {
-    ar: "الرصيد المتاح",
-    en: "Available Balance"
-  },
-  paymentDetails: {
-    ar: "تفاصيل المدفوعات",
-    en: "Payment Details"
-  },
-  requestWithdrawal: {
-    ar: "طلب سحب",
-    en: "Request Withdrawal"
-  },
-  withdrawalRequestSent: {
-    ar: "تم إرسال طلب السحب بنجاح",
-    en: "Withdrawal request sent successfully"
-  },
-  supportAndHelp: {
-    ar: "الدعم والمساعدة",
-    en: "Support & Help"
-  },
-  contactSupport: {
-    ar: "تواصل مع الدعم الفني",
-    en: "Contact Support"
-  },
-  reportIssue: {
-    ar: "إبلاغ عن مشكلة",
-    en: "Report Issue"
-  },
-  havingProblem: {
-    ar: "هل تواجه مشكلة؟",
-    en: "Having a problem?"
-  },
-  accountApproved: {
-    ar: "تم اعتماد حسابك",
-    en: "Your account has been approved"
-  },
-  accountApprovedDesc: {
-    ar: "يمكنك الآن استقبال طلبات التوصيل والبدء في استخدام المنصة",
-    en: "You can now receive delivery requests and start using the platform"
-  },
-  accountPending: {
-    ar: "حسابك قيد المراجعة",
-    en: "Your account is under review"
-  },
-  accountPendingDesc: {
-    ar: "نحن نراجع بياناتك ووثائقك، وسنعلمك عند الانتهاء من المراجعة",
-    en: "We are reviewing your information and documents, we will notify you when the review is complete"
-  },
   loading: {
     ar: "جاري التحميل...",
     en: "Loading..."
@@ -874,7 +693,7 @@ export const translations: Translations = {
     ar: "إعادة التقديم",
     en: "Reapply"
   },
-  accountFrozen: {
+   accountFrozen: {
     ar: "الحساب مجمد مؤقتاً",
     en: "Account temporarily frozen"
   },
@@ -1118,7 +937,7 @@ export const translations: Translations = {
     ar: "الإشعارات",
     en: "Notifications"
   },
-  newOrder: {
+   newOrder: {
     ar: "طلب جديد",
     en: "New Order"
   },
@@ -1148,98 +967,3 @@ export const translations: Translations = {
   },
   price: {
     ar: "السعر (ريال)",
-    en: "Price (SAR)"
-  },
-  driverCommission: {
-    ar: "سيحصل السائق على 75% من السعر والمتبقي 15",
-    en: "Driver will receive 75% of the price and the remaining 15"
-  },
-  shipmentDescription: {
-    ar: "وصف الشحنة",
-    en: "Shipment Description"
-  },
-  contentDescription: {
-    ar: "وصف المحتويات، الحجم، الوزن التقريبي",
-    en: "Content description, size, approximate weight"
-  },
-  myOrders: {
-    ar: "طلباتي",
-    en: "My Orders"
-  },
-  billingAndPayment: {
-    ar: "الفواتير والدفع",
-    en: "Billing & Payment"
-  },
-  totalPayments: {
-    ar: "إجمالي المدفوعات",
-    en: "Total Payments"
-  },
-  paymentMethod: {
-    ar: "وسيلة الدفع",
-    en: "Payment Method"
-  },
-  addPaymentMethod: {
-    ar: "تحتاج لإضافة وسيلة دفع",
-    en: "Need to add payment method"
-  },
-  noPaymentMethods: {
-    ar: "لم يتم تسجيل وسائل دفع",
-    en: "No payment methods registered"
-  },
-  invoiceCount: {
-    ar: "عدد الفواتير",
-    en: "Invoice Count"
-  },
-  paymentHistory: {
-    ar: "سجل المدفوعات",
-    en: "Payment History"
-  },
-  noTransactions: {
-    ar: "لا توجد معاملات مالية حالياً",
-    en: "No financial transactions currently"
-  },
-  technicalSupport: {
-    ar: "الدعم الفني",
-    en: "Technical Support"
-  },
-  openNewTicket: {
-    ar: "فتح تذكرة جديدة",
-    en: "Open New Ticket"
-  },
-  subject: {
-    ar: "الموضوع",
-    en: "Subject"
-  },
-  message: {
-    ar: "الرسالة",
-    en: "Message"
-  },
-  describeIssue: {
-    ar: "اشرح مشكلتك بالتفصيل",
-    en: "Describe your issue in detail"
-  },
-  sendMessage: {
-    ar: "إرسال",
-    en: "Send"
-  },
-  supportTickets: {
-    ar: "تذاكر الدعم الفني",
-    en: "Support Tickets"
-  },
-  noTickets: {
-    ar: "لا توجد تذاكر دعم فني حالياً",
-    en: "No support tickets currently"
-  },
-  useFormNewTicket: {
-    ar: "استخدم النموذج لإنشاء تذكرة جديدة",
-    en: "Use the form to create a new ticket"
-  },
-  settingsSaved: {
-    ar: "تم حفظ التغييرات بنجاح",
-    en: "Changes saved successfully"
-  },
-  feedbackAndRating: {
-    ar: "التقييم والملاحظات",
-    en: "Feedback & Rating"
-  }
-};
