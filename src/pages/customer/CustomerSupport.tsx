@@ -1,4 +1,3 @@
-
 import React from 'react';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Card } from '@/components/ui/card';
@@ -6,12 +5,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Button } from '@/components/ui/button';
 import { Phone, Mail } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
-
 const CustomerSupportContent = () => {
-  const { t } = useLanguage();
-
-  return (
-    <div className="flex h-screen bg-gray-50">
+  const {
+    t
+  } = useLanguage();
+  return <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
         <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">{t('support')}</h1>
@@ -23,11 +21,8 @@ const CustomerSupportContent = () => {
               <Phone className="text-green-600 w-6 h-6" />
             </div>
             <h2 className="text-lg font-semibold mb-2">{t('callUs')}</h2>
-            <p className="text-sm mb-4">{t('contactPhone')}</p>
-            <Button 
-              variant="outline" 
-              onClick={() => window.open('tel:+966556160601')}
-            >
+            
+            <Button variant="outline" onClick={() => window.open('tel:+966556160601')}>
               {t('callUs')}
             </Button>
           </Card>
@@ -39,10 +34,7 @@ const CustomerSupportContent = () => {
             </div>
             <h2 className="text-lg font-semibold mb-2">{t('emailSupport')}</h2>
             <p className="text-sm mb-4">{t('contactEmail')}</p>
-            <Button 
-              variant="outline" 
-              onClick={() => window.open('mailto:support@safedropksa.com')}
-            >
+            <Button variant="outline" onClick={() => window.open('mailto:support@safedropksa.com')}>
               {t('emailSupport')}
             </Button>
           </Card>
@@ -85,16 +77,11 @@ const CustomerSupportContent = () => {
           </Accordion>
         </Card>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 const CustomerSupport = () => {
-  return (
-    <LanguageProvider>
+  return <LanguageProvider>
       <CustomerSupportContent />
-    </LanguageProvider>
-  );
+    </LanguageProvider>;
 };
-
 export default CustomerSupport;
