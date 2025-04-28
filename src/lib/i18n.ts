@@ -357,7 +357,7 @@ export const translations: Translations = {
     ar: "التقييم",
     en: "Rating"
   },
-   ctaTitle: {
+  ctaTitle: {
     ar: "ابدأ الآن في استخدام خدمات سيف دروب لتوصيل شحناتك بكل أمان",
     en: "Start using SafeDrop services now to deliver your shipments safely"
   },
@@ -474,7 +474,7 @@ export const translations: Translations = {
     en: "Verified Drivers"
   },
   verifiedDriversDescription: {
-    ar: "كل السائقين في منصتنا يمرون بعملية تحقق شاملة من بياناتهم ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
+    ar: "كل السائقين في منصتنا ��مرون بعملية تحقق شاملة من بياناتهم ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
     en: "All drivers on our platform undergo a comprehensive verification process of their credentials and licenses before acceptance. We ensure you deal with reliable and highly competent individuals."
   },
   licenseVerification: {
@@ -554,7 +554,7 @@ export const translations: Translations = {
     en: "Suitable for urgent orders"
   },
   startWithSafedrop: {
-    ar: "ابدأ رحلتك مع سيف دروب اليوم",
+    ar: "ابدأ رحلتك مع سيف دروب ال��وم",
     en: "Start your journey with SafeDrop today"
   },
   safeDeliveryExperience: {
@@ -621,7 +621,7 @@ export const translations: Translations = {
     ar: "نسعى دائمًا لتطوير خدماتنا وتقديم حلول مبتكرة تلبي احتياجات عملائنا المتنوعة.",
     en: "We always strive to develop our services and provide innovative solutions that meet the diverse needs of our customers."
   },
-   sendMessage: {
+  sendMessage: {
     ar: "أرسل لنا رسالة",
     en: "Send us a message"
   },
@@ -673,7 +673,7 @@ export const translations: Translations = {
     ar: "تحديث الصفحة",
     en: "Refresh Page"
   },
-   accountRejected: {
+  accountRejected: {
     ar: "تم رفض طلبك",
     en: "Your application was rejected"
   },
@@ -701,7 +701,7 @@ export const translations: Translations = {
     ar: "تم رفض طلبك كسائق مرتين متتاليتين. يرجى التواصل مع الدعم الفني لتقديم اعتراض أو استفسار",
     en: "Your driver application has been rejected twice in a row. Please contact support to file an appeal or inquiry"
   },
-   supportTitle: {
+  supportTitle: {
     ar: "الدعم والمساعدة",
     en: "Support & Help"
   },
@@ -765,7 +765,7 @@ export const translations: Translations = {
     ar: "تواصل مع فريق الدعم عبر البريد الإلكتروني أو صفحة \"اتصل بنا\".",
     en: "Contact our support team via email or through the 'Contact Us' page."
   },
-   contactPhone: {
+  contactPhone: {
     ar: "+966 55 616 0601",
     en: "+966 55 616 0601"
   },
@@ -878,7 +878,7 @@ export const translations: Translations = {
     en: "Error loading profile data"
   },
   errorUpdatingProfile: {
-    ar: "حدث خطأ أثناء تحديث البيانات",
+    ar: "حدث خطأ أثناء تحديث البي��نات",
     en: "Error updating profile data"
   },
   earningsTitle: {
@@ -913,7 +913,7 @@ export const translations: Translations = {
     ar: "حدث خطأ أثناء تحديث الإشعارات",
     en: "Error updating notifications"
   },
-   ratingsTitle: {
+  ratingsTitle: {
     ar: "التقييمات",
     en: "Ratings"
   },
@@ -967,3 +967,6 @@ export const translations: Translations = {
   },
   price: {
     ar: "السعر (ريال)",
+    en: "Price (SAR)"
+  }
+};
