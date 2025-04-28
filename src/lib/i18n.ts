@@ -1116,5 +1116,137 @@ export const translations: Translations = {
   notificationsTitle: {
     ar: "الإشعارات",
     en: "Notifications"
+  },
+  newOrder: {
+    ar: "طلب جديد",
+    en: "New Order"
+  },
+  pickupInfo: {
+    ar: "معلومات الاستلام",
+    en: "Pickup Information"
+  },
+  deliveryInfo: {
+    ar: "معلومات التوصيل",
+    en: "Delivery Information"
+  },
+  pickupAddress: {
+    ar: "عنوان الاستلام",
+    en: "Pickup Address"
+  },
+  deliveryAddress: {
+    ar: "عنوان التوصيل",
+    en: "Delivery Address"
+  },
+  additionalDetails: {
+    ar: "تفاصيل إضافية",
+    en: "Additional Details"
+  },
+  shipmentDetails: {
+    ar: "تفاصيل الشحنة",
+    en: "Shipment Details"
+  },
+  price: {
+    ar: "السعر (ريال)",
+    en: "Price (SAR)"
+  },
+  driverCommission: {
+    ar: "سيحصل السائق على 75% من السعر والمتبقي 15",
+    en: "Driver will receive 75% of the price and the remaining 15"
+  },
+  shipmentDescription: {
+    ar: "وصف الشحنة",
+    en: "Shipment Description"
+  },
+  contentDescription: {
+    ar: "وصف المحتويات، الحجم، الوزن التقريبي",
+    en: "Content description, size, approximate weight"
+  },
+  myOrders: {
+    ar: "طلباتي",
+    en: "My Orders"
+  },
+  activeOrders: {
+    ar: "الطلبات النشطة",
+    en: "Active Orders"
+  },
+  orderHistory: {
+    ar: "سجل الطلبات",
+    en: "Order History"
+  },
+  noActiveOrders: {
+    ar: "لا توجد طلبات نشطة حالياً",
+    en: "No active orders currently"
+  },
+  billingAndPayment: {
+    ar: "الفواتير والدفع",
+    en: "Billing & Payment"
+  },
+  totalPayments: {
+    ar: "إجمالي المدفوعات",
+    en: "Total Payments"
+  },
+  paymentMethod: {
+    ar: "وسيلة الدفع",
+    en: "Payment Method"
+  },
+  addPaymentMethod: {
+    ar: "تحتاج لإضافة وسيلة دفع",
+    en: "Need to add payment method"
+  },
+  noPaymentMethods: {
+    ar: "لم يتم تسجيل وسائل دفع",
+    en: "No payment methods registered"
+  },
+  invoiceCount: {
+    ar: "عدد الفواتير",
+    en: "Invoice Count"
+  },
+  paymentHistory: {
+    ar: "سجل المدفوعات",
+    en: "Payment History"
+  },
+  noTransactions: {
+    ar: "لا توجد معاملات مالية حالياً",
+    en: "No financial transactions currently"
+  },
+  technicalSupport: {
+    ar: "الدعم الفني",
+    en: "Technical Support"
+  },
+  openNewTicket: {
+    ar: "فتح تذكرة جديدة",
+    en: "Open New Ticket"
+  },
+  subject: {
+    ar: "الموضوع",
+    en: "Subject"
+  },
+  message: {
+    ar: "الرسالة",
+    en: "Message"
+  },
+  describeIssue: {
+    ar: "اشرح مشكلتك بالتفصيل",
+    en: "Describe your issue in detail"
+  },
+  sendMessage: {
+    ar: "إرسال",
+    en: "Send"
+  },
+  supportTickets: {
+    ar: "تذاكر الدعم الفني",
+    en: "Support Tickets"
+  },
+  noTickets: {
+    ar: "لا توجد تذاكر دعم فني حالياً",
+    en: "No support tickets currently"
+  },
+  useFormNewTicket: {
+    ar: "استخدم النموذج لإنشاء تذكرة جديدة",
+    en: "Use the form to create a new ticket"
+  },
+  settingsSaved: {
+    ar: "تم حفظ التغييرات بنجاح",
+    en: "Changes saved successfully"
   }
 };

@@ -13,56 +13,53 @@ const CustomerSidebar = () => {
   const { signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
-  const handleLogout = async () => {
-    await signOut();
-  };
-
   const menuItems = [
     {
       icon: <LayoutDashboard className="h-5 w-5" />,
-      label: language === 'ar' ? "لوحة المعلومات" : "Dashboard",
+      label: t('dashboard'),
       path: "/customer/dashboard"
     },
     {
       icon: <PlusCircle className="h-5 w-5" />,
-      label: language === 'ar' ? "طلب جديد" : "New Order",
+      label: t('createOrder'),
       path: "/customer/create-order"
     },
     {
       icon: <Package className="h-5 w-5" />,
-      label: language === 'ar' ? "طلباتي" : "My Orders",
+      label: t('myOrders'),
       path: "/customer/orders"
     },
     {
       icon: <CreditCard className="h-5 w-5" />,
-      label: language === 'ar' ? "الفواتير والدفع" : "Billing & Payment",
+      label: t('billingAndPayment'),
       path: "/customer/billing"
     },
     {
       icon: <UserIcon className="h-5 w-5" />,
-      label: language === 'ar' ? "الملف الشخصي" : "Profile",
+      label: t('profile'),
       path: "/customer/profile"
     },
     {
       icon: <MessageSquare className="h-5 w-5" />,
-      label: language === 'ar' ? "الدعم الفني" : "Technical Support",
+      label: t('technicalSupport'),
       path: "/customer/support"
     },
     {
       icon: <Star className="h-5 w-5" />,
-      label: language === 'ar' ? "التقييم والملاحظات" : "Feedback & Rating",
+      label: t('feedbackAndRating'),
       path: "/customer/feedback"
     },
     {
       icon: <Settings className="h-5 w-5" />,
-      label: language === 'ar' ? "الإعدادات" : "Settings",
+      label: t('settings'),
       path: "/customer/settings"
     }
   ];
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   return (
     <>
