@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
 import { MapPin, Mail, Instagram, Video, Ghost } from 'lucide-react';
@@ -115,7 +114,7 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-gray-700">
           <div className="flex flex-wrap justify-center gap-4 mb-4 text-sm text-gray-400">
             <Link to="/terms" className="hover:text-safedrop-gold transition-colors">
-              {language === 'ar' ? 'الشروط والأحكام' : 'Terms & Conditions'}
+              Terms & Conditions / الشروط والأحكام
             </Link>
           </div>
           <p className="text-center text-sm text-gray-400" dir="auto">
