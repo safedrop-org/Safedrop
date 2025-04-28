@@ -21,7 +21,7 @@ const CustomerSidebar = () => {
       label: t('New Order')
     },
     {
-      path: '/customer/my-orders',
+      path: '/customer/orders',
       icon: <Package className="h-5 w-5" />,
       label: t('My Orders')
     },
