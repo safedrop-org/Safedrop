@@ -14,7 +14,7 @@ const CustomerProfileContent = () => {
   const { data: profile, isLoading } = useProfile();
   const { user } = useAuth();
   const [saving, setSaving] = React.useState(false);
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [formData, setFormData] = React.useState({
     firstName: '',
     lastName: '',
