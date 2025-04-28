@@ -29,7 +29,7 @@ const LoginContent = () => {
     }
   }, [user]);
 
-  const redirectBasedOnProfile = async (userId) => {
+  const redirectBasedOnProfile = async (userId: string) => {
     try {
       console.log("Checking profile for user:", userId);
       const { data: profile, error } = await supabase
@@ -45,6 +45,7 @@ const LoginContent = () => {
       
       console.log("Found profile:", profile);
       
+      // Redirect based on user type
       if (profile?.user_type === 'admin') {
         localStorage.setItem('adminAuth', 'true');
         navigate('/admin/dashboard');
@@ -60,7 +61,7 @@ const LoginContent = () => {
     }
   };
 
-  const checkDriverStatus = async (userId) => {
+  const checkDriverStatus = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('drivers')
@@ -87,7 +88,7 @@ const LoginContent = () => {
     }
   };
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -153,9 +154,10 @@ const LoginContent = () => {
       
       toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
       
-      // Auth state change listener should handle the redirect
+      // Auth state change listener will handle the redirect
       // The redirectBasedOnProfile function will be called from the useEffect
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Login exception:', error);
       toast.error('فشل تسجيل الدخول: ' + (error.message || 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.'));
       setIsLoading(false);
