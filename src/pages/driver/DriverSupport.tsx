@@ -1,5 +1,5 @@
 
-import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
+import { useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import DriverSidebar from '@/components/driver/DriverSidebar';
@@ -11,7 +11,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const DriverSupportContent = () => {
+const DriverSupport = () => {
   const { t } = useLanguage();
 
   const faqItems = [
@@ -91,14 +91,6 @@ const DriverSupportContent = () => {
         </main>
       </div>
     </div>
-  );
-};
-
-const DriverSupport = () => {
-  return (
-    <LanguageProvider>
-      <DriverSupportContent />
-    </LanguageProvider>
   );
 };
 

@@ -2,9 +2,7 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import { AuthProvider } from '@/components/auth/AuthContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { LanguageProvider } from '@/components/ui/language-context'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -16,12 +14,11 @@ const queryClient = new QueryClient({
   },
 })
 
-createRoot(document.getElementById("root")!).render(
+const container = document.getElementById("root")
+const root = createRoot(container!)
+
+root.render(
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <LanguageProvider>
-        <App />
-      </LanguageProvider>
-    </AuthProvider>
+    <App />
   </QueryClientProvider>
-);
+)

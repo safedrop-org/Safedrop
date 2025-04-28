@@ -14,9 +14,18 @@ export const HeroSection = () => {
     }
   }, []);
   
-  return <div className="relative min-h-[85vh] flex items-center justify-center">
+  return (
+    <div className="relative min-h-[85vh] flex items-center justify-center">
       <div className="absolute inset-0 w-full h-full overflow-hidden bg-gray-800">
-        <video ref={videoRef} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" poster="https://images.unsplash.com/photo-1566576912333-261b896ef5cd?q=80&w=2070&auto=format&fit=crop">
+        <video 
+          ref={videoRef} 
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          className="absolute inset-0 w-full h-full object-cover" 
+          poster="https://images.unsplash.com/photo-1566576912333-261b896ef5cd?q=80&w=2070&auto=format&fit=crop"
+        >
           <source src="/mixkit-parcel-clerk-placing-boxes-on-a-loading-dolly-31267-hd-ready.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-black/50"></div>
@@ -42,5 +51,6 @@ export const HeroSection = () => {
           </Link>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };

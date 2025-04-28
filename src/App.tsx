@@ -2,6 +2,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { AuthProvider } from '@/components/auth/AuthContext';
+import { LanguageProvider } from '@/components/ui/language-context';
 
 // Public Pages
 import Home from './pages/Index';
@@ -47,7 +49,7 @@ import DriverSupport from './pages/driver/DriverSupport';
 import DriverSettings from './pages/driver/DriverSettings';
 
 // Auth Components
-import { useAuth, AuthProvider } from '@/components/auth/AuthContext';
+import { useAuth } from '@/components/auth/AuthContext';
 import ProtectedAdminRoute from '@/components/admin/ProtectedAdminRoute';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -293,11 +295,13 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <Router>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </Router>
+    <AuthProvider>
+      <LanguageProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </LanguageProvider>
+    </AuthProvider>
   );
 };
 
