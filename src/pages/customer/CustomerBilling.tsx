@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthContext';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { CreditCard, DollarSign, Receipt, AlertCircle } from 'lucide-react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -37,14 +36,14 @@ const CustomerBillingContent = () => {
         setTransactions(orders || []);
       } catch (error) {
         console.error('Error fetching billing data:', error);
-        toast.error('Error loading billing data');
+        toast.error(t('errorLoadingBillingData'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchTransactions();
-  }, [user]);
+  }, [user, t]);
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -69,9 +68,9 @@ const CustomerBillingContent = () => {
     };
     
     const statusTranslation = {
-      paid: "Paid",
-      pending: "Pending",
-      failed: "Failed"
+      paid: t('paid'),
+      pending: t('pending'),
+      failed: t('failed')
     };
 
     return (
@@ -85,7 +84,7 @@ const CustomerBillingContent = () => {
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">Billing & Payment</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">{t('Billing & Payment')}</h1>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -98,7 +97,7 @@ const CustomerBillingContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-safedrop-gold" />
-                    <span>Total Payments</span>
+                    <span>{t('Total Payments')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -110,12 +109,12 @@ const CustomerBillingContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <CreditCard className="h-5 w-5 text-safedrop-gold" />
-                    <span>Payment Method</span>
+                    <span>{t('Payment Method')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-lg">You need to add a payment method</p>
-                  <p className="text-sm text-gray-500">No payment methods registered</p>
+                  <p className="text-lg">{t('You need to add a payment method')}</p>
+                  <p className="text-sm text-gray-500">{t('No payment methods registered')}</p>
                 </CardContent>
               </Card>
               
@@ -123,7 +122,7 @@ const CustomerBillingContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Receipt className="h-5 w-5 text-safedrop-gold" />
-                    <span>Number of Invoices</span>
+                    <span>{t('Number of Invoices')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -134,7 +133,7 @@ const CustomerBillingContent = () => {
 
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-xl">Payment History</CardTitle>
+                <CardTitle className="text-xl">{t('Payment History')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {transactions.length > 0 ? (
@@ -142,10 +141,10 @@ const CustomerBillingContent = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice ID</th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('Invoice ID')}</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('Date')}</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('Amount')}</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('Payment Status')}</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -171,7 +170,7 @@ const CustomerBillingContent = () => {
                 ) : (
                   <div className="text-center py-10 text-gray-500">
                     <AlertCircle className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                    <p>No financial transactions currently</p>
+                    <p>{t('No financial transactions currently')}</p>
                   </div>
                 )}
               </CardContent>

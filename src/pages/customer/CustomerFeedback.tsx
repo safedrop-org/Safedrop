@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/components/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
@@ -30,7 +30,7 @@ const CustomerFeedbackContent = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !selectedOrder || !rating) {
-      toast.error('Please select an order and rating');
+      toast.error(t('pleaseSelectOrderRating'));
       return;
     }
 
@@ -53,7 +53,7 @@ const CustomerFeedbackContent = () => {
       }
 
       if (existingRating) {
-        toast.error('You have already rated this order');
+        toast.error(t('alreadyRatedOrder'));
         setSubmitting(false);
         return;
       }
@@ -74,7 +74,7 @@ const CustomerFeedbackContent = () => {
         throw error;
       }
 
-      toast.success('Your rating was submitted successfully');
+      toast.success(t('ratingSubmittedSuccess'));
       setSelectedOrder(null);
       setRating(null);
       setComment('');
@@ -84,7 +84,7 @@ const CustomerFeedbackContent = () => {
       queryClient.invalidateQueries({ queryKey: ['driver_ratings'] });
     } catch (error) {
       console.error('Error submitting rating:', error);
-      toast.error('Error submitting rating');
+      toast.error(t('errorSubmittingRating'));
     } finally {
       setSubmitting(false);
     }
@@ -117,15 +117,15 @@ const CustomerFeedbackContent = () => {
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">Ratings & Feedback</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">{t('Feedback & Rating')}</h1>
         
         <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Service Rating</h2>
+          <h2 className="text-xl font-semibold mb-4">{t('Service Rating')}</h2>
           {unratedCompletedOrders.length > 0 ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="order" className="block mb-1 font-semibold text-gray-700">
-                  Select order to rate
+                  {t('Select order to rate')}
                 </label>
                 <select 
                   id="order"
@@ -134,7 +134,7 @@ const CustomerFeedbackContent = () => {
                   onChange={(e) => setSelectedOrder(e.target.value)}
                   required
                 >
-                  <option value="">Select an order</option>
+                  <option value="">{t('Select an order')}</option>
                   {unratedCompletedOrders.map((order) => (
                     <option key={order.id} value={order.id}>
                       {formatDate(order.created_at)} - {order.driver?.first_name} {order.driver?.last_name}
@@ -144,7 +144,7 @@ const CustomerFeedbackContent = () => {
               </div>
 
               <div>
-                <label className="block mb-1 font-semibold text-gray-700">Rating</label>
+                <label className="block mb-1 font-semibold text-gray-700">{t('Rating')}</label>
                 <div className="flex gap-2 mb-2">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <button
@@ -165,13 +165,13 @@ const CustomerFeedbackContent = () => {
 
               <div>
                 <label htmlFor="comment" className="block mb-1 font-semibold text-gray-700">
-                  Comments (optional)
+                  {t('Comments (optional)')}
                 </label>
                 <Textarea
                   id="comment"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Add your comments about the service here"
+                  placeholder={t('Add your comments about the service here')}
                   rows={4}
                 />
               </div>
@@ -181,12 +181,12 @@ const CustomerFeedbackContent = () => {
                 className="w-full md:w-auto"
                 disabled={submitting || !rating || !selectedOrder}
               >
-                {submitting ? 'Submitting...' : 'Submit Rating'}
+                {submitting ? t('Submitting...') : t('Submit Rating')}
               </Button>
             </form>
           ) : (
             <div className="text-center py-10 text-gray-500">
-              <p>No completed orders available for rating</p>
+              <p>{t('No completed orders available for rating')}</p>
             </div>
           )}
         </Card>

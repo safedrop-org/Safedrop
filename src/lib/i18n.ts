@@ -1,138 +1,271 @@
-import { LanguageKey } from './language-key';
 
-export type Translations = {
-  [key: string]: {
-    ar: string;
-    en: string;
-  };
-};
+import { LanguageKey } from "./language-key";
 
-// Define translations for the application
-export const translations: Translations = {
-  siteTitle: {
-    ar: "سيف دروب",
-    en: "SafeDrop"
-  },
-  tagline: {
-    ar: "سجل الآن واستمتع بتجربة توصيل سريعة وآمنة للمقتنيات الثمينة",
-    en: "Register now and enjoy a fast and secure delivery experience for your valuables"
-  },
-  getStarted: {
-    ar: "ابدأ الآن",
-    en: "Get Started"
-  },
-  login: {
-    ar: "تسجيل الدخول",
-    en: "Log In"
-  },
-  register: {
-    ar: "إنشاء حساب",
-    en: "Register"
-  },
-  registering: {
-    ar: "جاري التسجيل...",
-    en: "Registering..."
-  },
-  customerRegister: {
-    ar: "تسجيل كعميل",
-    en: "Register as Customer"
-  },
-  driverRegister: {
-    ar: "تسجيل كسائق",
-    en: "Register as Driver"
-  },
-  admin: {
-    ar: "المشرف",
-    en: "Admin"
-  },
-  customer: {
-    ar: "العميل",
-    en: "Customer"
-  },
-  driver: {
-    ar: "السائق",
-    en: "Driver"
-  },
-  dashboard: {
-    ar: "لوحة المعلومات",
+// Translation keys for the entire application
+export const translations = {
+  // Authentication & Common UI
+  Dashboard: {
+    ar: "لوحة التحكم",
     en: "Dashboard"
   },
+  "New Order": {
+    ar: "طلب جديد",
+    en: "New Order"
+  },
+  "My Orders": {
+    ar: "طلباتي",
+    en: "My Orders"
+  },
+  "Billing & Payment": {
+    ar: "الفواتير والدفع",
+    en: "Billing & Payment"
+  },
+  Profile: {
+    ar: "الملف الشخصي",
+    en: "Profile"
+  },
+  "Technical Support": {
+    ar: "الدعم الفني",
+    en: "Technical Support"
+  },
+  "Feedback & Rating": {
+    ar: "التقييم والملاحظات",
+    en: "Feedback & Rating"
+  },
+  Settings: {
+    ar: "الإعدادات",
+    en: "Settings"
+  },
+  Logout: {
+    ar: "تسجيل الخروج",
+    en: "Logout"
+  },
+  
+  // Dashboard page
+  overview: {
+    ar: "نظرة عامة",
+    en: "Overview"
+  },
+  "Total Orders": {
+    ar: "إجمالي الطلبات",
+    en: "Total Orders"
+  },
+  "In Progress": {
+    ar: "قيد التنفيذ",
+    en: "In Progress"
+  },
+  Completed: {
+    ar: "مكتملة",
+    en: "Completed"
+  },
+  "Customer Dashboard": {
+    ar: "لوحة تحكم العميل",
+    en: "Customer Dashboard"
+  },
+
+  // Billing Page
+  "Number of Invoices": {
+    ar: "عدد الفواتير",
+    en: "Number of Invoices"
+  },
+  "Payment Method": {
+    ar: "طريقة الدفع",
+    en: "Payment Method"
+  },
+  "You need to add a payment method": {
+    ar: "تحتاج إلى إضافة طريقة دفع",
+    en: "You need to add a payment method"
+  },
+  "No payment methods registered": {
+    ar: "لم يتم تسجيل طرق دفع",
+    en: "No payment methods registered"
+  },
+  "Total Payments": {
+    ar: "إجمالي المدفوعات",
+    en: "Total Payments"
+  },
+  "Payment History": {
+    ar: "سجل المدفوعات",
+    en: "Payment History"
+  },
+  "No financial transactions currently": {
+    ar: "لا توجد معاملات مالية حالياً",
+    en: "No financial transactions currently"
+  },
+  "Invoice ID": {
+    ar: "رقم الفاتورة",
+    en: "Invoice ID"
+  },
+  Date: {
+    ar: "التاريخ",
+    en: "Date"
+  },
+  Amount: {
+    ar: "المبلغ",
+    en: "Amount"
+  },
+  "Payment Status": {
+    ar: "حالة الدفع",
+    en: "Payment Status"
+  },
+  
+  // Orders Page
   orders: {
     ar: "الطلبات",
     en: "Orders"
   },
-  createOrder: {
-    ar: "طلب جديد",
-    en: "Create Order"
+  "Active Orders": {
+    ar: "الطلبات النشطة",
+    en: "Active Orders"
   },
-  trackOrder: {
-    ar: "تتبع الطلب",
-    en: "Track Order"
+  "Order History": {
+    ar: "سجل الطلبات",
+    en: "Order History"
   },
-  profile: {
-    ar: "الملف الشخصي",
-    en: "Profile"
+  "Order ID": {
+    ar: "رقم الطلب",
+    en: "Order ID"
   },
-  ratings: {
-    ar: "التقييمات",
-    en: "Ratings"
+  orderDate: {
+    ar: "تاريخ الطلب",
+    en: "Order Date"
   },
-  earnings: {
-    ar: "الأرباح",
-    en: "Earnings"
+  from: {
+    ar: "من",
+    en: "From"
   },
-  notifications: {
-    ar: "الإشعارات",
-    en: "Notifications"
+  to: {
+    ar: "إلى",
+    en: "To"
   },
-  support: {
-    ar: "الدعم والمساعدة",
-    en: "Support & Help"
+  Driver: {
+    ar: "السائق",
+    en: "Driver"
   },
-  settings: {
-    ar: "الإعدادات",
-    en: "Settings"
+  Status: {
+    ar: "الحالة",
+    en: "Status"
   },
-  logout: {
-    ar: "تسجيل الخروج",
-    en: "Logout"
+  Actions: {
+    ar: "الإجراءات",
+    en: "Actions"
   },
-  services: {
-    ar: "خدماتنا",
-    en: "Our Services"
+  "Order Received": {
+    ar: "تم الاستلام",
+    en: "Order Received"
   },
-  about: {
-    ar: "من نحن",
-    en: "About Us"
+  available: {
+    ar: "متاح",
+    en: "Available"
   },
-  contact: {
-    ar: "اتصل بنا",
-    en: "Contact Us"
-  },
-  footer: {
-    ar: "جميع الحقوق محفوظة © سيف دروب 2025",
-    en: "All rights reserved © SafeDrop 2025"
-  },
-  pending: {
-    ar: "قيد الانتظار",
-    en: "Pending"
-  },
-  approved: {
-    ar: "تمت الموافقة",
-    en: "Approved"
-  },
-  rejected: {
-    ar: "مرفوض",
-    en: "Rejected"
+  pickedUp: {
+    ar: "تم الاستلام",
+    en: "Picked Up"
   },
   inTransit: {
-    ar: "قيد التوصيل",
+    ar: "في الطريق",
     en: "In Transit"
   },
-  delivered: {
-    ar: "تم التوصيل",
-    en: "Delivered"
+  approaching: {
+    ar: "يقترب",
+    en: "Approaching"
   },
+  completed: {
+    ar: "مكتمل",
+    en: "Completed"
+  },
+  cancelled: {
+    ar: "ملغي",
+    en: "Cancelled"
+  },
+  loading: {
+    ar: "جاري التحميل",
+    en: "Loading"
+  },
+  noCurrentOrders: {
+    ar: "لا توجد طلبات حالية",
+    en: "No current orders"
+  },
+  
+  // Create Order Page
+  createOrder: {
+    ar: "إنشاء طلب",
+    en: "Create Order"
+  },
+  pickupInfo: {
+    ar: "معلومات الاستلام",
+    en: "Pickup Information"
+  },
+  pickupAddress: {
+    ar: "عنوان الاستلام",
+    en: "Pickup Address"
+  },
+  enterPickupAddress: {
+    ar: "أدخل عنوان الاستلام",
+    en: "Enter pickup address"
+  },
+  additionalDetails: {
+    ar: "تفاصيل إضافية",
+    en: "Additional Details"
+  },
+  buildingNumFloor: {
+    ar: "رقم المبنى/الطابق",
+    en: "Building number/Floor"
+  },
+  deliveryInfo: {
+    ar: "معلومات التوصيل",
+    en: "Delivery Information"
+  },
+  deliveryAddress: {
+    ar: "عنوان التوصيل",
+    en: "Delivery Address"
+  },
+  enterDeliveryAddress: {
+    ar: "أدخل عنوان التوصيل",
+    en: "Enter delivery address"
+  },
+  shipmentDetails: {
+    ar: "تفاصيل الشحنة",
+    en: "Shipment Details"
+  },
+  price: {
+    ar: "السعر",
+    en: "Price"
+  },
+  driverCommission: {
+    ar: "عمولة السائق 15%",
+    en: "Driver commission 15%"
+  },
+  packageDescription: {
+    ar: "وصف الطرد",
+    en: "Package Description"
+  },
+  contentsSizeWeight: {
+    ar: "المحتويات/الحجم/الوزن",
+    en: "Contents/Size/Weight"
+  },
+  driverNotes: {
+    ar: "ملاحظات للسائق",
+    en: "Notes for Driver"
+  },
+  specialInstructions: {
+    ar: "تعليمات خاصة",
+    en: "Special instructions"
+  },
+  cancel: {
+    ar: "إلغاء",
+    en: "Cancel"
+  },
+  sending: {
+    ar: "جاري الإرسال",
+    en: "Sending"
+  },
+  submitOrder: {
+    ar: "إرسال الطلب",
+    en: "Submit Order"
+  },
+  
+  // Profile Page
   firstName: {
     ar: "الاسم الأول",
     en: "First Name"
@@ -145,294 +278,70 @@ export const translations: Translations = {
     ar: "البريد الإلكتروني",
     en: "Email"
   },
-  emailPlaceholder: {
-    ar: "أدخل بريدك الإلكتروني",
-    en: "Enter your email"
-  },
   phone: {
     ar: "رقم الهاتف",
     en: "Phone Number"
   },
-  phonePlaceholder: {
-    ar: "أدخل رقم هاتفك",
-    en: "Enter your phone number"
+  address: {
+    ar: "العنوان",
+    en: "Address"
   },
-  password: {
-    ar: "كلمة المرور",
-    en: "Password"
+  saveChanges: {
+    ar: "حفظ التغييرات",
+    en: "Save Changes"
   },
-  alreadyHaveAccount: {
-    ar: "لديك حساب بالفعل؟",
-    en: "Already have an account?"
+  savingChanges: {
+    ar: "جاري الحفظ...",
+    en: "Saving Changes..."
   },
-  registrationSuccess: {
-    ar: "تم التسجيل بنجاح",
-    en: "Registration Successful"
+  profileUpdatedSuccessfully: {
+    ar: "تم تحديث الملف الشخصي بنجاح",
+    en: "Profile updated successfully"
   },
-  registrationSuccessDescription: {
-    ar: "تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول.",
-    en: "Your account has been created successfully. You can now log in."
+  errorUpdatingProfile: {
+    ar: "حدث خطأ أثناء تحديث الملف الشخصي",
+    en: "Error updating profile"
   },
-  registrationError: {
-    ar: "خطأ في التسجيل",
-    en: "Registration Error"
+  
+  // Feedback & Rating Page
+  "Service Rating": {
+    ar: "تقييم الخدمة",
+    en: "Service Rating" 
   },
-  nationalId: {
-    ar: "رقم الهوية",
-    en: "National ID"
+  "Select order to rate": {
+    ar: "اختر طلب للتقييم",
+    en: "Select order to rate"
   },
-  nationalIdPlaceholder: {
-    ar: "أدخل رقم الهوية",
-    en: "Enter your national ID"
+  "Select an order": {
+    ar: "اختر طلباً",
+    en: "Select an order"
   },
-  licenseNumber: {
-    ar: "رقم الرخصة",
-    en: "License Number"
-  },
-  licenseNumberPlaceholder: {
-    ar: "أدخل رقم الرخصة",
-    en: "Enter your license number"
-  },
-  nationalIdDocument: {
-    ar: "صورة الهوية",
-    en: "National ID Document"
-  },
-  licenseDocument: {
-    ar: "صورة الرخصة",
-    en: "License Document"
-  },
-  vehicleMake: {
-    ar: "نوع السيارة",
-    en: "Vehicle Make"
-  },
-  vehicleMakePlaceholder: {
-    ar: "أدخل نوع السيارة",
-    en: "Enter vehicle make"
-  },
-  vehicleModel: {
-    ar: "موديل السيارة",
-    en: "Vehicle Model"
-  },
-  vehicleModelPlaceholder: {
-    ar: "أدخل موديل السيارة",
-    en: "Enter vehicle model"
-  },
-  vehicleYear: {
-    ar: "سنة الصنع",
-    en: "Vehicle Year"
-  },
-  vehicleYearPlaceholder: {
-    ar: "أدخل سنة الصنع",
-    en: "Enter vehicle year"
-  },
-  plateNumber: {
-    ar: "رقم اللوحة",
-    en: "Plate Number"
-  },
-  plateNumberPlaceholder: {
-    ar: "أدخل رقم اللوحة",
-    en: "Enter plate number"
-  },
-  driverRegistrationPendingDescription: {
-    ar: "تم تقديم طلب التسجيل بنجاح. سيتم مراجعة طلبك من قبل الإدارة.",
-    en: "Your registration has been submitted successfully. Your application will be reviewed by our team."
-  },
-  blacklistedMessage: {
-    ar: "عذراً، لا يمكن إكمال التسجيل. يرجى التواصل مع خدمة العملاء.",
-    en: "Sorry, registration cannot be completed. Please contact customer support."
-  },
-  registrationBlocked: {
-    ar: "تم حظر التسجيل",
-    en: "Registration Blocked"
-  },
-  adminLogin: {
-    ar: "تسجيل دخول المشرف",
-    en: "Admin Login"
-  },
-  adminDashboard: {
-    ar: "لوحة تحكم المشرف",
-    en: "Admin Dashboard"
-  },
-  customerDashboard: {
-    ar: "لوحة تحكم العميل",
-    en: "Customer Dashboard"
-  },
-  driverDashboard: {
-    ar: "لوحة تحكم السائق",
-    en: "Driver Dashboard"
-  },
-  overview: {
-    ar: "نظرة عامة",
-    en: "Overview"
-  },
-  activeOrders: {
-    ar: "الطلبات النشطة",
-    en: "Active Orders"
-  },
-  orderHistory: {
-    ar: "سجل الطلبات",
-    en: "Order History"
-  },
-  loginSuccess: {
-    ar: "تم تسجيل الدخول بنجاح",
-    en: "Login Successful"
-  },
-  loginFailed: {
-    ar: "فشل تسجيل الدخول",
-    en: "Login Failed"
-  },
-  status: {
-    ar: "الحالة",
-    en: "Status"
-  },
-  actions: {
-    ar: "الإجراءات",
-    en: "Actions"
-  },
-  viewDetails: {
-    ar: "عرض التفاصيل",
-    en: "View Details"
-  },
-  totalOrders: {
-    ar: "إجمالي الطلبات",
-    en: "Total Orders"
-  },
-  revenue: {
-    ar: "الإيرادات",
-    en: "Revenue"
-  },
-  availableOrders: {
-    ar: "طلبات متاحة",
-    en: "Available Orders"
-  },
-  currentOrders: {
-    ar: "الطلبات الحالية",
-    en: "Current Orders"
-  },
-  myVehicle: {
-    ar: "مركبتي",
-    en: "My Vehicle"
-  },
-  accept: {
-    ar: "قبول",
-    en: "Accept"
-  },
-  reject: {
-    ar: "رفض",
-    en: "Reject"
-  },
-  available: {
-    ar: "متاح",
-    en: "Available"
-  },
-  unavailable: {
-    ar: "غير متاح",
-    en: "Unavailable"
-  },
-  from: {
-    ar: "من",
-    en: "From"
-  },
-  to: {
-    ar: "إلى",
-    en: "To"
-  },
-  distance: {
-    ar: "المسافة",
-    en: "Distance"
-  },
-  amount: {
-    ar: "المبلغ",
-    en: "Amount"
-  },
-  order: {
-    ar: "الطلب",
-    en: "Order"
-  },
-  date: {
-    ar: "التاريخ",
-    en: "Date"
-  },
-  rating: {
+  Rating: {
     ar: "التقييم",
     en: "Rating"
   },
-  ctaTitle: {
-    ar: "ابدأ الآن في استخدام خدمات سيف دروب لتوصيل شحناتك بكل أمان",
-    en: "Start using SafeDrop services now to deliver your shipments safely"
+  "Comments (optional)": {
+    ar: "التعليقات (اختياري)",
+    en: "Comments (optional)"
   },
-  ctaDescription: {
-    ar: " سجل الآن واستمتع بتجربة توصيل سريعة وآمنة للمقتنيات الثمينة",
-    en: "Register now and enjoy a fast and secure delivery experience"
+  "Add your comments about the service here": {
+    ar: "أضف تعليقاتك حول الخدمة هنا",
+    en: "Add your comments about the service here"
   },
-  heroTitle: {
-    ar: "توصيل سريع وآمن للمقتنيات الثمينة",
-    en: "Fast and secure delivery for valuable items"
+  "Submitting...": {
+    ar: "جاري الإرسال...",
+    en: "Submitting..."
   },
-  footerDescription: {
-    ar: "توصيل آمن وأمن ومحمي للأشياء الثمينة",
-    en: "Secure and protected delivery for valuable items"
+  "Submit Rating": {
+    ar: "إرسال التقييم",
+    en: "Submit Rating"
   },
-  parcelDelivery: {
-    ar: "توصيل الطرود",
-    en: "Parcel Delivery"
+  "No completed orders available for rating": {
+    ar: "لا توجد طلبات مكتملة متاحة للتقييم",
+    en: "No completed orders available for rating"
   },
-  transactionProtection: {
-    ar: "حماية المعاملات",
-    en: "Transaction Protection"
-  },
-  shipmentTracking: {
-    ar: "تتبع الشحنات",
-    en: "Shipment Tracking"
-  },
-  expressDelivery: {
-    ar: "التوصيل السريع",
-    en: "Express Delivery"
-  },
-  termsAndConditions: {
-    ar: "الشروط والأحكام",
-    en: "Terms & Conditions"
-  },
-  location: {
-    ar: "المملكة العربية السعودية، الرياض",
-    en: "Saudi Arabia"
-  },
-  notificationSettings: {
-    ar: "إعدادات الإشعارات",
-    en: "Notification Settings"
-  },
-  orderNotifications: {
-    ar: "إشعارات الطلبات",
-    en: "Order Notifications"
-  },
-  messageNotifications: {
-    ar: "إشعارات الرسائل",
-    en: "Message Notifications"
-  },
-  earningsNotifications: {
-    ar: "إشعارات الأرباح",
-    en: "Earnings Notifications"
-  },
-  systemNotifications: {
-    ar: "إشعارات التحديثات",
-    en: "System Updates"
-  },
-  receiveOrderNotifications: {
-    ar: "استلام إشعارات عن الطلبات الجديدة",
-    en: "Receive notifications about new orders"
-  },
-  receiveMessageNotifications: {
-    ar: "استلام إشعارات عن الرسائل الجديدة",
-    en: "Receive notifications about new messages"
-  },
-  receiveEarningsNotifications: {
-    ar: "استلام إشعارات عن الأرباح والمدفوعات",
-    en: "Receive notifications about earnings and payments"
-  },
-  receiveUpdateNotifications: {
-    ar: "استلام إشعارات عن تحديثات النظام",
-    en: "Receive notifications about system updates"
-  },
+  
+  // Settings Page
   languageSettings: {
     ar: "إعدادات اللغة",
     en: "Language Settings"
@@ -441,532 +350,74 @@ export const translations: Translations = {
     ar: "اللغة المفضلة",
     en: "Preferred Language"
   },
-  securitySettings: {
-    ar: "الأمان والخصوصية",
-    en: "Security & Privacy"
-  },
-  changePassword: {
-    ar: "تغيير كلمة المرور",
-    en: "Change Password"
-  },
-  twoFactorAuth: {
-    ar: "تفعيل التحقق بخطوتين",
-    en: "Enable Two-Factor Authentication"
-  },
-  connectedDevices: {
-    ar: "إدارة الأجهزة المتصلة",
-    en: "Manage Connected Devices"
-  },
-  darkMode: {
-    ar: "الوضع الليلي",
-    en: "Dark Mode"
-  },
-  enableDarkMode: {
-    ar: "تفعيل المظهر الداكن للتطبيق",
-    en: "Enable dark mode for the application"
-  },
-  saveChanges: {
-    ar: "حفظ التغييرات",
-    en: "Save Changes"
-  },
-  verifiedDrivers: {
-    ar: "سائقون معتمدون",
-    en: "Verified Drivers"
-  },
-  verifiedDriversDescription: {
-    ar: "كل السائين في منصتنا مرون بعملية تحقق شاملة من بياناتهم ورخصهم قبل قبولهم. نضمن لك التعامل مع أشخاص موثوقين وذوي كفاءة عالية.",
-    en: "All drivers on our platform undergo a comprehensive verification process of their credentials and licenses before acceptance. We ensure you deal with reliable and highly competent individuals."
-  },
-  licenseVerification: {
-    ar: "تحقق من الرخصة والهوية",
-    en: "License and ID verification"
-  },
-  publicRatings: {
-    ar: "تقييمات علنية من العملاء",
-    en: "Public ratings from customers"
-  },
-  professionalService: {
-    ar: "خدمة احترافية وآمنة",
-    en: "Professional and secure service"
-  },
-  servicesHeroTitle: {
-    ar: "خدماتنا",
-    en: "Our Services"
-  },
-  servicesHeroDescription: {
-    ar: "نقدم مجموعة من الخدمات المتكاملة للوصول لتوصيل سريع وآمن للمقتنيات الثمينة",
-    en: "We provide a comprehensive range of integrated services for fast and secure delivery of valuable items"
-  },
-  registerAsCustomer: {
-    ar: "تسجيل كعميل",
-    en: "Register as Customer"
-  },
-  registerAsDriver: {
-    ar: "تسجيل كسائق",
-    en: "Register as Driver"
-  },
-  parcelDeliveryDescription: {
-    ar: "نقدّم خدمة توصيل الطرود بكل أمان وسرعة إلى باب العميل، مع تحديثات مستمرة، لضمان أن تصل شحنتك بحالة ممتازة وفي الوقت الذي تريده تمامًا.",
-    en: "We provide a secure and fast parcel delivery service to your doorstep, with continuous updates, ensuring your shipment arrives in excellent condition exactly when you want it."
-  },
-  allAreas: {
-    ar: "التوصيل إلى جميع المناطق في السعودية",
-    en: "Delivery to all areas in Saudi Arabia"
-  },
-  securePacking: {
-    ar: "تغليف آمن ومحكم",
-    en: "Secure and tight packaging"
-  },
-  directDelivery: {
-    ar: "تسليم مباشر للمستلم",
-    en: "Direct delivery to recipient"
-  },
-  transactionProtectionDescription: {
-    ar: "نؤمن تعاملاتك من خلال نظام ضمان مالي (Escrow) يحفظ أموالك حتى يتم تأكيد استلام الطرد، مما يوفّر تجربة موثوقة وعادلة للطرفين ويمنع أي محاولة احتيال أو تلاعب.",
-    en: "We secure your transactions through an Escrow system that protects your money until package delivery is confirmed, providing a reliable and fair experience for both parties and preventing any fraud attempts."
-  },
-  fraudProtection: {
-    ar: "حماية من الاحتيال",
-    en: "Fraud Protection"
-  },
-  paymentConfirmation: {
-    ar: "تأكيد قبل تحرير الدفع",
-    en: "Confirmation before payment release"
-  },
-  trustedSystem: {
-    ar: "نظام موثوق ومعتمد",
-    en: "Trusted and certified system"
-  },
-  expressDeliveryDescription: {
-    ar: "نوفّر لك خدمة توصيل سريعة وفعالة في نفس اليوم أو خلال ساعات، لتلبية احتياجاتك الطارئة بسهولة واحترافية مع أولوية كاملة في التنفيذ والتوصيل.",
-    en: "We provide you with fast and efficient same-day or within-hours delivery service, meeting your urgent needs easily and professionally with full priority in execution and delivery."
-  },
-  sameDayDelivery: {
-    ar: "تسليم بنفس اليوم",
-    en: "Same-day delivery"
-  },
-  executionPriority: {
-    ar: "أولوية في التنفيذ",
-    en: "Priority in execution"
-  },
-  suitableForUrgentOrders: {
-    ar: "مناسب للطلبات المستعجلة",
-    en: "Suitable for urgent orders"
-  },
-  startWithSafedrop: {
-    ar: "ابدأ رحلتك مع سيف دروب الوم",
-    en: "Start your journey with SafeDrop today"
-  },
-  safeDeliveryExperience: {
-    ar: "سجل الآن واستمتع بتجربة توصيل آمنة ومضمونة لطرودك الثمينة",
-    en: "Register now and enjoy a safe and guaranteed delivery experience for your valuable packages"
-  },
-  aboutHero: {
-    ar: "من نحن",
-    en: "About Us"
-  },
-  aboutDescription: {
-    ar: "سيف دروب هي منصة متخصصة في توفير خدمات توصيل سريع وآمن للمقتنيات الثمينة",
-    en: "SafeDrop is a specialized platform providing fast and secure delivery services for valuable items"
-  },
-  ourStory: {
-    ar: "قصتنا",
-    en: "Our Story"
-  },
-  ourStoryDescription1: {
-    ar: "جاءت فكرتنا من حاجة حقيقية لنظام توصيل يحمي الممتلكات الشخصية ويوفر للناس راحة البال. أردنا تقديم تجربة مختلفة وأكثر أمانًا وشفافية من الطرق التقليدية.",
-    en: "Our idea came from a real need for a delivery system that protects personal property and provides people with peace of mind. We wanted to offer a different experience, more secure and transparent than traditional methods."
-  },
-  ourStoryDescription2: {
-    ar: "أنشأنا SafeDrop لنكون حلًا موثوقًا لكل من يحتاج إلى توصيل آمن وسهل. اعتمدنا على البساطة، الوضوح، ونظام حماية مالي لضمان حقوق الجميع.",
-    en: "We created SafeDrop to be a reliable solution for anyone who needs secure and easy delivery. We relied on simplicity, clarity, and a financial protection system to ensure everyone's rights."
-  },
-  ourValues: {
-    ar: "قيمنا",
-    en: "Our Values"
-  },
-  ourValuesDescription: {
-    ar: "المبادئ التي نعمل بها كل يوم",
-    en: "The principles we work with every day"
-  },
-  security: {
-    ar: "الأمان",
-    en: "Security"
-  },
-  securityDescription: {
-    ar: "نضع أمان العملاء والمنتجات في مقدمة أولوياتنا ونتخذ كافة الإجراءات لضمان حماية كاملة.",
-    en: "We put customer and product safety at the forefront of our priorities. We take all measures to ensure complete protection."
-  },
-  quality: {
-    ar: "الجودة",
-    en: "Quality"
-  },
-  qualityDescription: {
-    ar: "نلتزم بتقديم خدمة عالية الجودة في كل تفاصيلها، من اختيار السائقين إلى تسليم الشحنات.",
-    en: "We are committed to providing high-quality service in all its details, from selecting drivers to delivering shipments."
-  },
-  transparency: {
-    ar: "الشفافية",
-    en: "Transparency"
-  },
-  transparencyDescription: {
-    ar: "نؤمن بالشفافية التامة في تعاملاتنا ونوفر متابعة مستمرة ومعلومات واضحة في كل مرحلة.",
-    en: "We believe in complete transparency in our dealings. We provide continuous monitoring and clear information at every stage."
-  },
-  innovation: {
-    ar: "الابتكار",
-    en: "Innovation"
-  },
-  innovationDescription: {
-    ar: "نسعى دائمًا لتطوير خدماتنا وتقديم حلول مبتكرة تلبي احتياجات عملائنا المتنوعة.",
-    en: "We always strive to develop our services and provide innovative solutions that meet the diverse needs of our customers."
-  },
-  sendMessage: {
-    ar: "أرسل لنا رسالة",
-    en: "Send us a message"
-  },
-  fullName: {
-    ar: "الاسم الكامل",
-    en: "Full Name"
-  },
-  messageSubject: {
-    ar: "موضوع الرسالة",
-    en: "Message Subject"
-  },
-  messageContent: {
-    ar: "الرسالة",
-    en: "Message"
-  },
-  messageSent: {
-    ar: "تم إرسال رسالتك نجاح",
-    en: "Your message has been sent successfully"
-  },
-  messageWillReply: {
-    ar: "سنتواصل معك في أقرب وقت ممكن",
-    en: "We will contact you as soon as possible"
-  },
-  sending: {
-    ar: "جاري الإرسال...",
-    en: "Sending..."
-  },
-  workingHours: {
-    ar: "ساعات العمل",
-    en: "Working Hours"
-  },
-  workingDays: {
-    ar: "الأحد - السبت : 9:00 ص - 9:00 م",
-    en: "Sunday - Saturday: 9:00 AM - 9:00 PM"
-  },
-  loading: {
-    ar: "جاري التحميل...",
-    en: "Loading..."
-  },
-  systemError: {
-    ar: "خطأ في النظام",
-    en: "System Error"
-  },
-  errorLoadingAccount: {
-    ar: "حدث خطأ عند جلب بيانات الحساب",
-    en: "Error loading account data"
-  },
-  refreshPage: {
-    ar: "تحديث الصفحة",
-    en: "Refresh Page"
-  },
-  accountRejected: {
-    ar: "تم رفض طلبك",
-    en: "Your application was rejected"
-  },
-  accountRejectedDesc: {
-    ar: "للأسف، تم رفض طلب انضمامك كسائق في منصة سيف دروب",
-    en: "Unfortunately, your application to join SafeDrop as a driver has been rejected"
-  },
-  rejectionReason: {
-    ar: "سبب الرفض:",
-    en: "Rejection reason:"
-  },
-  reapplyNote: {
-    ar: "يمكنك تعديل بياناتك وإعادة التقديم مرة واحدة",
-    en: "You can modify your information and reapply once"
-  },
-  reapply: {
-    ar: "إعادة التقديم",
-    en: "Reapply"
-  },
-  accountFrozen: {
-    ar: "الحساب مجمد مؤقتاً",
-    en: "Account temporarily frozen"
-  },
-  accountFrozenDesc: {
-    ar: "تم رفض طلبك كسائق مرتين متتاليتين. يرجى التواصل مع الدعم الفني لتقديم اعتراض أو استفسار",
-    en: "Your driver application has been rejected twice in a row. Please contact support to file an appeal or inquiry"
-  },
-  supportTitle: {
+  settings: {
+    ar: "الإعدادات",
+    en: "Settings" 
+  },
+  
+  // Support Page
+  support: {
     ar: "الدعم والمساعدة",
-    en: "Support & Help"
+    en: "Support"
   },
   callUs: {
     ar: "اتصل بنا",
     en: "Call Us"
   },
-  emailSupport: {
-    ar: "البريد الإلكتروني",
-    en: "Email Support"
-  },
-  faqTitle: {
-    ar: "الأسئلة الشائعة",
-    en: "Frequently Asked Questions"
-  },
-  updateVehicleInfo: {
-    ar: "كيف يمكنني تحديث معلومات مركبتي؟",
-    en: "How can I update my vehicle information?"
-  },
-  updateVehicleAnswer: {
-    ar: "يمكنك تحديث معلومات مركبتك من خلال الذهاب إلى صفحة 'مركبتي' في لوحة التحكم.",
-    en: "You can update your vehicle information by going to the 'My Vehicle' page in your dashboard."
-  },
-  earningsTransfer: {
-    ar: "متى يتم تحويل الأرباح؟",
-    en: "When are earnings transferred?"
-  },
-  earningsTransferAnswer: {
-    ar: "يتم تحويل الأرباح بشكل أسبوعي كل يوم خميس.",
-    en: "Earnings are transferred weekly every Thursday."
-  },
-  reportIssueQuestion: {
-    ar: "كيف يمكنني الإبلاغ عن مشكلة في طلب؟",
-    en: "How can I report an issue with an order?"
-  },
-  reportIssueAnswer: {
-    ar: "يمكنك الإبلاغ عن المشكلة من خلال الضغط على زر 'الإبلاغ' في تفاصيل الطلب.",
-    en: "You can report an issue by clicking the 'Report' button in the order details."
-  },
-  withdrawEarningsQuestion: {
-    ar: "كيف أسحب أرباحي؟",
-    en: "How can I withdraw my earnings?"
-  },
-  withdrawEarningsAnswer: {
-    ar: "يمكنك سحب أرباحك عبر إعدادات الحساب وإدخال بياناتك البنكية.",
-    en: "You can withdraw your earnings through account settings by entering your bank details."
-  },
-  updateOrderStatusQuestion: {
-    ar: "كيف يمكنني تحديث حالت أمام العميل؟",
-    en: "How can I update my status for the customer?"
-  },
-  updateOrderStatusAnswer: {
-    ar: "عند تحديث حالة الطلب (مثل \"جار التوصيل\" أو \"تم التوصيل\") من خلال التطبيق، يتم إشعار العميل بحالة الشحنة",
-    en: "When updating the order status (such as 'In Delivery' or 'Delivered') through the app, the customer is notified of the shipment status."
-  },
-  troubleshootingQuestion: {
-    ar: "ماذا أفعل عند مواجهة مشكلة؟",
-    en: "What should I do when encountering a problem?"
-  },
-  troubleshootingAnswer: {
-    ar: "تواصل مع فريق الدعم عبر البريد الإلكتروني أو صفحة \"اتصل بنا\".",
-    en: "Contact our support team via email or through the 'Contact Us' page."
-  },
   contactPhone: {
     ar: "+966 55 616 0601",
     en: "+966 55 616 0601"
+  },
+  emailSupport: {
+    ar: "البريد الإلكتروني",
+    en: "Email Support"
   },
   contactEmail: {
     ar: "support@safedropksa.com",
     en: "support@safedropksa.com"
   },
-  manageOrders: {
-    ar: "إدارة الطلبات",
-    en: "Manage Orders"
+  faqTitle: {
+    ar: "الأسئلة الشائعة",
+    en: "Frequently Asked Questions"
   },
-  availableForOrders: {
-    ar: "متاح",
-    en: "Available"
+  trackOrder: {
+    ar: "كيف أتابع حالة طلبي؟",
+    en: "How do I track my order?"
   },
-  notAvailableForOrders: {
-    ar: "غير متاح",
-    en: "Not Available"
+  trackOrderAnswer: {
+    ar: "يمكن للعميل متابعة حالة الطلب بناءً على تحديثات السائق لحالته أثناء الرحلة.",
+    en: "Customers can track the order status based on driver updates during the trip."
   },
-  currentOrdersTab: {
-    ar: "الطلبات الحالية",
-    en: "Current Orders"
+  needHelpOrder: {
+    ar: "ماذا أفعل إذا احتجت للمساعدة بخصوص طلبي؟",
+    en: "What should I do if I need help with my order?"
   },
-  availableOrdersTab: {
-    ar: "طلبات متاحة",
-    en: "Available Orders"
+  needHelpOrderAnswer: {
+    ar: "يمكنك التواصل مع فريق الدعم عبر التطبيق أو البريد الإلكتروني في أي وقت.",
+    en: "You can contact our support team through the app or email at any time."
   },
-  completedOrdersTab: {
-    ar: "مكتملة",
-    en: "Completed"
+  contactDriver: {
+    ar: "هل يمكنني التواصل مع السائق أثناء التوصيل؟",
+    en: "Can I contact the driver during delivery?"
   },
-  noCurrentOrders: {
-    ar: "لا توجد طلبات حالية",
-    en: "No current orders"
+  contactDriverAnswer: {
+    ar: "نعم، يمكنك التواصل مع السائق عبر خاصية الرسائل أو الاتصال داخل التطبيق.",
+    en: "Yes, you can contact the driver via messaging or calling features within the app."
   },
-  browseAvailableOrders: {
-    ar: "استعرض الطلبات المتاحة",
-    en: "Browse Available Orders"
+  refundComplaint: {
+    ar: "كيف أطلب استرجاع مبلغ أو أرفع شكوى؟",
+    en: "How do I request a refund or file a complaint?"
   },
-  notAvailableMessage: {
-    ar: "أنت حالياً غير متاح لاستقبال طلبات جديدة",
-    en: "You are currently not available to receive new orders"
+  refundComplaintAnswer: {
+    ar: "يمكنك فتح طلب عبر قسم الدعم، وسيتم التعامل معه حسب السياسة المعتمدة لدينا.",
+    en: "You can open a request through the support section, and it will be handled according to our policy."
   },
-  changeToAvailable: {
-    ar: "تغيير الحالة إلى متاح",
-    en: "Change Status to Available"
+  modifyAddress: {
+    ar: "هل يمكنني تعديل عنوان التوصيل بعد إرسال الطلب؟",
+    en: "Can I modify the delivery address after submitting the order?"
   },
-  noAvailableOrders: {
-    ar: "لا توجد طلبات متاحة حالياً",
-    en: "No orders available at the moment"
-  },
-  noCompletedOrders: {
-    ar: "لا توجد طلبات مكتملة",
-    en: "No completed orders"
-  },
-  personalInformation: {
-    ar: "البيانات الشخصية",
-    en: "Personal Information"
-  },
-  documents: {
-    ar: "الوثائق والمستندات",
-    en: "Documents"
-  },
-  documentStatus: {
-    ar: "حالة الوثائق",
-    en: "Document Status"
-  },
-  profileTitle: {
-    ar: "الملف الشخصي",
-    en: "Profile"
-  },
-  address: {
-    ar: "العنوان",
-    en: "Address"
-  },
-  savingChanges: {
-    ar: "جاري الحفظ...",
-    en: "Saving..."
-  },
-  uploadingDocuments: {
-    ar: "جاري رفع الوثائق...",
-    en: "Uploading Documents..."
-  },
-  uploadDocuments: {
-    ar: "رفع الوثائق",
-    en: "Upload Documents"
-  },
-  nationalIdExpiry: {
-    ar: "تاريخ انتهاء الهوية",
-    en: "National ID Expiry Date"
-  },
-  licenseExpiry: {
-    ar: "تاريخ انتهاء الرخصة",
-    en: "License Expiry Date"
-  },
-  passwordChangedSuccessfully: {
-    ar: "تم تغيير كلمة المرور بنجاح",
-    en: "Password changed successfully"
-  },
-  documentsUploadedSuccessfully: {
-    ar: "تم رفع الوثائق بنجاح، وسيتم مراجعتها",
-    en: "Documents uploaded successfully and will be reviewed"
-  },
-  profileUpdatedSuccessfully: {
-    ar: "تم تحديث البيانات الشخصية بنجاح",
-    en: "Personal information updated successfully"
-  },
-  errorLoadingProfile: {
-    ar: "حدث خطأ أثناء تحميل البيانات",
-    en: "Error loading profile data"
-  },
-  errorUpdatingProfile: {
-    ar: "حدث خطأ أثناء تحديث البينات",
-    en: "Error updating profile data"
-  },
-  earningsTitle: {
-    ar: "الأرباح",
-    en: "Earnings"
-  },
-  todayEarnings: {
-    ar: "الأرباح اليوم",
-    en: "Today's Earnings"
-  },
-  weeklyEarnings: {
-    ar: "الأرباح هذا الأسبوع",
-    en: "This Week's Earnings"
-  },
-  monthlyEarnings: {
-    ar: "الأرباح هذا الشهر",
-    en: "This Month's Earnings"
-  },
-  earningsAnalysis: {
-    ar: "تحليل الأرباح",
-    en: "Earnings Analysis"
-  },
-  markAllAsRead: {
-    ar: "تحديد الكل كمقروء",
-    en: "Mark All as Read"
-  },
-  allNotificationsMarkedAsRead: {
-    ar: "تم تحديد جميع الإشعارات كمقروءة",
-    en: "All notifications marked as read"
-  },
-  errorUpdatingNotifications: {
-    ar: "حدث خطأ أثناء تحديث الإشعارات",
-    en: "Error updating notifications"
-  },
-  ratingsTitle: {
-    ar: "التقييمات",
-    en: "Ratings"
-  },
-  stars: {
-    ar: "نجوم",
-    en: "stars"
-  },
-  loadingRatings: {
-    ar: "جاري تحميل التقييمات...",
-    en: "Loading ratings..."
-  },
-  errorLoadingRatings: {
-    ar: "حدث خطأ أثناء تحميل التقييمات",
-    en: "Error loading ratings"
-  },
-  latestRatings: {
-    ar: "آخر التقييمات",
-    en: "Latest Ratings"
-  },
-  notificationsTitle: {
-    ar: "الإشعارات",
-    en: "Notifications"
-  },
-  newOrder: {
-    ar: "طلب جديد",
-    en: "New Order"
-  },
-  pickupInfo: {
-    ar: "معلومات الاستلام",
-    en: "Pickup Information"
-  },
-  deliveryInfo: {
-    ar: "معلومات التوصيل",
-    en: "Delivery Information"
-  },
-  pickupAddress: {
-    ar: "عنوان الاستلام",
-    en: "Pickup Address"
-  },
-  deliveryAddress: {
-    ar: "عنوان التوصيل",
-    en: "Delivery Address"
-  },
-  additionalDetails: {
-    ar: "تفاصيل إضافية",
-    en: "Additional Details"
-  },
-  shipmentDetails: {
-    ar: "تفاصيل الشحنة",
-    en: "Shipment Details"
-  },
-  price: {
-    ar: "السعر",
-    en: "Price"
+  modifyAddressAnswer: {
+    ar: "بعد قبول الطلب، قد تتوفر خيارات محددة للتعديل حسب حالة الطلب، يمكنك التواصل مع الدعم للمساعدة.",
+    en: "After order acceptance, specific modification options may be available depending on the order status. You can contact support for assistance."
   }
 };

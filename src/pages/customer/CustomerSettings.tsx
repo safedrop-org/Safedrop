@@ -5,9 +5,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Globe } from 'lucide-react';
+import { toast } from 'sonner';
 
 const CustomerSettingsContent = () => {
   const { t, language, setLanguage } = useLanguage();
+  const [loading, setLoading] = useState(false);
+
+  const handleSaveChanges = () => {
+    setLoading(true);
+    // Simulate saving changes
+    setTimeout(() => {
+      setLoading(false);
+      toast.success(t('settingsSaved'));
+    }, 1000);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -47,8 +58,12 @@ const CustomerSettingsContent = () => {
             </Card>
 
             <div className="flex justify-end">
-              <Button className="bg-safedrop-gold hover:bg-safedrop-gold/90">
-                {t('saveChanges')}
+              <Button 
+                className="bg-safedrop-gold hover:bg-safedrop-gold/90"
+                onClick={handleSaveChanges}
+                disabled={loading}
+              >
+                {loading ? t('savingChanges') : t('saveChanges')}
               </Button>
             </div>
           </div>
