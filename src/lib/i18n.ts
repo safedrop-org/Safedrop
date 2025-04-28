@@ -923,12 +923,12 @@ export const translations: Translations = {
     en: "You can report an issue by clicking the 'Report' button in the order details."
   },
   contactPhone: {
-    ar: "920001234",
-    en: "920001234"
+    ar: "+966 55 616 0601",
+    en: "+966 55 616 0601"
   },
   contactEmail: {
-    ar: "support@safedrop.com",
-    en: "support@safedrop.com"
+    ar: "support@safedropksa.com",
+    en: "support@safedropksa.com"
   },
   manageOrders: {
     ar: "إدارة الطلبات",
