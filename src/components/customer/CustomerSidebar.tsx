@@ -1,3 +1,4 @@
+
 import { LayoutDashboard, Package, PlusCircle, UserIcon, Settings, LogOut, CreditCard, MessageSquare, Star, Menu } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,11 @@ const CustomerSidebar = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+
+  // Add the missing isActive function
+  const isActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
 
   const menuItems = [
     {

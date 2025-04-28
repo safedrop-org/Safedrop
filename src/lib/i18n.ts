@@ -1,3 +1,4 @@
+
 import { LanguageKey } from './language-key';
 
 export type Translations = {
@@ -921,6 +922,30 @@ export const translations: Translations = {
     ar: "يمكنك الإبلاغ عن المشكلة من خلال الضغط على زر 'الإبلاغ' في تفاصيل الطلب.",
     en: "You can report an issue by clicking the 'Report' button in the order details."
   },
+  withdrawEarningsQuestion: {
+    ar: "كيف أسحب أرباحي؟",
+    en: "How can I withdraw my earnings?"
+  },
+  withdrawEarningsAnswer: {
+    ar: "يمكنك سحب أرباحك عبر إعدادات الحساب وإدخال بياناتك البنكية.",
+    en: "You can withdraw your earnings through account settings by entering your bank details."
+  },
+  updateOrderStatusQuestion: {
+    ar: "كيف يمكنني تحديث حالتي أمام العميل؟",
+    en: "How can I update my status for the customer?"
+  },
+  updateOrderStatusAnswer: {
+    ar: "عند تحديث حالة الطلب (مثل \"جار التوصيل\" أو \"تم التوصيل\") من خلال التطبيق، يتم إشعار العميل بحالة الشحنة",
+    en: "When updating the order status (such as 'In Delivery' or 'Delivered') through the app, the customer is notified of the shipment status."
+  },
+  troubleshootingQuestion: {
+    ar: "ماذا أفعل عند مواجهة مشكلة؟",
+    en: "What should I do when encountering a problem?"
+  },
+  troubleshootingAnswer: {
+    ar: "تواصل مع فريق الدعم عبر البريد الإلكتروني أو صفحة \"اتصل بنا\".",
+    en: "Contact our support team via email or through the 'Contact Us' page."
+  },
   contactPhone: {
     ar: "+966 55 616 0601",
     en: "+966 55 616 0601"
@@ -976,30 +1001,6 @@ export const translations: Translations = {
   noCompletedOrders: {
     ar: "لا توجد طلبات مكتملة",
     en: "No completed orders"
-  },
-  withdrawEarningsQuestion: {
-    ar: "كيف أسحب أرباحي؟",
-    en: "How can I withdraw my earnings?"
-  },
-  withdrawEarningsAnswer: {
-    ar: "يمكنك سحب أرباحك عبر إعدادات الحساب وإدخال بياناتك البنكية.",
-    en: "You can withdraw your earnings through account settings by entering your bank details."
-  },
-  updateOrderStatusQuestion: {
-    ar: "كيف يمكنني تحديث حالتي أمام العميل؟",
-    en: "How can I update my status for the customer?"
-  },
-  updateOrderStatusAnswer: {
-    ar: "عند تحديث حالة الطلب (مثل \"جار التوصيل\" أو \"تم التوصيل\") من خلال التطبيق، يتم إشعار العميل بحالة الشحنة",
-    en: "When updating the order status (such as 'In Delivery' or 'Delivered') through the app, the customer is notified of the shipment status."
-  },
-  troubleshootingQuestion: {
-    ar: "ماذا أفعل عند مواجهة مشكلة؟",
-    en: "What should I do when encountering a problem?"
-  },
-  troubleshootingAnswer: {
-    ar: "تواصل مع فريق الدعم عبر البريد الإلكتروني أو صفحة \"اتصل بنا\".",
-    en: "Contact our support team via email or through the 'Contact Us' page."
   },
   personalInformation: {
     ar: "البيانات الشخصية",
@@ -1165,18 +1166,6 @@ export const translations: Translations = {
     ar: "طلباتي",
     en: "My Orders"
   },
-  activeOrders: {
-    ar: "الطلبات النشطة",
-    en: "Active Orders"
-  },
-  orderHistory: {
-    ar: "سجل الطلبات",
-    en: "Order History"
-  },
-  noActiveOrders: {
-    ar: "لا توجد طلبات نشطة حالياً",
-    en: "No active orders currently"
-  },
   billingAndPayment: {
     ar: "الفواتير والدفع",
     en: "Billing & Payment"
@@ -1248,5 +1237,10 @@ export const translations: Translations = {
   settingsSaved: {
     ar: "تم حفظ التغييرات بنجاح",
     en: "Changes saved successfully"
+  },
+  feedbackAndRating: {
+    ar: "التقييم والملاحظات",
+    en: "Feedback & Rating"
   }
 };
+
