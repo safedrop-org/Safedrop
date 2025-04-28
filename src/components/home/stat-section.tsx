@@ -34,8 +34,6 @@ const StatSection = () => {
       en: "Customer Rating"
     }
   }];
-  return <section className="py-16 bg-white">
-      
-    </section>;
+  return;
 };
 export default StatSection;
