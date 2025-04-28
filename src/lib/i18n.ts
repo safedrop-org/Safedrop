@@ -595,7 +595,7 @@ export const translations: Translations = {
     en: "Security"
   },
   securityDescription: {
-    ar: "نضع أمان العملاء والمنتجات في مقدمة أولوياتنا. نتخذ كافة الإجراءات لضمان حماية كاملة.",
+    ar: "نضع أمان العملاء والمنتجات في مقدمة أولوياتنا ونتخذ كافة الإجراءات لضمان حماية كاملة.",
     en: "We put customer and product safety at the forefront of our priorities. We take all measures to ensure complete protection."
   },
   quality: {
@@ -611,7 +611,7 @@ export const translations: Translations = {
     en: "Transparency"
   },
   transparencyDescription: {
-    ar: "نؤمن بالشفافية التامة في تعاملاتنا. نوفر متابعة مستمرة ومعلومات واضحة في كل مرحلة.",
+    ar: "نؤمن بالشفافية التامة في تعاملاتنا ونوفر متابعة مستمرة ومعلومات واضحة في كل مرحلة.",
     en: "We believe in complete transparency in our dealings. We provide continuous monitoring and clear information at every stage."
   },
   innovation: {
