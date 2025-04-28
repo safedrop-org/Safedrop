@@ -574,7 +574,7 @@ export const translations: Translations = {
     en: "Our Story"
   },
   ourStoryDescription1: {
-    ar: "جاءت فكرتنا من حاجة حقيقية لنظام توصيل يحمي الممتلكات الشخصية ويوفر للناس راحة البال. أردنا تقديم تجربة مختلفة، أكثر أمانًا وشفافية من الطرق التقليدية.",
+    ar: "جاءت فكرتنا من حاجة حقيقية لنظام توصيل يحمي الممتلكات الشخصية ويوفر للناس راحة البال. أردنا تقديم تجربة مختلفة وأكثر أمانًا وشفافية من الطرق التقليدية.",
     en: "Our idea came from a real need for a delivery system that protects personal property and provides people with peace of mind. We wanted to offer a different experience, more secure and transparent than traditional methods."
   },
   ourStoryDescription2: {
