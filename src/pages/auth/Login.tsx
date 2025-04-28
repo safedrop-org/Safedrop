@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -27,7 +28,7 @@ const LoginContent = () => {
     if (user) {
       redirectBasedOnProfile(user.id);
     }
-  }, [user]);
+  }, [user, navigate]);
 
   const redirectBasedOnProfile = async (userId: string) => {
     try {
@@ -154,8 +155,9 @@ const LoginContent = () => {
       
       toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
       
-      // Auth state change listener will handle the redirect
-      // The redirectBasedOnProfile function will be called from the useEffect
+      // Immediately redirect based on profile instead of waiting for auth state change
+      await redirectBasedOnProfile(data.user.id);
+      setIsLoading(false);
       
     } catch (error: any) {
       console.error('Login exception:', error);
