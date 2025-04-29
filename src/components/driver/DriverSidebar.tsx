@@ -23,7 +23,7 @@ const DriverSidebar = () => {
 
   const menuItems = [{
     icon: <LayoutDashboard className="h-5 w-5" />,
-    label: t('Dashboard'),
+    label: t('dashboard'),
     path: "/driver/dashboard"
   }, {
     icon: <Package className="h-5 w-5" />,
@@ -35,7 +35,7 @@ const DriverSidebar = () => {
     path: "/driver/profile"
   }, {
     icon: <Star className="h-5 w-5" />,
-    label: t('Feedback & Rating'),
+    label: t('ratings'),
     path: "/driver/ratings"
   }, {
     icon: <DollarSign className="h-5 w-5" />,
@@ -47,7 +47,7 @@ const DriverSidebar = () => {
     path: "/driver/notifications"
   }, {
     icon: <HelpCircle className="h-5 w-5" />,
-    label: t('Technical Support'),
+    label: t('support'),
     path: "/driver/support"
   }, {
     icon: <Settings className="h-5 w-5" />,

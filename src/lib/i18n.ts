@@ -1,3 +1,4 @@
+
 import { LanguageKey } from "./language-key";
 
 // Translation keys for the entire application
@@ -238,6 +239,10 @@ export const translations = {
     ar: "لوحة التحكم",
     en: "Dashboard"
   },
+  orders: {
+    ar: "الطلبات",
+    en: "Orders"
+  },
   ratings: {
     ar: "التقييمات",
     en: "Ratings" 
@@ -418,10 +423,6 @@ export const translations = {
   },
   
   // Orders Page
-  orders: {
-    ar: "الطلبات",
-    en: "Orders"
-  },
   "Active Orders": {
     ar: "الطلبات النشطة",
     en: "Active Orders"
@@ -485,10 +486,6 @@ export const translations = {
   cancelled: {
     ar: "ملغي",
     en: "Cancelled"
-  },
-  loading: {
-    ar: "جاري التحميل",
-    en: "Loading"
   },
   noCurrentOrders: {
     ar: "لا توجد طلبات حالية",
@@ -690,10 +687,6 @@ export const translations = {
   },
   
   // Support Page
-  support: {
-    ar: "الدعم والمساعدة",
-    en: "Support"
-  },
   callUs: {
     ar: "اتصل بنا",
     en: "Call Us"
@@ -761,3 +754,4 @@ export const translations = {
     en: "Order"
   }
 };
+
