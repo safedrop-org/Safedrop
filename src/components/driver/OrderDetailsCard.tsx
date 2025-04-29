@@ -266,22 +266,6 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
                 )}
               </Button>
             )}
-            
-            {showCompleteButton && order.status === 'approaching' && order.driver_id && (
-              <Button 
-                variant="default" 
-                className="bg-green-600 hover:bg-green-700"
-                onClick={handleCompleteOrder}
-                disabled={isUpdating || isAccepting}
-              >
-                {isUpdating ? (
-                  <Loader2Icon className="h-4 w-4 animate-spin ml-1" />
-                ) : (
-                  <CheckIcon className="h-4 w-4 ml-1" />
-                )}
-                <span>تم التوصيل</span>
-              </Button>
-            )}
           </div>
         </div>
 
@@ -295,6 +279,15 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
               onStatusUpdated={onOrderUpdate}
               driverId={order.driver_id}
             />
+            
+            {/* Adding a status message when the order is in "approaching" status */}
+            {order.status === 'approaching' && (
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-md text-amber-700 text-center">
+                <ClockIcon className="h-5 w-5 mx-auto mb-1" />
+                <p className="font-medium">بانتظار تأكيد العميل للإستلام</p>
+                <p className="text-sm mt-1">سيتم إكمال الطلب عندما يقوم العميل بتأكيد الإستلام</p>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
