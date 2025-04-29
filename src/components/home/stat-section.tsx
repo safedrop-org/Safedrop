@@ -1,62 +1,38 @@
-
 import { useLanguage } from '@/components/ui/language-context';
 import { UserCheck, Truck, Package, Star } from 'lucide-react';
-
 const StatSection = () => {
-  const { language } = useLanguage();
-  
-  const stats = [
-    {
-      icon: <UserCheck className="h-10 w-10 text-safedrop-gold" />,
-      value: "100+",
-      label: {
-        ar: "عملاء سعداء",
-        en: "Happy Customers"
-      }
-    },
-    {
-      icon: <Truck className="h-10 w-10 text-safedrop-gold" />,
-      value: "50+",
-      label: {
-        ar: "سائق معتمد",
-        en: "Verified Drivers"
-      }
-    },
-    {
-      icon: <Package className="h-10 w-10 text-safedrop-gold" />,
-      value: "500+",
-      label: {
-        ar: "توصيل ناجح",
-        en: "Successful Deliveries"
-      }
-    },
-    {
-      icon: <Star className="h-10 w-10 text-safedrop-gold" />,
-      value: "4.9",
-      label: {
-        ar: "تقييم العملاء",
-        en: "Customer Rating"
-      }
+  const {
+    language
+  } = useLanguage();
+  const stats = [{
+    icon: <UserCheck className="h-10 w-10 text-safedrop-gold" />,
+    value: "100+",
+    label: {
+      ar: "عملاء سعداء",
+      en: "Happy Customers"
     }
-  ];
-  
-  return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {stats.map((stat, index) => (
-            <div key={index} className="bg-white p-6 rounded-lg shadow-md text-center transition-transform hover:scale-105">
-              <div className="flex justify-center mb-4">
-                {stat.icon}
-              </div>
-              <div className="text-3xl font-bold text-safedrop-primary mb-2">{stat.value}</div>
-              <div className="text-lg text-gray-600">{language === 'ar' ? stat.label.ar : stat.label.en}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  }, {
+    icon: <Truck className="h-10 w-10 text-safedrop-gold" />,
+    value: "50+",
+    label: {
+      ar: "سائق معتمد",
+      en: "Verified Drivers"
+    }
+  }, {
+    icon: <Package className="h-10 w-10 text-safedrop-gold" />,
+    value: "500+",
+    label: {
+      ar: "توصيل ناجح",
+      en: "Successful Deliveries"
+    }
+  }, {
+    icon: <Star className="h-10 w-10 text-safedrop-gold" />,
+    value: "4.9",
+    label: {
+      ar: "تقييم العملاء",
+      en: "Customer Rating"
+    }
+  }];
+  return;
 };
-
 export default StatSection;
