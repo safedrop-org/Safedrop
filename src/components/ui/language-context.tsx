@@ -32,6 +32,12 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
       console.warn(`Translation for key "${key}" not found`);
       return key;
     }
+    
+    if (!translations[key][language]) {
+      console.warn(`Translation for key "${key}" in language "${language}" not found`);
+      return key;
+    }
+    
     return translations[key][language];
   };
 

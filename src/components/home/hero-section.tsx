@@ -6,7 +6,7 @@ import { useLanguage } from '@/components/ui/language-context';
 
 export const HeroSection = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   useEffect(() => {
     if (videoRef.current) {
@@ -33,10 +33,10 @@ export const HeroSection = () => {
 
       <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
-          {t('siteTitle')}
+          {language === 'ar' ? 'سيف دروب' : 'SafeDrop'}
         </h1>
         <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">
-          {t('tagline')}
+          {language === 'ar' ? 'توصيل آمن ومضمون للشحنات الثمينة' : 'Secure and guaranteed delivery for valuable shipments'}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/register/customer">

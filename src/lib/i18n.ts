@@ -3,6 +3,62 @@ import { LanguageKey } from "./language-key";
 
 // Translation keys for the entire application
 export const translations = {
+  // Site common elements
+  siteTitle: {
+    ar: "سيف دروب",
+    en: "SafeDrop"
+  },
+  tagline: {
+    ar: "توصيل آمن ومضمون للشحنات الثمينة",
+    en: "Secure and guaranteed delivery for valuable shipments"
+  },
+  getStarted: {
+    ar: "ابدأ الآن",
+    en: "Get Started"
+  },
+  services: {
+    ar: "خدماتنا",
+    en: "Services"
+  },
+  about: {
+    ar: "من نحن",
+    en: "About"
+  },
+  contact: {
+    ar: "اتصل بنا",
+    en: "Contact"
+  },
+  login: {
+    ar: "تسجيل الدخول",
+    en: "Login"
+  },
+  register: {
+    ar: "التسجيل",
+    en: "Register"
+  },
+  customerRegister: {
+    ar: "تسجيل كعميل",
+    en: "Customer Registration"
+  },
+  driverRegister: {
+    ar: "تسجيل كسائق",
+    en: "Driver Registration"
+  },
+  footer: {
+    ar: "© 2025 سيف دروب. جميع الحقوق محفوظة.",
+    en: "© 2025 SafeDrop. All rights reserved."
+  },
+
+  // CTA section
+  ctaTitle: {
+    ar: "انضم إلينا الآن",
+    en: "Join Us Now"
+  },
+  ctaDescription: {
+    ar: "انضم إلى منصة سيف دروب واستفد من خدماتنا المتميزة في توصيل الطرود وحماية المعاملات",
+    en: "Join SafeDrop platform and benefit from our premium services in package delivery and transaction protection"
+  },
+  
   // Authentication & Common UI
   Dashboard: {
     ar: "لوحة التحكم",
@@ -263,6 +319,24 @@ export const translations = {
   submitOrder: {
     ar: "إرسال الطلب",
     en: "Submit Order"
+  },
+
+  // Services
+  parcelDelivery: {
+    ar: "توصيل الطرود",
+    en: "Parcel Delivery"
+  },
+  transactionProtection: {
+    ar: "حماية المعاملات",
+    en: "Transaction Protection"
+  },
+  expressDelivery: {
+    ar: "توصيل سريع",
+    en: "Express Delivery"
+  },
+  verifiedDrivers: {
+    ar: "سائقين موثوقين",
+    en: "Verified Drivers"
   },
   
   // Profile Page

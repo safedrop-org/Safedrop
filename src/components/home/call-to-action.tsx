@@ -23,9 +23,11 @@ const CallToAction = () => {
 
           <div className="max-w-3xl mx-auto text-center relative z-10">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              {t('ctaTitle')}
+              {language === 'ar' ? 'انضم إلينا الآن' : 'Join Us Now'}
             </h2>
-            <p className="text-lg text-gray-300 mb-8">{t('ctaDescription')}</p>
+            <p className="text-lg text-gray-300 mb-8">
+              {language === 'ar' ? 'انضم إلى منصة سيف دروب واستفد من خدماتنا المتميزة في توصيل الطرود وحماية المعاملات' : 'Join SafeDrop platform and benefit from our premium services in package delivery and transaction protection'}
+            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-white">
                 <Link to="/register/customer" className="flex items-center gap-2">
