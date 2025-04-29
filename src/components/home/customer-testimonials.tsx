@@ -1,10 +1,10 @@
-
 import { useLanguage } from '@/components/ui/language-context';
 import { Star } from 'lucide-react';
-
 const CustomerTestimonials = () => {
-  const { t, language } = useLanguage();
-  
+  const {
+    t,
+    language
+  } = useLanguage();
   const testimonials = [{
     name: {
       ar: "أحمد خالد",
@@ -51,54 +51,6 @@ const CustomerTestimonials = () => {
     rating: 4,
     image: "https://randomuser.me/api/portraits/men/36.jpg"
   }];
-  
-  return (
-    <section className="py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-safedrop-primary mb-2">
-            {language === 'ar' ? 'آراء العملاء' : 'Customer Testimonials'}
-          </h2>
-          <p className="text-gray-600 max-w-3xl mx-auto">
-            {language === 'ar' 
-              ? 'اقرأ ما يقوله عملاؤنا وسائقونا عن تجربتهم مع سيف دروب'
-              : 'Read what our customers and drivers say about their experience with SafeDrop'}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
-            <div key={index} className="bg-white p-6 rounded-lg shadow-md flex flex-col">
-              <div className="flex items-center mb-4">
-                <img 
-                  src={testimonial.image} 
-                  alt={testimonial.name[language]} 
-                  className="w-12 h-12 rounded-full mr-4 object-cover" 
-                />
-                <div>
-                  <h3 className="font-semibold">{testimonial.name[language]}</h3>
-                  <p className="text-sm text-gray-600">{testimonial.role[language]}</p>
-                </div>
-              </div>
-              
-              <p className="text-gray-700 mb-4 flex-grow">"{testimonial.text[language]}"</p>
-              
-              <div className="flex text-safedrop-gold">
-                {[...Array(5)].map((_, i) => (
-                  <Star 
-                    key={i} 
-                    size={16}
-                    fill={i < testimonial.rating ? "currentColor" : "none"} 
-                    className={i < testimonial.rating ? "text-safedrop-gold" : "text-gray-300"}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+  return;
 };
-
 export default CustomerTestimonials;
