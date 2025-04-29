@@ -5,10 +5,10 @@ import Footer from '@/components/layout/footer';
 import { Award, Target, Users, Shield } from 'lucide-react';
 
 const AboutContent = () => {
-  const {
-    t
-  } = useLanguage();
-  return <div className="min-h-screen flex flex-col">
+  const { t } = useLanguage();
+  
+  return (
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
@@ -80,13 +80,16 @@ const AboutContent = () => {
         </section>
       </main>
       <Footer />
-    </div>;
+    </div>
+  );
 };
 
 const About = () => {
-  return <LanguageProvider>
+  return (
+    <LanguageProvider>
       <AboutContent />
-    </LanguageProvider>;
+    </LanguageProvider>
+  );
 };
 
 export default About;
