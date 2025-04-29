@@ -5,8 +5,6 @@ import Footer from '@/components/layout/footer';
 import { HeroSection } from '@/components/home/hero-section';
 import HowItWorks from '@/components/home/how-it-works';
 import CallToAction from '@/components/home/call-to-action';
-import StatSection from '@/components/home/stat-section';
-import CustomerTestimonials from '@/components/home/customer-testimonials';
 import { useLanguage } from '@/components/ui/language-context';
 
 const Index = () => {
@@ -24,8 +22,6 @@ const Index = () => {
       <main className="flex-grow">
         <HeroSection />
         <HowItWorks />
-        <StatSection />
-        <CustomerTestimonials />
         <CallToAction />
       </main>
       <Footer />
