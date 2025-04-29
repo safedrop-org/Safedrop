@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Eye, Download } from "lucide-react"; // Added Download import here
+import { Search, Eye, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useOrders } from "@/hooks/useOrders";
 import { OrderDetails } from "@/components/admin/OrderDetails";
@@ -14,78 +14,80 @@ const OrdersTable = ({ orders, status, onViewOrder }) => {
   const filteredOrders = status === "all" ? orders : orders.filter(order => order.status === status);
   
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>رقم الطلب</TableHead>
-          <TableHead>العميل</TableHead>
-          <TableHead>السائق</TableHead>
-          <TableHead>التاريخ</TableHead>
-          <TableHead>السعر</TableHead>
-          <TableHead>الحالة</TableHead>
-          <TableHead>حالة الدفع</TableHead>
-          <TableHead>الإجراءات</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {filteredOrders.length === 0 ? (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
           <TableRow>
-            <TableCell colSpan={8} className="h-24 text-center">
-              لا توجد طلبات في هذه الفئة
-            </TableCell>
+            <TableHead className="text-center">رقم الطلب</TableHead>
+            <TableHead className="text-center">العميل</TableHead>
+            <TableHead className="text-center">السائق</TableHead>
+            <TableHead className="text-center">التاريخ</TableHead>
+            <TableHead className="text-center">السعر</TableHead>
+            <TableHead className="text-center">الحالة</TableHead>
+            <TableHead className="text-center">حالة الدفع</TableHead>
+            <TableHead className="text-center">الإجراءات</TableHead>
           </TableRow>
-        ) : (
-          filteredOrders.map(order => (
-            <TableRow key={order.id}>
-              <TableCell className="font-medium">{order.id.substring(0, 8)}</TableCell>
-              <TableCell>{order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'غير معروف'}</TableCell>
-              <TableCell>{order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'غير معين'}</TableCell>
-              <TableCell>{new Date(order.created_at).toLocaleDateString('ar-SA')}</TableCell>
-              <TableCell>{order.price ? `${order.price} ر.س` : 'غير محدد'}</TableCell>
-              <TableCell>
-                <Badge
-                  variant="outline"
-                  className={
-                    order.status === "completed" ? "bg-green-100 text-green-800 border-green-200" :
-                    order.status === "approved" ? "bg-blue-100 text-blue-800 border-blue-200" :
-                    order.status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-                    order.status === "in_transit" ? "bg-purple-100 text-purple-800 border-purple-200" :
-                    order.status === "approaching" ? "bg-indigo-100 text-indigo-800 border-indigo-200" :
-                    "bg-red-100 text-red-800 border-red-200"
-                  }
-                >
-                  {order.status === "completed" ? "مكتمل" :
-                   order.status === "approved" ? "موافق عليه" :
-                   order.status === "pending" ? "قيد الانتظار" :
-                   order.status === "in_transit" ? "قيد التوصيل" :
-                   order.status === "approaching" ? "اقترب" :
-                   "ملغي"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge
-                  variant="outline"
-                  className={
-                    order.payment_status === "paid" ? "bg-green-100 text-green-800 border-green-200" :
-                    order.payment_status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-                    "bg-purple-100 text-purple-800 border-purple-200"
-                  }
-                >
-                  {order.payment_status === "paid" ? "مدفوع" :
-                   order.payment_status === "pending" ? "غير مدفوع" :
-                   "مسترد"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Button variant="ghost" size="icon" onClick={() => onViewOrder(order)}>
-                  <Eye className="h-4 w-4" />
-                </Button>
+        </TableHeader>
+        <TableBody>
+          {filteredOrders.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={8} className="h-24 text-center">
+                لا توجد طلبات في هذه الفئة
               </TableCell>
             </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+          ) : (
+            filteredOrders.map(order => (
+              <TableRow key={order.id}>
+                <TableCell className="font-medium text-center">{order.id.substring(0, 8)}</TableCell>
+                <TableCell className="text-center">{order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'غير معروف'}</TableCell>
+                <TableCell className="text-center">{order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'غير معين'}</TableCell>
+                <TableCell className="text-center">{new Date(order.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                <TableCell className="text-center">{order.price ? `${order.price} ر.س` : 'غير محدد'}</TableCell>
+                <TableCell className="text-center">
+                  <Badge
+                    variant="outline"
+                    className={
+                      order.status === "completed" ? "bg-green-100 text-green-800 border-green-200" :
+                      order.status === "approved" ? "bg-blue-100 text-blue-800 border-blue-200" :
+                      order.status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                      order.status === "in_transit" ? "bg-purple-100 text-purple-800 border-purple-200" :
+                      order.status === "approaching" ? "bg-indigo-100 text-indigo-800 border-indigo-200" :
+                      "bg-red-100 text-red-800 border-red-200"
+                    }
+                  >
+                    {order.status === "completed" ? "مكتمل" :
+                     order.status === "approved" ? "موافق عليه" :
+                     order.status === "pending" ? "قيد الانتظار" :
+                     order.status === "in_transit" ? "قيد التوصيل" :
+                     order.status === "approaching" ? "اقترب" :
+                     "ملغي"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Badge
+                    variant="outline"
+                    className={
+                      order.payment_status === "paid" ? "bg-green-100 text-green-800 border-green-200" :
+                      order.payment_status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                      "bg-purple-100 text-purple-800 border-purple-200"
+                    }
+                  >
+                    {order.payment_status === "paid" ? "مدفوع" :
+                     order.payment_status === "pending" ? "غير مدفوع" :
+                     "مسترد"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Button variant="ghost" size="icon" onClick={() => onViewOrder(order)}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 
