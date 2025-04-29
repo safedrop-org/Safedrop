@@ -126,16 +126,16 @@ export const translations = {
     en: "Location"
   },
   locationAddress: {
-    ar: "الرياض، المملكة العربية السعودية",
-    en: "Riyadh, Saudi Arabia"
+    ar: " المملكة العربية السعودية",
+    en: " Saudi Arabia"
   },
   workingHours: {
     ar: "ساعات العمل",
     en: "Working Hours"
   },
   workingDays: {
-    ar: "الأحد - الخميس: 9 صباحًا - 5 مساءً",
-    en: "Sunday - Thursday: 9am - 5pm"
+    ar: "على مدار الإسبوع",
+    en: "Throughout the week"
   },
   contactForm: {
     ar: "نموذج الاتصال",
