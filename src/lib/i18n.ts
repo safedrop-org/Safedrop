@@ -9,8 +9,8 @@ export const translations = {
     en: "SafeDrop"
   },
   tagline: {
-    ar: "توصيل آمن ومضمون للشحنات الثمينة",
-    en: "Secure and guaranteed delivery for valuable shipments"
+    ar: "انضم إلى منصة سيف دروب واستمتع بتجربة توصيل سريعة وآمنة",
+    en: "Join the Saif Drop platform and enjoy a fast and safe delivery experience."
   },
   getStarted: {
     ar: "ابدأ الآن",
@@ -55,8 +55,8 @@ export const translations = {
     en: "Join Us Now"
   },
   ctaDescription: {
-    ar: "انضم إلى منصة سيف دروب واستفد من خدماتنا المتميزة في توصيل الطرود وحماية المعاملات",
-    en: "Join SafeDrop platform and benefit from our premium services in package delivery and transaction protection"
+    ar: "انضم إلى منصة سيف دروب واستمتع بتجربة توصيل سريعة وآمنة",
+    en: "Join the Saif Drop platform and enjoy a fast and safe delivery experience."
   },
   
   // Authentication & Common UI
