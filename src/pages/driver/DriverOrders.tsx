@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
+import { useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,7 +12,9 @@ import { useAuth } from '@/hooks/useAuth';
 import OrderDetailsCard from '@/components/driver/OrderDetailsCard';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { LanguageProvider } from '@/components/ui/language-context';
 
+// Move the component content to be inside a component that is used only after LanguageProvider is initialized
 const DriverOrdersContent = () => {
   const { t } = useLanguage();
   const [isAvailable, setIsAvailable] = useState(true);
@@ -317,7 +319,9 @@ const DriverOrdersContent = () => {
   );
 };
 
+// The main component exported from this file
 const DriverOrders = () => {
+  // Wrapping the content with LanguageProvider - this is the key fix
   return (
     <LanguageProvider>
       <DriverOrdersContent />
