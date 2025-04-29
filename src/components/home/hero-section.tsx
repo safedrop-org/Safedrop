@@ -33,10 +33,10 @@ export const HeroSection = () => {
 
       <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
-          {language === 'ar' ? 'سيف دروب' : 'SafeDrop'}
+          {t('siteTitle')}
         </h1>
         <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">
-          {language === 'ar' ? 'توصيل آمن ومضمون للشحنات الثمينة' : 'Secure and guaranteed delivery for valuable shipments'}
+          {t('tagline')}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/register/customer">

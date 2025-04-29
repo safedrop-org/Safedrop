@@ -30,7 +30,7 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
     document.body.style.display = 'none';
     setTimeout(() => {
       document.body.style.display = '';
-    }, 0);
+    }, 10); // Increase timeout to ensure reflow completes
   }, [language]);
 
   const t = (key: string) => {
