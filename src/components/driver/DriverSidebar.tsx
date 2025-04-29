@@ -23,7 +23,7 @@ const DriverSidebar = () => {
 
   const menuItems = [{
     icon: <LayoutDashboard className="h-5 w-5" />,
-    label: t('dashboard'),
+    label: t('Dashboard'),
     path: "/driver/dashboard"
   }, {
     icon: <Package className="h-5 w-5" />,
@@ -31,11 +31,11 @@ const DriverSidebar = () => {
     path: "/driver/orders"
   }, {
     icon: <UserIcon className="h-5 w-5" />,
-    label: t('profile'),
+    label: t('Profile'),
     path: "/driver/profile"
   }, {
     icon: <Star className="h-5 w-5" />,
-    label: t('ratings'),
+    label: t('Feedback & Rating'),
     path: "/driver/ratings"
   }, {
     icon: <DollarSign className="h-5 w-5" />,
@@ -47,11 +47,11 @@ const DriverSidebar = () => {
     path: "/driver/notifications"
   }, {
     icon: <HelpCircle className="h-5 w-5" />,
-    label: t('support'),
+    label: t('Technical Support'),
     path: "/driver/support"
   }, {
     icon: <Settings className="h-5 w-5" />,
-    label: t('settings'),
+    label: t('Settings'),
     path: "/driver/settings"
   }];
 
@@ -107,7 +107,7 @@ const DriverSidebar = () => {
                 className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
               >
                 <LogOut className="h-4 w-4" />
-                <span>{t('logout')}</span>
+                <span>{t('Logout')}</span>
               </Button>
             </div>
           </div>
@@ -118,7 +118,7 @@ const DriverSidebar = () => {
         <div className="p-4 flex items-center justify-center">
           <Link to="/">
             <img alt="SafeDrop Logo" className="h-20" src="/lovable-uploads/289fb913-2d65-4eb7-8518-9e5e699f2217.png" />
-            <div className="text-center mt-2 font-bold">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</div>
+            <div className="text-center mt-2 font-bold">{t('siteTitle')}</div>
           </Link>
         </div>
         
@@ -137,7 +137,7 @@ const DriverSidebar = () => {
           <div className="p-4 border-t border-white/10">
             <Button onClick={handleLogout} variant="outline" className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2">
               <LogOut className="h-4 w-4" />
-              <span>{t('logout')}</span>
+              <span>{t('Logout')}</span>
             </Button>
           </div>
         </div>
