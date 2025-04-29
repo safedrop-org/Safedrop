@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,20 +6,21 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import DriverSidebar from '@/components/driver/DriverSidebar';
 import { Bell, Globe, Shield, Moon } from 'lucide-react';
+
 const DriverSettingsContent = () => {
-  const {
-    t,
-    language,
-    setLanguage
-  } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
+  
   const [notifications, setNotifications] = useState({
     orders: true,
     messages: true,
     earnings: true,
     updates: false
   });
+  
   const [darkMode, setDarkMode] = useState(false);
-  return <div className="flex h-screen bg-gray-50">
+
+  return (
+    <div className="flex h-screen bg-gray-50">
       <DriverSidebar />
       
       <div className="flex-1 flex flex-col overflow-auto">
@@ -45,9 +47,9 @@ const DriverSettingsContent = () => {
                       <p className="text-sm text-gray-500">{t('receiveOrderNotifications')}</p>
                     </div>
                     <Switch checked={notifications.orders} onCheckedChange={checked => setNotifications({
-                    ...notifications,
-                    orders: checked
-                  })} />
+                      ...notifications,
+                      orders: checked
+                    })} />
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -56,9 +58,9 @@ const DriverSettingsContent = () => {
                       <p className="text-sm text-gray-500">{t('receiveMessageNotifications')}</p>
                     </div>
                     <Switch checked={notifications.messages} onCheckedChange={checked => setNotifications({
-                    ...notifications,
-                    messages: checked
-                  })} />
+                      ...notifications,
+                      messages: checked
+                    })} />
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -67,9 +69,9 @@ const DriverSettingsContent = () => {
                       <p className="text-sm text-gray-500">{t('receiveEarningsNotifications')}</p>
                     </div>
                     <Switch checked={notifications.earnings} onCheckedChange={checked => setNotifications({
-                    ...notifications,
-                    earnings: checked
-                  })} />
+                      ...notifications,
+                      earnings: checked
+                    })} />
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -78,9 +80,9 @@ const DriverSettingsContent = () => {
                       <p className="text-sm text-gray-500">{t('receiveUpdateNotifications')}</p>
                     </div>
                     <Switch checked={notifications.updates} onCheckedChange={checked => setNotifications({
-                    ...notifications,
-                    updates: checked
-                  })} />
+                      ...notifications,
+                      updates: checked
+                    })} />
                   </div>
                 </div>
               </CardContent>
@@ -107,13 +109,11 @@ const DriverSettingsContent = () => {
             </Card>
 
             <Card>
-              
-              
+              {/* Empty card for future use */}
             </Card>
 
             <Card>
-              
-              
+              {/* Empty card for future use */}
             </Card>
 
             <div className="flex justify-end">
@@ -124,11 +124,16 @@ const DriverSettingsContent = () => {
           </div>
         </main>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 const DriverSettings = () => {
-  return <LanguageProvider>
+  return (
+    <LanguageProvider>
       <DriverSettingsContent />
-    </LanguageProvider>;
+    </LanguageProvider>
+  );
 };
+
 export default DriverSettings;

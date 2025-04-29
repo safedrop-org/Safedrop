@@ -1,4 +1,3 @@
-
 import { LanguageKey } from "./language-key";
 
 // Translation keys for the entire application
@@ -752,6 +751,215 @@ export const translations = {
   order: {
     ar: "طلب",
     en: "Order"
-  }
+  },
+  
+  // Adding missing translations
+  noNotifications: {
+    ar: "لا توجد إشعارات",
+    en: "No Notifications"
+  },
+  viewAllNotifications: {
+    ar: "عرض جميع الإشعارات",
+    en: "View All Notifications"
+  },
+  manageOrders: {
+    ar: "إدارة الطلبات",
+    en: "Manage Orders"
+  },
+  availabilityStatus: {
+    ar: "حالة التوفر",
+    en: "Availability Status"
+  },
+  availableForOrders: {
+    ar: "متاح للطلبات",
+    en: "Available for Orders"
+  },
+  notAvailableForOrders: {
+    ar: "غير متاح للطلبات",
+    en: "Not Available for Orders"
+  },
+  currentOrdersTab: {
+    ar: "الطلبات الحالية",
+    en: "Current Orders"
+  },
+  availableOrdersTab: {
+    ar: "الطلبات المتاحة",
+    en: "Available Orders"
+  },
+  completedOrdersTab: {
+    ar: "الطلبات المكتملة",
+    en: "Completed Orders"
+  },
+  browseAvailableOrders: {
+    ar: "تصفح الطلبات المتاحة",
+    en: "Browse Available Orders"
+  },
+  notAvailableMessage: {
+    ar: "أنت غير متاح حالياً للطلبات الجديدة",
+    en: "You are currently not available for new orders"
+  },
+  changeToAvailable: {
+    ar: "تحويل إلى متاح",
+    en: "Change to Available"
+  },
+  noAvailableOrders: {
+    ar: "لا توجد طلبات متاحة",
+    en: "No Available Orders"
+  },
+  markAllAsRead: {
+    ar: "تحديد الكل كمقروء",
+    en: "Mark All as Read"
+  },
+  allNotificationsMarkedAsRead: {
+    ar: "تم تحديد جميع الإشعارات كمقروءة",
+    en: "All notifications marked as read"
+  },
+  errorUpdatingNotifications: {
+    ar: "حدث خطأ أثناء تحديث الإشعارات",
+    en: "Error updating notifications"
+  },
+  profile: {
+    ar: "الملف الشخصي",
+    en: "Profile"
+  },
+  personalInformation: {
+    ar: "المعلومات الشخصية",
+    en: "Personal Information"
+  },
+  documents: {
+    ar: "المستندات",
+    en: "Documents"
+  },
+  supportTitle: {
+    ar: "الدعم الفني",
+    en: "Support"
+  },
+  withdrawEarningsQuestion: {
+    ar: "كيف أسحب أرباحي؟",
+    en: "How do I withdraw my earnings?"
+  },
+  withdrawEarningsAnswer: {
+    ar: "يمكنك طلب سحب أرباحك من خلال الضغط على زر 'طلب سحب' في صفحة الأرباح، وسيتم تحويل المبلغ إلى حسابك البنكي المسجل خلال 1-3 أيام عمل.",
+    en: "You can request a withdrawal of your earnings by clicking the 'Request Withdrawal' button on the earnings page, and the amount will be transferred to your registered bank account within 1-3 business days."
+  },
+  updateOrderStatusQuestion: {
+    ar: "كيف أقوم بتحديث حالة الطلب؟",
+    en: "How do I update the order status?"
+  },
+  updateOrderStatusAnswer: {
+    ar: "يمكنك تحديث حالة الطلب من خلال الضغط على الأزرار المتاحة في بطاقة تفاصيل الطلب. ستظهر الخيارات المتاحة حسب الحالة الحالية للطلب.",
+    en: "You can update the order status by clicking the available buttons in the order details card. The available options will appear depending on the current status of the order."
+  },
+  troubleshootingQuestion: {
+    ar: "ماذا أفعل إذا واجهت مشكلة في التطبيق؟",
+    en: "What should I do if I encounter a problem with the application?"
+  },
+  troubleshootingAnswer: {
+    ar: "في حالة مواجهة أي مشكلة، يرجى التواصل مع فريق الدعم الفني عبر البريد الإلكتروني أو رقم الهاتف المتوفر في صفحة الدعم. سيساعدك فريقنا في حل المشكلة في أقرب وقت ممكن.",
+    en: "If you encounter any issues, please contact our technical support team via email or phone number available on the support page. Our team will help you resolve the issue as soon as possible."
+  },
+  notificationSettings: {
+    ar: "إعدادات الإشعارات",
+    en: "Notification Settings"
+  },
+  orderNotifications: {
+    ar: "إشعارات الطلبات",
+    en: "Order Notifications"
+  },
+  receiveOrderNotifications: {
+    ar: "استلام إشعارات عند وصول طلبات جديدة",
+    en: "Receive notifications for new orders"
+  },
+  messageNotifications: {
+    ar: "إشعارات الرسائل",
+    en: "Message Notifications"
+  },
+  receiveMessageNotifications: {
+    ar: "استلام إشعارات عند وصول رسائل جديدة",
+    en: "Receive notifications for new messages"
+  },
+  earningsNotifications: {
+    ar: "إشعارات الأرباح",
+    en: "Earnings Notifications"
+  },
+  receiveEarningsNotifications: {
+    ar: "استلام إشعارات عند إضافة أرباح جديدة",
+    en: "Receive notifications for new earnings"
+  },
+  systemNotifications: {
+    ar: "إشعارات النظام",
+    en: "System Notifications"
+  },
+  receiveUpdateNotifications: {
+    ar: "استلام إشعارات عند وجود تحديثات للنظام",
+    en: "Receive notifications for system updates"
+  },
+  averageRating: {
+    ar: "متوسط التقييم",
+    en: "Average Rating"
+  },
+  stars: {
+    ar: "نجوم",
+    en: "stars"
+  },
+  latestRatings: {
+    ar: "أحدث التقييمات",
+    en: "Latest Ratings"
+  },
+  noRatingsYet: {
+    ar: "لا توجد تقييمات حتى الآن",
+    en: "No ratings yet"
+  },
+  customer: {
+    ar: "عميل",
+    en: "Customer"
+  },
+  errorLoadingRatings: {
+    ar: "حدث خطأ أثناء تحميل التقييمات",
+    en: "Error loading ratings"
+  },
+  retryLoading: {
+    ar: "إعادة المحاولة",
+    en: "Retry loading"
+  },
+  todayEarnings: {
+    ar: "أرباح اليوم",
+    en: "Today's Earnings"
+  },
+  weeklyEarnings: {
+    ar: "أرباح الأسبوع",
+    en: "Weekly Earnings"
+  },
+  monthlyEarnings: {
+    ar: "أرباح الشهر",
+    en: "Monthly Earnings"
+  },
+  earningsAnalysis: {
+    ar: "تحليل الأرباح",
+    en: "Earnings Analysis"
+  },
+  availableForOrders: {
+    ar: "متاح للطلبات",
+    en: "Available for Orders"
+  },
+  markAllAsRead: {
+    ar: "تحديد الكل كمقروء",
+    en: "Mark All as Read"
+  },
+  earningsAnalysis: {
+    ar: "تحليل الأرباح",
+    en: "Earnings Analysis"
+  },
+  monthlyEarnings: {
+    ar: "أرباح الشهر",
+    en: "Monthly Earnings"
+  },
+  weeklyEarnings: {
+    ar: "أرباح الأسبوع",
+    en: "Weekly Earnings"
+  },
+  todayEarnings: {
+    ar: "أرباح اليوم",
+    en: "Today's Earnings"
+  },
 };
-
