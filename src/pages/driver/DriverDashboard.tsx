@@ -60,43 +60,69 @@ const DriverDashboardContent = () => {
     enabled: !!user?.id
   });
 
+  // Enhanced query for financial statistics with retries and proper error handling
   const { data: financialStats, isLoading: isLoadingFinancial } = useQuery({
     queryKey: ['driver-financial-stats', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { count: completedOrders, error: ordersError } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('driver_id', user.id)
-        .eq('status', 'completed');
-      
-      if (ordersError) throw ordersError;
-      
-      const { data: transactions, error: transactionsError } = await supabase
-        .from('financial_transactions')
-        .select('amount, transaction_type, status')
-        .eq('driver_id', user.id)
-        .eq('status', 'completed');
-      
-      if (transactionsError) throw transactionsError;
-      
-      const totalEarnings = transactions
-        .filter(t => t.transaction_type === 'driver_payout')
-        .reduce((sum, t) => sum + (t.amount || 0), 0);
-      
-      const platformCommission = transactions
-        .filter(t => t.transaction_type === 'platform_fee')
-        .reduce((sum, t) => sum + (t.amount || 0), 0);
-      
-      return {
-        completedOrders: completedOrders || 0,
-        totalEarnings,
-        platformCommission,
-        availableBalance: totalEarnings - platformCommission
-      };
+      try {
+        // Count completed orders
+        const { count: completedOrders, error: ordersError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('driver_id', user.id)
+          .eq('status', 'completed');
+        
+        if (ordersError) {
+          console.error("Error fetching completed orders:", ordersError);
+          throw ordersError;
+        }
+        
+        console.log("Completed orders count:", completedOrders);
+        
+        // Get financial transactions
+        const { data: transactions, error: transactionsError } = await supabase
+          .from('financial_transactions')
+          .select('amount, transaction_type, status')
+          .eq('driver_id', user.id)
+          .eq('status', 'completed');
+        
+        if (transactionsError) {
+          console.error("Error fetching transactions:", transactionsError);
+          throw transactionsError;
+        }
+        
+        console.log("Financial transactions:", transactions);
+        
+        // Calculate earnings
+        const totalEarnings = transactions
+          .filter(t => t.transaction_type === 'driver_payout')
+          .reduce((sum, t) => sum + (t.amount || 0), 0);
+        
+        const platformCommission = transactions
+          .filter(t => t.transaction_type === 'platform_fee')
+          .reduce((sum, t) => sum + (t.amount || 0), 0);
+        
+        return {
+          completedOrders: completedOrders || 0,
+          totalEarnings,
+          platformCommission,
+          availableBalance: totalEarnings - platformCommission
+        };
+      } catch (error) {
+        console.error("Error calculating financial stats:", error);
+        // Return default values if there's an error
+        return {
+          completedOrders: 0,
+          totalEarnings: 0,
+          platformCommission: 0,
+          availableBalance: 0
+        };
+      }
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: 2
   });
 
   const { data: ratingData } = useQuery({
@@ -104,14 +130,76 @@ const DriverDashboardContent = () => {
     queryFn: async () => {
       if (!user?.id) return 0;
       
-      const { data, error } = await supabase
-        .from('drivers')
-        .select('rating')
-        .eq('id', user.id)
-        .single();
+      try {
+        // First try to get rating from drivers table
+        const { data: driver, error } = await supabase
+          .from('drivers')
+          .select('rating')
+          .eq('id', user.id)
+          .maybeSingle();
+        
+        console.log("Driver rating from drivers table:", driver?.rating);
+        
+        if (error) {
+          console.error("Error fetching driver rating from drivers table:", error);
+          throw error;
+        }
+        
+        // If no rating in drivers table or it's null, calculate from ratings table
+        if (!driver || driver.rating === null) {
+          const { data: ratings, error: ratingsError } = await supabase
+            .from('driver_ratings')
+            .select('rating')
+            .eq('driver_id', user.id);
+          
+          if (ratingsError) {
+            console.error("Error fetching driver ratings:", ratingsError);
+            throw ratingsError;
+          }
+          
+          console.log("Driver ratings from ratings table:", ratings);
+          
+          if (ratings && ratings.length > 0) {
+            const avgRating = ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
+            return avgRating;
+          }
+          
+          return 0;
+        }
+        
+        return driver.rating || 0;
+      } catch (error) {
+        console.error("Error getting driver rating:", error);
+        return 0;
+      }
+    },
+    enabled: !!user?.id
+  });
+
+  // Direct query to get completed orders count as a backup
+  const { data: ordersCountData } = useQuery({
+    queryKey: ['driver-orders-count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
       
-      if (error) throw error;
-      return data?.rating || 0;
+      try {
+        const { count, error } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('driver_id', user.id)
+          .eq('status', 'completed');
+        
+        if (error) {
+          console.error("Error fetching orders count:", error);
+          throw error;
+        }
+        
+        console.log("Orders count direct query:", count);
+        return count || 0;
+      } catch (error) {
+        console.error("Error counting completed orders:", error);
+        return 0;
+      }
     },
     enabled: !!user?.id
   });
@@ -329,6 +417,15 @@ const DriverDashboardContent = () => {
     );
   }
 
+  // Get the completed orders count either from financialStats or direct query
+  const completedOrdersCount = financialStats?.completedOrders || ordersCountData || 0;
+  
+  // Format the available balance to always show 2 decimal places
+  const formattedBalance = (financialStats?.availableBalance || 0).toFixed(2);
+  
+  // Format the rating to show one decimal place
+  const formattedRating = (ratingData || 0).toFixed(1);
+
   return (
     <div className="flex h-screen bg-gray-50">
       <DriverSidebar />
@@ -354,7 +451,7 @@ const DriverDashboardContent = () => {
                         {isLoadingFinancial ? (
                           <span className="animate-pulse">...</span>
                         ) : (
-                          financialStats?.completedOrders || 0
+                          completedOrdersCount
                         )}
                       </h3>
                     </div>
@@ -374,7 +471,7 @@ const DriverDashboardContent = () => {
                         className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => navigate('/driver/ratings')}
                       >
-                        <h3 className="text-2xl font-bold">{(ratingData || 0).toFixed(1)}</h3>
+                        <h3 className="text-2xl font-bold">{formattedRating}</h3>
                         <div className="text-yellow-500 ml-2 text-lg">
                           {Array(5).fill(0).map((_, i) => (
                             <span key={i}>{i < Math.round(ratingData || 0) ? '★' : '☆'}</span>
@@ -397,11 +494,11 @@ const DriverDashboardContent = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-500">{t('availableBalance')}</p>
-                      <h3 className="text-2xl font-bold">
+                      <h3 className="text-2xl font-bold" dir="ltr">
                         {isLoadingFinancial ? (
                           <span className="animate-pulse">...</span>
                         ) : (
-                          `${financialStats?.availableBalance.toFixed(2) || '0.00'} ر.س`
+                          `${formattedBalance} ر.س`
                         )}
                       </h3>
                     </div>
@@ -413,6 +510,7 @@ const DriverDashboardContent = () => {
               </Card>
             </div>
             
+            {/* Notifications and financial summary */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <Card>
                 <CardHeader>
@@ -524,6 +622,7 @@ const DriverDashboardContent = () => {
               </Card>
             </div>
             
+            {/* Support card */}
             <Card>
               <CardHeader>
                 <CardTitle>{t('supportAndHelp')}</CardTitle>
