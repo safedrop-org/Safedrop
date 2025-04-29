@@ -1,8 +1,9 @@
+
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
-import StatSection from '@/components/home/stat-section';
 import { Award, Target, Users, Shield } from 'lucide-react';
+
 const AboutContent = () => {
   const {
     t
@@ -77,16 +78,15 @@ const AboutContent = () => {
             </div>
           </div>
         </section>
-
-        {/* Stats Section */}
-        <StatSection />
       </main>
       <Footer />
     </div>;
 };
+
 const About = () => {
   return <LanguageProvider>
       <AboutContent />
     </LanguageProvider>;
 };
+
 export default About;
