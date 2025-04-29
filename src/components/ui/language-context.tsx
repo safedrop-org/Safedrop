@@ -25,16 +25,22 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
     localStorage.setItem('preferred-language', language);
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
+    
+    // Force a reflow to ensure RTL/LTR changes are applied
+    document.body.style.display = 'none';
+    setTimeout(() => {
+      document.body.style.display = '';
+    }, 0);
   }, [language]);
 
   const t = (key: string) => {
     if (!translations[key]) {
-      console.warn(`Translation for key "${key}" not found`);
+      console.warn(`Translation for key "${key}" not found:`, key);
       return key;
     }
     
     if (!translations[key][language]) {
-      console.warn(`Translation for key "${key}" in language "${language}" not found`);
+      console.warn(`Translation for key "${key}" in language "${language}" not found:`, key, language);
       return key;
     }
     
