@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,21 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import DriverSidebar from '@/components/driver/DriverSidebar';
 import { Bell, Globe, Shield, Moon } from 'lucide-react';
-
 const DriverSettingsContent = () => {
-  const { t, language, setLanguage } = useLanguage();
-  
+  const {
+    t,
+    language,
+    setLanguage
+  } = useLanguage();
   const [notifications, setNotifications] = useState({
     orders: true,
     messages: true,
     earnings: true,
     updates: false
   });
-  
   const [darkMode, setDarkMode] = useState(false);
-
-  return (
-    <div className="flex h-screen bg-gray-50">
+  return <div className="flex h-screen bg-gray-50">
       <DriverSidebar />
       
       <div className="flex-1 flex flex-col overflow-auto">
@@ -47,9 +45,9 @@ const DriverSettingsContent = () => {
                       <p className="text-sm text-gray-500">{t('receiveOrderNotifications')}</p>
                     </div>
                     <Switch checked={notifications.orders} onCheckedChange={checked => setNotifications({
-                      ...notifications,
-                      orders: checked
-                    })} />
+                    ...notifications,
+                    orders: checked
+                  })} />
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -58,9 +56,9 @@ const DriverSettingsContent = () => {
                       <p className="text-sm text-gray-500">{t('receiveMessageNotifications')}</p>
                     </div>
                     <Switch checked={notifications.messages} onCheckedChange={checked => setNotifications({
-                      ...notifications,
-                      messages: checked
-                    })} />
+                    ...notifications,
+                    messages: checked
+                  })} />
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -69,9 +67,9 @@ const DriverSettingsContent = () => {
                       <p className="text-sm text-gray-500">{t('receiveEarningsNotifications')}</p>
                     </div>
                     <Switch checked={notifications.earnings} onCheckedChange={checked => setNotifications({
-                      ...notifications,
-                      earnings: checked
-                    })} />
+                    ...notifications,
+                    earnings: checked
+                  })} />
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -80,9 +78,9 @@ const DriverSettingsContent = () => {
                       <p className="text-sm text-gray-500">{t('receiveUpdateNotifications')}</p>
                     </div>
                     <Switch checked={notifications.updates} onCheckedChange={checked => setNotifications({
-                      ...notifications,
-                      updates: checked
-                    })} />
+                    ...notifications,
+                    updates: checked
+                  })} />
                   </div>
                 </div>
               </CardContent>
@@ -109,46 +107,13 @@ const DriverSettingsContent = () => {
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Moon className="h-5 w-5" />
-                  {t('darkMode')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <p className="font-medium">{t('darkMode')}</p>
-                  <Switch checked={darkMode} onCheckedChange={setDarkMode} />
-                </div>
-              </CardContent>
+              
+              
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  {t('securitySettings')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{t('passwordChange')}</p>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      {t('changePassword')}
-                    </Button>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{t('twoFactorAuthentication')}</p>
-                    </div>
-                    <Switch checked={false} />
-                  </div>
-                </div>
-              </CardContent>
+              
+              
             </Card>
 
             <div className="flex justify-end">
@@ -159,16 +124,11 @@ const DriverSettingsContent = () => {
           </div>
         </main>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 const DriverSettings = () => {
-  return (
-    <LanguageProvider>
+  return <LanguageProvider>
       <DriverSettingsContent />
-    </LanguageProvider>
-  );
+    </LanguageProvider>;
 };
-
 export default DriverSettings;
