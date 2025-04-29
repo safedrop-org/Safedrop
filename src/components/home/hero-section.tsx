@@ -36,7 +36,7 @@ export const HeroSection = () => {
           {language === 'ar' ? 'سيف دروب' : 'SafeDrop'}
         </h1>
         <p className="text-xl sm:text-2xl md:text-3xl mb-8 max-w-3xl mx-auto">
-          {language === 'ar' ? 'توصيل آمن ومضمون للشحنات الثمينة' : 'Secure and guaranteed delivery for valuable shipments'}
+          {language === 'ar' ? 'انضم إلى منصة سيف دروب واستمتع بتجربة توصيل سريعة وآمنة' : 'Join the Saif Drop platform and enjoy a fast and safe delivery experience'}
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link to="/register/customer">
