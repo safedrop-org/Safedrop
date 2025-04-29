@@ -120,6 +120,52 @@ export const translations = {
     en: "We continuously look for new and better ways to deliver and improve our services"
   },
 
+  // Contact Page
+  location: {
+    ar: "الموقع",
+    en: "Location"
+  },
+  locationAddress: {
+    ar: "الرياض، المملكة العربية السعودية",
+    en: "Riyadh, Saudi Arabia"
+  },
+  workingHours: {
+    ar: "ساعات العمل",
+    en: "Working Hours"
+  },
+  workingDays: {
+    ar: "الأحد - الخميس: 9 صباحًا - 5 مساءً",
+    en: "Sunday - Thursday: 9am - 5pm"
+  },
+  contactForm: {
+    ar: "نموذج الاتصال",
+    en: "Contact Form"
+  },
+  name: {
+    ar: "الاسم",
+    en: "Name"
+  },
+  subject: {
+    ar: "الموضوع",
+    en: "Subject"
+  },
+  message: {
+    ar: "الرسالة",
+    en: "Message"
+  },
+  send: {
+    ar: "إرسال",
+    en: "Send"
+  },
+  messageSuccess: {
+    ar: "تم إرسال رسالتك بنجاح",
+    en: "Your message has been sent successfully"
+  },
+  messageSuccessDescription: {
+    ar: "سنتواصل معك في أقرب وقت ممكن",
+    en: "We will get back to you as soon as possible"
+  },
+  
   // Authentication & Common UI
   Dashboard: {
     ar: "لوحة التحكم",
