@@ -26,7 +26,7 @@ const CallToAction = () => {
               {language === 'ar' ? 'انضم إلينا الآن' : 'Join Us Now'}
             </h2>
             <p className="text-lg text-gray-300 mb-8">
-              {language === 'ar' ? 'انضم إلى منصة سيف دروب واستفد من خدماتنا المتميزة في توصيل الطرود وحماية المعاملات' : 'Join SafeDrop platform and benefit from our premium services in package delivery and transaction protection'}
+              {language === 'ar' ? 'انض إلى منصة سيف دروب واستمتع بتجربة توصيل سريعة وآمنة' : 'Join SafeDrop platform and benefit from our premium services in package delivery and transaction protection'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-white">
