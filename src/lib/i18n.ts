@@ -1,3 +1,4 @@
+
 import { LanguageKey } from "./language-key";
 
 // Translation keys for the entire application
@@ -922,6 +923,7 @@ export const translations = {
     ar: "إعادة المحاولة",
     en: "Retry loading"
   },
+  // Consolidate these duplicate entries
   todayEarnings: {
     ar: "أرباح اليوم",
     en: "Today's Earnings"
@@ -938,28 +940,37 @@ export const translations = {
     ar: "تحليل الأرباح",
     en: "Earnings Analysis"
   },
-  availableForOrders: {
-    ar: "متاح للطلبات",
-    en: "Available for Orders"
+  // Add dark mode setting translation
+  darkMode: {
+    ar: "الوضع الداكن",
+    en: "Dark Mode"
   },
-  markAllAsRead: {
-    ar: "تحديد الكل كمقروء",
-    en: "Mark All as Read"
+  accountSettings: {
+    ar: "إعدادات الحساب",
+    en: "Account Settings"
   },
-  earningsAnalysis: {
-    ar: "تحليل الأرباح",
-    en: "Earnings Analysis"
+  securitySettings: {
+    ar: "إعدادات الأمان",
+    en: "Security Settings"
   },
-  monthlyEarnings: {
-    ar: "أرباح الشهر",
-    en: "Monthly Earnings"
+  passwordChange: {
+    ar: "تغيير كلمة المرور",
+    en: "Change Password"
   },
-  weeklyEarnings: {
-    ar: "أرباح الأسبوع",
-    en: "Weekly Earnings"
+  twoFactorAuthentication: {
+    ar: "المصادقة الثنائية",
+    en: "Two-Factor Authentication"
   },
-  todayEarnings: {
-    ar: "أرباح اليوم",
-    en: "Today's Earnings"
+  privacySettings: {
+    ar: "إعدادات الخصوصية",
+    en: "Privacy Settings"
   },
+  dataSharing: {
+    ar: "مشاركة البيانات",
+    en: "Data Sharing"
+  },
+  locationSharing: {
+    ar: "مشاركة الموقع",
+    en: "Location Sharing"
+  }
 };

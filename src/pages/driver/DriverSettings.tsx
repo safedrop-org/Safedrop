@@ -109,11 +109,46 @@ const DriverSettingsContent = () => {
             </Card>
 
             <Card>
-              {/* Empty card for future use */}
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Moon className="h-5 w-5" />
+                  {t('darkMode')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <p className="font-medium">{t('darkMode')}</p>
+                  <Switch checked={darkMode} onCheckedChange={setDarkMode} />
+                </div>
+              </CardContent>
             </Card>
 
             <Card>
-              {/* Empty card for future use */}
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  {t('securitySettings')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{t('passwordChange')}</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      {t('changePassword')}
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{t('twoFactorAuthentication')}</p>
+                    </div>
+                    <Switch checked={false} />
+                  </div>
+                </div>
+              </CardContent>
             </Card>
 
             <div className="flex justify-end">
