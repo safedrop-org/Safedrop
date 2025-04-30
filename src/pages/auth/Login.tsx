@@ -25,42 +25,33 @@ const LoginContent = () => {
   useEffect(() => {
     console.log("User in login page:", user);
     console.log("User type in login page:", userType);
+    
+    // First check localStorage for admin auth
+    if (localStorage.getItem('adminAuth') === 'true') {
+      // For admin, redirect to admin dashboard
+      console.log("Redirecting to admin dashboard based on localStorage");
+      navigate('/admin/dashboard', { replace: true });
+      return;
+    }
+    
     if (user) {
       console.log("User already logged in, redirecting based on type:", userType);
-      // First check localStorage for user type flags
-      if (localStorage.getItem('adminAuth') === 'true') {
-        console.log("Redirecting to admin dashboard based on localStorage");
-        navigate('/admin/dashboard', {
-          replace: true
-        });
-        return;
-      }
+      // Check localStorage for user type flags
       if (localStorage.getItem('customerAuth') === 'true') {
         console.log("Redirecting to customer dashboard based on localStorage");
-        navigate('/customer/dashboard', {
-          replace: true
-        });
+        navigate('/customer/dashboard', { replace: true });
         return;
       }
       if (localStorage.getItem('driverAuth') === 'true') {
         console.log("Redirecting to driver dashboard based on localStorage");
-        navigate('/driver/dashboard', {
-          replace: true
-        });
+        navigate('/driver/dashboard', { replace: true });
         return;
       }
 
       // If no localStorage flags, try to use the userType from context
-      if (userType === 'admin') {
-        console.log("Redirecting to admin dashboard based on userType");
-        navigate('/admin/dashboard', {
-          replace: true
-        });
-      } else if (userType === 'customer') {
+      if (userType === 'customer') {
         console.log("Redirecting to customer dashboard based on userType");
-        navigate('/customer/dashboard', {
-          replace: true
-        });
+        navigate('/customer/dashboard', { replace: true });
       } else if (userType === 'driver') {
         console.log("Redirecting to driver dashboard based on userType");
         checkDriverStatusAndRedirect(user.id);
@@ -76,6 +67,7 @@ const LoginContent = () => {
       }
     }
   }, [user, userType, navigate]);
+  
   const redirectBasedOnUserType = (type: string, userId: string) => {
     console.log("Redirecting based on user type:", type);
     if (type === 'admin') {
@@ -95,6 +87,7 @@ const LoginContent = () => {
       toast.error("نوع المستخدم غي�� معروف");
     }
   };
+  
   const checkDriverStatusAndRedirect = async (userId: string) => {
     try {
       console.log("Checking driver status for:", userId);
@@ -126,6 +119,7 @@ const LoginContent = () => {
       });
     }
   };
+  
   const redirectBasedOnProfile = async (userId: string) => {
     try {
       console.log("Checking profile for user ID:", userId);
@@ -159,6 +153,7 @@ const LoginContent = () => {
       toast.error(t('profileCheckError'));
     }
   };
+  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -181,6 +176,13 @@ const LoginContent = () => {
         });
         if (error) {
           console.error('Login error:', error);
+          toast.error(t('invalidCredentials'));
+          setIsLoading(false);
+          return;
+        }
+
+        // Verify admin password separately
+        if (password !== 'SafeDrop@ibrahim2515974') {
           toast.error(t('invalidCredentials'));
           setIsLoading(false);
           return;
@@ -277,6 +279,7 @@ const LoginContent = () => {
       setIsLoading(false);
     }
   };
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

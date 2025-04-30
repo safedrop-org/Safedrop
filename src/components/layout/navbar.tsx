@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, ChevronDown, User, LogIn, Play, Box, Users, Mail, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
@@ -15,6 +15,7 @@ const Navbar = () => {
   } = useLanguage();
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const toggleLanguage = () => {
@@ -24,9 +25,10 @@ const Navbar = () => {
   const handleAdminLogout = async () => {
     try {
       await signOut();
+      // Clear admin authentication state
       localStorage.removeItem('adminAuth');
       localStorage.removeItem('adminEmail');
-      toast.success(t('logoutSuccess'));
+      toast.success(t('adminLoggedOut'));
       navigate('/admin', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
@@ -35,7 +37,7 @@ const Navbar = () => {
   };
   
   // Check if currently on admin page
-  const isAdminPage = window.location.pathname.startsWith('/admin/');
+  const isAdminPage = location.pathname.startsWith('/admin/');
   const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
   
   return <nav className="bg-safedrop-primary text-white py-4">
@@ -169,4 +171,5 @@ const Navbar = () => {
         </div>}
     </nav>;
 };
+
 export default Navbar;

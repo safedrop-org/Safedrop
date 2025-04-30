@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,15 @@ const AdminLoginContent = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Check if admin is already logged in
+  useEffect(() => {
+    const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+    if (isAdminLoggedIn) {
+      console.log("Admin already logged in, redirecting to dashboard");
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,10 +136,10 @@ const AdminLoginContent = () => {
                 <ShieldCheckIcon className="h-6 w-6 text-white" />
               </div>
               <CardTitle className="text-2xl font-bold text-safedrop-primary">
-                {t('language') === 'ar' ? 'تسجيل دخول المشرف' : 'Admin Login'}
+                {t('adminLogin')}
               </CardTitle>
               <CardDescription>
-                {t('language') === 'ar' ? 'أدخل كلمة المرور للوصول إلى لوحة تحكم المشرف' : 'Enter password to access admin panel'}
+                {t('adminLoginDescription')}
               </CardDescription>
             </CardHeader>
             

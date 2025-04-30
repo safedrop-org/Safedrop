@@ -1,16 +1,19 @@
 
 import React, { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/components/auth/AuthContext";
+import { useLanguage } from "@/components/ui/language-context";
 
 interface ProtectedAdminRouteProps {
   children: ReactNode;
 }
 
 const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const { signOut } = useAuth();
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -24,7 +27,7 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         if (!isAdminLoggedIn) {
           console.log("No admin auth in localStorage, redirecting to login");
           setIsAuthorized(false);
-          toast.error("يجب تسجيل الدخول للوصول إلى لوحة التحكم");
+          toast.error(t('adminAuthRequired'));
           navigate("/admin", { replace: true });
           return;
         }
@@ -35,19 +38,24 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       } catch (error) {
         console.error("Error checking admin:", error);
         setIsAuthorized(false);
-        toast.error("حدث خطأ أثناء التحقق من صلاحيات المشرف");
+        toast.error(t('adminCheckError'));
+        
+        // Clear admin auth on error
+        localStorage.removeItem('adminAuth');
+        localStorage.removeItem('adminEmail');
+        
         navigate("/admin", { replace: true });
       }
     };
 
     checkAdmin();
-  }, [navigate]);
+  }, [navigate, t]);
 
   // Render children only if authorized
   if (isAuthorized === null) {
     // You can render a loader here while checking auth
-    return <div className="flex items-center justify-center min-h-screen">جاري التحقق...</div>;
-  } else if (!isAuthorized) {
+    return <div className="flex items-center justify-center min-h-screen">{t('loading')}</div>;
+  } else if (!isAdminLoggedIn) {
     return null;
   }
 

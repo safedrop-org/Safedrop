@@ -1,4 +1,3 @@
-
 import { TranslationSection } from "./types";
 
 export const authUI: TranslationSection = {
@@ -44,6 +43,28 @@ export const authUI: TranslationSection = {
   welcomeCustomerDashboard: {
     ar: "مرحبًا بك في لوحة تحكم العميل",
     en: "Welcome to your Customer Dashboard"
+  },
+  
+  // Admin authentication messages
+  adminAuthRequired: {
+    ar: "يجب تسجيل الدخول للوصول إلى لوحة التحكم",
+    en: "Login required to access admin dashboard"
+  },
+  adminCheckError: {
+    ar: "حدث خطأ أثناء التحقق من صلاحيات المشرف",
+    en: "Error checking admin permissions"
+  },
+  adminLoggedOut: {
+    ar: "تم تسجيل خروجك من لوحة التحكم",
+    en: "You have been logged out from admin dashboard"
+  },
+  adminLoginDescription: {
+    ar: "أدخل كلمة المرور للوصول إلى لوحة تحكم المشرف",
+    en: "Enter password to access admin panel"
+  },
+  adminLogin: {
+    ar: "تسجيل دخول المشرف",
+    en: "Admin Login"
   },
   
   // Login page translations
@@ -136,7 +157,7 @@ export const authUI: TranslationSection = {
     en: "Error checking profile"
   },
   loading: {
-    ar: "جاري التحميل...",
+    ar: "جا��ي التحميل...",
     en: "Loading..."
   }
 };
