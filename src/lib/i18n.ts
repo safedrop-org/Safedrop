@@ -982,8 +982,8 @@ export const translations = {
     ar: "إعادة المحاولة",
     en: "Retry loading"
   },
-  // Consolidate these duplicate entries
-  todayEarnings: {
+  // Today's earnings - removing duplicate key
+  todaysEarnings: {
     ar: "أرباح اليوم",
     en: "Today's Earnings"
   },
@@ -1025,11 +1025,4 @@ export const translations = {
     en: "Privacy Settings"
   },
   dataSharing: {
-    ar: "مشاركة البيانات",
-    en: "Data Sharing"
-  },
-  locationSharing: {
-    ar: "مشاركة الموقع",
-    en: "Location Sharing"
-  }
-};
+    ar
