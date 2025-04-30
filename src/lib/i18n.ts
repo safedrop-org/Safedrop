@@ -593,7 +593,7 @@ export const translations = {
     en: "First Name"
   },
   lastName: {
-    ar: "اسم العائلة",
+    ar: "��سم العائلة",
     en: "Last Name"
   },
   email: {
@@ -867,7 +867,7 @@ export const translations = {
     en: "No Available Orders"
   },
   markAllAsRead: {
-    ar: "تحديد الكل كمقروء",
+    ar: "تحديد ��لكل كمقروء",
     en: "Mark All as Read"
   },
   allNotificationsMarkedAsRead: {
@@ -1025,4 +1025,28 @@ export const translations = {
     en: "Privacy Settings"
   },
   dataSharing: {
-    ar
+    ar: "مشاركة البيانات",
+    en: "Data Sharing"
+  },
+  locationSharing: {
+    ar: "مشاركة الموقع",
+    en: "Location Sharing"
+  },
+  // Add Page Not Found translations
+  pageNotFound: {
+    ar: "الصفحة غير موجودة",
+    en: "Page Not Found"
+  },
+  returnHome: {
+    ar: "العودة إلى الصفحة الرئيسية",
+    en: "Return Home"
+  },
+  saveChanges: {
+    ar: "حفظ التغييرات",
+    en: "Save Changes"
+  },
+  welcomeCustomerDashboard: {
+    ar: "مرحبًا بك في لوحة تحكم العميل",
+    en: "Welcome to your Customer Dashboard"
+  }
+};
