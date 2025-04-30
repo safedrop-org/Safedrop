@@ -10,7 +10,7 @@ export const translations = {
   },
   tagline: {
     ar: "انضم إلى منصة سيف دروب واستمتع بتجربة توصيل سريعة وآمنة",
-    en: "Join the Saif Drop platform and enjoy a fast and safe delivery experience."
+    en: "Join Saif Drop platform and enjoy a fast and safe delivery experience."
   },
   getStarted: {
     ar: "ابدأ الآن",
@@ -77,7 +77,7 @@ export const translations = {
     en: "SafeDrop began as a solution to a fundamental problem many people faced: the need for a secure and reliable delivery service in Saudi Arabia. We recognized there was a significant gap in the market for a platform that could provide both swift delivery service and transaction protection."
   },
   ourStoryDescription2: {
-    ar: "منذ تأسيسنا، نمو��ا لنصبح واحدة من أكثر منصات التوصيل موثوقية في المنطقة. نحن نفخر بتقديم خدمة مخصصة تلبي احتياجات عملائنا وتتجاوز توقعاتهم.",
+    ar: "منذ تأسيسنا، نحن نفخر بتقديم خدمة مخصصة تلبي احتياجات عملائنا وتتجاوز توقعاتهم.",
     en: "Since our founding, we've grown to become one of the most trusted delivery platforms in the region. We take pride in offering a personalized service that meets the needs of our customers and exceeds their expectations."
   },
   ourValues: {
