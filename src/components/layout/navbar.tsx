@@ -62,10 +62,10 @@ const Navbar = () => {
                 </Button>
                 <div className="absolute z-10 hidden group-hover:block pt-2 right-0 rtl:left-0 rtl:right-auto min-w-[180px]">
                   <div className="bg-white shadow-lg rounded-md py-2">
-                    <Link to="/register/customer" className="block px-4 py-2 text-s text-gray-700 hover:bg-gray-100">
+                    <Link to="/register/customer" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       {t('customerRegister')}
                     </Link>
-                    <Link to="/register/driver" className="block px-4 py-2 text-m text-gray-700 hover:bg-gray-100">
+                    <Link to="/register/driver" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                       {t('driverRegister')}
                     </Link>
                   </div>
