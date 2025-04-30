@@ -23,7 +23,7 @@ const Footer = () => {
                 <span className="text-sm" dir="ltr">info@safedropksa.com</span>
               </li>
             </ul>
-            <div className={`flex mt-4 ${language === 'ar' ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
+            <div className={`flex mt-4 ${language === 'ar' ? 'gap-4' : 'space-x-4'}`}>
               <a href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Instagram size={20} />
               </a>
@@ -100,7 +100,7 @@ const Footer = () => {
             <p className="text-sm mb-4">
               {t('tagline')}
             </p>
-            <div className={`flex ${language === 'ar' ? 'space-x-reverse space-x-4' : 'space-x-4'}`}>
+            <div className={`flex ${language === 'ar' ? 'gap-4' : 'space-x-4'}`}>
               <a href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Instagram size={20} />
               </a>
