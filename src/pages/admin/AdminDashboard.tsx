@@ -15,6 +15,7 @@ import { IProfile, IDriver } from '@/integrations/supabase/custom-types';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { UsersIcon, TruckIcon, PackageIcon, LogOutIcon, DollarSign, LineChart, BarChart2Icon, AlertTriangleIcon, BellIcon, UserXIcon, UserCheckIcon, SearchIcon, MoreVerticalIcon, FilterIcon, FileTextIcon, MessageSquareIcon, SettingsIcon, Check, Globe, ShieldIcon, UserCogIcon, Eye, Search, Ban } from 'lucide-react';
+import { useAuth } from '@/components/auth/AuthContext';
 
 // Define types
 type DateRange = 'today' | 'week' | 'month' | 'year';
@@ -40,6 +41,7 @@ const AdminDashboardContent = () => {
   const {
     t
   } = useLanguage();
+  const { signOut } = useAuth(); // Import the signOut function from AuthContext
   const [isAdmin, setIsAdmin] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange>('month');
   const [searchQuery, setSearchQuery] = useState('');
@@ -431,9 +433,15 @@ const AdminDashboardContent = () => {
       setIsAdmin(true);
     }
   }, [navigate]);
-  const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
-    navigate('/admin');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success(t('logoutSuccess') || 'تم تسجيل الخروج بنجاح');
+      navigate('/login?logout=true', { replace: true });
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast.error(t('logoutError') || 'حدث خطأ أثناء تسجيل الخروج');
+    }
   };
   const handleUpdateCommissionRate = async () => {
     try {

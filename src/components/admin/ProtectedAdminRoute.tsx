@@ -28,8 +28,8 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
           console.log("No admin auth in localStorage, redirecting to login");
           setIsAuthorized(false);
           toast.error(t('adminAuthRequired'));
-          // Redirect to admin login with clear parameter
-          navigate("/admin?logout=true", { replace: true });
+          // Redirect to login with parameters
+          navigate("/login?redirect=admin", { replace: true });
           return;
         }
 
@@ -45,7 +45,7 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         localStorage.removeItem('adminAuth');
         localStorage.removeItem('adminEmail');
         
-        navigate("/admin?logout=true", { replace: true });
+        navigate("/login?redirect=admin", { replace: true });
       }
     };
 
