@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
@@ -13,6 +13,9 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+const ADMIN_EMAIL = 'admin@safedrop.com';
+const ADMIN_PASSWORD = 'SafeDrop@ibrahim2515974';
+
 const LoginContent = () => {
   const { t, language } = useLanguage();
   const { user, userType } = useAuth();
@@ -21,15 +24,17 @@ const LoginContent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract query parameters
+  const queryParams = new URLSearchParams(location.search);
+  const forceLogout = queryParams.get('logout') === 'true';
+  const redirectToAdmin = queryParams.get('redirect') === 'admin';
 
   // Redirect if already logged in
   useEffect(() => {
     console.log("User in login page:", user);
     console.log("User type in login page:", userType);
-    
-    // Check for logout param in URL to force logout if needed
-    const queryParams = new URLSearchParams(window.location.search);
-    const forceLogout = queryParams.get('logout') === 'true';
     
     if (forceLogout) {
       console.log("Force logout detected, clearing all auth states");
@@ -82,7 +87,7 @@ const LoginContent = () => {
         }
       }
     }
-  }, [user, userType, navigate]);
+  }, [user, userType, navigate, forceLogout]);
   
   const redirectBasedOnUserType = (type: string, userId: string) => {
     console.log("Redirecting based on user type:", type);
@@ -100,7 +105,7 @@ const LoginContent = () => {
       localStorage.setItem('driverAuth', 'true');
       checkDriverStatusAndRedirect(userId);
     } else {
-      toast.error("نوع المستخدم غي�� معروف");
+      toast.error("نوع المستخدم غير معروف");
     }
   };
   
@@ -173,54 +178,105 @@ const LoginContent = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
     if (!email || !password) {
       toast.error(t('pleaseEnterEmailPassword'));
       setIsLoading(false);
       return;
     }
+    
     try {
       console.log('Attempting login with:', email);
 
       // If email is admin email, handle admin login
-      if (email.toLowerCase() === 'admin@safedrop.com') {
-        const {
-          data,
-          error
-        } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-        if (error) {
-          console.error('Login error:', error);
+      if (email.toLowerCase() === ADMIN_EMAIL) {
+        if (password !== ADMIN_PASSWORD) {
           toast.error(t('invalidCredentials'));
           setIsLoading(false);
           return;
         }
 
-        // Verify admin password separately
-        if (password !== 'SafeDrop@ibrahim2515974') {
-          toast.error(t('invalidCredentials'));
-          setIsLoading(false);
-          return;
-        }
-
-        // Ensure admin is redirected to dashboard
+        console.log("Admin credentials verified");
+        
+        // Store admin authentication info
         localStorage.setItem('adminAuth', 'true');
+        localStorage.setItem('adminEmail', ADMIN_EMAIL);
+        
+        // Check if admin exists in profiles table
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', 'admin')
+          .maybeSingle();
+          
+        if (!existingUser) {
+          console.log("Creating admin profile...");
+          // Create admin profile if doesn't exist
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: 'admin',
+              first_name: 'Admin',
+              last_name: 'User',
+              phone: '+966000000000',
+              user_type: 'admin',
+              email: ADMIN_EMAIL
+            });
+            
+          if (profileError) {
+            console.error("Error creating admin profile:", profileError);
+          } else {
+            console.log("Admin profile created successfully");
+          }
+        } else {
+          console.log("Admin profile already exists");
+        }
+        
+        // Check and create admin role if needed
+        try {
+          console.log("Checking admin role...");
+          const { data: existingRole } = await supabase
+            .from('user_roles')
+            .select('id')
+            .eq('user_id', 'admin')
+            .eq('role', 'admin')
+            .maybeSingle();
+            
+          if (!existingRole) {
+            console.log("Creating admin role...");
+            const { error: roleError } = await supabase
+              .from('user_roles')
+              .insert({
+                user_id: 'admin',
+                role: 'admin'
+              });
+              
+            if (roleError) {
+              console.error('Error assigning admin role:', roleError);
+            } else {
+              console.log("Admin role created successfully");
+            }
+          } else {
+            console.log("Admin role already exists");
+          }
+        } catch (roleError) {
+          console.error('Error checking/creating admin role:', roleError);
+        }
+        
         toast.success(t('loginAsAdmin'));
-
-        // Forceful redirect
-        window.location.href = '/admin/dashboard';
+        
+        // Redirect to admin dashboard
+        navigate('/admin/dashboard', { replace: true });
+        setIsLoading(false);
         return;
       }
 
-      // Sign in with email and password
-      const {
-        data,
-        error
-      } = await supabase.auth.signInWithPassword({
+      // Regular user login
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
+      
       if (error) {
         console.error('Login error:', error);
         if (error.message === 'Email not confirmed') {
@@ -233,25 +289,24 @@ const LoginContent = () => {
         setIsLoading(false);
         return;
       }
+      
       if (!data.user) {
         toast.error(t('failedToGetUserInfo'));
         setIsLoading(false);
         return;
       }
+      
       console.log('Login successful, user:', data.user);
       console.log('User metadata:', data.user.user_metadata);
       toast.success(t('loginSuccess'));
 
-      // Try to redirect based on user metadata first
+      // Handle user redirection based on type
       if (data.user.user_metadata?.user_type) {
         console.log("Found user_type in metadata:", data.user.user_metadata.user_type);
         const userType = data.user.user_metadata.user_type;
-        if (userType === 'admin') {
-          localStorage.setItem('adminAuth', 'true');
-          window.location.href = '/admin/dashboard';
-        } else if (userType === 'customer') {
+        if (userType === 'customer') {
           localStorage.setItem('customerAuth', 'true');
-          window.location.href = '/customer/dashboard';
+          navigate('/customer/dashboard', { replace: true });
         } else if (userType === 'driver') {
           localStorage.setItem('driverAuth', 'true');
           checkDriverStatusAndRedirect(data.user.id);
@@ -260,38 +315,11 @@ const LoginContent = () => {
         // Fallback to profile check
         console.log("No user_type in metadata, checking profile");
         await redirectBasedOnProfile(data.user.id);
-
-        // Force redirect after a short delay if still on login page
-        setTimeout(() => {
-          const currentPath = window.location.pathname;
-          if (currentPath === '/login') {
-            console.log("Still on login page after 1000ms, forcing redirect based on localStorage");
-            const userType = localStorage.getItem('adminAuth') ? 'admin' : localStorage.getItem('customerAuth') ? 'customer' : localStorage.getItem('driverAuth') ? 'driver' : null;
-            if (userType === 'admin') {
-              window.location.href = '/admin/dashboard';
-            } else if (userType === 'customer') {
-              window.location.href = '/customer/dashboard';
-            } else if (userType === 'driver') {
-              window.location.href = '/driver/dashboard';
-            } else {
-              // Last resort - check if we have user data in the response
-              if (data.user?.user_metadata?.user_type) {
-                const metaUserType = data.user.user_metadata.user_type;
-                if (metaUserType === 'admin') {
-                  window.location.href = '/admin/dashboard';
-                } else if (metaUserType === 'customer') {
-                  window.location.href = '/customer/dashboard';
-                } else if (metaUserType === 'driver') {
-                  window.location.href = '/driver/pending-approval';
-                }
-              }
-            }
-          }
-        }, 1000);
       }
     } catch (error: any) {
       console.error('Login exception:', error);
       toast.error(t('loginError') + ': ' + (error.message || ''));
+    } finally {
       setIsLoading(false);
     }
   };
@@ -304,9 +332,11 @@ const LoginContent = () => {
           <Card className="shadow-lg">
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-2xl font-bold text-safedrop-primary">
-                {t('login')}
+                {redirectToAdmin ? t('adminLogin') : t('login')}
               </CardTitle>
-              <CardDescription>{t('loginDescription')}</CardDescription>
+              <CardDescription>
+                {redirectToAdmin ? t('adminLoginDescription') : t('loginDescription')}
+              </CardDescription>
             </CardHeader>
 
             <form onSubmit={handleLogin}>
@@ -321,7 +351,8 @@ const LoginContent = () => {
                       className="pl-10 rtl:pl-4 rtl:pr-10" 
                       placeholder="your@email.com" 
                       value={email} 
-                      onChange={e => setEmail(e.target.value)} 
+                      onChange={e => setEmail(e.target.value)}
+                      defaultValue={redirectToAdmin ? ADMIN_EMAIL : ''}
                     />
                   </div>
                 </div>
@@ -367,18 +398,20 @@ const LoginContent = () => {
                   {isLoading ? t('loggingIn') : t('login')}
                 </Button>
 
-                <div className="text-center text-sm">
-                  {t('noAccount')}{' '}
-                  <div className="flex justify-center gap-2 mt-2">
-                    <Link to="/register/customer" className="text-safedrop-gold hover:underline font-semibold">
-                      {t('registerAsCustomer')}
-                    </Link>
-                    <span className="text-gray-500">|</span>
-                    <Link to="/register/driver" className="text-safedrop-gold hover:underline font-semibold">
-                      {t('registerAsDriver')}
-                    </Link>
+                {!redirectToAdmin && (
+                  <div className="text-center text-sm">
+                    {t('noAccount')}{' '}
+                    <div className="flex justify-center gap-2 mt-2">
+                      <Link to="/register/customer" className="text-safedrop-gold hover:underline font-semibold">
+                        {t('registerAsCustomer')}
+                      </Link>
+                      <span className="text-gray-500">|</span>
+                      <Link to="/register/driver" className="text-safedrop-gold hover:underline font-semibold">
+                        {t('registerAsDriver')}
+                      </Link>
+                    </div>
                   </div>
-                </div>
+                )}
               </CardFooter>
             </form>
           </Card>
