@@ -103,6 +103,18 @@ export const authUI: TranslationSection = {
     ar: "تم تسجيل الدخول بنجاح، مرحباً بك",
     en: "Login successful, welcome back"
   },
+  logout: {
+    ar: "تسجيل الخروج",
+    en: "Logout"
+  },
+  logoutSuccess: {
+    ar: "تم تسجيل الخروج بنجاح",
+    en: "Logged out successfully"
+  },
+  logoutError: {
+    ar: "حدث خطأ أثناء تسجيل الخروج",
+    en: "An error occurred during logout"
+  },
   pleaseEnterEmailPassword: {
     ar: "يرجى إدخال البريد الإلكتروني وكلمة المرور",
     en: "Please enter your email and password"

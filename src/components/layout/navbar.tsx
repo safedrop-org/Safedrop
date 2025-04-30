@@ -1,18 +1,43 @@
+
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, ChevronDown, User, LogIn, Play, Box, Users, Mail } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, ChevronDown, User, LogIn, Play, Box, Users, Mail, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/ui/language-context';
+import { toast } from 'sonner';
+import { useAuth } from '@/components/auth/AuthContext';
+
 const Navbar = () => {
   const {
     t,
     language,
     setLanguage
   } = useLanguage();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   const toggleLanguage = () => {
     setLanguage(language === 'ar' ? 'en' : 'ar');
   };
+  
+  const handleAdminLogout = async () => {
+    try {
+      await signOut();
+      localStorage.removeItem('adminAuth');
+      localStorage.removeItem('adminEmail');
+      toast.success(t('logoutSuccess'));
+      navigate('/admin', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error(t('logoutError'));
+    }
+  };
+  
+  // Check if currently on admin page
+  const isAdminPage = window.location.pathname.startsWith('/admin/');
+  const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+  
   return <nav className="bg-safedrop-primary text-white py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
@@ -48,29 +73,43 @@ const Navbar = () => {
               <Button variant="ghost" onClick={toggleLanguage} className="text-white">
                 {language === 'ar' ? 'English' : 'Arabic'}
               </Button>
-              <Link to="/login">
-                <Button variant="outline" className="border-safedrop-gold text-safedrop-gold hover:bg-safedrop-gold hover:text-white">
-                  <LogIn className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
-                  {t('login')}
+              
+              {isAdminPage && isAdminLoggedIn ? (
+                <Button 
+                  variant="outline" 
+                  className="border-safedrop-gold text-safedrop-gold hover:bg-safedrop-gold hover:text-white"
+                  onClick={handleAdminLogout}
+                >
+                  <LogOut className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                  {t('logout')}
                 </Button>
-              </Link>
-              <div className="relative group">
-                <Button variant="default" className="bg-safedrop-gold hover:bg-safedrop-gold/90">
-                  <User className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
-                  {t('register')}
-                  <ChevronDown className="h-4 w-4 ml-1 rtl:mr-1 rtl:ml-0" />
-                </Button>
-                <div className="absolute z-10 hidden group-hover:block pt-2 right-0 rtl:left-0 rtl:right-auto min-w-[180px]">
-                  <div className="bg-white shadow-lg rounded-md py-2">
-                    <Link to="/register/customer" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      {t('customerRegister')}
-                    </Link>
-                    <Link to="/register/driver" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      {t('driverRegister')}
-                    </Link>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <Button variant="outline" className="border-safedrop-gold text-safedrop-gold hover:bg-safedrop-gold hover:text-white">
+                      <LogIn className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                      {t('login')}
+                    </Button>
+                  </Link>
+                  <div className="relative group">
+                    <Button variant="default" className="bg-safedrop-gold hover:bg-safedrop-gold/90">
+                      <User className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                      {t('register')}
+                      <ChevronDown className="h-4 w-4 ml-1 rtl:mr-1 rtl:ml-0" />
+                    </Button>
+                    <div className="absolute z-10 hidden group-hover:block pt-2 right-0 rtl:left-0 rtl:right-auto min-w-[180px]">
+                      <div className="bg-white shadow-lg rounded-md py-2">
+                        <Link to="/register/customer" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                          {t('customerRegister')}
+                        </Link>
+                        <Link to="/register/driver" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                          {t('driverRegister')}
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </div>
           <div className="flex md:hidden">
@@ -104,15 +143,27 @@ const Navbar = () => {
               </Button>
             </div>
             <div className="mt-3 px-2 space-y-1">
-              <Link to="/login" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-safedrop-primary hover:bg-opacity-75">
-                {t('login')}
-              </Link>
-              <Link to="/register/customer" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-safedrop-primary hover:bg-opacity-75">
-                {t('customerRegister')}
-              </Link>
-              <Link to="/register/driver" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-safedrop-primary hover:bg-opacity-75">
-                {t('driverRegister')}
-              </Link>
+              {isAdminPage && isAdminLoggedIn ? (
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  onClick={handleAdminLogout}
+                >
+                  {t('logout')}
+                </Button>
+              ) : (
+                <>
+                  <Link to="/login" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-safedrop-primary hover:bg-opacity-75">
+                    {t('login')}
+                  </Link>
+                  <Link to="/register/customer" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-safedrop-primary hover:bg-opacity-75">
+                    {t('customerRegister')}
+                  </Link>
+                  <Link to="/register/driver" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-safedrop-primary hover:bg-opacity-75">
+                    {t('driverRegister')}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>}

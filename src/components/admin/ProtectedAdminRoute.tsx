@@ -21,62 +21,22 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
         console.log("Admin logged in from localStorage:", isAdminLoggedIn);
         
-        if (isAdminLoggedIn) {
-          console.log("Admin is authorized via localStorage");
-          setIsAuthorized(true);
-          return;
-        }
-
-        // Not logged in as admin via localStorage, verify Supabase session
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        console.log("Session from Supabase:", session?.user?.id);
-
-        if (!session) {
-          console.log("No session found, redirecting to login");
+        if (!isAdminLoggedIn) {
+          console.log("No admin auth in localStorage, redirecting to login");
           setIsAuthorized(false);
-          navigate("/admin");
-          return;
-        }
-
-        // Fetch user profile to check user_type
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("user_type")
-          .eq("id", session.user.id)
-          .single();
-
-        console.log("Profile data:", profile);
-        
-        if (error) {
-          console.error("Error fetching profile:", error);
-        }
-
-        if (error || !profile || profile.user_type !== "admin") {
-          console.log("User is not an admin, redirecting");
-          toast.error("ليس لديك صلاحية الدخول إلى هذه الصفحة.");
-          
-          if (profile?.user_type === "customer") {
-            navigate("/customer/dashboard");
-          } else if (profile?.user_type === "driver") {
-            navigate("/driver/dashboard");
-          } else {
-            navigate("/admin");
-          }
-          
-          setIsAuthorized(false);
+          toast.error("يجب تسجيل الدخول للوصول إلى لوحة التحكم");
+          navigate("/admin", { replace: true });
           return;
         }
 
         // All checks passed
-        console.log("Admin is authorized via Supabase");
+        console.log("Admin is authorized via localStorage");
         setIsAuthorized(true);
       } catch (error) {
         console.error("Error checking admin:", error);
         setIsAuthorized(false);
-        navigate("/admin");
+        toast.error("حدث خطأ أثناء التحقق من صلاحيات المشرف");
+        navigate("/admin", { replace: true });
       }
     };
 
