@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -47,6 +48,7 @@ import DriverEarnings from './pages/driver/DriverEarnings';
 import DriverNotifications from './pages/driver/DriverNotifications';
 import DriverSupport from './pages/driver/DriverSupport';
 import DriverSettings from './pages/driver/DriverSettings';
+import DriverLogout from './pages/driver/Logout';
 
 // Auth Components
 import { useAuth } from '@/components/auth/AuthContext';
@@ -271,6 +273,7 @@ const AppContent = () => {
 
         {/* Driver Routes */}
         <Route path="/driver/pending-approval" element={<PendingApproval />} />
+        <Route path="/driver/logout" element={<DriverLogout />} />
         <Route 
           path="/driver" 
           element={

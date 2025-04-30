@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
 import { toast } from "sonner";
 
-const Logout = () => {
+const DriverLogout = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
@@ -36,4 +36,4 @@ const Logout = () => {
   );
 };
 
-export default Logout;
+export default DriverLogout;

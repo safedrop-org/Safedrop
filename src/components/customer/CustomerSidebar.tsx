@@ -1,5 +1,5 @@
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthContext';
 import { LayoutDashboard, Package, CreditCard, User, MessageSquare, Star, Settings, PlusCircle, LogOut } from 'lucide-react';
 import { useLanguage } from '@/components/ui/language-context';
@@ -7,6 +7,7 @@ import { useLanguage } from '@/components/ui/language-context';
 const CustomerSidebar = () => {
   const { t } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut } = useAuth();
 
   const menuItems = [
@@ -57,7 +58,7 @@ const CustomerSidebar = () => {
   };
 
   const handleLogout = () => {
-    signOut();
+    navigate('/customer/logout');
   };
 
   return (

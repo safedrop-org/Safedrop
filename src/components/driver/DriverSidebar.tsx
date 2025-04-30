@@ -1,24 +1,24 @@
-
 import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, Menu } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useLanguage } from '@/components/ui/language-context';
+import { useAuth } from '@/components/auth/AuthContext';
 
 const DriverSidebar = () => {
   const { t, language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const { signOut } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('driverAuth');
-    navigate('/login');
+    navigate('/driver/logout');
   };
 
   const menuItems = [{
@@ -124,18 +124,27 @@ const DriverSidebar = () => {
         
         <nav className="flex-1">
           <ul>
-            {menuItems.map((item, index) => <li key={index}>
-                <Link to={item.path} className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''}`}>
+            {menuItems.map((item, index) => (
+              <li key={index}>
+                <Link 
+                  to={item.path} 
+                  className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''}`}
+                >
                   {item.icon}
                   <span>{item.label}</span>
                 </Link>
-              </li>)}
+              </li>
+            ))}
           </ul>
         </nav>
         
         <div className="mt-auto">
           <div className="p-4 border-t border-white/10">
-            <Button onClick={handleLogout} variant="outline" className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2">
+            <Button 
+              onClick={handleLogout} 
+              variant="outline" 
+              className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
+            >
               <LogOut className="h-4 w-4" />
               <span>{t('Logout')}</span>
             </Button>
