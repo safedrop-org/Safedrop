@@ -55,7 +55,7 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   if (isAuthorized === null) {
     // You can render a loader here while checking auth
     return <div className="flex items-center justify-center min-h-screen">{t('loading')}</div>;
-  } else if (!isAdminLoggedIn) {
+  } else if (!isAuthorized) {
     return null;
   }
 
