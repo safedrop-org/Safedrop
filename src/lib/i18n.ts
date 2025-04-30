@@ -262,10 +262,6 @@ export const translations = {
     ar: "عدد الطلبات المكتملة",
     en: "Completed Orders Count"
   },
-  rating: {
-    ar: "التقييم",
-    en: "Rating"
-  },
   availableBalance: {
     ar: "الرصيد المتاح",
     en: "Available Balance"
@@ -1025,4 +1021,8 @@ export const translations = {
   dataSharing: {
     ar: "مشاركة البيانات",
     en: "Data Sharing"
+  },
+  locationSharing: {
+    ar: "مشاركة الموقع",
+    en: "Location Sharing"
   },
