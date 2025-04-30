@@ -9,7 +9,7 @@ export const translations = {
   },
   tagline: {
     ar: "انضم إلى منصة سيف دروب واستمتع بتجربة توصيل سريعة وآمنة",
-    en: "Join Saif Drop platform and enjoy a fast and safe delivery experience."
+    en: "Join Safe Drop platform and enjoy a fast and safe delivery experience."
   },
   getStarted: {
     ar: "ابدأ الآن",
@@ -55,7 +55,7 @@ export const translations = {
   },
   ctaDescription: {
     ar: "انضم إلى منصة سيف دروب واستمتع بتجربة توصيل سريعة وآمنة",
-    en: "Join the Saif Drop platform and enjoy a fast and safe delivery experience."
+    en: "Join safe Drop platform and enjoy a fast and safe delivery experience."
   },
   
   // About Page
