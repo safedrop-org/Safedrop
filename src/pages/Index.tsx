@@ -5,9 +5,10 @@ import Footer from '@/components/layout/footer';
 import { HeroSection } from '@/components/home/hero-section';
 import HowItWorks from '@/components/home/how-it-works';
 import CallToAction from '@/components/home/call-to-action';
-import { useLanguage } from '@/components/ui/language-context';
+import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
-const Index = () => {
+// Create a content component that uses the language hook
+const IndexContent = () => {
   const { language } = useLanguage();
 
   useEffect(() => {
@@ -26,6 +27,15 @@ const Index = () => {
       </main>
       <Footer />
     </div>
+  );
+};
+
+// The main exported component that wraps the content with LanguageProvider
+const Index = () => {
+  return (
+    <LanguageProvider>
+      <IndexContent />
+    </LanguageProvider>
   );
 };
 
