@@ -1,4 +1,3 @@
-
 import { LanguageKey } from "./language-key";
 
 // Translation keys for the entire application
@@ -601,29 +600,89 @@ export const translations = {
     ar: "البريد الإلكتروني",
     en: "Email"
   },
+  emailPlaceholder: {
+    ar: "البريد الإلكتروني",
+    en: "Email address"
+  },
   phone: {
     ar: "رقم الهاتف",
     en: "Phone Number"
   },
-  address: {
-    ar: "العنوان",
-    en: "Address"
+  phonePlaceholder: {
+    ar: "رقم الهاتف",
+    en: "Phone number"
   },
-  saveChanges: {
-    ar: "حفظ التغييرات",
-    en: "Save Changes"
+  password: {
+    ar: "كلمة المرور",
+    en: "Password"
   },
-  savingChanges: {
-    ar: "جاري الحفظ...",
-    en: "Saving Changes..."
+  birthDate: {
+    ar: "تاريخ الميلاد",
+    en: "Birth Date"
   },
-  profileUpdatedSuccessfully: {
-    ar: "تم تحديث الملف الشخصي بنجاح",
-    en: "Profile updated successfully"
+  nationalId: {
+    ar: "رقم الهوية الوطنية",
+    en: "National ID"
   },
-  errorUpdatingProfile: {
-    ar: "حدث خطأ أثناء تحديث الملف الشخصي",
-    en: "Error updating profile"
+  nationalIdPlaceholder: {
+    ar: "رقم الهوية الوطنية",
+    en: "National ID"
+  },
+  licenseNumber: {
+    ar: "رقم رخصة القيادة",
+    en: "License Number"
+  },
+  licenseNumberPlaceholder: {
+    ar: "رقم رخصة القيادة",
+    en: "License Number"
+  },
+  vehicleMake: {
+    ar: "نوع السيارة",
+    en: "Vehicle Make"
+  },
+  vehicleMakePlaceholder: {
+    ar: "نوع السيارة",
+    en: "Vehicle Make"
+  },
+  vehicleModel: {
+    ar: "موديل السيارة",
+    en: "Vehicle Model"
+  },
+  vehicleModelPlaceholder: {
+    ar: "موديل السيارة",
+    en: "Vehicle Model"
+  },
+  vehicleYear: {
+    ar: "سنة الصنع",
+    en: "Vehicle Year"
+  },
+  vehicleYearPlaceholder: {
+    ar: "سنة الصنع",
+    en: "Vehicle Year"
+  },
+  plateNumber: {
+    ar: "رقم اللوحة",
+    en: "Plate Number"
+  },
+  plateNumberPlaceholder: {
+    ar: "رقم اللوحة",
+    en: "Plate Number"
+  },
+  registering: {
+    ar: "جاري التسجيل...",
+    en: "Registering..."
+  },
+  register: {
+    ar: "تسجيل",
+    en: "Register"
+  },
+  alreadyHaveAccount: {
+    ar: "هل لديك حساب بالفعل؟",
+    en: "Already have an account?"
+  },
+  registrationSuccess: {
+    ar: "تم التسجيل بنجاح!",
+    en: "Registration Successful!"
   },
   
   // Feedback & Rating Page

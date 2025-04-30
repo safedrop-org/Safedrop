@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { useNavigate } from 'react-router-dom';
 import { UserIcon, LockIcon, MailIcon, PhoneIcon, Calendar } from 'lucide-react';
+
 const driverRegisterSchema = z.object({
   firstName: z.string().min(2, {
     message: "الاسم الأول مطلوب"
@@ -24,7 +25,7 @@ const driverRegisterSchema = z.object({
     message: "رقم الهاتف غير صالح"
   }),
   password: z.string().min(8, {
-    message: "كلمة المرور يجب أ�� تكون 8 أحرف على الأقل"
+    message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل"
   }),
   birthDate: z.string().min(1, {
     message: "تاريخ الميلاد مطلوب"
@@ -50,11 +51,11 @@ const driverRegisterSchema = z.object({
     })
   })
 });
+
 type DriverFormValues = z.infer<typeof driverRegisterSchema>;
+
 const DriverRegisterContent = () => {
-  const {
-    t
-  } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [submitAttempts, setSubmitAttempts] = useState(0);
@@ -62,6 +63,7 @@ const DriverRegisterContent = () => {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [showDebugConsole, setShowDebugConsole] = useState(false);
   const [waitTime, setWaitTime] = useState(0);
+
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (waitTime > 0) {
@@ -73,6 +75,7 @@ const DriverRegisterContent = () => {
       if (timer) clearTimeout(timer);
     };
   }, [waitTime]);
+
   const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverRegisterSchema),
     defaultValues: {
@@ -92,10 +95,12 @@ const DriverRegisterContent = () => {
       }
     }
   });
+
   const handleRateLimitError = () => {
     setWaitTime(60);
     toast.error('تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار دقيقة واحدة قبل المحاولة مرة أخرى');
   };
+
   const checkEmailExists = async (email: string) => {
     try {
       const {
@@ -114,6 +119,7 @@ const DriverRegisterContent = () => {
       return null;
     }
   };
+
   const onSubmit = async (data: DriverFormValues) => {
     if (waitTime > 0) {
       toast.error(`يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى`);
@@ -235,28 +241,31 @@ const DriverRegisterContent = () => {
       setIsLoading(false);
     }
   };
+
   if (registrationComplete) {
     return <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
           <img src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png" alt="SafeDrop Logo" className="mx-auto h-20 w-auto mb-4" />
           <h2 className="text-2xl font-bold text-safedrop-primary mt-6">
-            تم التسجيل بنجاح!
+            {t('registrationSuccess')}
           </h2>
           <p className="mt-4 text-gray-600">
-            شكراً لتسجيلك في سيف دروب. تم إرسال رسالة تأكيد إلى بريدك الإلكتروني.
-            يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك.
+            {language === 'ar' ? 'شكراً لتسجيلك في سيف دروب. تم إرسال رسالة تأكيد إلى بريدك الإلكتروني.' : 
+            'Thank you for registering with SafeDrop. A confirmation email has been sent to your email.'}
           </p>
           <p className="mt-4 text-gray-600">
-            بعد تأكيد بريدك الإلكتروني، سيتم مراجعة طلبك كسائق من قبل فريقنا.
+            {language === 'ar' ? 'بعد تأكيد بريدك الإلكتروني، سيتم مراجعة طلبك كسائق من قبل فريقنا.' : 
+            'After confirming your email, your driver application will be reviewed by our team.'}
           </p>
           <div className="mt-8">
             <Button onClick={() => navigate('/login')} className="bg-safedrop-gold hover:bg-safedrop-gold/90">
-              الذهاب إلى صفحة تسجيل الدخول
+              {t('login')}
             </Button>
           </div>
         </div>
       </div>;
   }
+
   return <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8">
         <div className="text-center">
@@ -265,31 +274,29 @@ const DriverRegisterContent = () => {
         </div>
 
         {waitTime > 0 && <div className="bg-amber-50 border border-amber-300 rounded-md p-4 mb-4 text-center">
-            <h3 className="text-amber-800 font-medium">يرجى الانتظار قبل المحاولة مرة أخرى</h3>
-            <p className="text-amber-700 mt-1">الوقت المتبقي: {waitTime} ثانية</p>
-            <p className="text-amber-600 text-sm mt-1">تم تجاوز الحد المسموح لمحاولات التسجيل. يرجى الانتظار قليلاً.</p>
+            <h3 className="text-amber-800 font-medium">{language === 'ar' ? 'يرجى الانتظار قبل المحاولة مرة أخرى' : 'Please wait before trying again'}</h3>
+            <p className="text-amber-700 mt-1">{language === 'ar' ? `الوقت المتبقي: ${waitTime} ثانية` : `Time remaining: ${waitTime} seconds`}</p>
+            <p className="text-amber-600 text-sm mt-1">{language === 'ar' ? 'تم تجاوز الحد المسموح لمحاولات التسجيل. يرجى الانتظار قليلاً.' : 'Registration attempt limit exceeded. Please wait a moment.'}</p>
           </div>}
-
-        
 
         {showDebugConsole}
 
         {debugInfo && <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-            <h3 className="text-red-800 font-medium">معلومات تشخيص الخطأ:</h3>
-            <p className="text-red-700 text-sm mt-1">المرحلة: {debugInfo.stage}</p>
-            <p className="text-red-700 text-sm mt-1">رسالة الخطأ: {debugInfo.error?.message || JSON.stringify(debugInfo.error)}</p>
+            <h3 className="text-red-800 font-medium">{language === 'ar' ? 'معلومات تشخيص الخطأ:' : 'Debug Information:'}</h3>
+            <p className="text-red-700 text-sm mt-1">{language === 'ar' ? `المرحلة: ${debugInfo.stage}` : `Stage: ${debugInfo.stage}`}</p>
+            <p className="text-red-700 text-sm mt-1">{language === 'ar' ? `رسالة الخطأ: ${debugInfo.error?.message || JSON.stringify(debugInfo.error)}` : `Error message: ${debugInfo.error?.message || JSON.stringify(debugInfo.error)}`}</p>
             {debugInfo.attempted_data && <details className="mt-2">
-                <summary className="text-red-700 text-sm cursor-pointer">عرض البيانات المرسلة</summary>
+                <summary className="text-red-700 text-sm cursor-pointer">{language === 'ar' ? 'عرض البيانات المرسلة' : 'View submitted data'}</summary>
                 <pre className="text-xs bg-red-100 p-2 mt-1 rounded overflow-auto">
                   {JSON.stringify(debugInfo.attempted_data, null, 2)}
                 </pre>
               </details>}
             {debugInfo.stage === 'profile_insert' && <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                <p className="text-sm text-yellow-800 font-medium">معلومات مفيدة للتصحيح:</p>
+                <p className="text-sm text-yellow-800 font-medium">{language === 'ar' ? 'معلومات مفيدة للتصحيح:' : 'Helpful debugging information:'}</p>
                 <ul className="list-disc list-inside text-xs text-yellow-700 mt-1">
-                  <li>تأكد من أن حقول الجدول profiles تتطابق مع البيانات المرسلة</li>
-                  <li>تأكد من أن سياسات RLS مفعلة بشكل صحيح</li>
-                  <li>قد تكون هناك مشكلة في الربط بين المستخدم والملف الشخصي</li>
+                  <li>{language === 'ar' ? 'تأكد من أن حقول الجدول profiles تتطابق مع البيانات المرسلة' : 'Ensure profiles table fields match the submitted data'}</li>
+                  <li>{language === 'ar' ? 'تأكد من أن سياسات RLS مفعلة بشكل صحيح' : 'Verify that RLS policies are correctly configured'}</li>
+                  <li>{language === 'ar' ? 'قد تكون هناك مشكلة في الربط بين المستخدم والملف الشخصي' : 'There may be an issue linking the user and profile'}</li>
                 </ul>
               </div>}
           </div>}
@@ -304,7 +311,7 @@ const DriverRegisterContent = () => {
                     <FormControl>
                       <div className="relative">
                         <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input placeholder={t('firstName')} className="pl-10" {...field} />
+                        <Input placeholder={language === 'ar' ? 'الاسم الأول' : 'First Name'} className="pl-10" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -316,7 +323,7 @@ const DriverRegisterContent = () => {
                     <FormControl>
                       <div className="relative">
                         <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input placeholder={t('lastName')} className="pl-10" {...field} />
+                        <Input placeholder={language === 'ar' ? 'اسم العائلة' : 'Last Name'} className="pl-10" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -330,7 +337,7 @@ const DriverRegisterContent = () => {
                   <FormControl>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input type="date" placeholder={t('birthDate')} className="pl-10" {...field} />
+                      <Input type="date" placeholder={language === 'ar' ? 'تاريخ الميلاد' : 'Birth Date'} className="pl-10" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -343,7 +350,7 @@ const DriverRegisterContent = () => {
                   <FormControl>
                     <div className="relative">
                       <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input type="email" placeholder={t('emailPlaceholder')} className="pl-10" {...field} />
+                      <Input type="email" placeholder={language === 'ar' ? 'البريد الإلكتروني' : 'Email'} className="pl-10" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -356,7 +363,7 @@ const DriverRegisterContent = () => {
                   <FormControl>
                     <div className="relative">
                       <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input type="tel" placeholder={t('phonePlaceholder')} className="pl-10" {...field} />
+                      <Input type="tel" placeholder={language === 'ar' ? 'رقم الهاتف' : 'Phone Number'} className="pl-10" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -369,7 +376,7 @@ const DriverRegisterContent = () => {
                   <FormControl>
                     <div className="relative">
                       <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input type="password" placeholder="••••••••" className="pl-10" {...field} />
+                      <Input type="password" placeholder={language === 'ar' ? '••••••••' : '••••••••'} className="pl-10" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -381,7 +388,7 @@ const DriverRegisterContent = () => {
             }) => <FormItem>
                     <FormLabel>{t('nationalId')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('nationalIdPlaceholder')} {...field} />
+                      <Input placeholder={language === 'ar' ? 'رقم الهوية الوطنية' : 'National ID'} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>} />
@@ -390,7 +397,7 @@ const DriverRegisterContent = () => {
             }) => <FormItem>
                     <FormLabel>{t('licenseNumber')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('licenseNumberPlaceholder')} {...field} />
+                      <Input placeholder={language === 'ar' ? 'رقم رخصة القيادة' : 'License Number'} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>} />
@@ -402,7 +409,7 @@ const DriverRegisterContent = () => {
             }) => <FormItem>
                     <FormLabel>{t('vehicleMake')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('vehicleMakePlaceholder')} {...field} />
+                      <Input placeholder={language === 'ar' ? 'نوع السيارة' : 'Vehicle Make'} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>} />
@@ -411,7 +418,7 @@ const DriverRegisterContent = () => {
             }) => <FormItem>
                     <FormLabel>{t('vehicleModel')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('vehicleModelPlaceholder')} {...field} />
+                      <Input placeholder={language === 'ar' ? 'موديل السيارة' : 'Vehicle Model'} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>} />
@@ -420,7 +427,7 @@ const DriverRegisterContent = () => {
             }) => <FormItem>
                     <FormLabel>{t('vehicleYear')}</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder={t('vehicleYearPlaceholder')} {...field} />
+                      <Input type="number" placeholder={language === 'ar' ? 'سنة الصنع' : 'Vehicle Year'} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>} />
@@ -429,7 +436,7 @@ const DriverRegisterContent = () => {
             }) => <FormItem>
                     <FormLabel>{t('plateNumber')}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t('plateNumberPlaceholder')} {...field} />
+                      <Input placeholder={language === 'ar' ? 'رقم اللوحة' : 'Plate Number'} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>} />
@@ -450,9 +457,11 @@ const DriverRegisterContent = () => {
       </div>
     </div>;
 };
+
 const DriverRegister = () => {
   return <LanguageProvider>
       <DriverRegisterContent />
     </LanguageProvider>;
 };
+
 export default DriverRegister;
