@@ -11,6 +11,7 @@ import { LockIcon, MailIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+
 const LoginContent = () => {
   const {
     t
@@ -290,7 +291,7 @@ const LoginContent = () => {
               <CardTitle className="text-2xl font-bold text-safedrop-primary">
                 {t('login')}
               </CardTitle>
-              <CardDescription>دخول إلى حسابك في منصة سيف دروب</CardDescription>
+              <CardDescription>{t('loginDescription')}</CardDescription>
             </CardHeader>
 
             <form onSubmit={handleLogin}>
@@ -313,29 +314,39 @@ const LoginContent = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <input type="checkbox" id="remember" className="w-4 h-4 text-safedrop-gold border-gray-300 rounded focus:ring-safedrop-gold" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />
-                    <Label htmlFor="remember" className="text-sm">تذكرني</Label>
+                    <input 
+                      type="checkbox" 
+                      id="remember" 
+                      className="w-4 h-4 text-safedrop-gold border-gray-300 rounded focus:ring-safedrop-gold" 
+                      checked={rememberMe} 
+                      onChange={e => setRememberMe(e.target.checked)} 
+                    />
+                    <Label htmlFor="remember" className="text-sm">{t('rememberMe')}</Label>
                   </div>
                   <Link to="/forgot-password" className="text-sm text-safedrop-gold hover:underline">
-                    نسيت كلمة المرور؟
+                    {t('forgotPassword')}
                   </Link>
                 </div>
               </CardContent>
 
               <CardFooter className="flex flex-col space-y-4">
-                <Button type="submit" className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" disabled={isLoading}>
-                  {isLoading ? "جاري تسجيل الدخول..." : t('login')}
+                <Button 
+                  type="submit" 
+                  className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? t('loggingIn') : t('login')}
                 </Button>
 
                 <div className="text-center text-sm">
-                  ليس لديك حساب؟{' '}
+                  {t('noAccount')}{' '}
                   <div className="flex justify-center gap-2 mt-2">
                     <Link to="/register/customer" className="text-safedrop-gold hover:underline font-semibold">
-                      سجل كعميل
+                      {t('registerAsCustomer')}
                     </Link>
                     <span className="text-gray-500">|</span>
                     <Link to="/register/driver" className="text-safedrop-gold hover:underline font-semibold">
-                      سجل كسائق
+                      {t('registerAsDriver')}
                     </Link>
                   </div>
                 </div>
@@ -347,9 +358,11 @@ const LoginContent = () => {
       <Footer />
     </div>;
 };
+
 const Login = () => {
   return <LanguageProvider>
       <LoginContent />
     </LanguageProvider>;
 };
+
 export default Login;

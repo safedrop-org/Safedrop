@@ -45,4 +45,42 @@ export const authUI: TranslationSection = {
     ar: "مرحبًا بك في لوحة تحكم العميل",
     en: "Welcome to your Customer Dashboard"
   },
+  
+  // Login page translations
+  loginDescription: {
+    ar: "دخول إلى حسابك في منصة سيف دروب",
+    en: "Access your SafeDrop account"
+  },
+  email: {
+    ar: "البريد الإلكتروني",
+    en: "Email"
+  },
+  password: {
+    ar: "كلمة المرور",
+    en: "Password"
+  },
+  rememberMe: {
+    ar: "تذكرني",
+    en: "Remember me"
+  },
+  forgotPassword: {
+    ar: "نسيت كلمة المرور؟",
+    en: "Forgot password?"
+  },
+  loggingIn: {
+    ar: "جاري تسجيل الدخول...",
+    en: "Logging in..."
+  },
+  noAccount: {
+    ar: "ليس لديك حساب؟",
+    en: "Don't have an account?"
+  },
+  registerAsCustomer: {
+    ar: "سجل كعميل",
+    en: "Register as customer"
+  },
+  registerAsDriver: {
+    ar: "سجل كسائق",
+    en: "Register as driver"
+  },
 };
