@@ -14,16 +14,16 @@ const Footer = () => {
           <div className="col-span-1 md:order-3">
             <h3 className="text-lg font-semibold mb-4">{t('contact')}</h3>
             <ul className="space-y-4">
-              <li className="flex items-start">
-                <MapPin className={`h-5 w-5 text-safedrop-gold shrink-0 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+              <li className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-safedrop-gold shrink-0" />
                 <span className="text-sm">{language === 'ar' ? 'المملكة العربية السعودية' : 'Saudi Arabia'}</span>
               </li>
-              <li className="flex items-start">
-                <Mail className={`h-5 w-5 text-safedrop-gold shrink-0 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
+              <li className="flex items-start gap-3">
+                <Mail className="h-5 w-5 text-safedrop-gold shrink-0" />
                 <span className="text-sm" dir="ltr">info@safedropksa.com</span>
               </li>
             </ul>
-            <div className={`flex mt-4 ${language === 'ar' ? 'gap-4' : 'space-x-4'}`}>
+            <div className="flex mt-4 gap-4">
               <a href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Instagram size={20} />
               </a>
@@ -93,14 +93,14 @@ const Footer = () => {
           {/* Column 4 - About */}
           <div className="col-span-1 md:order-0">
             <Link to="/" className="flex items-center mb-4">
-              <span className={`text-xl font-bold ${language === 'ar' ? 'mr-2' : 'ml-2'}`}>
+              <span className="text-xl font-bold">
                 {t('siteTitle')}
               </span>
             </Link>
             <p className="text-sm mb-4">
               {t('tagline')}
             </p>
-            <div className={`flex ${language === 'ar' ? 'gap-4' : 'space-x-4'}`}>
+            <div className="flex gap-4">
               <a href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-white hover:text-safedrop-gold transition-colors">
                 <Instagram size={20} />
               </a>
