@@ -1,4 +1,3 @@
-
 import { TranslationSection } from "./types";
 
 export const siteCommon: TranslationSection = {
@@ -9,7 +8,7 @@ export const siteCommon: TranslationSection = {
   },
   tagline: {
     ar: "انضم إلى منصة سيف دروب واستمتع بتجربة توصيل سريعة وآمنة",
-    en: "Join SafeDrop platform and enjoy a fast and safe delivery experience."
+    en: "Join SafeDrop platform and enjoy a fast and safe delivery experience"
   },
   getStarted: {
     ar: "ابدأ الآن",
