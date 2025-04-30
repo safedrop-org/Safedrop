@@ -11,7 +11,8 @@ export const translate = (key: string, language: LanguageKey): string => {
   
   if (!translations[key][language]) {
     console.warn(`Translation for key "${key}" in language "${language}" not found`);
-    return key;
+    // Return the other language as fallback rather than the key itself
+    return translations[key][language === 'ar' ? 'en' : 'ar'] || key;
   }
   
   return translations[key][language];
@@ -19,4 +20,3 @@ export const translate = (key: string, language: LanguageKey): string => {
 
 // Export translations for use throughout the application
 export { translations };
-

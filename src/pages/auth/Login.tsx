@@ -13,13 +13,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 const LoginContent = () => {
-  const {
-    t
-  } = useLanguage();
-  const {
-    user,
-    userType
-  } = useAuth();
+  const { t, language } = useLanguage();
+  const { user, userType } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -140,7 +135,7 @@ const LoginContent = () => {
       } = await supabase.from('profiles').select('user_type').eq('id', userId).maybeSingle();
       if (error) {
         console.error("Error fetching profile:", error);
-        toast.error("حدث خطأ أثناء التحقق من نوع المستخدم");
+        toast.error(t('profileCheckError'));
         return;
       }
       console.log("Found profile:", profile);
@@ -156,19 +151,19 @@ const LoginContent = () => {
           redirectBasedOnUserType(userData.user.user_metadata.user_type, userId);
         } else {
           console.log("No user type found in metadata");
-          toast.error("نوع المستخدم غير معروف");
+          toast.error(t('unknownUserType'));
         }
       }
     } catch (err) {
       console.error("Error checking profile:", err);
-      toast.error("حدث خطأ أثناء التحقق من الملف الشخصي");
+      toast.error(t('profileCheckError'));
     }
   };
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     if (!email || !password) {
-      toast.error('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+      toast.error(t('pleaseEnterEmailPassword'));
       setIsLoading(false);
       return;
     }
@@ -186,14 +181,14 @@ const LoginContent = () => {
         });
         if (error) {
           console.error('Login error:', error);
-          toast.error('كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى');
+          toast.error(t('invalidCredentials'));
           setIsLoading(false);
           return;
         }
 
         // Ensure admin is redirected to dashboard
         localStorage.setItem('adminAuth', 'true');
-        toast.success('تم تسجيل الدخول كمسؤول');
+        toast.success(t('loginAsAdmin'));
 
         // Forceful redirect
         window.location.href = '/admin/dashboard';
@@ -211,23 +206,23 @@ const LoginContent = () => {
       if (error) {
         console.error('Login error:', error);
         if (error.message === 'Email not confirmed') {
-          toast.error('البريد الإلكتروني غير مؤكد، يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك');
+          toast.error(t('emailNotConfirmed'));
         } else if (error.message.includes('Invalid login')) {
-          toast.error('بيانات الدخول غير صحيحة، يرجى التحقق من البريد الإلكتروني وكلمة المرور');
+          toast.error(t('invalidCredentials'));
         } else {
-          toast.error(error.message || 'حدث خطأ أثناء تسجيل الدخول');
+          toast.error(error.message || t('loginError'));
         }
         setIsLoading(false);
         return;
       }
       if (!data.user) {
-        toast.error('فشل الحصول على معلومات المستخدم');
+        toast.error(t('failedToGetUserInfo'));
         setIsLoading(false);
         return;
       }
       console.log('Login successful, user:', data.user);
       console.log('User metadata:', data.user.user_metadata);
-      toast.success('تم تسجيل الدخول بنجاح، مرحباً بك');
+      toast.success(t('loginSuccess'));
 
       // Try to redirect based on user metadata first
       if (data.user.user_metadata?.user_type) {
@@ -278,11 +273,12 @@ const LoginContent = () => {
       }
     } catch (error: any) {
       console.error('Login exception:', error);
-      toast.error('فشل تسجيل الدخول: ' + (error.message || 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.'));
+      toast.error(t('loginError') + ': ' + (error.message || ''));
       setIsLoading(false);
     }
   };
-  return <div className="min-h-screen flex flex-col">
+  return (
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow py-16 bg-gray-50">
         <div className="max-w-md mx-auto px-4">
@@ -300,7 +296,14 @@ const LoginContent = () => {
                   <Label htmlFor="email">{t('email')}</Label>
                   <div className="relative">
                     <MailIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                    <Input id="email" type="email" className="pl-10 rtl:pl-4 rtl:pr-10" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      className="pl-10 rtl:pl-4 rtl:pr-10" 
+                      placeholder="your@email.com" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
+                    />
                   </div>
                 </div>
 
@@ -308,7 +311,14 @@ const LoginContent = () => {
                   <Label htmlFor="password">{t('password')}</Label>
                   <div className="relative">
                     <LockIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                    <Input id="password" type="password" className="pl-10 rtl:pl-4 rtl:pr-10" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      className="pl-10 rtl:pl-4 rtl:pr-10" 
+                      placeholder="••••••••" 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)} 
+                    />
                   </div>
                 </div>
 
@@ -356,13 +366,16 @@ const LoginContent = () => {
         </div>
       </main>
       <Footer />
-    </div>;
+    </div>
+  );
 };
 
 const Login = () => {
-  return <LanguageProvider>
+  return (
+    <LanguageProvider>
       <LoginContent />
-    </LanguageProvider>;
+    </LanguageProvider>
+  );
 };
 
 export default Login;

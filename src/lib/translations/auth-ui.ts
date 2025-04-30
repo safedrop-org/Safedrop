@@ -47,6 +47,10 @@ export const authUI: TranslationSection = {
   },
   
   // Login page translations
+  login: {
+    ar: "تسجيل الدخول",
+    en: "Login"
+  },
   loginDescription: {
     ar: "دخول إلى حسابك في منصة سيف دروب",
     en: "Access your SafeDrop account"
@@ -83,4 +87,44 @@ export const authUI: TranslationSection = {
     ar: "سجل كسائق",
     en: "Register as driver"
   },
+  invalidCredentials: {
+    ar: "بيانات الدخول غير صحيحة، يرجى التحقق من البريد الإلكتروني وكلمة المرور",
+    en: "Invalid login credentials. Please check your email and password"
+  },
+  emailNotConfirmed: {
+    ar: "البريد الإلكتروني غير مؤكد، يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك",
+    en: "Email not confirmed. Please check your email and confirm your account"
+  },
+  loginError: {
+    ar: "حدث خطأ أثناء تسجيل الدخول",
+    en: "An error occurred during login"
+  },
+  loginSuccess: {
+    ar: "تم تسجيل الدخول بنجاح، مرحباً بك",
+    en: "Login successful, welcome back"
+  },
+  pleaseEnterEmailPassword: {
+    ar: "يرجى إدخال البريد الإلكتروني وكلمة المرور",
+    en: "Please enter your email and password"
+  },
+  loginAsAdmin: {
+    ar: "تم تسجيل الدخول كمسؤول",
+    en: "Logged in as admin"
+  },
+  failedToGetUserInfo: {
+    ar: "فشل الحصول على معلومات المستخدم",
+    en: "Failed to get user information"
+  },
+  unknownUserType: {
+    ar: "نوع المستخدم غير معروف",
+    en: "Unknown user type"
+  },
+  profileCheckError: {
+    ar: "حدث خطأ أثناء التحقق من الملف الشخصي",
+    en: "Error checking profile"
+  },
+  loading: {
+    ar: "جاري التحميل...",
+    en: "Loading..."
+  }
 };

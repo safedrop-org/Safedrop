@@ -23,7 +23,7 @@ const AdminLoginContent = () => {
     setIsLoading(true);
 
     if (!password) {
-      toast.error("يرجى إدخال كلمة المرور");
+      toast.error(t('pleaseEnterEmailPassword'));
       setIsLoading(false);
       return;
     }
@@ -101,17 +101,17 @@ const AdminLoginContent = () => {
           console.error('Error checking/creating admin role:', roleError);
         }
         
-        toast.success("تم تسجيل الدخول بنجاح. مرحباً بك في لوحة تحكم المشرف");
+        toast.success(t('loginSuccess'));
         
         setTimeout(() => {
           navigate('/admin/dashboard');
         }, 500);
       } else {
-        throw new Error('كلمة المرور غير صحيحة');
+        throw new Error(t('invalidCredentials'));
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error(error.message || "كلمة المرور غير صحيحة، يرجى المحاولة مرة أخرى");
+      toast.error(error.message || t('invalidCredentials'));
     } finally {
       setIsLoading(false);
     }
@@ -127,23 +127,23 @@ const AdminLoginContent = () => {
                 <ShieldCheckIcon className="h-6 w-6 text-white" />
               </div>
               <CardTitle className="text-2xl font-bold text-safedrop-primary">
-                تسجيل دخول المشرف
+                {t('language') === 'ar' ? 'تسجيل دخول المشرف' : 'Admin Login'}
               </CardTitle>
               <CardDescription>
-                أدخل كلمة المرور للوصول إلى لوحة تحكم المشرف
+                {t('language') === 'ar' ? 'أدخل كلمة المرور للوصول إلى لوحة تحكم المشرف' : 'Enter password to access admin panel'}
               </CardDescription>
             </CardHeader>
             
             <form onSubmit={handleLogin}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="password">كلمة المرور</Label>
+                  <Label htmlFor="password">{t('password')}</Label>
                   <div className="relative">
-                    <LockIcon className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <LockIcon className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:right-auto rtl:left-3" />
                     <Input 
                       id="password" 
                       type="password" 
-                      className="pr-10" 
+                      className="pr-10 rtl:pr-4 rtl:pl-10" 
                       placeholder="••••••••" 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -159,7 +159,7 @@ const AdminLoginContent = () => {
                   className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
                   disabled={isLoading}
                 >
-                  {isLoading ? "جاري التحقق..." : "تسجيل الدخول"}
+                  {isLoading ? t('loggingIn') : t('login')}
                 </Button>
               </CardFooter>
             </form>
