@@ -117,7 +117,7 @@ const AdminSidebar = () => {
           <div className="mt-auto p-4">
             <Button 
               variant="outline" 
-              className="w-full justify-start text-white border-white border-opacity-20 hover:bg-white/10"
+              className="w-full justify-start text-black border-white border-opacity-20 hover:bg-white/10"
               onClick={handleLogout}
             >
               <LogOutIcon className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
@@ -163,7 +163,7 @@ const AdminSidebar = () => {
       <div className="mt-auto p-4">
         <Button 
           variant="outline" 
-          className="w-full justify-start text-white border-white border-opacity-20 hover:bg-white/10"
+          className="w-full justify-start text-black border-white border-opacity-20 hover:bg-white/10"
           onClick={handleLogout}
         >
           <LogOutIcon className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
