@@ -1,19 +1,15 @@
 
 import { useLanguage } from '@/components/ui/language-context';
-import { UsersIcon, TruckIcon, PackageIcon, BarChart2Icon, SettingsIcon, ShieldIcon, DollarSign, MessageSquareIcon, Menu, LogOut } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { UsersIcon, TruckIcon, PackageIcon, BarChart2Icon, SettingsIcon, ShieldIcon, DollarSign, MessageSquareIcon, Menu } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAuth } from '@/components/auth/AuthContext';
-import { toast } from 'sonner';
 
 const AdminSidebar = () => {
   const { t, language } = useLanguage();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -57,20 +53,6 @@ const AdminSidebar = () => {
     }
   ];
 
-  // Handle admin logout
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      localStorage.removeItem('adminAuth');
-      localStorage.removeItem('adminEmail');
-      toast.success(t('logoutSuccess'));
-      navigate('/login?logout=true', { replace: true });
-    } catch (error) {
-      console.error("Error during admin logout:", error);
-      toast.error(t('logoutError'));
-    }
-  };
-
   // النسخة الخاصة بالهواتف المحمولة
   const MobileSidebar = () => (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -112,15 +94,6 @@ const AdminSidebar = () => {
                   </Link>
                 </li>
               ))}
-              <li>
-                <button
-                  className="flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors w-full text-left"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>{language === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
-                </button>
-              </li>
             </ul>
           </nav>
         </div>
@@ -156,15 +129,6 @@ const AdminSidebar = () => {
               </Link>
             </li>
           ))}
-          <li>
-            <button
-              className="flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors w-full text-left"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-5 w-5" />
-              <span>{language === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
-            </button>
-          </li>
         </ul>
       </nav>
     </div>

@@ -28,8 +28,8 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
           console.log("No admin auth in localStorage, redirecting to login");
           setIsAuthorized(false);
           toast.error(t('adminAuthRequired'));
-          // Redirect to main login with redirect parameter
-          navigate("/login?redirect=admin", { replace: true });
+          // Redirect to admin login with clear parameter
+          navigate("/admin?logout=true", { replace: true });
           return;
         }
 
@@ -45,30 +45,16 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         localStorage.removeItem('adminAuth');
         localStorage.removeItem('adminEmail');
         
-        navigate("/login?redirect=admin", { replace: true });
+        navigate("/admin?logout=true", { replace: true });
       }
     };
 
     checkAdmin();
   }, [navigate, t]);
 
-  // Handle admin logout
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      localStorage.removeItem('adminAuth');
-      localStorage.removeItem('adminEmail');
-      toast.success(t('logoutSuccess'));
-      navigate('/login?logout=true', { replace: true });
-    } catch (error) {
-      console.error("Error during admin logout:", error);
-      toast.error(t('logoutError'));
-    }
-  };
-
   // Render children only if authorized
   if (isAuthorized === null) {
-    // Render a loader while checking auth
+    // You can render a loader here while checking auth
     return <div className="flex items-center justify-center min-h-screen">{t('loading')}</div>;
   } else if (!isAuthorized) {
     return null;

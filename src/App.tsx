@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -28,6 +29,7 @@ import CustomerSettings from './pages/customer/CustomerSettings';
 import Logout from './pages/customer/Logout';
 
 // Admin Pages
+import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CustomersWithSidebar from './pages/admin/CustomersWithSidebar';
 import DriverVerificationWithSidebar from './pages/admin/DriverVerificationWithSidebar';
@@ -188,8 +190,8 @@ const AppContent = () => {
         <Route path="/register/customer" element={<CustomerRegister />} />
         <Route path="/register/driver" element={<DriverRegister />} />
 
-        {/* Redirect /admin to /login?redirect=admin */}
-        <Route path="/admin" element={<Navigate to="/login?redirect=admin" replace />} />
+        {/* Admin Login Route */}
+        <Route path="/admin" element={<AdminLogin />} />
 
         {/* Customer Routes - Updated with all the required pages */}
         <Route 
