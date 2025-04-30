@@ -583,7 +583,7 @@ export const translations = {
     en: "Express Delivery"
   },
   verifiedDrivers: {
-    ar: "سائقين موثوقين",
+    ar: "سائقون موثوقون",
     en: "Verified Drivers"
   },
   
