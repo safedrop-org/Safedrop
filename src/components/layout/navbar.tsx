@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, ChevronDown, User, LogIn, Play, Box, Users, Mail } from 'lucide-react';
@@ -20,7 +19,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center">
-                <img alt="SafeDrop" className="h-17 w-auto" src="/lovable-uploads/51de3f5c-4997-4630-bf5f-0280c4045234.png" />
+                <img alt="SafeDrop" className="h-20 w-auto" src="/lovable-uploads/51de3f5c-4997-4630-bf5f-0280c4045234.png" />
               </Link>
             </div>
             <div className={`hidden md:block ${language === 'ar' ? 'mr-10' : 'ml-10'}`}>
