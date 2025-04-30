@@ -146,7 +146,7 @@ const ServicesContent = () => {
                     <Truck className="h-7 w-7 text-safedrop-gold" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">
-                    {language === 'ar' ? 'سائقين موثوقين' : 'Verified Drivers'}
+                    {language === 'ar' ? 'سائقون موثوقون' : 'Verified Drivers'}
                   </h3>
                   <p className="text-gray-600 mb-4">
                     {language === 'ar'
@@ -181,7 +181,7 @@ const ServicesContent = () => {
             </h2>
             <p className="text-xl text-gray-600 mb-8">
               {language === 'ar'
-                ? 'جرب تجربة توصيل آمنة وسهلة مع سيف دروب'
+                ? 'استمتع بتجربة توصيل سريعة وآمنة مع سيف دروب'
                 : 'Experience safe and easy delivery with SafeDrop'}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
