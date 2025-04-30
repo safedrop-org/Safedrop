@@ -593,7 +593,7 @@ export const translations = {
     en: "First Name"
   },
   lastName: {
-    ar: "��سم العائلة",
+    ar: "اسم العائلة",
     en: "Last Name"
   },
   email: {
@@ -867,7 +867,7 @@ export const translations = {
     en: "No Available Orders"
   },
   markAllAsRead: {
-    ar: "تحديد ��لكل كمقروء",
+    ar: "تحديد الكل كمقروء",
     en: "Mark All as Read"
   },
   allNotificationsMarkedAsRead: {
@@ -982,7 +982,6 @@ export const translations = {
     ar: "إعادة المحاولة",
     en: "Retry loading"
   },
-  // Today's earnings - removing duplicate key
   todaysEarnings: {
     ar: "أرباح اليوم",
     en: "Today's Earnings"
@@ -999,7 +998,6 @@ export const translations = {
     ar: "تحليل الأرباح",
     en: "Earnings Analysis"
   },
-  // Add dark mode setting translation
   darkMode: {
     ar: "الوضع الداكن",
     en: "Dark Mode"
@@ -1028,25 +1026,3 @@ export const translations = {
     ar: "مشاركة البيانات",
     en: "Data Sharing"
   },
-  locationSharing: {
-    ar: "مشاركة الموقع",
-    en: "Location Sharing"
-  },
-  // Add Page Not Found translations
-  pageNotFound: {
-    ar: "الصفحة غير موجودة",
-    en: "Page Not Found"
-  },
-  returnHome: {
-    ar: "العودة إلى الصفحة الرئيسية",
-    en: "Return Home"
-  },
-  saveChanges: {
-    ar: "حفظ التغييرات",
-    en: "Save Changes"
-  },
-  welcomeCustomerDashboard: {
-    ar: "مرحبًا بك في لوحة تحكم العميل",
-    en: "Welcome to your Customer Dashboard"
-  }
-};
