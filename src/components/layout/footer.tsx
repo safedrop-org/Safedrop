@@ -16,7 +16,7 @@ const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-start">
                 <MapPin className={`h-5 w-5 text-safedrop-gold shrink-0 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
-                <span className="text-sm">Saudi Arabia</span>
+                <span className="text-sm">{language === 'ar' ? 'المملكة العربية السعودية' : 'Saudi Arabia'}</span>
               </li>
               <li className="flex items-start">
                 <Mail className={`h-5 w-5 text-safedrop-gold shrink-0 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
@@ -117,11 +117,11 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-gray-700">
           <div className="flex flex-wrap justify-center gap-4 mb-4 text-sm text-gray-400">
             <Link to="/terms" className="hover:text-safedrop-gold transition-colors">
-              Terms & Conditions / الشروط والأحكام
+              {t('termsAndConditions')}
             </Link>
           </div>
           <p className="text-center text-sm text-gray-400" dir="auto">
-            © 2025 سيف دروب. جميع الحقوق محفوظة.
+            {t('footer')}
           </p>
         </div>
       </div>

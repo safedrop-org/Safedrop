@@ -10,5 +10,11 @@ export const pages: TranslationSection = {
   returnHome: {
     ar: "العودة إلى الصفحة الرئيسية",
     en: "Return to Home"
+  },
+  // Terms page
+  termsAndConditions: {
+    ar: "الشروط والأحكام",
+    en: "Terms & Conditions"
   }
 };
+
