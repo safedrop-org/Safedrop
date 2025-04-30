@@ -26,19 +26,19 @@ const Navbar = () => {
             <div className={`hidden md:block ${language === 'ar' ? 'mr-10' : 'ml-10'}`}>
               <div className="flex items-baseline space-x-6 rtl:space-x-reverse">
                 <Link to="/" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:text-safedrop-gold transition-colors">
-                  <Play className="h-5 w-5 mb-1 mr-2" />
+                  <Play className={`h-5 w-5 mb-1 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
                   {t('getStarted')}
                 </Link>
                 <Link to="/services" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:text-safedrop-gold transition-colors">
-                  <Box className="h-5 w-5 mb-1 mr-2" />
+                  <Box className={`h-5 w-5 mb-1 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
                   {t('services')}
                 </Link>
                 <Link to="/about" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:text-safedrop-gold transition-colors">
-                  <Users className="h-5 w-5 mb-1 mr-2" />
+                  <Users className={`h-5 w-5 mb-1 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
                   {t('about')}
                 </Link>
                 <Link to="/contact" className="flex items-center px-3 py-2 rounded-md text-base font-medium hover:text-safedrop-gold transition-colors">
-                  <Mail className="h-5 w-5 mb-1 mr-2" />
+                  <Mail className={`h-5 w-5 mb-1 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
                   {t('contact')}
                 </Link>
               </div>
@@ -47,19 +47,19 @@ const Navbar = () => {
           <div className="hidden md:block">
             <div className="flex items-center ml-4 space-x-3 rtl:space-x-reverse">
               <Button variant="ghost" onClick={toggleLanguage} className="text-white">
-                {language === 'ar' ? 'English' : 'Arabic'}
+                {language === 'ar' ? 'English' : 'العربية'}
               </Button>
               <Link to="/login">
                 <Button variant="outline" className="border-safedrop-gold text-safedrop-gold hover:bg-safedrop-gold hover:text-white">
-                  <LogIn className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                  <LogIn className={`h-4 w-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
                   {t('login')}
                 </Button>
               </Link>
               <div className="relative group">
                 <Button variant="default" className="bg-safedrop-gold hover:bg-safedrop-gold/90">
-                  <User className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
+                  <User className={`h-4 w-4 ${language === 'ar' ? 'ml-2' : 'mr-2'}`} />
                   {t('register')}
-                  <ChevronDown className="h-4 w-4 ml-1 rtl:mr-1 rtl:ml-0" />
+                  <ChevronDown className={`h-4 w-4 ${language === 'ar' ? 'mr-1' : 'ml-1'}`} />
                 </Button>
                 <div className="absolute z-10 hidden group-hover:block pt-2 right-0 rtl:left-0 rtl:right-auto min-w-[180px]">
                   <div className="bg-white shadow-lg rounded-md py-2">
@@ -102,7 +102,7 @@ const Navbar = () => {
           <div className="pt-4 pb-3 border-t border-gray-700">
             <div className="flex items-center px-5">
               <Button variant="ghost" onClick={toggleLanguage} className="w-full justify-center text-white">
-                {language === 'ar' ? 'English' : 'Arabic'}
+                {language === 'ar' ? 'English' : 'العربية'}
               </Button>
             </div>
             <div className="mt-3 px-2 space-y-1">
