@@ -29,7 +29,8 @@ const Navbar = () => {
       localStorage.removeItem('adminAuth');
       localStorage.removeItem('adminEmail');
       toast.success(t('adminLoggedOut'));
-      navigate('/admin', { replace: true });
+      // Redirect to login page with logout parameter to ensure complete logout
+      navigate('/login?logout=true', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
       toast.error(t('logoutError'));

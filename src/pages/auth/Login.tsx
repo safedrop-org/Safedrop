@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -25,6 +26,21 @@ const LoginContent = () => {
   useEffect(() => {
     console.log("User in login page:", user);
     console.log("User type in login page:", userType);
+    
+    // Check for logout param in URL to force logout if needed
+    const queryParams = new URLSearchParams(window.location.search);
+    const forceLogout = queryParams.get('logout') === 'true';
+    
+    if (forceLogout) {
+      console.log("Force logout detected, clearing all auth states");
+      localStorage.removeItem('adminAuth');
+      localStorage.removeItem('adminEmail');
+      localStorage.removeItem('customerAuth');
+      localStorage.removeItem('driverAuth');
+      // Remove the logout parameter from URL
+      navigate('/login', { replace: true });
+      return;
+    }
     
     // First check localStorage for admin auth
     if (localStorage.getItem('adminAuth') === 'true') {

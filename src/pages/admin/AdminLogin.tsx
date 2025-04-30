@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,15 +17,29 @@ const AdminLoginContent = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Check if admin is already logged in
+  // Check for logout parameter and clear admin auth if present
   useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const forceLogout = queryParams.get('logout') === 'true';
+    
+    if (forceLogout) {
+      console.log("Force logout detected in admin login, clearing admin auth");
+      localStorage.removeItem('adminAuth');
+      localStorage.removeItem('adminEmail');
+      // Remove the logout parameter
+      navigate('/admin', { replace: true });
+      return;
+    }
+    
+    // Check if admin is already logged in
     const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
     if (isAdminLoggedIn) {
       console.log("Admin already logged in, redirecting to dashboard");
       navigate('/admin/dashboard', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, location]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,13 +55,13 @@ const AdminLoginContent = () => {
       if (password === ADMIN_PASSWORD) {
         console.log("Admin password verified");
         
-        // تخزين معلومات المصادقة للأدمن
+        // Store admin authentication info
         localStorage.setItem('adminAuth', 'true');
         localStorage.setItem('adminEmail', 'admin@safedrop.com');
         
         const email = 'admin@safedrop.com';
         
-        // التحقق من وجود المستخدم في قاعدة البيانات
+        // Check if user exists in database
         const { data: existingUser } = await supabase
           .from('profiles')
           .select('id')

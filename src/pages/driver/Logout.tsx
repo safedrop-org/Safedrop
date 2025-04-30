@@ -12,13 +12,20 @@ const DriverLogout = () => {
     const performLogout = async () => {
       try {
         await signOut();
+        
+        // Remove all auth flags
+        localStorage.removeItem('adminAuth');
+        localStorage.removeItem('adminEmail');
+        localStorage.removeItem('customerAuth');
+        localStorage.removeItem('driverAuth');
+        
         toast.success("تم تسجيل الخروج بنجاح");
       } catch (error) {
         console.error("Error during logout:", error);
         toast.error("حدث خطأ أثناء تسجيل الخروج");
       } finally {
-        // Always redirect to login after attempt, regardless of result
-        navigate('/login');
+        // Always redirect to login after attempt, with logout parameter
+        navigate('/login?logout=true', { replace: true });
       }
     };
 
