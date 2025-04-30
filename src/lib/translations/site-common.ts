@@ -1,3 +1,4 @@
+
 import { TranslationSection } from "./types";
 
 export const siteCommon: TranslationSection = {
