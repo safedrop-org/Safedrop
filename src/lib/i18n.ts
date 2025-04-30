@@ -401,7 +401,7 @@ export const translations = {
     en: "No financial transactions currently"
   },
   "Invoice ID": {
-    ar: "رقم الفاتورة",
+    ar: "رقم الفا��ورة",
     en: "Invoice ID"
   },
   Date: {
@@ -1026,3 +1026,14 @@ export const translations = {
     ar: "مشاركة الموقع",
     en: "Location Sharing"
   },
+  
+  // NotFound Page translations
+  pageNotFound: {
+    ar: "الصفحة غير موجودة",
+    en: "Page Not Found"
+  },
+  returnHome: {
+    ar: "العودة إلى الصفحة الرئيسية",
+    en: "Return to Home"
+  }
+};
