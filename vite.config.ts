@@ -6,6 +6,13 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
+    proxy: {
+      "/a": {
+        target: "https://maps.googleapis.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/a/, "/maps/api"),
+      },
+    },
     host: "::",
     port: 8080,
   },

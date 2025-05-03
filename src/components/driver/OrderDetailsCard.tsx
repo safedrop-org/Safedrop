@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,33 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const { user } = useAuth();
+
+  const [distance, setDistance] = useState('-');
+  const [duration, setDuration] = useState('-');
+
+  useEffect(() => {
+    if (!driverLocation) return;
+    if (order.status !== "available") return;
+
+    const origin = `${driverLocation.lat},${driverLocation.lng}`;
+    const destination = order.pickup_location.address;
+    const str = "AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk";
+
+    fetch(`
+      /a/distancematrix/json?origins=${encodeURIComponent(
+        origin
+      )}&destinations=${encodeURIComponent(
+      destination
+    )}&mode=driving&key=${str}`)
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.rows[0].elements[0].status === "OK") {
+          setDistance(res.rows[0].elements[0].distance.text);
+          setDuration(res.rows[0].elements[0].duration.text);
+        }
+      })
+      .catch((error) => console.log("error", error));
+  }, [driverLocation]);
 
   const getStatusLabel = (status: string) => {
     switch(status) {
@@ -203,11 +230,11 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
         <div className="grid grid-cols-3 gap-4 mt-4 text-center">
           <div className="bg-gray-50 rounded p-2">
             <p className="text-sm text-gray-500">المسافة</p>
-            <p className="font-medium">{order.estimated_distance ? `${order.estimated_distance} كم` : 'غير محدد'}</p>
+            <p className="font-medium">{distance}</p>
           </div>
           <div className="bg-gray-50 rounded p-2">
             <p className="text-sm text-gray-500">الوقت المتوقع</p>
-            <p className="font-medium">{order.estimated_duration ? `${order.estimated_duration} دقيقة` : 'غير محدد'}</p>
+            <p className="font-medium">{duration}</p>
           </div>
           <div className="bg-gray-50 rounded p-2">
             <p className="text-sm text-gray-500">المبلغ</p>
