@@ -39,14 +39,10 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 
     const origin = `${driverLocation.lat},${driverLocation.lng}`;
     const destination = order.pickup_location.address;
-    const str = "AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk";
-
-    fetch(`
-      /a/distancematrix/json?origins=${encodeURIComponent(
-        origin
-      )}&destinations=${encodeURIComponent(
-      destination
-    )}&mode=driving&key=${str}`)
+    
+    fetch(`/a/distancematrix/json?origins=${encodeURIComponent(origin)}
+    &destinations=${encodeURIComponent(destination)}
+    &mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
       .then((res) => res.json())
       .then((res) => {
         if (res.rows[0].elements[0].status === "OK") {
