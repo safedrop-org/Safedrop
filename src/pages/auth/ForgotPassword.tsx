@@ -1,350 +1,75 @@
 
-import React, { useState } from 'react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, Link } from 'react-router-dom';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Mail } from 'lucide-react';
 import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
-
-// الخطوات المختلفة في عملية إعادة تعيين كلمة المرور
-enum ResetStep {
-  EMAIL, // إدخال البريد الإلكتروني
-  SECURITY_QUESTIONS, // الإجابة على الأسئلة الأمنية
-  NEW_PASSWORD, // إدخال كلمة المرور الجديدة
-}
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { MailIcon, ArrowLeftIcon, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const ForgotPasswordContent = () => {
-  const { t } = useLanguage();
-  const navigate = useNavigate();
-  const [step, setStep] = useState<ResetStep>(ResetStep.EMAIL);
-  const [email, setEmail] = useState<string>('');
+  const { t, language } = useLanguage();
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [securityQuestions, setSecurityQuestions] = useState<{
-    question_1: string;
-    question_2: string;
-    question_3: string;
-  } | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const navigate = useNavigate();
 
-  // مخطط التحقق للبريد الإلكتروني
-  const emailSchema = z.object({
-    email: z.string().email(t('invalidEmail')),
-  });
-
-  // مخطط التحقق للأسئلة الأمنية
-  const securityQuestionsSchema = z.object({
-    answer_1: z.string().min(1, t('required')),
-    answer_2: z.string().min(1, t('required')),
-    answer_3: z.string().min(1, t('required')),
-  });
-
-  // مخطط التحقق لكلمة المرور الجديدة
-  const newPasswordSchema = z.object({
-    password: z.string().min(8, t('passwordTooShort')),
-    confirmPassword: z.string().min(8, t('passwordTooShort')),
-  }).refine((data) => data.password === data.confirmPassword, {
-    message: t('passwordsDoNotMatch'),
-    path: ['confirmPassword'],
-  });
-
-  // تهيئة نماذج react-hook-form
-  const emailForm = useForm<z.infer<typeof emailSchema>>({
-    resolver: zodResolver(emailSchema),
-    defaultValues: {
-      email: '',
-    },
-  });
-
-  const securityQuestionsForm = useForm<z.infer<typeof securityQuestionsSchema>>({
-    resolver: zodResolver(securityQuestionsSchema),
-    defaultValues: {
-      answer_1: '',
-      answer_2: '',
-      answer_3: '',
-    },
-  });
-
-  const newPasswordForm = useForm<z.infer<typeof newPasswordSchema>>({
-    resolver: zodResolver(newPasswordSchema),
-    defaultValues: {
-      password: '',
-      confirmPassword: '',
-    },
-  });
-
-  // تقديم نموذج البريد الإلكتروني
-  const onSubmitEmail = async (values: z.infer<typeof emailSchema>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
-    try {
-      // حفظ البريد الإلكتروني للخطوات اللاحقة
-      setEmail(values.email);
 
-      // استرجاع الأسئلة الأمنية باستخدام الدالة المخصصة
-      const { data, error } = await supabase
-        .rpc('get_security_questions', {
-          user_email: values.email
-        });
-
-      if (error) {
-        console.error('Error fetching security questions:', error);
-        toast.error(t('errorOccurred'));
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        toast.error(t('noSecurityQuestions'));
-        return;
-      }
-
-      // حفظ الأسئلة الأمنية وتغيير الخطوة
-      setSecurityQuestions(data[0]);
-      setStep(ResetStep.SECURITY_QUESTIONS);
-    } catch (error: any) {
-      console.error('Error:', error);
-      toast.error(error.message || t('errorOccurred'));
-    } finally {
+    if (!email) {
+      toast.error(t('pleaseEnterEmail'));
       setIsLoading(false);
+      return;
     }
-  };
 
-  // تقديم نموذج الأسئلة الأمنية
-  const onSubmitSecurityQuestions = async (values: z.infer<typeof securityQuestionsSchema>) => {
-    setIsLoading(true);
     try {
-      // التحقق من إجابات الأسئلة الأمنية
-      const { data, error } = await supabase
-        .rpc('check_security_questions', {
-          user_email: email,
-          q1_answer: values.answer_1,
-          q2_answer: values.answer_2,
-          q3_answer: values.answer_3
-        });
-
-      if (error) {
-        console.error('Error checking security questions:', error);
-        toast.error(t('errorOccurred'));
-        return;
-      }
-
-      if (!data) {
-        toast.error(t('incorrectAnswers'));
-        return;
-      }
-
-      // إذا كانت الإجابات صحيحة، انتقل إلى خطوة إعادة تعيين كلمة المرور
-      setStep(ResetStep.NEW_PASSWORD);
-    } catch (error: any) {
-      console.error('Error:', error);
-      toast.error(error.message || t('errorOccurred'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // تقديم نموذج كلمة المرور الجديدة
-  const onSubmitNewPassword = async (values: z.infer<typeof newPasswordSchema>) => {
-    setIsLoading(true);
-    try {
-      // الحصول على معرف المستخدم باستخدام البريد الإلكتروني
-      const { data: profileData, error: profileError } = await supabase
+      // First, check if the user exists in the database
+      const { data: userExists, error: checkError } = await supabase
         .from('profiles')
         .select('id')
-        .ilike('email', email)
+        .eq('email', email)
         .maybeSingle();
-
-      if (profileError || !profileData) {
-        console.error('Error getting user profile:', profileError);
+      
+      // If there's an error checking the user or the user doesn't exist
+      if (checkError) {
+        console.error('User check error:', checkError);
+        // We'll still attempt password reset as Supabase handles this gracefully
+      } else if (!userExists) {
+        console.log('User not found with email:', email);
         toast.error(t('userNotFound'));
+        setIsLoading(false);
         return;
       }
 
-      // تحديث كلمة المرور
-      const { error } = await supabase.auth.updateUser({
-        password: values.password
+      // Process the password reset request
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) {
-        console.error('Error updating password:', error);
-        toast.error(t('passwordResetError'));
-        return;
+        console.error('Reset password error:', error);
+        
+        if (error.message.includes('user not found')) {
+          toast.error(t('userNotFound'));
+        } else {
+          toast.error(error.message || t('passwordResetError'));
+        }
+      } else {
+        setIsSubmitted(true);
+        toast.success(t('passwordResetEmailSent'));
       }
-
-      toast.success(t('passwordUpdated'));
-      
-      // إعادة التوجيه إلى صفحة تسجيل الدخول
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
     } catch (error: any) {
-      console.error('Error:', error);
-      toast.error(error.message || t('errorOccurred'));
+      console.error('Reset password exception:', error);
+      toast.error(t('passwordResetError'));
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // عرض الخطوة المناسبة
-  const renderStep = () => {
-    switch (step) {
-      case ResetStep.EMAIL:
-        return (
-          <Form {...emailForm}>
-            <form onSubmit={emailForm.handleSubmit(onSubmitEmail)} className="space-y-4">
-              <FormField
-                control={emailForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('email')}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Mail className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                        <Input 
-                          placeholder="your@email.com" 
-                          className="pl-10 rtl:pl-4 rtl:pr-10" 
-                          {...field} 
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-                disabled={isLoading}
-              >
-                {isLoading ? t('loading') : t('continue')}
-              </Button>
-            </form>
-          </Form>
-        );
-
-      case ResetStep.SECURITY_QUESTIONS:
-        return (
-          <Form {...securityQuestionsForm}>
-            <form onSubmit={securityQuestionsForm.handleSubmit(onSubmitSecurityQuestions)} className="space-y-4">
-              {securityQuestions && (
-                <>
-                  <FormField
-                    control={securityQuestionsForm.control}
-                    name="answer_1"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{securityQuestions.question_1}</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={securityQuestionsForm.control}
-                    name="answer_2"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{securityQuestions.question_2}</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={securityQuestionsForm.control}
-                    name="answer_3"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{securityQuestions.question_3}</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-              <Button
-                type="submit"
-                className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-                disabled={isLoading}
-              >
-                {isLoading ? t('loading') : t('verifyAnswers')}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => setStep(ResetStep.EMAIL)}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('back')}
-              </Button>
-            </form>
-          </Form>
-        );
-
-      case ResetStep.NEW_PASSWORD:
-        return (
-          <Form {...newPasswordForm}>
-            <form onSubmit={newPasswordForm.handleSubmit(onSubmitNewPassword)} className="space-y-4">
-              <FormField
-                control={newPasswordForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('newPassword')}</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={newPasswordForm.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('confirmPassword')}</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-                disabled={isLoading}
-              >
-                {isLoading ? t('loading') : t('updatePassword')}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => setStep(ResetStep.SECURITY_QUESTIONS)}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('back')}
-              </Button>
-            </form>
-          </Form>
-        );
     }
   };
 
@@ -356,30 +81,66 @@ const ForgotPasswordContent = () => {
           <Card className="shadow-lg">
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-2xl font-bold text-safedrop-primary">
-                {step === ResetStep.EMAIL && t('forgotPassword')}
-                {step === ResetStep.SECURITY_QUESTIONS && t('answerSecurityQuestions')}
-                {step === ResetStep.NEW_PASSWORD && t('resetPassword')}
+                {t('forgotPasswordTitle')}
               </CardTitle>
-              <CardDescription>
-                {step === ResetStep.EMAIL && t('enterEmail')}
-                {step === ResetStep.SECURITY_QUESTIONS && t('enterAnswers')}
-                {step === ResetStep.NEW_PASSWORD && t('passwordResetDescription')}
-              </CardDescription>
+              <CardDescription>{t('forgotPasswordDescription')}</CardDescription>
             </CardHeader>
 
-            <CardContent className="pt-4">
-              {renderStep()}
-            </CardContent>
+            {!isSubmitted ? (
+              <form onSubmit={handleSubmit}>
+                <CardContent className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">{t('email')}</Label>
+                    <div className="relative">
+                      <MailIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
+                      <Input 
+                        id="email" 
+                        type="email" 
+                        className="pl-10 rtl:pl-4 rtl:pr-10" 
+                        placeholder="your@email.com" 
+                        value={email} 
+                        onChange={e => setEmail(e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                </CardContent>
 
-            <CardFooter className="flex flex-col space-y-4">
-              {step === ResetStep.EMAIL && (
-                <div className="text-center text-sm">
-                  <Link to="/login" className="text-safedrop-gold hover:underline font-semibold">
+                <CardFooter className="flex flex-col space-y-4">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('sending')}
+                      </>
+                    ) : (
+                      t('sendResetLink')
+                    )}
+                  </Button>
+
+                  <Link to="/login" className="flex items-center justify-center text-safedrop-gold hover:underline">
+                    <ArrowLeftIcon className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
                     {t('backToLogin')}
                   </Link>
+                </CardFooter>
+              </form>
+            ) : (
+              <CardContent className="py-6 space-y-6">
+                <div className="text-center space-y-4">
+                  <p className="text-green-600">{t('passwordResetEmailSentDescription')}</p>
+                  
+                  <Button 
+                    className="mt-4 bg-safedrop-gold hover:bg-safedrop-gold/90" 
+                    onClick={() => navigate('/login')}
+                  >
+                    {t('backToLogin')}
+                  </Button>
                 </div>
-              )}
-            </CardFooter>
+              </CardContent>
+            )}
           </Card>
         </div>
       </main>

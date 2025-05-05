@@ -12,9 +12,9 @@ const LanguageToggleDashboard = () => {
 
   return (
     <Button 
-      variant="outline" 
+      variant="ghost" 
       onClick={toggleLanguage}
-      className="flex items-center gap-2 w-full justify-center text-white border-white/30 hover:bg-white/10"
+      className="flex items-center gap-2 w-full justify-center"
     >
       <Globe className="h-4 w-4" />
       <span>{language === 'ar' ? 'English' : 'العربية'}</span>

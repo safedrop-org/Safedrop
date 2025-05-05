@@ -89,6 +89,10 @@ export const authUI: TranslationSection = {
     ar: "تذكرني",
     en: "Remember me"
   },
+  forgotPassword: {
+    ar: "نسيت كلمة المرور؟",
+    en: "Forgot password?"
+  },
   loggingIn: {
     ar: "جاري تسجيل الدخول...",
     en: "Logging in..."
@@ -158,86 +162,50 @@ export const authUI: TranslationSection = {
     en: "Loading..."
   },
   
-  // Security Questions Translations
-  forgotPassword: {
-    ar: "نسيت كلمة المرور؟",
-    en: "Forgot Password?"
+  // Password reset translations
+  forgotPasswordTitle: {
+    ar: "استعادة كلمة المرور",
+    en: "Forgot Password"
   },
-  securityQuestions: {
-    ar: "الأسئلة الأمنية",
-    en: "Security Questions"
+  forgotPasswordDescription: {
+    ar: "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور",
+    en: "Enter your email and we'll send you a password reset link"
   },
-  setupSecurityQuestions: {
-    ar: "إعداد الأسئلة الأمنية",
-    en: "Setup Security Questions"
+  pleaseEnterEmail: {
+    ar: "يرجى إدخال البريد الإلكتروني",
+    en: "Please enter your email"
   },
-  securityQuestionsDescription: {
-    ar: "قم بإعداد أسئلة أمنية لاستعادة حسابك في حالة نسيان كلمة المرور",
-    en: "Set up security questions to recover your account if you forget your password"
+  sending: {
+    ar: "جاري الإرسال...",
+    en: "Sending..."
   },
-  question1: {
-    ar: "السؤال الأول",
-    en: "Question 1"
+  sendResetLink: {
+    ar: "إرسال رابط إعادة التعيين",
+    en: "Send Reset Link"
   },
-  answer1: {
-    ar: "الإجابة الأولى",
-    en: "Answer 1"
+  backToLogin: {
+    ar: "العودة إلى تسجيل الدخول",
+    en: "Back to Login"
   },
-  question2: {
-    ar: "السؤال الثاني",
-    en: "Question 2"
+  passwordResetError: {
+    ar: "حدث خطأ أثناء إرسال رابط إعادة تعيين كلمة المرور",
+    en: "An error occurred sending the password reset link"
   },
-  answer2: {
-    ar: "الإجابة الثانية",
-    en: "Answer 2"
+  passwordResetEmailSent: {
+    ar: "تم إرسال رابط إعادة تعيين كلمة المرور",
+    en: "Password reset link sent"
   },
-  question3: {
-    ar: "السؤال الثالث",
-    en: "Question 3"
+  passwordResetEmailSentDescription: {
+    ar: "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني. يرجى التحقق من صندوق الوارد الخاص بك.",
+    en: "A password reset link has been sent to your email. Please check your inbox."
   },
-  answer3: {
-    ar: "الإجابة الثالثة",
-    en: "Answer 3"
-  },
-  saveQuestions: {
-    ar: "حفظ الأسئلة",
-    en: "Save Questions"
-  },
-  savingQuestions: {
-    ar: "جاري حفظ الأسئلة...",
-    en: "Saving Questions..."
-  },
-  questionsUpdated: {
-    ar: "تم تحديث الأسئلة الأمنية بنجاح",
-    en: "Security questions updated successfully"
-  },
-  enterEmail: {
-    ar: "أدخل بريدك الإلكتروني",
-    en: "Enter your email"
-  },
-  continue: {
-    ar: "متابعة",
-    en: "Continue"
-  },
-  answerSecurityQuestions: {
-    ar: "الإجابة على الأسئلة الأمنية",
-    en: "Answer Security Questions"
-  },
-  enterAnswers: {
-    ar: "أدخل إجاباتك على الأسئلة الأمنية",
-    en: "Enter your answers to the security questions"
-  },
-  verifyAnswers: {
-    ar: "التحقق من الإجابات",
-    en: "Verify Answers"
-  },
-  incorrectAnswers: {
-    ar: "الإجابات غير صحيحة، يرجى المحاولة مرة أخرى",
-    en: "Incorrect answers, please try again"
-  },
-  resetPassword: {
+  resetPasswordTitle: {
     ar: "إعادة تعيين كلمة المرور",
     en: "Reset Password"
+  },
+  resetPasswordDescription: {
+    ar: "أدخل كلمة المرور الجديدة",
+    en: "Enter your new password"
   },
   newPassword: {
     ar: "كلمة المرور الجديدة",
@@ -247,28 +215,52 @@ export const authUI: TranslationSection = {
     ar: "تأكيد كلمة المرور",
     en: "Confirm Password"
   },
+  updating: {
+    ar: "جاري التحديث...",
+    en: "Updating..."
+  },
   updatePassword: {
     ar: "تحديث كلمة المرور",
     en: "Update Password"
   },
-  passwordUpdated: {
-    ar: "تم تحديث كلمة المرور بنجاح",
-    en: "Password updated successfully"
+  pleaseEnterPassword: {
+    ar: "يرجى إدخال كلمة المرور",
+    en: "Please enter your password"
   },
   passwordsDoNotMatch: {
     ar: "كلمات المرور غير متطابقة",
     en: "Passwords do not match"
   },
+  passwordTooShort: {
+    ar: "كلمة المرور قصيرة جدًا، يجب أن تكون 6 أحرف على الأقل",
+    en: "Password is too short, it must be at least 6 characters"
+  },
+  passwordUpdateError: {
+    ar: "حدث خطأ أثناء تحديث كلمة المرور",
+    en: "An error occurred updating your password"
+  },
+  passwordUpdatedSuccess: {
+    ar: "تم تحديث كلمة المرور بنجاح",
+    en: "Password updated successfully"
+  },
+  passwordUpdatedDescription: {
+    ar: "تم تحديث كلمة المرور الخاصة بك بنجاح. يمكنك الآن تسجيل الدخول باستخدام كلمة المرور الجديدة.",
+    en: "Your password has been updated successfully. You can now login with your new password."
+  },
+  redirectingToLogin: {
+    ar: "جاري إعادة التوجيه إلى صفحة تسجيل الدخول...",
+    en: "Redirecting to login page..."
+  },
+  loginNow: {
+    ar: "تسجيل الدخول الآن",
+    en: "Login Now"
+  },
+  invalidResetLink: {
+    ar: "رابط إعادة التعيين غير صالح أو منتهي الصلاحية",
+    en: "Invalid or expired reset link"
+  },
   userNotFound: {
-    ar: "لم يتم العثور على المستخدم",
-    en: "User not found"
-  },
-  noSecurityQuestions: {
-    ar: "لم يتم إعداد أسئلة أمنية لهذا الحساب",
-    en: "No security questions set up for this account"
-  },
-  passwordResetError: {
-    ar: "حدث خطأ أثناء إعادة تعيين كلمة المرور",
-    en: "Error resetting password"
+    ar: "البريد الإلكتروني غير مسجل في النظام",
+    en: "Email address is not registered in the system"
   }
-}
+};

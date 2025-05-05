@@ -17,6 +17,7 @@ import Terms from './pages/Terms';
 import CustomerRegister from './pages/auth/CustomerRegister';
 import DriverRegister from './pages/auth/DriverRegister';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 
 // Customer Pages
 import CustomerDashboard from './pages/customer/CustomerDashboard';
@@ -27,7 +28,6 @@ import CustomerBilling from './pages/customer/CustomerBilling';
 import CustomerSupport from './pages/customer/CustomerSupport';
 import CustomerFeedback from './pages/customer/CustomerFeedback';
 import CustomerSettings from './pages/customer/CustomerSettings';
-import CustomerSecurityQuestions from './pages/customer/SecurityQuestions';
 import Logout from './pages/customer/Logout';
 
 // Admin Pages
@@ -50,7 +50,6 @@ import DriverEarnings from './pages/driver/DriverEarnings';
 import DriverNotifications from './pages/driver/DriverNotifications';
 import DriverSupport from './pages/driver/DriverSupport';
 import DriverSettings from './pages/driver/DriverSettings';
-import DriverSecurityQuestions from './pages/driver/SecurityQuestions';
 import DriverLogout from './pages/driver/Logout';
 
 // Auth Components
@@ -187,8 +186,9 @@ const AppContent = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/services" element={<Services />} />
         <Route path="/terms" element={<Terms />} />
-        <Route path="*" element={<NotFound />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<NotFound />} />
         
         {/* Registration Routes */}
         <Route path="/register/customer" element={<CustomerRegister />} />
@@ -197,7 +197,7 @@ const AppContent = () => {
         {/* Admin Login Route */}
         <Route path="/admin" element={<AdminLogin />} />
 
-        {/* Customer Routes */}
+        {/* Customer Routes - Updated with all the required pages */}
         <Route 
           path="/customer" 
           element={
@@ -214,11 +214,10 @@ const AppContent = () => {
           <Route path="support" element={<CustomerSupport />} />
           <Route path="feedback" element={<CustomerFeedback />} />
           <Route path="settings" element={<CustomerSettings />} />
-          <Route path="security-questions" element={<CustomerSecurityQuestions />} />
           <Route path="logout" element={<Logout />} />
         </Route>
 
-        {/* Admin Routes */}
+        {/* Admin Routes - Using ProtectedAdminRoute component */}
         <Route 
           path="/admin/dashboard" 
           element={
@@ -295,7 +294,6 @@ const AppContent = () => {
           <Route path="notifications" element={<DriverNotifications />} />
           <Route path="support" element={<DriverSupport />} />
           <Route path="settings" element={<DriverSettings />} />
-          <Route path="security-questions" element={<DriverSecurityQuestions />} />
         </Route>
       </Routes>
       <Toaster position="bottom-right" />
