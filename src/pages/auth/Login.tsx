@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -100,7 +99,7 @@ const LoginContent = () => {
       localStorage.setItem('driverAuth', 'true');
       checkDriverStatusAndRedirect(userId);
     } else {
-      toast.error("نوع المستخدم غي�� معروف");
+      toast.error("نوع المستخدم غير معروف");
     }
   };
   

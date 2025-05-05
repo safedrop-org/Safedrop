@@ -1,3 +1,4 @@
+
 import { TranslationSection } from "./types";
 
 export const authUI: TranslationSection = {
@@ -157,7 +158,105 @@ export const authUI: TranslationSection = {
     en: "Error checking profile"
   },
   loading: {
-    ar: "جا��ي التحميل...",
+    ar: "جاري التحميل...",
     en: "Loading..."
+  },
+  
+  // Password reset translations
+  forgotPasswordTitle: {
+    ar: "استعادة كلمة المرور",
+    en: "Forgot Password"
+  },
+  forgotPasswordDescription: {
+    ar: "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة تعيين كلمة المرور",
+    en: "Enter your email and we'll send you a password reset link"
+  },
+  pleaseEnterEmail: {
+    ar: "يرجى إدخال البريد الإلكتروني",
+    en: "Please enter your email"
+  },
+  sending: {
+    ar: "جاري الإرسال...",
+    en: "Sending..."
+  },
+  sendResetLink: {
+    ar: "إرسال رابط إعادة التعيين",
+    en: "Send Reset Link"
+  },
+  backToLogin: {
+    ar: "العودة إلى تسجيل الدخول",
+    en: "Back to Login"
+  },
+  passwordResetError: {
+    ar: "حدث خطأ أثناء إرسال رابط إعادة تعيين كلمة المرور",
+    en: "An error occurred sending the password reset link"
+  },
+  passwordResetEmailSent: {
+    ar: "تم إرسال رابط إعادة تعيين كلمة المرور",
+    en: "Password reset link sent"
+  },
+  passwordResetEmailSentDescription: {
+    ar: "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني. يرجى التحقق من صندوق الوارد الخاص بك.",
+    en: "A password reset link has been sent to your email. Please check your inbox."
+  },
+  resetPasswordTitle: {
+    ar: "إعادة تعيين كلمة المرور",
+    en: "Reset Password"
+  },
+  resetPasswordDescription: {
+    ar: "أدخل كلمة المرور الجديدة",
+    en: "Enter your new password"
+  },
+  newPassword: {
+    ar: "كلمة المرور الجديدة",
+    en: "New Password"
+  },
+  confirmPassword: {
+    ar: "تأكيد كلمة المرور",
+    en: "Confirm Password"
+  },
+  updating: {
+    ar: "جاري التحديث...",
+    en: "Updating..."
+  },
+  updatePassword: {
+    ar: "تحديث كلمة المرور",
+    en: "Update Password"
+  },
+  pleaseEnterPassword: {
+    ar: "يرجى إدخال كلمة المرور",
+    en: "Please enter your password"
+  },
+  passwordsDoNotMatch: {
+    ar: "كلمات المرور غير متطابقة",
+    en: "Passwords do not match"
+  },
+  passwordTooShort: {
+    ar: "كلمة المرور قصيرة جدًا، يجب أن تكون 6 أحرف على الأقل",
+    en: "Password is too short, it must be at least 6 characters"
+  },
+  passwordUpdateError: {
+    ar: "حدث خطأ أثناء تحديث كلمة المرور",
+    en: "An error occurred updating your password"
+  },
+  passwordUpdatedSuccess: {
+    ar: "تم تحديث كلمة المرور بنجاح",
+    en: "Password updated successfully"
+  },
+  passwordUpdatedDescription: {
+    ar: "تم تحديث كلمة المرور الخاصة بك بنجاح. يمكنك الآن تسجيل الدخول باستخدام كلمة المرور الجديدة.",
+    en: "Your password has been updated successfully. You can now login with your new password."
+  },
+  redirectingToLogin: {
+    ar: "جاري إعادة التوجيه إلى صفحة تسجيل الدخول...",
+    en: "Redirecting to login page..."
+  },
+  loginNow: {
+    ar: "تسجيل الدخول الآن",
+    en: "Login Now"
+  },
+  invalidResetLink: {
+    ar: "رابط إعادة التعيين غير صالح أو منتهي الصلاحية",
+    en: "Invalid or expired reset link"
   }
 };

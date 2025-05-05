@@ -16,6 +16,8 @@ import Services from './pages/Services';
 import Terms from './pages/Terms';
 import CustomerRegister from './pages/auth/CustomerRegister';
 import DriverRegister from './pages/auth/DriverRegister';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 
 // Customer Pages
 import CustomerDashboard from './pages/customer/CustomerDashboard';
@@ -184,6 +186,8 @@ const AppContent = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/services" element={<Services />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="*" element={<NotFound />} />
         
         {/* Registration Routes */}
