@@ -382,6 +382,45 @@ export type Database = {
         }
         Relationships: []
       }
+      security_questions: {
+        Row: {
+          answer_1: string
+          answer_2: string
+          answer_3: string
+          created_at: string
+          id: string
+          question_1: string
+          question_2: string
+          question_3: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer_1: string
+          answer_2: string
+          answer_3: string
+          created_at?: string
+          id?: string
+          question_1: string
+          question_2: string
+          question_3: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer_1?: string
+          answer_2?: string
+          answer_3?: string
+          created_at?: string
+          id?: string
+          question_1?: string
+          question_2?: string
+          question_3?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -408,6 +447,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_security_questions: {
+        Args: {
+          user_email: string
+          q1_answer: string
+          q2_answer: string
+          q3_answer: string
+        }
+        Returns: boolean
+      }
       get_current_user_type: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -419,6 +467,14 @@ export type Database = {
           commissions: number
           platform_profit: number
           driver_profit: number
+        }[]
+      }
+      get_security_questions: {
+        Args: { user_email: string }
+        Returns: {
+          question_1: string
+          question_2: string
+          question_3: string
         }[]
       }
       has_role: {

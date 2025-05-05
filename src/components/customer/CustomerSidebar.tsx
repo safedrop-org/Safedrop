@@ -1,7 +1,7 @@
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthContext';
-import { LayoutDashboard, Package, CreditCard, User, MessageSquare, Star, Settings, PlusCircle, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, CreditCard, User, MessageSquare, Star, Settings, PlusCircle, LogOut, ShieldQuestion } from 'lucide-react';
 import { useLanguage } from '@/components/ui/language-context';
 
 const CustomerSidebar = () => {
@@ -45,6 +45,11 @@ const CustomerSidebar = () => {
       path: '/customer/feedback',
       icon: <Star className="h-5 w-5" />,
       label: t('Feedback & Rating')
+    },
+    {
+      path: '/customer/security-questions',
+      icon: <ShieldQuestion className="h-5 w-5" />,
+      label: t('securityQuestions')
     },
     {
       path: '/customer/settings',

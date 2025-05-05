@@ -1,4 +1,5 @@
-import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, Menu } from 'lucide-react';
+
+import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, Menu, ShieldQuestion } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -49,6 +50,10 @@ const DriverSidebar = () => {
     icon: <HelpCircle className="h-5 w-5" />,
     label: t('support'),
     path: "/driver/support"
+  }, {
+    icon: <ShieldQuestion className="h-5 w-5" />,
+    label: t('securityQuestions'),
+    path: "/driver/security-questions"
   }, {
     icon: <Settings className="h-5 w-5" />,
     label: t('Settings'),

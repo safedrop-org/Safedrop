@@ -262,5 +262,107 @@ export const authUI: TranslationSection = {
   userNotFound: {
     ar: "البريد الإلكتروني غير مسجل في النظام",
     en: "Email address is not registered in the system"
+  },
+  
+  // Security Questions
+  securityQuestions: {
+    ar: "الأسئلة الأمنية",
+    en: "Security Questions"
+  },
+  setupSecurityQuestions: {
+    ar: "إعداد الأسئلة الأمنية",
+    en: "Setup Security Questions"
+  },
+  securityQuestionsDescription: {
+    ar: "قم بإعداد أسئلة أمنية لمساعدتك في استعادة حسابك في حال نسيت كلمة المرور",
+    en: "Set up security questions to help recover your account if you forget your password"
+  },
+  securityQuestion: {
+    ar: "السؤال الأمني",
+    en: "Security Question"
+  },
+  securityAnswer: {
+    ar: "الإجابة الأمنية",
+    en: "Security Answer"
+  },
+  securityQuestionPlaceholder: {
+    ar: "اكتب سؤالاً أمنياً خاصاً بك",
+    en: "Write your own security question"
+  },
+  securityAnswerPlaceholder: {
+    ar: "اكتب الإجابة على السؤال الأمني",
+    en: "Write the answer to your security question"
+  },
+  saving: {
+    ar: "جاري الحفظ...",
+    en: "Saving..."
+  },
+  saveSecurityQuestions: {
+    ar: "حفظ الأسئلة الأمنية",
+    en: "Save Security Questions"
+  },
+  updateSecurityQuestions: {
+    ar: "تحديث الأسئلة الأمنية",
+    en: "Update Security Questions"
+  },
+  securityQuestionsUpdated: {
+    ar: "تم تحديث الأسئلة الأمنية بنجاح",
+    en: "Security questions updated successfully"
+  },
+  securityQuestionsCreated: {
+    ar: "تم إنشاء الأسئلة الأمنية بنجاح",
+    en: "Security questions created successfully"
+  },
+  allFieldsRequired: {
+    ar: "جميع الحقول مطلوبة",
+    en: "All fields are required"
+  },
+  errorSavingSecurityQuestions: {
+    ar: "حدث خطأ أثناء حفظ الأسئلة الأمنية",
+    en: "Error saving security questions"
+  },
+  errorFetchingSecurityQuestions: {
+    ar: "حدث خطأ أثناء جلب الأسئلة الأمنية",
+    en: "Error fetching security questions"
+  },
+  securityQuestionsVerification: {
+    ar: "يرجى الإجابة على الأسئلة الأمنية التالية للتحقق من هويتك",
+    en: "Please answer the following security questions to verify your identity"
+  },
+  allAnswersRequired: {
+    ar: "يرجى الإجابة على جميع الأسئلة",
+    en: "Please answer all questions"
+  },
+  errorCheckingAnswers: {
+    ar: "حدث خطأ أثناء التحقق من الإجابات",
+    en: "Error checking answers"
+  },
+  incorrectAnswers: {
+    ar: "الإجابات غير صحيحة. يرجى المحاولة مرة أخرى",
+    en: "Incorrect answers. Please try again"
+  },
+  verifyAnswers: {
+    ar: "التحقق من الإجابات",
+    en: "Verify Answers"
+  },
+  verifying: {
+    ar: "جاري التحقق...",
+    en: "Verifying..."
+  },
+  checking: {
+    ar: "جاري التحقق...",
+    en: "Checking..."
+  },
+  continue: {
+    ar: "متابعة",
+    en: "Continue"
+  },
+  back: {
+    ar: "رجوع",
+    en: "Back"
+  },
+  errorProcessingRequest: {
+    ar: "حدث خطأ أثناء معالجة الطلب",
+    en: "Error processing request"
   }
 };

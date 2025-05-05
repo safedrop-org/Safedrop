@@ -28,6 +28,7 @@ import CustomerBilling from './pages/customer/CustomerBilling';
 import CustomerSupport from './pages/customer/CustomerSupport';
 import CustomerFeedback from './pages/customer/CustomerFeedback';
 import CustomerSettings from './pages/customer/CustomerSettings';
+import CustomerSecurityQuestions from './pages/customer/SecurityQuestions';
 import Logout from './pages/customer/Logout';
 
 // Admin Pages
@@ -50,6 +51,7 @@ import DriverEarnings from './pages/driver/DriverEarnings';
 import DriverNotifications from './pages/driver/DriverNotifications';
 import DriverSupport from './pages/driver/DriverSupport';
 import DriverSettings from './pages/driver/DriverSettings';
+import DriverSecurityQuestions from './pages/driver/SecurityQuestions';
 import DriverLogout from './pages/driver/Logout';
 
 // Auth Components
@@ -214,6 +216,7 @@ const AppContent = () => {
           <Route path="support" element={<CustomerSupport />} />
           <Route path="feedback" element={<CustomerFeedback />} />
           <Route path="settings" element={<CustomerSettings />} />
+          <Route path="security-questions" element={<CustomerSecurityQuestions />} />
           <Route path="logout" element={<Logout />} />
         </Route>
 
@@ -294,6 +297,7 @@ const AppContent = () => {
           <Route path="notifications" element={<DriverNotifications />} />
           <Route path="support" element={<DriverSupport />} />
           <Route path="settings" element={<DriverSettings />} />
+          <Route path="security-questions" element={<DriverSecurityQuestions />} />
         </Route>
       </Routes>
       <Toaster position="bottom-right" />
