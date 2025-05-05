@@ -6,17 +6,14 @@ import LanguageToggleDashboard from "@/components/ui/language-toggle-dashboard";
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, ShoppingBag, User, CreditCard, HelpCircle, Star, Settings, LogOut, Shield, X } from 'lucide-react';
+import { LogOut, Menu, ShoppingBag, User, CreditCard, HelpCircle, Star, Settings, Shield, Receipt, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/lib/utils';
 
 const CustomerSidebar = () => {
   const { language, t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { data: profile } = useProfile();
   const [isClientSide, setIsClientSide] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   
@@ -31,51 +28,29 @@ const CustomerSidebar = () => {
   };
 
   const menuItems = [
-    { name: t('Dashboard'), path: '/customer/dashboard', icon: <Menu className="h-5 w-5" /> },
-    { name: t('New Order'), path: '/customer/create-order', icon: <ShoppingBag className="h-5 w-5" /> },
-    { name: t('My Orders'), path: '/customer/orders', icon: <ShoppingBag className="h-5 w-5" /> },
-    { name: t('Billing & Payment'), path: '/customer/billing', icon: <CreditCard className="h-5 w-5" /> },
-    { name: t('Profile'), path: '/customer/profile', icon: <User className="h-5 w-5" /> },
-    { name: t('Technical Support'), path: '/customer/support', icon: <HelpCircle className="h-5 w-5" /> },
-    { name: t('Feedback & Rating'), path: '/customer/feedback', icon: <Star className="h-5 w-5" /> },
-    { name: t('Settings'), path: '/customer/settings', icon: <Settings className="h-5 w-5" /> },
-    { name: t('securityQuestions'), path: '/customer/security-questions', icon: <Shield className="h-5 w-5" /> },
-    { name: t('Logout'), path: '/customer/logout', icon: <LogOut className="h-5 w-5" /> }
+    { name: language === 'ar' ? 'لوحة التحكم' : 'Dashboard', path: '/customer/dashboard', icon: <Menu className="h-5 w-5" /> },
+    { name: language === 'ar' ? 'طلب جديد' : 'New Order', path: '/customer/create-order', icon: <ShoppingBag className="h-5 w-5" /> },
+    { name: language === 'ar' ? 'طلباتي' : 'My Orders', path: '/customer/orders', icon: <ShoppingBag className="h-5 w-5" /> },
+    { name: language === 'ar' ? 'الفواتير والدفع' : 'Billing & Payment', path: '/customer/billing', icon: <CreditCard className="h-5 w-5" /> },
+    { name: language === 'ar' ? 'الملف الشخصي' : 'Profile', path: '/customer/profile', icon: <User className="h-5 w-5" /> },
+    { name: language === 'ar' ? 'الدعم الفني' : 'Technical Support', path: '/customer/support', icon: <HelpCircle className="h-5 w-5" /> },
+    { name: language === 'ar' ? 'التقييم والملاحظات' : 'Feedback & Rating', path: '/customer/feedback', icon: <Star className="h-5 w-5" /> },
+    { name: language === 'ar' ? 'الإعدادات' : 'Settings', path: '/customer/settings', icon: <Settings className="h-5 w-5" /> },
+    { name: language === 'ar' ? 'الأسئلة الأمنية' : 'Security Questions', path: '/customer/security-questions', icon: <Shield className="h-5 w-5" /> },
+    { name: language === 'ar' ? 'تسجيل الخروج' : 'Logout', path: '/customer/logout', icon: <LogOut className="h-5 w-5" /> }
   ];
 
-  const getFullName = () => {
-    if (profile) {
-      return `${profile.first_name} ${profile.last_name}`;
-    }
-    return 'Customer';
-  };
-
+  // الشكل الجديد للقائمة الجانبية
   const getSidebarContent = () => (
-    <div className="h-full flex flex-col bg-white border-r" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      <div className="p-4 border-b flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={profile?.profile_image} />
-            <AvatarFallback className="bg-safedrop-primary text-white">
-              {profile ? getInitials(`${profile.first_name} ${profile.last_name}`) : 'SD'}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="font-semibold">{getFullName()}</h2>
-            <p className="text-sm text-gray-600">{user?.email}</p>
-          </div>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => setIsMobileOpen(false)}
-        >
-          <X className="h-5 w-5" />
-        </Button>
+    <div className={`h-full flex flex-col ${language === 'ar' ? 'rtl' : 'ltr'} bg-safedrop-primary text-white`}>
+      <div className="p-4 border-b flex justify-center items-center">
+        <h2 className="text-xl font-bold text-center">
+          {language === 'ar' ? 'لوحة التحكم' : 'Dashboard'}
+        </h2>
       </div>
       
       <div className="flex-1 overflow-auto py-2">
-        <nav className="px-2 space-y-1">
+        <nav className="flex flex-col items-end px-2 space-y-1">
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             return (
@@ -88,14 +63,14 @@ const CustomerSidebar = () => {
                   }
                   setIsMobileOpen(false);
                 }}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                className={`flex items-center gap-3 w-full px-3 py-3 rounded-md transition-colors ${
                   isActive 
-                    ? 'bg-safedrop-gold text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-safedrop-gold' 
+                    : 'hover:bg-white/10'
                 }`}
               >
+                <span className="flex-1 text-right">{item.name}</span>
                 {item.icon}
-                <span>{item.name}</span>
               </Link>
             );
           })}
@@ -103,7 +78,17 @@ const CustomerSidebar = () => {
       </div>
       
       <div className="p-4 border-t">
-        <LanguageToggleDashboard />
+        <Button 
+          variant="outline" 
+          className="w-full justify-center gap-2 border-white/30 text-white hover:bg-white/10"
+          onClick={handleLogout}
+        >
+          <LogOut className="h-4 w-4" />
+          <span>{language === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
+        </Button>
+        <div className="mt-2">
+          <LanguageToggleDashboard />
+        </div>
       </div>
     </div>
   );
@@ -117,7 +102,9 @@ const CustomerSidebar = () => {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-white">
                 <Menu className="h-6 w-6" />
-                <span className="sr-only">Open sidebar</span>
+                <span className="sr-only">
+                  {language === 'ar' ? 'فتح القائمة' : 'Open sidebar'}
+                </span>
               </Button>
             </SheetTrigger>
             <SheetContent side={language === 'ar' ? 'left' : 'right'} className="p-0 w-64">
@@ -135,7 +122,7 @@ const CustomerSidebar = () => {
 
   // For desktop: render normal sidebar
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
+    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-50">
       {getSidebarContent()}
     </div>
   );
