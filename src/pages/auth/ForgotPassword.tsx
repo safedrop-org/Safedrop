@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -30,18 +29,21 @@ const ForgotPasswordContent = () => {
     }
 
     try {
-      // First, check if the user exists in the database
-      const { data: userExists, error: checkError } = await supabase
+      // First, check if the user exists in the database using profiles table
+      const { data: userProfile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', email)
+        .eq('email', email.toLowerCase().trim())
         .maybeSingle();
       
-      // If there's an error checking the user or the user doesn't exist
-      if (checkError) {
-        console.error('User check error:', checkError);
-        // We'll still attempt password reset as Supabase handles this gracefully
-      } else if (!userExists) {
+      // Log and handle profile check error
+      if (profileError) {
+        console.error('Profile check error:', profileError);
+        // We'll continue the process as Supabase auth will handle this gracefully
+      } 
+      
+      // If user profile not found, show error and stop
+      if (!userProfile) {
         console.log('User not found with email:', email);
         toast.error(t('userNotFound'));
         setIsLoading(false);
@@ -49,7 +51,7 @@ const ForgotPasswordContent = () => {
       }
 
       // Process the password reset request
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase().trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
