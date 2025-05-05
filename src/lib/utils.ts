@@ -1,4 +1,3 @@
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -7,20 +6,18 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Extracts initials from a name string
- * @param name The full name to extract initials from
- * @returns A string with up to 2 characters representing the initials
+ * 
+ * @param distance Distance in meters
+ * @description This function calculates the minimum acceptable cost for a given distance.
+ * @returns 
  */
-export function getInitials(name: string): string {
-  if (!name) return '';
+export function calculateCost(distance: number) {
+  let cost = 10;
   
-  const parts = name.split(' ').filter(Boolean);
-  
-  if (parts.length === 0) return '';
-  
-  if (parts.length === 1) {
-    return parts[0].charAt(0).toUpperCase();
-  }
-  
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  if(distance <= 2000) return cost;
+
+  // The cost increases by 0.0015 for each meter over 2000
+  cost += (distance - 2000) * 0.0015;
+
+  return Math.floor(cost * 100) / 100;
 }
