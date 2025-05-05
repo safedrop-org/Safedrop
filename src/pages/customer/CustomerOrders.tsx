@@ -188,7 +188,8 @@ const CustomerOrdersContent = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {activeOrders.map((order) => (
-                        <tr key={order.id}>
+                        <React.Fragment key={order.id}>
+                        <tr>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {order.id.slice(0, 8)}...
                           </td>
@@ -221,6 +222,12 @@ const CustomerOrdersContent = () => {
                             )}
                           </td>
                         </tr>
+                        <tr>
+                          <td colSpan={7}>
+                            <StaticMap pickup_location={order.pickup_location.address} dropoff_location={order.dropoff_location.address} driver_location={order.driver_location} />
+                          </td>
+                        </tr>
+                        </React.Fragment>
                       ))}
                     </tbody>
                   </table>
@@ -287,6 +294,33 @@ const CustomerOrdersContent = () => {
     </div>
   );
 };
+
+function StaticMap({ pickup_location, dropoff_location, driver_location }) {
+  
+  const [mapUrl, setMapUrl] = useState('');
+  const marker = driver_location ? `color:red|driver:A|${driver_location.lat},${driver_location.lng}`: "";
+  
+  useEffect(() => {
+    fetch(`https://maps.googleapis.com/directions/json?origin=${encodeURIComponent(pickup_location)}
+    &destination=${encodeURIComponent(dropoff_location)}
+    &mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
+      .then((res) => res.json())
+      .then((res) => {
+        console.log(res);
+        
+        if (res.status === "OK") {
+          const points = res.routes[0].overview_polyline.points;
+          setMapUrl(`https://maps.googleapis.com/maps/api/staticmap?size=624x351&path=enc:${points}&markers=${marker}&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`);
+        }
+      })
+      .catch((error) => console.log("error", error));
+  }, []);
+
+  return (
+    <img className="mx-auto" src={mapUrl} alt="map image" />
+
+  )
+}
 
 const CustomerOrders = () => {
   return (
