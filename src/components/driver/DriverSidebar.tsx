@@ -6,7 +6,7 @@ import LanguageToggleDashboard from "@/components/ui/language-toggle-dashboard";
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, PackageOpen, User, DollarSign, BellRing, HelpCircle, Star, Settings, LogOut, Shield } from 'lucide-react';
+import { Menu, PackageOpen, User, DollarSign, BellRing, HelpCircle, Star, Settings, LogOut, Shield, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
@@ -52,7 +52,7 @@ const DriverSidebar = () => {
 
   const getSidebarContent = () => (
     <div className="h-full flex flex-col bg-white border-r" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-      <div className="p-4 border-b">
+      <div className="p-4 border-b flex justify-between items-center">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarImage src={profile?.profile_image} />
@@ -65,6 +65,14 @@ const DriverSidebar = () => {
             <p className="text-sm text-gray-600">{user?.email}</p>
           </div>
         </div>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="lg:flex md:flex hidden"
+          onClick={() => setIsMobileOpen(false)}
+        >
+          <X className="h-5 w-5" />
+        </Button>
       </div>
       
       <div className="flex-1 overflow-auto py-2">
@@ -113,7 +121,7 @@ const DriverSidebar = () => {
                 <span className="sr-only">Open sidebar</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="p-0 w-64">
+            <SheetContent side={language === 'ar' ? 'left' : 'right'} className="p-0 w-64">
               {getSidebarContent()}
             </SheetContent>
           </Sheet>
