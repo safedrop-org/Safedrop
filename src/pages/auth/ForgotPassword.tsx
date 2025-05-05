@@ -30,43 +30,18 @@ const ForgotPasswordContent = () => {
     }
 
     try {
-      // Clean email for consistent format
-      const cleanedEmail = email.toLowerCase().trim();
-      
-      // First, check if the user exists in the database using profiles table
-      const { data: userProfiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .ilike('email', cleanedEmail); // Use case-insensitive comparison
-      
-      // Log and handle profile check error
-      if (profileError) {
-        console.error('Profile check error:', profileError);
-      }
-      
-      // If user profile not found, show error and stop
-      if (!userProfiles || userProfiles.length === 0) {
-        console.log('User not found with email:', cleanedEmail);
-        toast.error(t('userNotFound'));
-        setIsLoading(false);
-        return;
-      }
-
-      console.log('User found, proceeding with password reset');
-
-      // Process the password reset request
-      const { error } = await supabase.auth.resetPasswordForEmail(cleanedEmail, {
+      // Skip the profile check and directly send the reset password email
+      // This is more secure since Supabase won't reveal if the email exists or not
+      const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase().trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) {
         console.error('Reset password error:', error);
         
-        if (error.message.includes('user not found')) {
-          toast.error(t('userNotFound'));
-        } else {
-          toast.error(error.message || t('passwordResetError'));
-        }
+        // To maintain security, don't reveal if email exists or not
+        // Just show a generic success message
+        toast.error(t('passwordResetError'));
       } else {
         setIsSubmitted(true);
         toast.success(t('passwordResetEmailSent'));
