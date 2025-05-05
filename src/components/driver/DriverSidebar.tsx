@@ -1,157 +1,136 @@
-import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, Menu } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useLanguage } from '@/components/ui/language-context';
-import { useAuth } from '@/components/auth/AuthContext';
+import LanguageToggleDashboard from "@/components/ui/language-toggle-dashboard";
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, PackageOpen, User, DollarSign, BellRing, HelpCircle, Star, Settings, LogOut, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/utils';
 
 const DriverSidebar = () => {
-  const { t, language } = useLanguage();
+  const { language, t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const { data: profile } = useProfile();
+  const [isClientSide, setIsClientSide] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  
+  // Handle client-side rendering for mobile detection
+  useEffect(() => {
+    setIsClientSide(true);
+  }, []);
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
   };
 
-  const handleLogout = () => {
-    navigate('/driver/logout');
+  const menuItems = [
+    { name: t('Dashboard'), path: '/driver/dashboard', icon: <Menu className="h-5 w-5" /> },
+    { name: t('Orders'), path: '/driver/orders', icon: <PackageOpen className="h-5 w-5" /> },
+    { name: t('Profile'), path: '/driver/profile', icon: <User className="h-5 w-5" /> },
+    { name: t('Ratings'), path: '/driver/ratings', icon: <Star className="h-5 w-5" /> },
+    { name: t('Earnings'), path: '/driver/earnings', icon: <DollarSign className="h-5 w-5" /> },
+    { name: t('Notifications'), path: '/driver/notifications', icon: <BellRing className="h-5 w-5" /> },
+    { name: t('Support'), path: '/driver/support', icon: <HelpCircle className="h-5 w-5" /> },
+    { name: t('Settings'), path: '/driver/settings', icon: <Settings className="h-5 w-5" /> },
+    { name: t('securityQuestions'), path: '/driver/security-questions', icon: <Shield className="h-5 w-5" /> },
+    { name: t('Logout'), path: '/driver/logout', icon: <LogOut className="h-5 w-5" /> }
+  ];
+
+  const getFullName = () => {
+    if (profile) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    return 'Driver';
   };
 
-  const menuItems = [{
-    icon: <LayoutDashboard className="h-5 w-5" />,
-    label: t('dashboard'),
-    path: "/driver/dashboard"
-  }, {
-    icon: <Package className="h-5 w-5" />,
-    label: t('orders'),
-    path: "/driver/orders"
-  }, {
-    icon: <UserIcon className="h-5 w-5" />,
-    label: t('Profile'),
-    path: "/driver/profile"
-  }, {
-    icon: <Star className="h-5 w-5" />,
-    label: t('ratings'),
-    path: "/driver/ratings"
-  }, {
-    icon: <DollarSign className="h-5 w-5" />,
-    label: t('earnings'),
-    path: "/driver/earnings"
-  }, {
-    icon: <Bell className="h-5 w-5" />,
-    label: t('notifications'),
-    path: "/driver/notifications"
-  }, {
-    icon: <HelpCircle className="h-5 w-5" />,
-    label: t('support'),
-    path: "/driver/support"
-  }, {
-    icon: <Settings className="h-5 w-5" />,
-    label: t('Settings'),
-    path: "/driver/settings"
-  }];
-
-  return (
-    <>
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="md:hidden fixed top-4 right-4 z-50" 
-        onClick={() => setIsOpen(true)}
-      >
-        <Menu className="h-6 w-6" />
-        <span className="sr-only">{t('toggleMenu')}</span>
-      </Button>
-
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side={language === 'ar' ? 'right' : 'left'} className="w-[280px] sm:w-[340px] p-0">
-          <div className="bg-safedrop-primary text-white h-full flex flex-col">
-            <div className="p-4">
-              <Link to="/" className="flex flex-col items-center">
-                <img 
-                  alt={t('siteTitle')} 
-                  src="/lovable-uploads/78b0a264-3066-4690-bdc3-775d48ad5001.png" 
-                  className="h-20" 
-                />
-                <div className="text-center mt-2 font-bold">{t('siteTitle')}</div>
-              </Link>
-            </div>
-            
-            <nav className="flex-1">
-              <ul>
-                {menuItems.map((item, index) => (
-                  <li key={index}>
-                    <Link 
-                      to={item.path} 
-                      className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                        isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                      }`} 
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-            
-            <div className="p-4 border-t border-white/10">
-              <Button 
-                onClick={handleLogout} 
-                variant="outline" 
-                className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>{t('Logout')}</span>
-              </Button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      <div className="hidden md:flex bg-safedrop-primary text-white min-h-screen w-64 shadow-lg flex-col">
-        <div className="p-4 flex items-center justify-center">
-          <Link to="/">
-            <img alt="SafeDrop Logo" className="h-20" src="/lovable-uploads/289fb913-2d65-4eb7-8518-9e5e699f2217.png" />
-            <div className="text-center mt-2 font-bold">{t('siteTitle')}</div>
-          </Link>
-        </div>
-        
-        <nav className="flex-1">
-          <ul>
-            {menuItems.map((item, index) => (
-              <li key={index}>
-                <Link 
-                  to={item.path} 
-                  className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''}`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        
-        <div className="mt-auto">
-          <div className="p-4 border-t border-white/10">
-            <Button 
-              onClick={handleLogout} 
-              variant="outline" 
-              className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>{t('Logout')}</span>
-            </Button>
+  const getSidebarContent = () => (
+    <div className="h-full flex flex-col bg-white border-r" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="p-4 border-b">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={profile?.profile_image} />
+            <AvatarFallback className="bg-safedrop-primary text-white">
+              {profile ? getInitials(`${profile.first_name} ${profile.last_name}`) : 'SD'}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="font-semibold">{getFullName()}</h2>
+            <p className="text-sm text-gray-600">{user?.email}</p>
           </div>
         </div>
       </div>
-    </>
+      
+      <div className="flex-1 overflow-auto py-2">
+        <nav className="px-2 space-y-1">
+          {menuItems.map((item, index) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={index}
+                to={item.path}
+                onClick={() => {
+                  if (item.path === '/driver/logout') {
+                    handleLogout();
+                  }
+                  setIsMobileOpen(false);
+                }}
+                className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                  isActive 
+                    ? 'bg-safedrop-gold text-white' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {item.icon}
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+      
+      <div className="p-4 border-t">
+        <LanguageToggleDashboard />
+      </div>
+    </div>
+  );
+
+  // For mobile: render Sheet component
+  if (isClientSide && window.innerWidth < 768) {
+    return (
+      <>
+        <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-safedrop-primary px-4 py-4 shadow-sm sm:px-6 lg:hidden">
+          <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Open sidebar</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="p-0 w-64">
+              {getSidebarContent()}
+            </SheetContent>
+          </Sheet>
+          
+          <div className="flex-1 text-sm font-semibold leading-6 text-white">
+            SafeDrop
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // For desktop: render normal sidebar
+  return (
+    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
+      {getSidebarContent()}
+    </div>
   );
 };
 

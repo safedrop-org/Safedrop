@@ -326,7 +326,12 @@ const LoginContent = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">{t('password')}</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">{t('password')}</Label>
+                    <Link to="/forgot-password" className="text-sm text-safedrop-gold hover:underline">
+                      {t('forgotPassword')}
+                    </Link>
+                  </div>
                   <div className="relative">
                     <LockIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
                     <Input 

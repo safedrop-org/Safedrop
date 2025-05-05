@@ -156,5 +156,119 @@ export const authUI: TranslationSection = {
   loading: {
     ar: "جاري التحميل...",
     en: "Loading..."
+  },
+  
+  // Security Questions Translations
+  forgotPassword: {
+    ar: "نسيت كلمة المرور؟",
+    en: "Forgot Password?"
+  },
+  securityQuestions: {
+    ar: "الأسئلة الأمنية",
+    en: "Security Questions"
+  },
+  setupSecurityQuestions: {
+    ar: "إعداد الأسئلة الأمنية",
+    en: "Setup Security Questions"
+  },
+  securityQuestionsDescription: {
+    ar: "قم بإعداد أسئلة أمنية لاستعادة حسابك في حالة نسيان كلمة المرور",
+    en: "Set up security questions to recover your account if you forget your password"
+  },
+  question1: {
+    ar: "السؤال الأول",
+    en: "Question 1"
+  },
+  answer1: {
+    ar: "الإجابة الأولى",
+    en: "Answer 1"
+  },
+  question2: {
+    ar: "السؤال الثاني",
+    en: "Question 2"
+  },
+  answer2: {
+    ar: "الإجابة الثانية",
+    en: "Answer 2"
+  },
+  question3: {
+    ar: "السؤال الثالث",
+    en: "Question 3"
+  },
+  answer3: {
+    ar: "الإجابة الثالثة",
+    en: "Answer 3"
+  },
+  saveQuestions: {
+    ar: "حفظ الأسئلة",
+    en: "Save Questions"
+  },
+  savingQuestions: {
+    ar: "جاري حفظ الأسئلة...",
+    en: "Saving Questions..."
+  },
+  questionsUpdated: {
+    ar: "تم تحديث الأسئلة الأمنية بنجاح",
+    en: "Security questions updated successfully"
+  },
+  enterEmail: {
+    ar: "أدخل بريدك الإلكتروني",
+    en: "Enter your email"
+  },
+  continue: {
+    ar: "متابعة",
+    en: "Continue"
+  },
+  answerSecurityQuestions: {
+    ar: "الإجابة على الأسئلة الأمنية",
+    en: "Answer Security Questions"
+  },
+  enterAnswers: {
+    ar: "أدخل إجاباتك على الأسئلة الأمنية",
+    en: "Enter your answers to the security questions"
+  },
+  verifyAnswers: {
+    ar: "التحقق من الإجابات",
+    en: "Verify Answers"
+  },
+  incorrectAnswers: {
+    ar: "الإجابات غير صحيحة، يرجى المحاولة مرة أخرى",
+    en: "Incorrect answers, please try again"
+  },
+  resetPassword: {
+    ar: "إعادة تعيين كلمة المرور",
+    en: "Reset Password"
+  },
+  newPassword: {
+    ar: "كلمة المرور الجديدة",
+    en: "New Password"
+  },
+  confirmPassword: {
+    ar: "تأكيد كلمة المرور",
+    en: "Confirm Password"
+  },
+  updatePassword: {
+    ar: "تحديث كلمة المرور",
+    en: "Update Password"
+  },
+  passwordUpdated: {
+    ar: "تم تحديث كلمة المرور بنجاح",
+    en: "Password updated successfully"
+  },
+  passwordsDoNotMatch: {
+    ar: "كلمات المرور غير متطابقة",
+    en: "Passwords do not match"
+  },
+  userNotFound: {
+    ar: "لم يتم العثور على المستخدم",
+    en: "User not found"
+  },
+  noSecurityQuestions: {
+    ar: "لم يتم إعداد أسئلة أمنية لهذا الحساب",
+    en: "No security questions set up for this account"
+  },
+  passwordResetError: {
+    ar: "حدث خطأ أثناء إعادة تعيين كلمة المرور",
+    en: "Error resetting password"
   }
-};
+}

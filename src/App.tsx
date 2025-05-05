@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -15,6 +16,7 @@ import Services from './pages/Services';
 import Terms from './pages/Terms';
 import CustomerRegister from './pages/auth/CustomerRegister';
 import DriverRegister from './pages/auth/DriverRegister';
+import ForgotPassword from './pages/auth/ForgotPassword';
 
 // Customer Pages
 import CustomerDashboard from './pages/customer/CustomerDashboard';
@@ -25,6 +27,7 @@ import CustomerBilling from './pages/customer/CustomerBilling';
 import CustomerSupport from './pages/customer/CustomerSupport';
 import CustomerFeedback from './pages/customer/CustomerFeedback';
 import CustomerSettings from './pages/customer/CustomerSettings';
+import CustomerSecurityQuestions from './pages/customer/SecurityQuestions';
 import Logout from './pages/customer/Logout';
 
 // Admin Pages
@@ -47,6 +50,7 @@ import DriverEarnings from './pages/driver/DriverEarnings';
 import DriverNotifications from './pages/driver/DriverNotifications';
 import DriverSupport from './pages/driver/DriverSupport';
 import DriverSettings from './pages/driver/DriverSettings';
+import DriverSecurityQuestions from './pages/driver/SecurityQuestions';
 import DriverLogout from './pages/driver/Logout';
 
 // Auth Components
@@ -184,6 +188,7 @@ const AppContent = () => {
         <Route path="/services" element={<Services />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         
         {/* Registration Routes */}
         <Route path="/register/customer" element={<CustomerRegister />} />
@@ -209,6 +214,7 @@ const AppContent = () => {
           <Route path="support" element={<CustomerSupport />} />
           <Route path="feedback" element={<CustomerFeedback />} />
           <Route path="settings" element={<CustomerSettings />} />
+          <Route path="security-questions" element={<CustomerSecurityQuestions />} />
           <Route path="logout" element={<Logout />} />
         </Route>
 
@@ -289,6 +295,7 @@ const AppContent = () => {
           <Route path="notifications" element={<DriverNotifications />} />
           <Route path="support" element={<DriverSupport />} />
           <Route path="settings" element={<DriverSettings />} />
+          <Route path="security-questions" element={<DriverSecurityQuestions />} />
         </Route>
       </Routes>
       <Toaster position="bottom-right" />

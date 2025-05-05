@@ -1,105 +1,136 @@
 
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/components/auth/AuthContext';
-import { LayoutDashboard, Package, CreditCard, User, MessageSquare, Star, Settings, PlusCircle, LogOut } from 'lucide-react';
 import { useLanguage } from '@/components/ui/language-context';
+import LanguageToggleDashboard from "@/components/ui/language-toggle-dashboard";
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, ShoppingBag, User, CreditCard, HelpCircle, Star, Settings, LogOut, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/utils';
 
 const CustomerSidebar = () => {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const { data: profile } = useProfile();
+  const [isClientSide, setIsClientSide] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  
+  // Handle client-side rendering for mobile detection
+  useEffect(() => {
+    setIsClientSide(true);
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   const menuItems = [
-    {
-      path: '/customer/dashboard',
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      label: t('Dashboard')
-    },
-    {
-      path: '/customer/create-order',
-      icon: <PlusCircle className="h-5 w-5" />,
-      label: t('New Order')
-    },
-    {
-      path: '/customer/orders',
-      icon: <Package className="h-5 w-5" />,
-      label: t('My Orders')
-    },
-    {
-      path: '/customer/billing',
-      icon: <CreditCard className="h-5 w-5" />,
-      label: t('Billing & Payment')
-    },
-    {
-      path: '/customer/profile',
-      icon: <User className="h-5 w-5" />,
-      label: t('Profile')
-    },
-    {
-      path: '/customer/support',
-      icon: <MessageSquare className="h-5 w-5" />,
-      label: t('Technical Support')
-    },
-    {
-      path: '/customer/feedback',
-      icon: <Star className="h-5 w-5" />,
-      label: t('Feedback & Rating')
-    },
-    {
-      path: '/customer/settings',
-      icon: <Settings className="h-5 w-5" />,
-      label: t('Settings')
-    }
+    { name: t('Dashboard'), path: '/customer/dashboard', icon: <Menu className="h-5 w-5" /> },
+    { name: t('New Order'), path: '/customer/create-order', icon: <ShoppingBag className="h-5 w-5" /> },
+    { name: t('My Orders'), path: '/customer/orders', icon: <ShoppingBag className="h-5 w-5" /> },
+    { name: t('Billing & Payment'), path: '/customer/billing', icon: <CreditCard className="h-5 w-5" /> },
+    { name: t('Profile'), path: '/customer/profile', icon: <User className="h-5 w-5" /> },
+    { name: t('Technical Support'), path: '/customer/support', icon: <HelpCircle className="h-5 w-5" /> },
+    { name: t('Feedback & Rating'), path: '/customer/feedback', icon: <Star className="h-5 w-5" /> },
+    { name: t('Settings'), path: '/customer/settings', icon: <Settings className="h-5 w-5" /> },
+    { name: t('securityQuestions'), path: '/customer/security-questions', icon: <Shield className="h-5 w-5" /> },
+    { name: t('Logout'), path: '/customer/logout', icon: <LogOut className="h-5 w-5" /> }
   ];
 
-  const isActive = (path) => {
-    return location.pathname === path;
+  const getFullName = () => {
+    if (profile) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    return 'Customer';
   };
 
-  const handleLogout = () => {
-    navigate('/customer/logout');
-  };
-
-  return (
-    <aside className="bg-safedrop-primary text-white w-64 h-screen flex flex-col">
-      <div className="p-4 flex items-center gap-2">
-        <img 
-          alt="SafeDrop Logo" 
-          className="h-8 w-8" 
-          src="/lovable-uploads/23d24828-2c22-46a3-a28c-04dc362e92cd.png" 
-        />
-        <h1 className="text-xl font-bold">SafeDrop</h1>
+  const getSidebarContent = () => (
+    <div className="h-full flex flex-col bg-white border-r" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="p-4 border-b">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={profile?.profile_image} />
+            <AvatarFallback className="bg-safedrop-primary text-white">
+              {profile ? getInitials(`${profile.first_name} ${profile.last_name}`) : 'SD'}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h2 className="font-semibold">{getFullName()}</h2>
+            <p className="text-sm text-gray-600">{user?.email}</p>
+          </div>
+        </div>
       </div>
-
-      <nav className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-1 px-2">
-          {menuItems.map(item => (
-            <li key={item.path}>
+      
+      <div className="flex-1 overflow-auto py-2">
+        <nav className="px-2 space-y-1">
+          {menuItems.map((item, index) => {
+            const isActive = location.pathname === item.path;
+            return (
               <Link
+                key={index}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-colors ${
-                  isActive(item.path) ? 'bg-white/10 font-medium' : 'hover:bg-white/5'
+                onClick={() => {
+                  if (item.path === '/customer/logout') {
+                    handleLogout();
+                  }
+                  setIsMobileOpen(false);
+                }}
+                className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                  isActive 
+                    ? 'bg-safedrop-gold text-white' 
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
                 {item.icon}
-                <span>{item.label}</span>
+                <span>{item.name}</span>
               </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-
-      <div className="p-4">
-        <button
-          onClick={handleLogout}
-          className="flex items-center justify-center w-full gap-2 py-2 px-4 rounded-md border border-white/20 hover:bg-white/10 transition-colors"
-        >
-          <LogOut className="h-5 w-5" />
-          <span>{t('Logout')}</span>
-        </button>
+            );
+          })}
+        </nav>
       </div>
-    </aside>
+      
+      <div className="p-4 border-t">
+        <LanguageToggleDashboard />
+      </div>
+    </div>
+  );
+
+  // For mobile: render Sheet component
+  if (isClientSide && window.innerWidth < 768) {
+    return (
+      <>
+        <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-safedrop-primary px-4 py-4 shadow-sm sm:px-6 lg:hidden">
+          <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Open sidebar</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="p-0 w-64">
+              {getSidebarContent()}
+            </SheetContent>
+          </Sheet>
+          
+          <div className="flex-1 text-sm font-semibold leading-6 text-white">
+            SafeDrop
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // For desktop: render normal sidebar
+  return (
+    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
+      {getSidebarContent()}
+    </div>
   );
 };
 
