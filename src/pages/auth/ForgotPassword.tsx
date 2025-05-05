@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { MailIcon, ArrowLeftIcon } from 'lucide-react';
+import { MailIcon, ArrowLeftIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,13 +30,37 @@ const ForgotPasswordContent = () => {
     }
 
     try {
+      // First, check if the user exists in the database
+      const { data: userExists, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
+      
+      // If there's an error checking the user or the user doesn't exist
+      if (checkError) {
+        console.error('User check error:', checkError);
+        // We'll still attempt password reset as Supabase handles this gracefully
+      } else if (!userExists) {
+        console.log('User not found with email:', email);
+        toast.error(t('userNotFound'));
+        setIsLoading(false);
+        return;
+      }
+
+      // Process the password reset request
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) {
         console.error('Reset password error:', error);
-        toast.error(error.message || t('passwordResetError'));
+        
+        if (error.message.includes('user not found')) {
+          toast.error(t('userNotFound'));
+        } else {
+          toast.error(error.message || t('passwordResetError'));
+        }
       } else {
         setIsSubmitted(true);
         toast.success(t('passwordResetEmailSent'));
@@ -87,7 +111,14 @@ const ForgotPasswordContent = () => {
                     className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" 
                     disabled={isLoading}
                   >
-                    {isLoading ? t('sending') : t('sendResetLink')}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('sending')}
+                      </>
+                    ) : (
+                      t('sendResetLink')
+                    )}
                   </Button>
 
                   <Link to="/login" className="flex items-center justify-center text-safedrop-gold hover:underline">

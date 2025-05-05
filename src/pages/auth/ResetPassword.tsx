@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { LockIcon, ArrowLeftIcon } from 'lucide-react';
+import { LockIcon, ArrowLeftIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +18,7 @@ const ResetPasswordContent = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
   const navigate = useNavigate();
 
   // Check if we have a recovery token in the URL
@@ -25,9 +26,12 @@ const ResetPasswordContent = () => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     if (!hashParams.get('access_token')) {
       toast.error(t('invalidResetLink'));
+      setHasToken(false);
       setTimeout(() => {
         navigate('/forgot-password');
       }, 3000);
+    } else {
+      setHasToken(true);
     }
   }, [navigate, t]);
 
@@ -88,7 +92,20 @@ const ResetPasswordContent = () => {
               <CardDescription>{t('resetPasswordDescription')}</CardDescription>
             </CardHeader>
 
-            {!isComplete ? (
+            {!hasToken ? (
+              <CardContent className="py-6 space-y-6">
+                <div className="text-center space-y-4">
+                  <p className="text-red-600">{t('invalidResetLink')}</p>
+                  
+                  <Button 
+                    className="mt-4 bg-safedrop-gold hover:bg-safedrop-gold/90" 
+                    onClick={() => navigate('/forgot-password')}
+                  >
+                    {t('backToLogin')}
+                  </Button>
+                </div>
+              </CardContent>
+            ) : !isComplete ? (
               <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-4 pt-4">
                   <div className="space-y-2">
@@ -128,7 +145,14 @@ const ResetPasswordContent = () => {
                     className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" 
                     disabled={isLoading}
                   >
-                    {isLoading ? t('updating') : t('updatePassword')}
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t('updating')}
+                      </>
+                    ) : (
+                      t('updatePassword')
+                    )}
                   </Button>
 
                   <Link to="/login" className="flex items-center justify-center text-safedrop-gold hover:underline">

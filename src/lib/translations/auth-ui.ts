@@ -258,5 +258,9 @@ export const authUI: TranslationSection = {
   invalidResetLink: {
     ar: "رابط إعادة التعيين غير صالح أو منتهي الصلاحية",
     en: "Invalid or expired reset link"
+  },
+  userNotFound: {
+    ar: "البريد الإلكتروني غير مسجل في النظام",
+    en: "Email address is not registered in the system"
   }
 };
