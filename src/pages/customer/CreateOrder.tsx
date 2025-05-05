@@ -7,11 +7,14 @@ import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Package, Truck, DollarSign } from 'lucide-react';
+import { Package, Truck, DollarSign, Calculator } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
+import { calculateCost } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { set } from 'date-fns';
 
 interface LocationType {
   address: string;
@@ -86,10 +89,30 @@ const CreateOrderContent = () => {
       return;
     }
     const price = parseFloat(formData.price);
-    if (isNaN(price) || price <= 0) {
+    const res = await fetch(`https://maps.googleapis.com/directions/json?origin=${encodeURIComponent(formData.pickupLocation.address)}&destination=${encodeURIComponent(formData.dropoffLocation.address)}&mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
+    const data = await res.json();
+    
+    
+    if (data.status !== 'OK') {
+      toast.error(language === 'ar' ? 'حدث خطأ أثناء حساب المسافة' : 'Error calculating distance');
+      return;
+    }
+    
+    const distance = data.routes[0].legs[0].distance.value; // in meters
+    const fare = calculateCost(distance)
+
+    if (isNaN(price)) {
       toast.error(language === 'ar' ? 'يرجى إدخال سعر صحيح' : 'Please enter a valid price');
       return;
     }
+
+    const minFare = fare <= 10 ? 10 : Math.floor(fare * 0.7 * 100) / 100;
+
+    if(Number(price) < minFare) {
+      toast.error(language === 'ar' ? `السعر المدخل منخفض مقارنة بالسعر المقترح ${minFare} ر.س. وقد لا يتم قبول الطلب` : `The entered price is low compared to the suggested price ${minFare} SAR, and the order may not be accepted`);
+      return;
+    }
+
     setSubmitting(true);
     try {
       const {
@@ -132,7 +155,7 @@ const CreateOrderContent = () => {
       <main className="flex-1 p-6 overflow-auto">
         <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">{t('createOrder')}</h1>
         
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="p-6">
               <div className="space-y-4">
@@ -189,6 +212,11 @@ const CreateOrderContent = () => {
             </Card>
           </div>
           
+          <CalculateOrderCost
+            pickupLocation={formData.pickupLocation.address}
+            dropoffLocation={formData.dropoffLocation.address}
+          />
+
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
               <Package className="h-5 w-5 ml-2 text-safedrop-gold" />
@@ -267,6 +295,60 @@ const CreateOrderContent = () => {
     </div>
   );
 };
+
+const CalculateOrderCost = ({ pickupLocation, dropoffLocation }) => {
+  const { t, language } = useLanguage();
+  const [price, setPrice] = useState('-');
+  const [distance, setDistance] = useState('-');
+  const [duration, setDuration] = useState('-');
+
+  const handleOnclick = async () => {
+    try {
+      setPrice('-');
+      setDistance('-');
+      setDuration('-');
+      
+      
+      const res = await fetch(`/a/directions/json?origin=${encodeURIComponent(pickupLocation)}&destination=${encodeURIComponent(dropoffLocation)}&mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
+      const data = await res.json();
+            
+      if (data.status !== 'OK') {
+        toast.error(language === 'ar' ? 'حدث خطأ أثناء حساب المسافة' : 'Error calculating distance');
+        return;
+      }
+      
+      setDistance(data.routes[0].legs[0].distance.text);
+      setDuration(data.routes[0].legs[0].duration.text);
+      
+      const distance = data.routes[0].legs[0].distance.value; // in meters
+      const fare = calculateCost(distance)
+      setPrice(fare <= 10 ? '10 ر.س' : Math.floor(fare * 100) / 100 + ' ر.س');
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  return (
+    
+    <div className="grid grid-cols-4 gap-4 mt-1 items-center justify-items-center text-center">
+      <Button onClick={handleOnclick} type='button'>
+        <Calculator/> احسب التكلفة
+      </Button>
+      <div className="bg-gray-50 rounded p-2">
+        <p className="text-sm text-gray-500">المسافة</p>
+        <p className="font-medium">{distance}</p>
+      </div>
+      <div className="bg-gray-50 rounded p-2">
+        <p className="text-sm text-gray-500">الوقت المتوقع</p>
+        <p className="font-medium">{duration}</p>
+      </div>
+      <div className="bg-gray-50 rounded p-2">
+        <p className="text-sm text-gray-500">المبلغ المتوقع</p>
+        <p className="font-medium">{price}</p>
+      </div>
+    </div>
+  )
+}
 
 const CreateOrder = () => {
   return (
