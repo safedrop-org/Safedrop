@@ -340,7 +340,7 @@ const LoginContent = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center">
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <input 
                       type="checkbox" 
@@ -351,9 +351,6 @@ const LoginContent = () => {
                     />
                     <Label htmlFor="remember" className="text-sm">{t('rememberMe')}</Label>
                   </div>
-                  <Link to="/forgot-password" className="text-sm text-safedrop-gold hover:underline">
-                    {t('forgotPassword')}
-                  </Link>
                 </div>
               </CardContent>
 

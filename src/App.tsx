@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
@@ -16,8 +15,6 @@ import Services from './pages/Services';
 import Terms from './pages/Terms';
 import CustomerRegister from './pages/auth/CustomerRegister';
 import DriverRegister from './pages/auth/DriverRegister';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import ResetPassword from './pages/auth/ResetPassword';
 
 // Customer Pages
 import CustomerDashboard from './pages/customer/CustomerDashboard';
@@ -186,8 +183,6 @@ const AppContent = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/services" element={<Services />} />
         <Route path="/terms" element={<Terms />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="*" element={<NotFound />} />
         
         {/* Registration Routes */}
@@ -197,7 +192,7 @@ const AppContent = () => {
         {/* Admin Login Route */}
         <Route path="/admin" element={<AdminLogin />} />
 
-        {/* Customer Routes - Updated with all the required pages */}
+        {/* Customer Routes */}
         <Route 
           path="/customer" 
           element={
@@ -217,7 +212,7 @@ const AppContent = () => {
           <Route path="logout" element={<Logout />} />
         </Route>
 
-        {/* Admin Routes - Using ProtectedAdminRoute component */}
+        {/* Admin Routes */}
         <Route 
           path="/admin/dashboard" 
           element={
