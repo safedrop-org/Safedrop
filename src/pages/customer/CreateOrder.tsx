@@ -89,7 +89,7 @@ const CreateOrderContent = () => {
       return;
     }
     const price = parseFloat(formData.price);
-    const res = await fetch(`/a/distancematrix/json?origins=${encodeURIComponent(formData.pickupLocation.address)}&destinations=${encodeURIComponent(formData.dropoffLocation.address)}&mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
+    const res = await fetch(`https://maps.googleapis.com/directions/json?origin=${encodeURIComponent(formData.pickupLocation.address)}&destination=${encodeURIComponent(formData.dropoffLocation.address)}&mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
     const data = await res.json();
     
     
@@ -98,7 +98,7 @@ const CreateOrderContent = () => {
       return;
     }
     
-    const distance = data.rows[0].elements[0].distance.value; // in meters
+    const distance = data.routes[0].legs[0].distance.value; // in meters
     const fare = calculateCost(distance)
 
     if (isNaN(price)) {
@@ -309,7 +309,7 @@ const CalculateOrderCost = ({ pickupLocation, dropoffLocation }) => {
       setDuration('-');
       
       
-      const res = await fetch(`/a/distancematrix/json?origins=${encodeURIComponent(pickupLocation)}&destinations=${encodeURIComponent(dropoffLocation)}&mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
+      const res = await fetch(`/a/directions/json?origin=${encodeURIComponent(pickupLocation)}&destination=${encodeURIComponent(dropoffLocation)}&mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
       const data = await res.json();
             
       if (data.status !== 'OK') {
@@ -317,10 +317,10 @@ const CalculateOrderCost = ({ pickupLocation, dropoffLocation }) => {
         return;
       }
       
-      setDistance(data.rows[0].elements[0].distance.text);
-      setDuration(data.rows[0].elements[0].duration.text);
+      setDistance(data.routes[0].legs[0].distance.text);
+      setDuration(data.routes[0].legs[0].duration.text);
       
-      const distance = data.rows[0].elements[0].distance.value; // in meters
+      const distance = data.routes[0].legs[0].distance.value; // in meters
       const fare = calculateCost(distance)
       setPrice(fare <= 10 ? '10 ر.س' : Math.floor(fare * 100) / 100 + ' ر.س');
     } catch (error) {
