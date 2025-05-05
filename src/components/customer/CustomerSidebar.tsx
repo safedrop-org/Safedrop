@@ -67,8 +67,7 @@ const CustomerSidebar = () => {
         </div>
         <Button 
           variant="ghost" 
-          size="icon" 
-          className="lg:flex md:flex hidden"
+          size="icon"
           onClick={() => setIsMobileOpen(false)}
         >
           <X className="h-5 w-5" />
