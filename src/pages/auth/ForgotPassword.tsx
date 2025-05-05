@@ -35,24 +35,35 @@ const ForgotPasswordContent = () => {
       
       console.log('Checking if user exists with email:', cleanedEmail);
       
-      // First check if the user exists in the profiles table
-      const { data: userProfiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, email')
-        .ilike('email', cleanedEmail);
+      // First check if the user exists in the auth.users table directly using Supabase Auth
+      const { data: authUser, error: authError } = await supabase.auth.admin.getUserByEmail(cleanedEmail);
       
-      if (profileError) {
-        console.error('Profile check error:', profileError);
-        toast.error(t('passwordResetError'));
-        setIsLoading(false);
-        return;
-      }
-      
-      console.log('Profiles query result:', userProfiles);
-      
-      // If user profile not found, show error message
-      if (!userProfiles || userProfiles.length === 0) {
-        console.log('User not found with email:', cleanedEmail);
+      if (authError) {
+        console.error('Auth check error:', authError);
+        // Fall back to checking profiles table if admin API fails
+        const { data: userProfiles, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .ilike('email', cleanedEmail);
+        
+        if (profileError) {
+          console.error('Profile check error:', profileError);
+          toast.error(t('passwordResetError'));
+          setIsLoading(false);
+          return;
+        }
+        
+        console.log('Profiles query result:', userProfiles);
+        
+        // If user profile not found, show error message
+        if (!userProfiles || userProfiles.length === 0) {
+          console.log('User not found with email:', cleanedEmail);
+          toast.error(t('userNotFound'));
+          setIsLoading(false);
+          return;
+        }
+      } else if (!authUser) {
+        console.log('User not found in auth.users with email:', cleanedEmail);
         toast.error(t('userNotFound'));
         setIsLoading(false);
         return;

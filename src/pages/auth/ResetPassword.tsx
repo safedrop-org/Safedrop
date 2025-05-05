@@ -23,16 +23,47 @@ const ResetPasswordContent = () => {
 
   // Check if we have a recovery token in the URL
   useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    if (!hashParams.get('access_token')) {
-      toast.error(t('invalidResetLink'));
-      setHasToken(false);
-      setTimeout(() => {
-        navigate('/forgot-password');
-      }, 3000);
-    } else {
-      setHasToken(true);
-    }
+    const checkToken = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      
+      if (!accessToken) {
+        console.error('No access token found in URL');
+        toast.error(t('invalidResetLink'));
+        setHasToken(false);
+        setTimeout(() => {
+          navigate('/forgot-password');
+        }, 3000);
+        return;
+      }
+      
+      try {
+        // Verify the token is valid
+        const { data, error } = await supabase.auth.getUser(accessToken);
+        
+        if (error || !data.user) {
+          console.error('Invalid or expired token:', error);
+          toast.error(t('invalidResetLink'));
+          setHasToken(false);
+          setTimeout(() => {
+            navigate('/forgot-password');
+          }, 3000);
+          return;
+        }
+        
+        console.log('Valid token detected, user can reset password');
+        setHasToken(true);
+      } catch (err) {
+        console.error('Error validating token:', err);
+        toast.error(t('invalidResetLink'));
+        setHasToken(false);
+        setTimeout(() => {
+          navigate('/forgot-password');
+        }, 3000);
+      }
+    };
+    
+    checkToken();
   }, [navigate, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
