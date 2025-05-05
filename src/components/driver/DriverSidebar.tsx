@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/components/ui/language-context';
-import LanguageToggleDashboard from "@/components/ui/language-toggle-dashboard";
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -86,9 +85,6 @@ const DriverSidebar = () => {
           <LogOut className="h-4 w-4" />
           <span>{language === 'ar' ? 'تسجيل الخروج' : 'Logout'}</span>
         </Button>
-        <div className="mt-2">
-          <LanguageToggleDashboard />
-        </div>
       </div>
     </div>
   );
