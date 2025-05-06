@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -92,18 +91,13 @@ const ForgotPasswordContent = () => {
       }
       
       // Check if the email exists in auth system directly
-      const { data: authData, error: authError } = await supabase.auth
-        .getUserByEmail(normalizedEmail);
-        
-      console.log('Auth user data:', authData);
+      // Using admin methods would require server-side code
+      // For client-side, we'll just try to use the email for password reset
+      // and let Supabase handle the validation
       
-      if (authError) {
-        console.error('Error checking auth user:', authError);
-      }
-      
-      // If we found the user in profiles or auth, fall back to email reset
-      if ((profileData && profileData.length > 0) || authData) {
-        console.log('User found in profiles or auth, proceeding with email reset');
+      // If we found the user in profiles, fall back to email reset
+      if (profileData && profileData.length > 0) {
+        console.log('User found in profiles, proceeding with email reset');
         handleFallbackEmailReset();
         return;
       }
