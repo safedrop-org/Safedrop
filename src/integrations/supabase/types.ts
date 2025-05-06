@@ -388,6 +388,7 @@ export type Database = {
           answer_2: string
           answer_3: string
           created_at: string
+          email: string | null
           id: string
           question_1: string
           question_2: string
@@ -400,6 +401,7 @@ export type Database = {
           answer_2: string
           answer_3: string
           created_at?: string
+          email?: string | null
           id?: string
           question_1: string
           question_2: string
@@ -412,6 +414,7 @@ export type Database = {
           answer_2?: string
           answer_3?: string
           created_at?: string
+          email?: string | null
           id?: string
           question_1?: string
           question_2?: string

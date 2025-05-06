@@ -11,11 +11,13 @@ import { LanguageProvider, useLanguage } from '@/components/ui/language-context'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Loader2, ShieldQuestion } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
 
 const SecurityQuestionsContent = () => {
   const { user, isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { data: profileData } = useProfile();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -93,6 +95,15 @@ const SecurityQuestionsContent = () => {
     }
 
     try {
+      // Get the user's email from profile
+      const email = profileData?.email || user?.email;
+      
+      if (!email) {
+        toast.error('Email address not found');
+        setIsSaving(false);
+        return;
+      }
+
       if (hasExistingQuestions) {
         // Update existing questions
         const { error } = await supabase
@@ -104,6 +115,7 @@ const SecurityQuestionsContent = () => {
             answer_2: questions.answer2,
             question_3: questions.question3,
             answer_3: questions.answer3,
+            email: email,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id);
@@ -116,6 +128,7 @@ const SecurityQuestionsContent = () => {
           .from('security_questions')
           .insert({
             user_id: user.id,
+            email: email,
             question_1: questions.question1,
             answer_1: questions.answer1,
             question_2: questions.question2,
