@@ -10,12 +10,15 @@ import { toast } from 'sonner';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Loader2, ShieldQuestion } from 'lucide-react';
+import { Loader2, ShieldQuestion, Mail } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const SecurityQuestionsContent = () => {
   const { user, isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { data: profileData } = useProfile();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -29,6 +32,7 @@ const SecurityQuestionsContent = () => {
   });
 
   const [hasExistingQuestions, setHasExistingQuestions] = useState(false);
+  const userEmail = profileData?.email || user?.email || '';
 
   useEffect(() => {
     const fetchSecurityQuestions = async () => {
@@ -93,6 +97,15 @@ const SecurityQuestionsContent = () => {
     }
 
     try {
+      // Get the user's email from profile
+      const email = profileData?.email || user?.email;
+      
+      if (!email) {
+        toast.error('Email address not found');
+        setIsSaving(false);
+        return;
+      }
+
       if (hasExistingQuestions) {
         // Update existing questions
         const { error } = await supabase
@@ -104,6 +117,7 @@ const SecurityQuestionsContent = () => {
             answer_2: questions.answer2,
             question_3: questions.question3,
             answer_3: questions.answer3,
+            email: email,
             updated_at: new Date().toISOString()
           })
           .eq('user_id', user.id);
@@ -116,6 +130,7 @@ const SecurityQuestionsContent = () => {
           .from('security_questions')
           .insert({
             user_id: user.id,
+            email: email,
             question_1: questions.question1,
             answer_1: questions.answer1,
             question_2: questions.question2,
@@ -152,6 +167,38 @@ const SecurityQuestionsContent = () => {
       <DriverSidebar />
       <main className="flex-1 p-6 overflow-auto">
         <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">{t('securityQuestions')}</h1>
+        
+        <Card className="bg-white rounded-lg shadow-md max-w-2xl mb-6">
+          <CardHeader className="border-b">
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              {t('emailForRecovery')}
+            </CardTitle>
+            <CardDescription>
+              {t('emailForRecoveryDescription')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <Alert className="mb-4">
+              <AlertTitle className="font-semibold">{t('importantNote')}</AlertTitle>
+              <AlertDescription>
+                {t('useThisEmailForRecovery')}
+              </AlertDescription>
+            </Alert>
+            <div className="border p-4 rounded-md bg-gray-50">
+              <Label htmlFor="email">{t('email')}</Label>
+              <div className="flex items-center mt-2">
+                <Input
+                  id="email"
+                  name="email"
+                  value={userEmail}
+                  readOnly
+                  className="bg-white"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         
         <Card className="bg-white rounded-lg shadow-md max-w-2xl">
           <CardHeader>
