@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -37,27 +38,32 @@ const ForgotPasswordContent = () => {
     }
 
     try {
-      // First, directly check if the email exists in security_questions table with case-insensitive comparison
+      // First check directly in the security_questions table with explicit lowercase comparison
       const { data: securityQuestionsData, error: securityQuestionsError } = await supabase
         .from('security_questions')
         .select('*')
         .ilike('email', email.trim())
         .maybeSingle();
       
-      if (securityQuestionsError && securityQuestionsError.code !== 'PGRST116') {
+      if (securityQuestionsError) {
         console.error('Error checking security questions:', securityQuestionsError);
         toast.error(t('errorProcessingRequest'));
         setIsLoading(false);
         return;
       }
 
-      // If no security questions found by email, check in profiles table with case-insensitive comparison
+      // Debug output to check what's being returned
+      console.log('Security questions search result:', securityQuestionsData);
+
       if (!securityQuestionsData) {
+        // If not found in security_questions, check in profiles table
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, email')
           .ilike('email', email.trim())
           .maybeSingle();
+        
+        console.log('Profile search result:', profileData);
         
         if (profileError) {
           console.error('Error checking profile:', profileError);
@@ -82,7 +88,7 @@ const ForgotPasswordContent = () => {
       
       // Fetch the user's security questions using the function
       const { data: questions, error: questionsError } = await supabase
-        .rpc('get_security_questions', { user_email: email.trim() });
+        .rpc('get_security_questions', { user_email: email.trim().toLowerCase() });
 
       if (questionsError) {
         console.error('Error fetching security questions:', questionsError);
@@ -91,14 +97,14 @@ const ForgotPasswordContent = () => {
         return;
       }
 
+      console.log('Questions retrieved from function:', questions);
+
       if (!questions || questions.length === 0) {
         // No security questions found, fall back to email method
         console.log('No questions returned from get_security_questions function');
         handleFallbackEmailReset();
         return;
       }
-
-      console.log('Questions retrieved:', questions);
 
       // Set the security questions and move to the next step
       setSecurityQuestions(questions[0]);
@@ -148,7 +154,7 @@ const ForgotPasswordContent = () => {
       // Check if the answers are correct
       const { data: isCorrect, error } = await supabase
         .rpc('check_security_questions', { 
-          user_email: email, 
+          user_email: email.trim().toLowerCase(), 
           q1_answer: answers.answer1,
           q2_answer: answers.answer2,
           q3_answer: answers.answer3
@@ -168,7 +174,7 @@ const ForgotPasswordContent = () => {
       }
 
       // Answers are correct, proceed with password reset
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
