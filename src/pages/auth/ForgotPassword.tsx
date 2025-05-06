@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -36,7 +37,15 @@ const ForgotPasswordContent = () => {
       return;
     }
 
+    // Validate email format using simple regex
     const normalizedEmail = email.trim().toLowerCase();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+    if (!isValidEmail) {
+      toast.error(t('invalidEmailFormat') || 'Invalid email format');
+      setIsLoading(false);
+      return;
+    }
+    
     console.log('Checking for email:', normalizedEmail);
 
     try {
@@ -90,10 +99,9 @@ const ForgotPasswordContent = () => {
         console.error('Error checking profile:', profileError);
       }
       
-      // Check if the email exists in auth system directly
-      // Using admin methods would require server-side code
-      // For client-side, we'll just try to use the email for password reset
-      // and let Supabase handle the validation
+      // Check if the email exists in auth system 
+      // Note: We cannot directly query auth.users from the client
+      // Instead, we'll try to initiate a password reset and let Supabase validate the email
       
       // If we found the user in profiles, fall back to email reset
       if (profileData && profileData.length > 0) {
@@ -154,9 +162,9 @@ const ForgotPasswordContent = () => {
       const { data: isCorrect, error } = await supabase
         .rpc('check_security_questions', { 
           user_email: email.trim().toLowerCase(), 
-          q1_answer: answers.answer1,
-          q2_answer: answers.answer2,
-          q3_answer: answers.answer3
+          q1_answer: answers.answer1.trim(),
+          q2_answer: answers.answer2.trim(),
+          q3_answer: answers.answer3.trim()
         });
 
       if (error) {
@@ -173,7 +181,7 @@ const ForgotPasswordContent = () => {
       }
 
       // Answers are correct, proceed with password reset
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
@@ -239,7 +247,7 @@ const ForgotPasswordContent = () => {
                   <Button 
                     type="submit" 
                     className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90" 
-                    disabled={isLoading}
+                    disabled={isLoading || isSubmitted}
                   >
                     {isLoading ? (
                       <>
