@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -40,8 +41,6 @@ const ForgotPasswordContent = () => {
     console.log('Checking for email:', normalizedEmail);
 
     try {
-      // Try multiple approaches to find the user by email
-      
       // First check directly in the security_questions table
       const { data: securityQuestionsData, error: securityQuestionsError } = await supabase
         .from('security_questions')
@@ -94,7 +93,7 @@ const ForgotPasswordContent = () => {
       
       // Check if the email exists in auth system directly
       const { data: authData, error: authError } = await supabase.auth
-        .getUser();
+        .getUserByEmail(normalizedEmail);
         
       console.log('Auth user data:', authData);
       
@@ -102,9 +101,9 @@ const ForgotPasswordContent = () => {
         console.error('Error checking auth user:', authError);
       }
       
-      // If we found the profile, fall back to email reset
-      if (profileData && profileData.length > 0) {
-        console.log('User found in profiles, proceeding with email reset');
+      // If we found the user in profiles or auth, fall back to email reset
+      if ((profileData && profileData.length > 0) || authData) {
+        console.log('User found in profiles or auth, proceeding with email reset');
         handleFallbackEmailReset();
         return;
       }
@@ -122,10 +121,11 @@ const ForgotPasswordContent = () => {
 
   const handleFallbackEmailReset = async () => {
     try {
-      console.log('Using fallback email reset for:', email.trim());
+      const normalizedEmail = email.trim().toLowerCase();
+      console.log('Using fallback email reset for:', normalizedEmail);
       
       // Process the password reset request using email
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
