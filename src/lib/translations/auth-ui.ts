@@ -364,5 +364,21 @@ export const authUI: TranslationSection = {
   errorProcessingRequest: {
     ar: "حدث خطأ أثناء معالجة الطلب",
     en: "Error processing request"
+  },
+  emailForRecovery: {
+    ar: "البريد الإلكتروني لاستعادة الحساب",
+    en: "Email for Recovery"
+  },
+  emailForRecoveryDescription: {
+    ar: "هذا هو البريد الإلكتروني الذي سيتم استخدامه لاستعادة حسابك في حال نسيت كلمة المرور",
+    en: "This is the email that will be used to recover your account if you forget your password"
+  },
+  importantNote: {
+    ar: "ملاحظة هامة",
+    en: "Important Note"
+  },
+  useThisEmailForRecovery: {
+    ar: "استخدم هذا البريد الإلكتروني عند محاولة استعادة كلمة المرور، حيث سيتم استخدامه للتحقق من هويتك من خلال الأسئلة الأمنية",
+    en: "Use this email when attempting to recover your password, as it will be used to verify your identity through security questions"
   }
 };

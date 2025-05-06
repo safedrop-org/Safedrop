@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -37,29 +38,48 @@ const ForgotPasswordContent = () => {
     }
 
     try {
-      // First, check if the user exists in the database
-      const { data: userExists, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', email)
+      // First, directly check if the email exists in security_questions table
+      const { data: securityQuestionsData, error: securityQuestionsError } = await supabase
+        .from('security_questions')
+        .select('*')
+        .ilike('email', email)
         .maybeSingle();
       
-      // If there's an error checking the user or the user doesn't exist
-      if (checkError) {
-        console.error('User check error:', checkError);
-        toast.error(t('userNotFound'));
-        setIsLoading(false);
-        return;
-      } 
-      
-      if (!userExists) {
-        console.log('User not found with email:', email);
-        toast.error(t('userNotFound'));
+      if (securityQuestionsError && securityQuestionsError.code !== 'PGRST116') {
+        console.error('Error checking security questions:', securityQuestionsError);
+        toast.error(t('errorProcessingRequest'));
         setIsLoading(false);
         return;
       }
 
-      // Fetch the user's security questions
+      // If no security questions found by email, check in profiles table
+      if (!securityQuestionsData) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('email', email)
+          .maybeSingle();
+        
+        if (profileError) {
+          console.error('Error checking profile:', profileError);
+          toast.error(t('errorProcessingRequest'));
+          setIsLoading(false);
+          return;
+        }
+        
+        if (!profileData) {
+          console.log('User not found with email:', email);
+          toast.error(t('userNotFound'));
+          setIsLoading(false);
+          return;
+        }
+        
+        // User exists in profiles but no security questions, fall back to email method
+        handleFallbackEmailReset();
+        return;
+      }
+
+      // Fetch the user's security questions using the function
       const { data: questions, error: questionsError } = await supabase
         .rpc('get_security_questions', { user_email: email });
 
