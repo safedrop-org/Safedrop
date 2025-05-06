@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import Navbar from '@/components/layout/navbar';
@@ -94,19 +93,18 @@ const ForgotPasswordContent = () => {
       }
       
       // Check if the email exists in auth system directly
-      const { data: userAuthData, error: authError } = await supabase.auth.admin
-        .listUsers({ filter: `email=eq.${normalizedEmail}` });
+      const { data: authData, error: authError } = await supabase.auth
+        .getUser();
         
-      console.log('Auth user search result:', userAuthData);
+      console.log('Auth user data:', authData);
       
       if (authError) {
-        console.error('Error checking auth users:', authError);
+        console.error('Error checking auth user:', authError);
       }
-        
-      // If we found the profile or auth user, fall back to email reset
-      if ((profileData && profileData.length > 0) || 
-          (userAuthData && userAuthData.users && userAuthData.users.length > 0)) {
-        console.log('User found in profiles/auth, proceeding with email reset');
+      
+      // If we found the profile, fall back to email reset
+      if (profileData && profileData.length > 0) {
+        console.log('User found in profiles, proceeding with email reset');
         handleFallbackEmailReset();
         return;
       }
