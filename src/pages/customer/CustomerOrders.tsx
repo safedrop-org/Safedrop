@@ -301,7 +301,7 @@ function StaticMap({ pickup_location, dropoff_location, driver_location }) {
   const marker = driver_location ? `color:red|driver:A|${driver_location.lat},${driver_location.lng}`: "";
   
   useEffect(() => {
-    fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(pickup_location)}
+    fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(pickup_location)}
     &destination=${encodeURIComponent(dropoff_location)}
     &mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
       .then((res) => res.json())
@@ -310,7 +310,7 @@ function StaticMap({ pickup_location, dropoff_location, driver_location }) {
         
         if (res.status === "OK") {
           const points = res.routes[0].overview_polyline.points;
-          setMapUrl(`https://maps.googleapis.com/maps/api/staticmap?size=624x351&path=enc:${points}&markers=${marker}&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`);
+          setMapUrl(`/google-api/maps/api/staticmap?size=624x351&path=enc:${points}&markers=${marker}&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`);
         }
       })
       .catch((error) => console.log("error", error));

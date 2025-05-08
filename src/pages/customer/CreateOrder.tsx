@@ -89,7 +89,7 @@ const CreateOrderContent = () => {
       return;
     }
     const price = parseFloat(formData.price);
-    const res = await fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(formData.pickupLocation.address)}&destination=${encodeURIComponent(formData.dropoffLocation.address)}&mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
+    const res = await fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(formData.pickupLocation.address)}&destination=${encodeURIComponent(formData.dropoffLocation.address)}&mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
     const data = await res.json();
     
     
