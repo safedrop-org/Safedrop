@@ -40,7 +40,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
     const origin = `${driverLocation.lat},${driverLocation.lng}`;
     const destination = order.pickup_location.address;
     
-    fetch(`https://maps.googleapis.com/directions/json?origin=${encodeURIComponent(origin)}
+    fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}
     &destination=${encodeURIComponent(destination)}
     &mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
       .then((res) => res.json())

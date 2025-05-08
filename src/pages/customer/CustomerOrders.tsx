@@ -301,7 +301,7 @@ function StaticMap({ pickup_location, dropoff_location, driver_location }) {
   const marker = driver_location ? `color:red|driver:A|${driver_location.lat},${driver_location.lng}`: "";
   
   useEffect(() => {
-    fetch(`https://maps.googleapis.com/directions/json?origin=${encodeURIComponent(pickup_location)}
+    fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(pickup_location)}
     &destination=${encodeURIComponent(dropoff_location)}
     &mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
       .then((res) => res.json())
