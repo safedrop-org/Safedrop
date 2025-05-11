@@ -42,7 +42,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
     
     fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(origin)}
     &destination=${encodeURIComponent(destination)}
-    &mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
+    &mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`)
       .then((res) => res.json())
       .then((res) => {
         if (res.status === "OK") {

@@ -303,14 +303,14 @@ function StaticMap({ pickup_location, dropoff_location, driver_location }) {
   useEffect(() => {
     fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(pickup_location)}
     &destination=${encodeURIComponent(dropoff_location)}
-    &mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
+    &mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`)
       .then((res) => res.json())
       .then((res) => {
         console.log(res);
         
         if (res.status === "OK") {
           const points = res.routes[0].overview_polyline.points;
-          setMapUrl(`/google-api/maps/api/staticmap?size=624x351&path=enc:${points}&markers=${marker}&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`);
+          setMapUrl(`/google-api/maps/api/staticmap?size=624x351&path=enc:${points}&markers=${marker}&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`);
         }
       })
       .catch((error) => console.log("error", error));
