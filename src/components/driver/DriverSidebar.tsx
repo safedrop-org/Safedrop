@@ -1,3 +1,4 @@
+
 import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, Menu, ShieldQuestion } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -103,18 +104,17 @@ const DriverSidebar = () => {
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <button 
+                    onClick={handleLogout} 
+                    className="w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    <span>{t('Logout')}</span>
+                  </button>
+                </li>
               </ul>
             </nav>
-            
-            <div className="p-4">
-              <Button 
-                onClick={handleLogout} 
-                className="w-full bg-safedrop-primary text-white hover:bg-white/10 flex items-center justify-center gap-2 border-none"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>{t('Logout')}</span>
-              </Button>
-            </div>
           </div>
         </SheetContent>
       </Sheet>
@@ -140,18 +140,17 @@ const DriverSidebar = () => {
                 </Link>
               </li>
             ))}
+            <li>
+              <button 
+                onClick={handleLogout} 
+                className="w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>{t('Logout')}</span>
+              </button>
+            </li>
           </ul>
         </nav>
-        
-        <div className="m-4 mt-auto">
-          <Button 
-            onClick={handleLogout} 
-            className="w-full bg-safedrop-primary text-white hover:bg-white/10 flex items-center justify-center gap-2 border-none"
-          >
-            <LogOut className="h-4 w-4" />
-            <span>{t('Logout')}</span>
-          </Button>
-        </div>
       </div>
     </>
   );
