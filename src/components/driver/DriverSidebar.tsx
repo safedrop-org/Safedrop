@@ -59,6 +59,12 @@ const DriverSidebar = () => {
       icon: <Settings className="h-5 w-5" />,
       label: t('Settings'),
       path: "/driver/settings"
+    }, {
+      icon: <LogOut className="h-5 w-5" />,
+      label: t('Logout'),
+      path: "/driver/logout",
+      onClick: handleLogout,
+      isButton: true
     }
   ];
 
@@ -92,33 +98,32 @@ const DriverSidebar = () => {
               <ul>
                 {menuItems.map((item, index) => (
                   <li key={index}>
-                    <Link 
-                      to={item.path} 
-                      className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                        isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                      }`} 
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </Link>
+                    {item.isButton ? (
+                      <button
+                        onClick={item.onClick}
+                        className={`flex w-full items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left ${
+                          isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                        }`}
+                      >
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </button>
+                    ) : (
+                      <Link 
+                        to={item.path} 
+                        className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
+                          isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                        }`} 
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
             </nav>
-            
-            {/* Logout button styled like a menu item */}
-            <div className="mt-auto">
-              <div className="px-6 py-3">
-                <button 
-                  onClick={handleLogout} 
-                  className="w-full flex items-center gap-3 text-white hover:bg-white/10 transition-colors py-3 px-0 text-left rounded-none"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>{t('Logout')}</span>
-                </button>
-              </div>
-            </div>
           </div>
         </SheetContent>
       </Sheet>
@@ -135,28 +140,29 @@ const DriverSidebar = () => {
           <ul>
             {menuItems.map((item, index) => (
               <li key={index}>
-                <Link 
-                  to={item.path} 
-                  className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''}`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
+                {item.isButton ? (
+                  <button
+                    onClick={item.onClick}
+                    className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left ${
+                      isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                    }`}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </button>
+                ) : (
+                  <Link 
+                    to={item.path} 
+                    className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''}`}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </Link>
+                )}
               </li>
             ))}
           </ul>
         </nav>
-        
-        {/* Logout button styled like a menu item */}
-        <div className="mt-auto border-t border-white/10">
-          <button 
-            onClick={handleLogout} 
-            className="w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left"
-          >
-            <LogOut className="h-5 w-5" />
-            <span>{t('Logout')}</span>
-          </button>
-        </div>
       </div>
     </>
   );

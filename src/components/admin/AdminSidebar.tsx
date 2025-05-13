@@ -67,6 +67,13 @@ const AdminSidebar = () => {
       icon: <SettingsIcon className="h-5 w-5" />,
       label: language === 'ar' ? "الإعدادات" : "Settings",
       path: "/admin/settings"
+    },
+    {
+      icon: <LogOutIcon className="h-5 w-5" />,
+      label: language === 'ar' ? "تسجيل الخروج" : "Logout",
+      path: "/logout",
+      onClick: handleLogout,
+      isButton: true
     }
   ];
 
@@ -99,31 +106,32 @@ const AdminSidebar = () => {
             <ul>
               {menuItems.map((item, index) => (
                 <li key={index}>
-                  <Link
-                    to={item.path}
-                    className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                      isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                    }`}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
+                  {item.isButton ? (
+                    <button
+                      onClick={item.onClick}
+                      className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left ${
+                        isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                      }`}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </button>
+                  ) : (
+                    <Link
+                      to={item.path}
+                      className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
+                        isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
           </nav>
-          
-          <div className="mt-auto p-4">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start text-black border-white border-opacity-20 hover:bg-white/10"
-              onClick={handleLogout}
-            >
-              <LogOutIcon className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
-              {language === 'ar' ? 'تسجيل الخروج' : 'Logout'}
-            </Button>
-          </div>
         </div>
       </SheetContent>
     </Sheet>
@@ -146,30 +154,31 @@ const AdminSidebar = () => {
         <ul>
           {menuItems.map((item, index) => (
             <li key={index}>
-              <Link
-                to={item.path}
-                className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                  isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                }`}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
+              {item.isButton ? (
+                <button
+                  onClick={item.onClick}
+                  className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left ${
+                    isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </button>
+              ) : (
+                <Link
+                  to={item.path}
+                  className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
+                    isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              )}
             </li>
           ))}
         </ul>
       </nav>
-      
-      <div className="mt-auto p-4">
-        <Button 
-          variant="outline" 
-          className="w-full justify-start text-black border-white border-opacity-20 hover:bg-white/10"
-          onClick={handleLogout}
-        >
-          <LogOutIcon className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
-          {language === 'ar' ? 'تسجيل الخروج' : 'Logout'}
-        </Button>
-      </div>
     </div>
   );
 
