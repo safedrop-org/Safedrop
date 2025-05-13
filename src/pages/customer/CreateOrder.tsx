@@ -313,7 +313,7 @@ const CalculateOrderCost = ({ pickupLocation, dropoffLocation }) => {
       setDuration('-');
       
       
-      const res = await fetch(`/a/directions/json?origin=${encodeURIComponent(pickupLocation)}&destination=${encodeURIComponent(dropoffLocation)}&mode=driving&key=AIzaSyCv_hgUtyxSMajB8lOjEV1Hj8vRYYRb9Rk`)
+      const res = await fetch(`/google-api/directions/json?origin=${encodeURIComponent(pickupLocation)}&destination=${encodeURIComponent(dropoffLocation)}&mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`)
       const data = await res.json();
             
       if (data.status !== 'OK') {
