@@ -61,7 +61,7 @@ const DriverEarningsContent = () => {
     amount: Number(earning.amount)
   })).reverse();
 
-  const currencySymbol = language === 'ar' ? 'ريال' : 'SAR';
+  const currencySymbol = t('currency');
   
   return (
     <div className="flex h-screen bg-gray-50">
@@ -82,7 +82,7 @@ const DriverEarningsContent = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-500">{t('todayEarnings')}</p>
-                      <p className="text-2xl font-bold mt-1">
+                      <p className="text-2xl font-bold mt-1" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                         {summary.today} {currencySymbol}
                       </p>
                     </div>
@@ -98,7 +98,7 @@ const DriverEarningsContent = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-500">{t('weeklyEarnings')}</p>
-                      <p className="text-2xl font-bold mt-1">
+                      <p className="text-2xl font-bold mt-1" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                         {summary.weekly} {currencySymbol}
                       </p>
                     </div>
@@ -114,7 +114,7 @@ const DriverEarningsContent = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-500">{t('monthlyEarnings')}</p>
-                      <p className="text-2xl font-bold mt-1">
+                      <p className="text-2xl font-bold mt-1" dir={language === 'ar' ? 'rtl' : 'ltr'}>
                         {summary.monthly} {currencySymbol}
                       </p>
                     </div>
@@ -137,7 +137,7 @@ const DriverEarningsContent = () => {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
-                      <Tooltip />
+                      <Tooltip formatter={(value) => [`${value} ${currencySymbol}`, t('totalEarnings')]} />
                       <Line type="monotone" dataKey="amount" stroke="#4f46e5" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>

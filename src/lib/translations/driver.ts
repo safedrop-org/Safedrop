@@ -46,9 +46,13 @@ export const driver: TranslationSection = {
     ar: "لا توجد طلبات متاحة",
     en: "No Available Orders"
   },
-  todaysEarnings: {
+  todayEarnings: {
     ar: "أرباح اليوم",
     en: "Today's Earnings"
+  },
+  totalEarnings: {
+    ar: "إجمالي الأرباح",
+    en: "Total Earnings"
   },
   weeklyEarnings: {
     ar: "أرباح الأسبوع",
@@ -62,4 +66,12 @@ export const driver: TranslationSection = {
     ar: "تحليل الأرباح",
     en: "Earnings Analysis"
   },
+  earnings: {
+    ar: "الأرباح",
+    en: "Earnings"
+  },
+  currency: {
+    ar: "ريال",
+    en: "SAR"
+  }
 };
