@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
 const CustomerProfileContent = () => {
@@ -59,10 +59,16 @@ const CustomerProfileContent = () => {
         .eq('id', user.id);
 
       if (error) throw error;
-      toast.success(t('profileUpdatedSuccessfully'));
+      toast({
+        title: t('profileUpdatedSuccessfully'),
+        variant: "default"
+      });
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error(t('errorUpdatingProfile'));
+      toast({
+        title: t('errorUpdatingProfile'),
+        variant: "destructive"
+      });
     } finally {
       setSaving(false);
     }
