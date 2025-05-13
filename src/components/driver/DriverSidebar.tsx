@@ -1,4 +1,3 @@
-
 import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, Menu, ShieldQuestion } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -22,43 +21,45 @@ const DriverSidebar = () => {
     navigate('/driver/logout');
   };
 
-  const menuItems = [{
-    icon: <LayoutDashboard className="h-5 w-5" />,
-    label: t('dashboard'),
-    path: "/driver/dashboard"
-  }, {
-    icon: <Package className="h-5 w-5" />,
-    label: t('orders'),
-    path: "/driver/orders"
-  }, {
-    icon: <UserIcon className="h-5 w-5" />,
-    label: t('Profile'),
-    path: "/driver/profile"
-  }, {
-    icon: <Star className="h-5 w-5" />,
-    label: t('ratings'),
-    path: "/driver/ratings"
-  }, {
-    icon: <DollarSign className="h-5 w-5" />,
-    label: t('earnings'),
-    path: "/driver/earnings"
-  }, {
-    icon: <Bell className="h-5 w-5" />,
-    label: t('notifications'),
-    path: "/driver/notifications"
-  }, {
-    icon: <HelpCircle className="h-5 w-5" />,
-    label: t('support'),
-    path: "/driver/support"
-  }, {
-    icon: <ShieldQuestion className="h-5 w-5" />,
-    label: t('securityQuestions'),
-    path: "/driver/security-questions"
-  }, {
-    icon: <Settings className="h-5 w-5" />,
-    label: t('Settings'),
-    path: "/driver/settings"
-  }];
+  const menuItems = [
+    {
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      label: t('dashboard'),
+      path: "/driver/dashboard"
+    }, {
+      icon: <Package className="h-5 w-5" />,
+      label: t('orders'),
+      path: "/driver/orders"
+    }, {
+      icon: <UserIcon className="h-5 w-5" />,
+      label: t('Profile'),
+      path: "/driver/profile"
+    }, {
+      icon: <Star className="h-5 w-5" />,
+      label: t('ratings'),
+      path: "/driver/ratings"
+    }, {
+      icon: <DollarSign className="h-5 w-5" />,
+      label: t('earnings'),
+      path: "/driver/earnings"
+    }, {
+      icon: <Bell className="h-5 w-5" />,
+      label: t('notifications'),
+      path: "/driver/notifications"
+    }, {
+      icon: <HelpCircle className="h-5 w-5" />,
+      label: t('support'),
+      path: "/driver/support"
+    }, {
+      icon: <ShieldQuestion className="h-5 w-5" />,
+      label: t('securityQuestions'),
+      path: "/driver/security-questions"
+    }, {
+      icon: <Settings className="h-5 w-5" />,
+      label: t('Settings'),
+      path: "/driver/settings"
+    }
+  ];
 
   return (
     <>
@@ -108,8 +109,7 @@ const DriverSidebar = () => {
             <div className="p-4">
               <Button 
                 onClick={handleLogout} 
-                variant="outline" 
-                className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center justify-center gap-2"
+                className="w-full bg-safedrop-primary text-white hover:bg-white/10 flex items-center justify-center gap-2 border-none"
               >
                 <LogOut className="h-4 w-4" />
                 <span>{t('Logout')}</span>
@@ -146,8 +146,7 @@ const DriverSidebar = () => {
         <div className="m-4 mt-auto">
           <Button 
             onClick={handleLogout} 
-            variant="outline" 
-            className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center justify-center gap-2"
+            className="w-full bg-safedrop-primary text-white hover:bg-white/10 flex items-center justify-center gap-2 border-none"
           >
             <LogOut className="h-4 w-4" />
             <span>{t('Logout')}</span>
