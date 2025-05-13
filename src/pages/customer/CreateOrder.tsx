@@ -229,13 +229,12 @@ const CreateOrderContent = () => {
                 <Label htmlFor="price" className="block mb-1 font-medium text-gray-700">
                   {t('price')}
                 </Label>
-                <div className="relative">
-                  <DollarSign className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                <div>
                   <Input 
                     id="price" 
                     name="price" 
                     type="text" 
-                    className="pl-10 text-left" 
+                    className="text-left" 
                     placeholder="0.00" 
                     value={formData.price} 
                     onChange={handlePriceChange} 
