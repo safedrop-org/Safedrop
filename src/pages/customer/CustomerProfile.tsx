@@ -4,10 +4,9 @@ import { useProfile } from '@/hooks/useProfile';
 import CustomerSidebar from '@/components/customer/CustomerSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 
 const CustomerProfileContent = () => {
@@ -18,8 +17,7 @@ const CustomerProfileContent = () => {
   const [formData, setFormData] = React.useState({
     firstName: '',
     lastName: '',
-    phone: '',
-    address: ''
+    phone: ''
   });
 
   React.useEffect(() => {
@@ -27,8 +25,7 @@ const CustomerProfileContent = () => {
       setFormData({
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
-        phone: profile.phone || '',
-        address: profile.address || ''
+        phone: profile.phone || ''
       });
     }
   }, [profile]);
@@ -53,7 +50,6 @@ const CustomerProfileContent = () => {
           first_name: formData.firstName,
           last_name: formData.lastName,
           phone: formData.phone,
-          address: formData.address,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -132,20 +128,6 @@ const CustomerProfileContent = () => {
                 onChange={handleChange}
                 className="w-full"
                 dir="ltr"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="address" className="block mb-2 text-sm font-medium text-gray-700">
-                {t('address')}
-              </label>
-              <Textarea
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                rows={3}
-                className="w-full"
               />
             </div>
 
