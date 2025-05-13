@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DriverSidebar from '@/components/driver/DriverSidebar';
-import { UserIcon, FileTextIcon, ShieldIcon, UploadIcon } from 'lucide-react';
+import { UserIcon, FileTextIcon, ShieldIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -108,17 +108,6 @@ const DriverProfileContent = () => {
     }, 1500);
   };
 
-  const handlePasswordChange = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success(t('passwordChangedSuccessfully'));
-    }, 1000);
-  };
-
   return (
     <div className="flex h-screen bg-gray-50">
       <DriverSidebar />
@@ -133,7 +122,7 @@ const DriverProfileContent = () => {
         <main className="flex-1 overflow-auto p-4">
           <div className="max-w-7xl mx-auto">
             <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="w-full grid grid-cols-3 mb-6">
+              <TabsList className="w-full grid grid-cols-2 mb-6">
                 <TabsTrigger value="profile">
                   <UserIcon className="h-4 w-4 mr-2" />
                   {t('personalInformation')}

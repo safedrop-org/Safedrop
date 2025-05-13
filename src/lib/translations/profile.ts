@@ -111,4 +111,69 @@ export const profile: TranslationSection = {
     ar: "المستندات",
     en: "Documents"
   },
+  // Document Status
+  documentStatus: {
+    ar: "حالة المستندات",
+    en: "Document Status"
+  },
+  approved: {
+    ar: "معتمد",
+    en: "Approved"
+  },
+  pending: {
+    ar: "قيد المراجعة",
+    en: "Pending"
+  },
+  rejected: {
+    ar: "مرفوض",
+    en: "Rejected"
+  },
+  // National ID Expiry
+  nationalIdExpiry: {
+    ar: "تاريخ انتهاء الهوية الوطنية",
+    en: "National ID Expiry"
+  },
+  // License Expiry
+  licenseExpiry: {
+    ar: "تاريخ انتهاء رخصة القيادة",
+    en: "License Expiry"
+  },
+  // Profile Update
+  address: {
+    ar: "العنوان",
+    en: "Address"
+  },
+  saveChanges: {
+    ar: "حفظ التغييرات",
+    en: "Save Changes"
+  },
+  savingChanges: {
+    ar: "جاري حفظ التغييرات...",
+    en: "Saving Changes..."
+  },
+  profileUpdatedSuccessfully: {
+    ar: "تم تحديث الملف الشخصي بنجاح",
+    en: "Profile Updated Successfully"
+  },
+  errorUpdatingProfile: {
+    ar: "حدث خطأ أثناء تحديث الملف الشخصي",
+    en: "Error Updating Profile"
+  },
+  // Document Upload
+  uploadDocuments: {
+    ar: "تحميل المستندات",
+    en: "Upload Documents"
+  },
+  uploadingDocuments: {
+    ar: "جاري تحميل المستندات...",
+    en: "Uploading Documents..."
+  },
+  documentsUploadedSuccessfully: {
+    ar: "تم تحميل المستندات بنجاح",
+    en: "Documents Uploaded Successfully"
+  },
+  errorUploadingDocuments: {
+    ar: "حدث خطأ أثناء تحميل المستندات",
+    en: "Error Uploading Documents"
+  },
 };
