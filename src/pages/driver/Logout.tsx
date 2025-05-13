@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 const DriverLogout = () => {
   const navigate = useNavigate();

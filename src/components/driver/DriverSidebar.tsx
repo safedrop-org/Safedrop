@@ -105,11 +105,11 @@ const DriverSidebar = () => {
               </ul>
             </nav>
             
-            <div className="p-4 border-t border-white/10">
+            <div className="p-4">
               <Button 
                 onClick={handleLogout} 
                 variant="outline" 
-                className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
+                className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center justify-center gap-2"
               >
                 <LogOut className="h-4 w-4" />
                 <span>{t('Logout')}</span>
@@ -143,17 +143,15 @@ const DriverSidebar = () => {
           </ul>
         </nav>
         
-        <div className="mt-auto">
-          <div className="p-4 border-t border-white/10">
-            <Button 
-              onClick={handleLogout} 
-              variant="outline" 
-              className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>{t('Logout')}</span>
-            </Button>
-          </div>
+        <div className="m-4 mt-auto">
+          <Button 
+            onClick={handleLogout} 
+            variant="outline" 
+            className="w-full bg-white text-safedrop-primary hover:bg-gray-100 hover:text-safedrop-primary flex items-center justify-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>{t('Logout')}</span>
+          </Button>
         </div>
       </div>
     </>
