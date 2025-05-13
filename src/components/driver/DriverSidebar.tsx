@@ -104,17 +104,21 @@ const DriverSidebar = () => {
                     </Link>
                   </li>
                 ))}
-                <li>
-                  <button 
-                    onClick={handleLogout} 
-                    className="w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    <span>{t('Logout')}</span>
-                  </button>
-                </li>
               </ul>
             </nav>
+            
+            {/* Logout button styled like a menu item */}
+            <div className="mt-auto">
+              <div className="px-6 py-3">
+                <button 
+                  onClick={handleLogout} 
+                  className="w-full flex items-center gap-3 text-white hover:bg-white/10 transition-colors py-3 px-0 text-left rounded-none"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>{t('Logout')}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
@@ -140,17 +144,19 @@ const DriverSidebar = () => {
                 </Link>
               </li>
             ))}
-            <li>
-              <button 
-                onClick={handleLogout} 
-                className="w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left"
-              >
-                <LogOut className="h-5 w-5" />
-                <span>{t('Logout')}</span>
-              </button>
-            </li>
           </ul>
         </nav>
+        
+        {/* Logout button styled like a menu item */}
+        <div className="mt-auto border-t border-white/10">
+          <button 
+            onClick={handleLogout} 
+            className="w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>{t('Logout')}</span>
+          </button>
+        </div>
       </div>
     </>
   );
