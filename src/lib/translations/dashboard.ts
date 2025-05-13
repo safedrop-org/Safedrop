@@ -44,6 +44,10 @@ export const dashboard: TranslationSection = {
     ar: "التقييمات",
     en: "Ratings" 
   },
+  rating: {
+    ar: "التقييم",
+    en: "Rating"
+  },
   earnings: {
     ar: "الأرباح",
     en: "Earnings"

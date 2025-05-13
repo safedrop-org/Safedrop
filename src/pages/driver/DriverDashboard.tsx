@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
@@ -22,7 +23,7 @@ type Notification = {
 const DriverDashboardContent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user, session } = useAuth();
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
