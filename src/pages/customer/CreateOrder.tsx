@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
 import { calculateCost } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { set } from 'date-fns';
+import { currencyFormat } from '@/lib/language-key';
 
 interface LocationType {
   address: string;
@@ -148,6 +147,9 @@ const CreateOrderContent = () => {
       setSubmitting(false);
     }
   };
+
+  // Get currency format based on current language
+  const currencyDisplay = currencyFormat[language];
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -301,6 +303,9 @@ const CalculateOrderCost = ({ pickupLocation, dropoffLocation }) => {
   const [price, setPrice] = useState('-');
   const [distance, setDistance] = useState('-');
   const [duration, setDuration] = useState('-');
+  
+  // Get currency format based on current language
+  const currencyDisplay = currencyFormat[language];
 
   const handleOnclick = async () => {
     try {
@@ -321,8 +326,18 @@ const CalculateOrderCost = ({ pickupLocation, dropoffLocation }) => {
       setDuration(data.routes[0].legs[0].duration.text);
       
       const distance = data.routes[0].legs[0].distance.value; // in meters
-      const fare = calculateCost(distance)
-      setPrice(fare <= 10 ? '10 ر.س' : Math.floor(fare * 100) / 100 + ' ر.س');
+      const fare = calculateCost(distance);
+      
+      // Format the price with proper currency display
+      const fareValue = fare <= 10 ? '10' : Math.floor(fare * 100) / 100;
+      const currencySymbol = currencyDisplay.symbol;
+      
+      // Set formatted price with appropriate spacing
+      const formattedPrice = currencyDisplay.position === 'suffix'
+        ? `${fareValue}${currencyDisplay.spaceBetween ? ' ' : ''}${currencySymbol}`
+        : `${currencySymbol}${currencyDisplay.spaceBetween ? ' ' : ''}${fareValue}`;
+        
+      setPrice(formattedPrice);
     } catch (error) {
       console.log(error);
     }
@@ -332,19 +347,19 @@ const CalculateOrderCost = ({ pickupLocation, dropoffLocation }) => {
     
     <div className="grid grid-cols-4 gap-4 mt-1 items-center justify-items-center text-center">
       <Button onClick={handleOnclick} type='button'>
-        <Calculator/> احسب التكلفة
+        <Calculator/> {language === 'ar' ? 'احسب التكلفة' : 'Calculate Cost'}
       </Button>
       <div className="bg-gray-50 rounded p-2">
-        <p className="text-sm text-gray-500">المسافة</p>
+        <p className="text-sm text-gray-500">{language === 'ar' ? 'المسافة' : 'Distance'}</p>
         <p className="font-medium">{distance}</p>
       </div>
       <div className="bg-gray-50 rounded p-2">
-        <p className="text-sm text-gray-500">الوقت المتوقع</p>
+        <p className="text-sm text-gray-500">{language === 'ar' ? 'الوقت المتوقع' : 'Estimated Time'}</p>
         <p className="font-medium">{duration}</p>
       </div>
       <div className="bg-gray-50 rounded p-2">
-        <p className="text-sm text-gray-500">المبلغ المتوقع</p>
-        <p className="font-medium">{price}</p>
+        <p className="text-sm text-gray-500">{language === 'ar' ? 'المبلغ المتوقع' : 'Estimated Cost'}</p>
+        <p className="font-medium" dir={language === 'ar' ? 'rtl' : 'ltr'}>{price}</p>
       </div>
     </div>
   )

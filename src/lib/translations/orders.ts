@@ -124,8 +124,8 @@ export const orders: TranslationSection = {
     en: "Price"
   },
   driverCommission: {
-    ar: "عمولة السائق 15%",
-    en: "Driver commission 15%"
+    ar: "عمولة المنصة 15%",
+    en: "Platform commission 15%"
   },
   packageDescription: {
     ar: "وصف الطرد",
