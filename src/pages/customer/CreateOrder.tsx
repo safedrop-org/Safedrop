@@ -88,7 +88,7 @@ const CreateOrderContent = () => {
       return;
     }
     const price = parseFloat(formData.price);
-    const res = await fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(formData.pickupLocation.address)}&destination=${encodeURIComponent(formData.dropoffLocation.address)}&mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`)
+    const res = await fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(formData.pickupLocation.address)},SA&destination=${encodeURIComponent(formData.dropoffLocation.address)},SA&mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`)
     const data = await res.json();
     
     
@@ -313,7 +313,7 @@ const CalculateOrderCost = ({ pickupLocation, dropoffLocation }) => {
       setDuration('-');
       
       
-      const res = await fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(pickupLocation)}&destination=${encodeURIComponent(dropoffLocation)}&mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`)
+      const res = await fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(pickupLocation)},SA&destination=${encodeURIComponent(dropoffLocation)},SA&mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`)
       const data = await res.json();
             
       if (data.status !== 'OK') {
