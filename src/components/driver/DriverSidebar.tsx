@@ -19,6 +19,7 @@ const DriverSidebar = () => {
   };
 
   const handleLogout = () => {
+    signOut();
     navigate('/driver/logout');
   };
 
@@ -62,9 +63,7 @@ const DriverSidebar = () => {
     }, {
       icon: <LogOut className="h-5 w-5" />,
       label: t('Logout'),
-      path: "/driver/logout",
-      onClick: handleLogout,
-      isButton: true
+      path: "/driver/logout"
     }
   ];
 
@@ -98,9 +97,9 @@ const DriverSidebar = () => {
               <ul>
                 {menuItems.map((item, index) => (
                   <li key={index}>
-                    {item.isButton ? (
+                    {item.path === "/driver/logout" ? (
                       <button
-                        onClick={item.onClick}
+                        onClick={handleLogout}
                         className={`flex w-full items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left ${
                           isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
                         }`}
@@ -140,9 +139,9 @@ const DriverSidebar = () => {
           <ul>
             {menuItems.map((item, index) => (
               <li key={index}>
-                {item.isButton ? (
+                {item.path === "/driver/logout" ? (
                   <button
-                    onClick={item.onClick}
+                    onClick={handleLogout}
                     className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left ${
                       isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
                     }`}
@@ -153,7 +152,9 @@ const DriverSidebar = () => {
                 ) : (
                   <Link 
                     to={item.path} 
-                    className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''}`}
+                    className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
+                      isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
+                    }`}
                   >
                     {item.icon}
                     <span>{item.label}</span>
