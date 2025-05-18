@@ -1,63 +1,59 @@
-
 import React, { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth/AuthContext";
 import { useLanguage } from "@/components/ui/language-context";
+import { Loader2 } from "lucide-react";
+import Cookies from "js-cookie";
 
 interface ProtectedAdminRouteProps {
   children: ReactNode;
 }
 
+// Cookie settings for consistency
+const COOKIE_OPTIONS = {
+  secure: window.location.protocol === "https:",
+  sameSite: "Strict",
+  expires: 30, // 30 days
+};
+
 const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-  const { signOut } = useAuth();
+  const { userType } = useAuth();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        console.log("Checking admin authorization");
-        
-        // Check localStorage flag for adminAuth first
-        const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
-        console.log("Admin logged in from localStorage:", isAdminLoggedIn);
-        
-        if (!isAdminLoggedIn) {
-          console.log("No admin auth in localStorage, redirecting to login");
-          setIsAuthorized(false);
-          toast.error(t('adminAuthRequired'));
-          // Redirect to login with parameters
-          navigate("/login?redirect=admin", { replace: true });
-          return;
-        }
+    const checkAdminAuth = () => {
+      const isAdminLoggedIn = Cookies.get("adminAuth") === "true";
+      const isAdminViaContext = userType === "admin";
 
-        // All checks passed
-        console.log("Admin is authorized via localStorage");
-        setIsAuthorized(true);
-      } catch (error) {
-        console.error("Error checking admin:", error);
-        setIsAuthorized(false);
-        toast.error(t('adminCheckError'));
-        
-        // Clear admin auth on error
-        localStorage.removeItem('adminAuth');
-        localStorage.removeItem('adminEmail');
-        
+      if (!isAdminLoggedIn && !isAdminViaContext) {
+        toast.error(t("adminAuthRequired"));
         navigate("/login?redirect=admin", { replace: true });
+        return false;
       }
+
+      return true;
     };
 
-    checkAdmin();
-  }, [navigate, t]);
+    const isAuthorized = checkAdminAuth();
+    setIsChecking(false);
 
-  // Render children only if authorized
-  if (isAuthorized === null) {
-    // You can render a loader here while checking auth
-    return <div className="flex items-center justify-center min-h-screen">{t('loading')}</div>;
-  } else if (!isAuthorized) {
-    return null;
+    return () => {
+      // Cleanup if needed
+    };
+  }, [navigate, t, userType]);
+
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-8 w-8 text-safedrop-primary animate-spin mb-2" />
+          <p>{t("loading")}</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;

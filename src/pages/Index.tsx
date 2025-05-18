@@ -1,11 +1,13 @@
-
-import { useEffect } from 'react';
-import Navbar from '@/components/layout/navbar';
-import Footer from '@/components/layout/footer';
-import { HeroSection } from '@/components/home/hero-section';
-import HowItWorks from '@/components/home/how-it-works';
-import CallToAction from '@/components/home/call-to-action';
-import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
+import { useEffect } from "react";
+import Navbar from "@/components/layout/navbar";
+import Footer from "@/components/layout/footer";
+import { HeroSection } from "@/components/home/hero-section";
+import HowItWorks from "@/components/home/how-it-works";
+import CallToAction from "@/components/home/call-to-action";
+import {
+  LanguageProvider,
+  useLanguage,
+} from "@/components/ui/language-context";
 
 // Create a content component that uses the language hook
 const IndexContent = () => {
@@ -13,7 +15,7 @@ const IndexContent = () => {
 
   useEffect(() => {
     // Ensure the page direction and language are set correctly
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = language;
   }, [language]);
 
@@ -30,13 +32,9 @@ const IndexContent = () => {
   );
 };
 
-// The main exported component that wraps the content with LanguageProvider
+// The main exported component that wraps the content
 const Index = () => {
-  return (
-    <LanguageProvider>
-      <IndexContent />
-    </LanguageProvider>
-  );
+  return <IndexContent />;
 };
 
 export default Index;
