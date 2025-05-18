@@ -1,8 +1,13 @@
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { User, Session } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { User, Session } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
   user: User | null;
@@ -22,21 +27,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState<string | null>(null);
-  
+
   useEffect(() => {
     console.log("Auth Provider initialized");
-    
+
     // 检查管理员登录状态
     const checkAdminAuth = () => {
-      const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+      const isAdminLoggedIn = localStorage.getItem("adminAuth") === "true";
       if (isAdminLoggedIn) {
-        console.log('Admin is logged in via localStorage');
-        setUserType('admin');
+        console.log("Admin is logged in via localStorage");
+        setUserType("admin");
         // No need to set user/session for admin auth
       }
       return isAdminLoggedIn;
     };
-    
+
     // 1. First: Set up the auth state listener
     const {
       data: { subscription },
@@ -44,34 +49,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Auth state changed:", event, newSession?.user?.id);
       setSession(newSession);
       setUser(newSession?.user || null);
-      
+
       // Check admin auth first
       const isAdminLoggedIn = checkAdminAuth();
       if (isAdminLoggedIn) {
         setLoading(false);
         return;
       }
-      
+
       if (newSession?.user) {
         console.log("Getting user type for:", newSession.user.id);
         // Fetch user type after confirming we have a logged-in user
         setTimeout(async () => {
           try {
             const { data } = await supabase
-              .from('profiles')
-              .select('user_type')
-              .eq('id', newSession.user.id)
+              .from("profiles")
+              .select("user_type")
+              .eq("id", newSession.user.id)
               .single();
-              
+
             console.log("User type from profile:", data?.user_type);
-            
+
             // Store authentication flags in localStorage based on user type
-            if (data?.user_type === 'customer') {
-              localStorage.setItem('customerAuth', 'true');
-            } else if (data?.user_type === 'driver') {
-              localStorage.setItem('driverAuth', 'true');
+            if (data?.user_type === "customer") {
+              localStorage.setItem("customerAuth", "true");
+            } else if (data?.user_type === "driver") {
+              localStorage.setItem("driverAuth", "true");
             }
-            
+
             setUserType(data?.user_type || null);
           } catch (error) {
             console.error("Error fetching user type:", error);
@@ -94,31 +99,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setLoading(false);
           return;
         }
-        
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+        const {
+          data: { session: currentSession },
+        } = await supabase.auth.getSession();
         console.log("Initial session fetched:", currentSession?.user?.id);
-        
+
         setSession(currentSession);
         setUser(currentSession?.user || null);
-        
+
         if (currentSession?.user) {
           console.log("Getting initial user type for:", currentSession.user.id);
           // Fetch user type
           const { data } = await supabase
-            .from('profiles')
-            .select('user_type')
-            .eq('id', currentSession.user.id)
+            .from("profiles")
+            .select("user_type")
+            .eq("id", currentSession.user.id)
             .single();
-            
+
           console.log("Initial user type from profile:", data?.user_type);
-          
+
           // Set localStorage flags based on user type
-          if (data?.user_type === 'customer') {
-            localStorage.setItem('customerAuth', 'true');
-          } else if (data?.user_type === 'driver') {
-            localStorage.setItem('driverAuth', 'true');
+          if (data?.user_type === "customer") {
+            localStorage.setItem("customerAuth", "true");
+          } else if (data?.user_type === "driver") {
+            localStorage.setItem("driverAuth", "true");
           }
-          
+
           setUserType(data?.user_type || null);
         }
       } catch (error) {
@@ -127,7 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
       }
     };
-    
+
     initializeAuth();
 
     // Clean up subscription when component unmounts
@@ -141,34 +148,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     console.log("Signing out user");
     const { error } = await supabase.auth.signOut();
-    
+
     if (error) {
       console.error("Error signing out:", error);
     }
-    
+
     setUser(null);
     setSession(null);
     setUserType(null);
-    localStorage.removeItem('adminAuth');
-    localStorage.removeItem('adminEmail');
-    localStorage.removeItem('customerAuth');
-    localStorage.removeItem('driverAuth');
+    localStorage.removeItem("adminAuth");
+    localStorage.removeItem("adminEmail");
+    localStorage.removeItem("customerAuth");
+    localStorage.removeItem("driverAuth");
   };
 
   // Check user profile without throwing errors
   const checkUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
         .maybeSingle();
-      
+
       if (error) {
         console.error("Error checking user profile:", error);
         return null;
       }
-      
+
       return data;
     } catch (err) {
       console.error("Exception when checking profile:", err);
@@ -180,16 +187,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkDriverStatus = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('drivers')
-        .select('status, rejection_reason')
-        .eq('id', userId)
+        .from("drivers")
+        .select("status, rejection_reason")
+        .eq("id", userId)
         .maybeSingle();
-      
+
       if (error) {
         console.error("Error checking driver status:", error);
         return null;
       }
-      
+
       return data;
     } catch (err) {
       console.error("Exception when checking driver status:", err);
@@ -199,25 +206,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Check for admin auth in localStorage on each render
   useEffect(() => {
-    const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
-    if (isAdminLoggedIn && userType !== 'admin') {
-      setUserType('admin');
+    const isAdminLoggedIn = localStorage.getItem("adminAuth") === "true";
+    if (isAdminLoggedIn && userType !== "admin") {
+      setUserType("admin");
     }
   }, [userType]);
 
-  console.log("Auth context state:", { user: user?.id, userType, isLoggedIn: !!session || userType === 'admin' });
+  console.log("Auth context state:", {
+    user: user?.id,
+    userType,
+    isLoggedIn: !!session || userType === "admin",
+  });
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        session, 
-        loading, 
-        isLoggedIn: !!session || userType === 'admin', 
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        loading,
+        isLoggedIn: !!session || userType === "admin",
         userType,
         signOut,
         checkUserProfile,
-        checkDriverStatus
+        checkDriverStatus,
       }}
     >
       {children}
@@ -228,7 +239,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

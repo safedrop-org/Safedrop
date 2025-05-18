@@ -1,52 +1,80 @@
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toast } from "sonner";
+import { ShieldCheckIcon, LockIcon, Loader2 } from "lucide-react";
+import {
+  LanguageProvider,
+  useLanguage,
+} from "@/components/ui/language-context";
+import { supabase } from "@/integrations/supabase/client";
+import Cookies from "js-cookie";
 
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { ShieldCheckIcon, LockIcon } from 'lucide-react';
-import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
-import { supabase } from '@/integrations/supabase/client';
+const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
 
-const ADMIN_PASSWORD = "SafeDrop@ibrahim2515974";
+// Cookie configuration object
+const COOKIE_OPTIONS = {
+  secure: window.location.protocol === "https:",
+  sameSite: "Strict",
+  expires: 30,
+} as const;
 
 const AdminLoginContent = () => {
   const { t } = useLanguage();
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check for logout parameter and clear admin auth if present
+  // Memoized cookie functions
+  const setAuthCookie = useCallback((name, value) => {
+    Cookies.set(name, value, COOKIE_OPTIONS);
+  }, []);
+
+  const clearAuthCookies = useCallback(() => {
+    Cookies.remove("adminAuth");
+    Cookies.remove("adminEmail");
+  }, []);
+
+  // Check for logout parameter and clear admin cookies if present
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    const forceLogout = queryParams.get('logout') === 'true';
-    
+    const forceLogout = queryParams.get("logout") === "true";
+
     if (forceLogout) {
       console.log("Force logout detected in admin login, clearing admin auth");
-      localStorage.removeItem('adminAuth');
-      localStorage.removeItem('adminEmail');
+      clearAuthCookies();
       // Remove the logout parameter
-      navigate('/admin', { replace: true });
+      navigate("/admin", { replace: true });
       return;
     }
-    
-    // Check if admin is already logged in
-    const isAdminLoggedIn = localStorage.getItem('adminAuth') === 'true';
+
+    // Check if admin is already logged in using cookies
+    const isAdminLoggedIn = Cookies.get("adminAuth") === "true";
     if (isAdminLoggedIn) {
       console.log("Admin already logged in, redirecting to dashboard");
-      navigate('/admin/dashboard', { replace: true });
+      navigate("/admin/dashboard", { replace: true });
     }
-  }, [navigate, location]);
+  }, [navigate, location, clearAuthCookies]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (isLoading) return;
     setIsLoading(true);
 
     if (!password) {
-      toast.error(t('pleaseEnterEmailPassword'));
+      toast.error(t("pleaseEnterEmailPassword"));
       setIsLoading(false);
       return;
     }
@@ -54,34 +82,34 @@ const AdminLoginContent = () => {
     try {
       if (password === ADMIN_PASSWORD) {
         console.log("Admin password verified");
-        
-        // Store admin authentication info
-        localStorage.setItem('adminAuth', 'true');
-        localStorage.setItem('adminEmail', 'admin@safedrop.com');
-        
-        const email = 'admin@safedrop.com';
-        
+
+        // Store admin authentication info in cookies instead of localStorage
+        setAuthCookie("adminAuth", "true");
+        setAuthCookie("adminEmail", import.meta.env.VITE_ADMIN_EMAIL);
+
+        const email = import.meta.env.VITE_ADMIN_EMAIL;
+
         // Check if user exists in database
         const { data: existingUser } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', 'admin')
+          .from("profiles")
+          .select("id")
+          .eq("id", "admin")
           .maybeSingle();
-          
+
         if (!existingUser) {
           console.log("Creating admin profile...");
-          // إنشاء حساب المشرف في قاعدة البيانات
+          // Create admin profile in database
           const { error: profileError } = await supabase
-            .from('profiles')
+            .from("profiles")
             .insert({
-              id: 'admin',
-              first_name: 'Admin',
-              last_name: 'User',
-              phone: '+966000000000',
-              user_type: 'admin',
-              email: 'admin@safedrop.com'
+              id: "admin",
+              first_name: "Admin",
+              last_name: "User",
+              phone: "+966000000000",
+              user_type: "admin",
+              email: import.meta.env.VITE_ADMIN_EMAIL,
             });
-            
+
           if (profileError) {
             console.error("Error creating admin profile:", profileError);
           } else {
@@ -90,30 +118,28 @@ const AdminLoginContent = () => {
         } else {
           console.log("Admin profile already exists");
         }
-        
-        // التحقق من وجود دور المشرف وإضافته إذا لم يكن موجوداً
+
+        // Check for admin role and add if not exists
         try {
           console.log("Checking admin role...");
-          // نتحقق أولاً من وجود دور المشرف
           const { data: existingRole } = await supabase
-            .from('user_roles')
-            .select('id')
-            .eq('user_id', 'admin')
-            .eq('role', 'admin')
+            .from("user_roles")
+            .select("id")
+            .eq("user_id", "admin")
+            .eq("role", "admin")
             .maybeSingle();
-            
-          // إذا لم يكن هناك دور مشرف موجود، قم بإنشائه
+
           if (!existingRole) {
             console.log("Creating admin role...");
             const { error: roleError } = await supabase
-              .from('user_roles')
+              .from("user_roles")
               .insert({
-                user_id: 'admin',
-                role: 'admin'
+                user_id: "admin",
+                role: "admin",
               });
-              
+
             if (roleError) {
-              console.error('Error assigning admin role:', roleError);
+              console.error("Error assigning admin role:", roleError);
             } else {
               console.log("Admin role created successfully");
             }
@@ -121,20 +147,19 @@ const AdminLoginContent = () => {
             console.log("Admin role already exists");
           }
         } catch (roleError) {
-          console.error('Error checking/creating admin role:', roleError);
+          console.error("Error checking/creating admin role:", roleError);
         }
-        
-        toast.success(t('loginSuccess'));
-        
-        setTimeout(() => {
-          navigate('/admin/dashboard');
-        }, 500);
+
+        toast.success(t("loginSuccess"));
+
+        // Use direct navigation for more reliable redirect
+        navigate("/admin/dashboard", { replace: true });
       } else {
-        throw new Error(t('invalidCredentials'));
+        throw new Error(t("invalidCredentials"));
       }
-    } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error.message || t('invalidCredentials'));
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error(error.message || t("invalidCredentials"));
     } finally {
       setIsLoading(false);
     }
@@ -150,24 +175,22 @@ const AdminLoginContent = () => {
                 <ShieldCheckIcon className="h-6 w-6 text-white" />
               </div>
               <CardTitle className="text-2xl font-bold text-safedrop-primary">
-                {t('adminLogin')}
+                {t("adminLogin")}
               </CardTitle>
-              <CardDescription>
-                {t('adminLoginDescription')}
-              </CardDescription>
+              <CardDescription>{t("adminLoginDescription")}</CardDescription>
             </CardHeader>
-            
+
             <form onSubmit={handleLogin}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="password">{t('password')}</Label>
+                  <Label htmlFor="password">{t("password")}</Label>
                   <div className="relative">
                     <LockIcon className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:right-auto rtl:left-3" />
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      className="pr-10 rtl:pr-4 rtl:pl-10" 
-                      placeholder="••••••••" 
+                    <Input
+                      id="password"
+                      type="password"
+                      className="pr-10 rtl:pr-4 rtl:pl-10"
+                      placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -175,14 +198,21 @@ const AdminLoginContent = () => {
                   </div>
                 </div>
               </CardContent>
-              
+
               <CardFooter>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
                   disabled={isLoading}
                 >
-                  {isLoading ? t('loggingIn') : t('login')}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t("loggingIn")}
+                    </>
+                  ) : (
+                    t("login")
+                  )}
                 </Button>
               </CardFooter>
             </form>
@@ -193,12 +223,10 @@ const AdminLoginContent = () => {
   );
 };
 
-const AdminLogin = () => {
-  return (
-    <LanguageProvider>
-      <AdminLoginContent />
-    </LanguageProvider>
-  );
-};
+const AdminLogin = () => (
+  <LanguageProvider>
+    <AdminLoginContent />
+  </LanguageProvider>
+);
 
 export default AdminLogin;
