@@ -219,6 +219,10 @@ export const authUI: TranslationSection = {
     ar: "تم تحديث كلمة المرور",
     en: "Password Updated",
   },
+  passwordUpdateSuccess: {
+    ar: "تم تحديث كلمة المرور بنجاح",
+    en: "Password update successful",
+  },
   passwordSuccessfullyReset: {
     ar: "تم إعادة تعيين كلمة المرور بنجاح",
     en: "Password successfully reset",
