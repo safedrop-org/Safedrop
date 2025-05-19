@@ -173,7 +173,6 @@ const CreateOrderContent = () => {
             status: "available",
             payment_status: "pending",
             commission_rate: 0.15,
-            distance: distance, // Store calculated distance
           },
         ])
         .select();
