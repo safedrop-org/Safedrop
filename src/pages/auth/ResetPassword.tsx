@@ -47,6 +47,9 @@ const ResetPasswordContent = () => {
         const queryParams = new URLSearchParams(window.location.search);
         const queryToken = queryParams.get("token");
 
+        // Flag to track if token validation was successful
+        let tokenValidated = false;
+
         if (accessToken && refreshToken) {
           // Set the session with the tokens
           try {
@@ -56,16 +59,15 @@ const ResetPasswordContent = () => {
             });
 
             if (error) throw error;
-            setHasToken(true);
+            tokenValidated = true;
           } catch (err) {
             console.error("Error setting session:", err);
-            setHasToken(false);
-            toast.error(t("invalidResetLink"));
-            setTimeout(() => {
-              navigate("/forgot-password");
-            }, 3000);
+            tokenValidated = false;
           }
-        } else if (queryToken && type === "recovery") {
+        } else if (
+          queryToken &&
+          (type === "recovery" || queryParams.get("type") === "recovery")
+        ) {
           // Try to verify the OTP token if it's in the query parameters
           try {
             const { error } = await supabase.auth.verifyOtp({
@@ -74,14 +76,10 @@ const ResetPasswordContent = () => {
             });
 
             if (error) throw error;
-            setHasToken(true);
+            tokenValidated = true;
           } catch (err) {
             console.error("Error verifying OTP:", err);
-            setHasToken(false);
-            toast.error(t("invalidResetLink"));
-            setTimeout(() => {
-              navigate("/forgot-password");
-            }, 3000);
+            tokenValidated = false;
           }
         } else {
           // Check if we already have a valid session that can update password
@@ -91,14 +89,27 @@ const ResetPasswordContent = () => {
           } = await supabase.auth.getSession();
 
           if (sessionError || !session) {
-            setHasToken(false);
-            toast.error(t("invalidResetLink"));
-            setTimeout(() => {
-              navigate("/forgot-password");
-            }, 3000);
+            tokenValidated = false;
           } else {
-            setHasToken(true);
+            // Even if there's a session, we need to verify it's specifically for password reset
+            // Check if this is a recovery session
+            const isRecoverySession =
+              session.access_token.includes("recovery") ||
+              window.location.href.includes("recovery") ||
+              window.location.href.includes("reset-password");
+
+            tokenValidated = isRecoverySession;
           }
+        }
+
+        // Update state based on token validation
+        setHasToken(tokenValidated);
+
+        if (!tokenValidated) {
+          toast.error(t("invalidResetLink"));
+          setTimeout(() => {
+            navigate("/forgot-password");
+          }, 3000);
         }
       } catch (error) {
         console.error("Token verification error:", error);
@@ -161,12 +172,17 @@ const ResetPasswordContent = () => {
         setIsComplete(true);
         toast.success(t("passwordUpdatedSuccess"));
 
-        // Sign out after password reset
+        // Important: Sign out after password reset for security
         await supabase.auth.signOut();
 
         // Redirect after a few seconds
         setTimeout(() => {
-          navigate("/login");
+          navigate("/login", {
+            state: {
+              message: t("passwordSuccessfullyReset"),
+              type: "success",
+            },
+          });
         }, 3000);
       }
     } catch (error) {
@@ -227,6 +243,12 @@ const ResetPasswordContent = () => {
             ) : !isComplete ? (
               <form onSubmit={handleSubmit}>
                 <CardContent className="space-y-4 pt-4">
+                  <div className="p-3 bg-blue-50 border border-blue-100 rounded-md mb-2">
+                    <p className="text-blue-700 text-sm">
+                      {t("resetPasswordSecurityNote")}
+                    </p>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="password">{t("newPassword")}</Label>
                     <div className="relative">
