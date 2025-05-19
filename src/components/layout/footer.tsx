@@ -11,7 +11,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Column 1 - Contact Info */}
-          <div className="col-span-1 md:order-3">
+          <div className="col-span-1 order-3">
             <h3 className="text-lg font-semibold mb-4">{t("contact")}</h3>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
@@ -55,7 +55,7 @@ const Footer = () => {
                 <FaSnapchat size={20} />
               </a>
               <a
-                href="https://www.facebook.com/profile.php?id=61560424344142&mibextid=ZbWKwL"
+                href="https://www.facebook.com/p/SafeDrop-61576308124128/#"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-white hover:text-safedrop-gold transition-colors"
@@ -66,7 +66,7 @@ const Footer = () => {
           </div>
 
           {/* Column 2 - Services */}
-          <div className="col-span-1 md:order-2">
+          <div className="col-span-1 order-2">
             <h3 className="text-lg font-semibold mb-4">{t("services")}</h3>
             <ul className="space-y-2">
               <li>
@@ -105,7 +105,7 @@ const Footer = () => {
           </div>
 
           {/* Column 3 - Get Started */}
-          <div className="col-span-1 md:order-1">
+          <div className="col-span-1 order-1">
             <h3 className="text-lg font-semibold mb-4">{t("getStarted")}</h3>
             <ul className="space-y-2">
               <li>
@@ -144,45 +144,11 @@ const Footer = () => {
           </div>
 
           {/* Column 4 - About */}
-          <div className="col-span-1 md:order-0">
+          <div className="col-span-1 order-0">
             <Link to="/" className="flex items-center mb-4">
               <span className="text-xl font-bold">{t("siteTitle")}</span>
             </Link>
             <p className="text-sm mb-4">{t("tagline")}</p>
-            <div className="flex gap-4">
-              <a
-                href="https://www.instagram.com/ihalabbad?igsh=MXgydnpwZHZiNXB5aw%3D%3D&utm_source=qr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white hover:text-safedrop-gold transition-colors"
-              >
-                <FaInstagram size={20} />
-              </a>
-              <a
-                href="https://www.tiktok.com/@iha.store?_t=ZS-8vshXos9iJm&_r=1"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white hover:text-safedrop-gold transition-colors"
-              >
-                <FaTiktok size={20} />
-              </a>
-              <a
-                href="https://www.snapchat.com/add/ihalabbad1?share_id=4tDP8fBXbHs&locale=ar-SA"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white hover:text-safedrop-gold transition-colors"
-              >
-                <FaSnapchat size={20} />
-              </a>
-              <a
-                href="https://www.facebook.com/profile.php?id=61560424344142&mibextid=ZbWKwL"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-white hover:text-safedrop-gold transition-colors"
-              >
-                <FaFacebook size={20} />
-              </a>
-            </div>
           </div>
         </div>
 

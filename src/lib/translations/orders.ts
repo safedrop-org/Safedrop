@@ -256,6 +256,10 @@ export const orders: TranslationSection = {
     ar: "لا يمكنك تعديل طلب غير مسند إليك",
     en: "You cannot modify an order not assigned to you",
   },
+  noCompletedOrders: {
+    ar: "لا يوجد طلبات مكتملة",
+    en: "No completed orders",
+  },
 
   // Order Statuses (for component use)
   "status.available": {

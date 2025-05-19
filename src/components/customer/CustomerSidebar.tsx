@@ -90,7 +90,7 @@ const CustomerSidebar = () => {
           className="h-20"
           src="/lovable-uploads/23d24828-2c22-46a3-a28c-04dc362e92cd.png"
         />
-        <h1 className="text-xl font-bold">SafeDrop</h1>
+        <h1 className="text-xl font-bold">{t("siteTitle")}</h1>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4">
