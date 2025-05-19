@@ -35,37 +35,35 @@ const ResetPasswordContent = () => {
   useEffect(() => {
     const handleResetLink = async () => {
       try {
-        // Get session to check if auto-login happened
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-
-        // Now check for the presence of token-like parameters in URL
-        const hashParams = new URLSearchParams(
-          window.location.hash.substring(1)
-        );
+        // Get query parameters from URL
         const queryParams = new URLSearchParams(window.location.search);
+        const token = queryParams.get("token");
+        const type = queryParams.get("type");
+        const preventAutoLogin = queryParams.get("preventAutoLogin");
 
-        const hasAccessToken = hashParams.has("access_token");
-        const hasToken = queryParams.has("token");
-        const hasResetAction =
-          hashParams.has("type") || queryParams.has("type");
+        console.log("Reset link parameters:", {
+          token: !!token,
+          type,
+          preventAutoLogin,
+        });
 
-        // If no evidence of a reset token in URL and no session, redirect
-        if (!hasAccessToken && !hasToken && !session) {
-          console.log("No reset token or session found");
-          toast.error(t("invalidResetLink"));
+        // Check if we have the necessary parameters
+        if (!token || type !== "recovery") {
+          console.log("Invalid reset link parameters");
+          toast.error(t("invalidResetLink") || "Invalid reset link");
           setTimeout(() => {
             navigate("/forgot-password");
           }, 2000);
           return;
         }
 
-        // We're good to go - valid reset link detected
-        console.log("Valid reset link detected");
+        // We have a valid reset link
+        console.log("Valid reset parameters detected");
       } catch (error) {
         console.error("Error processing reset link:", error);
-        toast.error(t("errorProcessingResetLink"));
+        toast.error(
+          t("errorProcessingResetLink") || "Error processing reset link"
+        );
       } finally {
         setIsProcessing(false);
       }
@@ -79,41 +77,73 @@ const ResetPasswordContent = () => {
     setIsLoading(true);
 
     if (!password || !confirmPassword) {
-      toast.error(t("pleaseEnterPassword"));
+      toast.error(t("pleaseEnterPassword") || "Please enter your password");
       setIsLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error(t("passwordsDoNotMatch"));
+      toast.error(t("passwordsDoNotMatch") || "Passwords don't match");
       setIsLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      toast.error(t("passwordTooShort"));
+      toast.error(
+        t("passwordTooShort") || "Password must be at least 6 characters"
+      );
       setIsLoading(false);
       return;
     }
 
     try {
-      // Update the password - this uses the current session that was established
-      // when the user clicked the reset link
-      const { error } = await supabase.auth.updateUser({ password });
+      // Get token from URL
+      const queryParams = new URLSearchParams(window.location.search);
+      const token = queryParams.get("token");
 
-      if (error) {
-        console.error("Password reset error:", error);
-        toast.error(error.message || t("passwordUpdateError"));
+      if (!token) {
+        toast.error(t("missingToken") || "Missing token in URL");
         setIsLoading(false);
         return;
       }
 
-      // Success! Now sign out for security
+      // First verify the token
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: token,
+        type: "recovery",
+      });
+
+      if (verifyError) {
+        console.error("Error verifying token:", verifyError);
+        toast.error(
+          verifyError.message ||
+            t("invalidOrExpiredToken") ||
+            "Invalid or expired token"
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // Then update the password
+      const { error } = await supabase.auth.updateUser({ password });
+
+      if (error) {
+        console.error("Password reset error:", error);
+        toast.error(
+          error.message || t("passwordUpdateError") || "Error updating password"
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // Success! Sign out for security
       setIsComplete(true);
-      toast.success(t("passwordUpdatedSuccess"));
+      toast.success(
+        t("passwordUpdatedSuccess") || "Password updated successfully"
+      );
 
       try {
-        // Sign out AFTER successful password change
+        // Sign out after successful password change
         await supabase.auth.signOut();
       } catch (signOutError) {
         console.error("Error signing out:", signOutError);
@@ -124,14 +154,15 @@ const ResetPasswordContent = () => {
       setTimeout(() => {
         navigate("/login", {
           state: {
-            message: t("passwordSuccessfullyReset"),
+            message:
+              t("passwordSuccessfullyReset") || "Password successfully reset",
             type: "success",
           },
         });
       }, 3000);
     } catch (error) {
       console.error("Password reset exception:", error);
-      toast.error(t("passwordUpdateError"));
+      toast.error(t("passwordUpdateError") || "Error updating password");
     } finally {
       setIsLoading(false);
     }
