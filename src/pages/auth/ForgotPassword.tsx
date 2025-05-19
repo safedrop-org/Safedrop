@@ -22,10 +22,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const ForgotPasswordContent = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState("email"); // email, questions, success
   const [securityQuestions, setSecurityQuestions] = useState(null);
   const [answers, setAnswers] = useState({
@@ -41,12 +40,12 @@ const ForgotPasswordContent = () => {
     setIsLoading(true);
 
     if (!email) {
-      toast.error(t("pleaseEnterEmail"));
+      toast.error(t("pleaseEnterEmail") || "Please enter your email");
       setIsLoading(false);
       return;
     }
 
-    // Validate email format using simple regex
+    // Validate email format
     const normalizedEmail = email.trim().toLowerCase();
     const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
     if (!isValidEmail) {
@@ -56,7 +55,7 @@ const ForgotPasswordContent = () => {
     }
 
     try {
-      // First check if security questions exist for this user
+      // Check for security questions first
       const { data: securityQuestionsData, error: securityQuestionsError } =
         await supabase
           .from("security_questions")
@@ -72,31 +71,28 @@ const ForgotPasswordContent = () => {
           "Error checking security questions:",
           securityQuestionsError
         );
-        toast.error(t("errorProcessingRequest"));
+        toast.error(t("errorProcessingRequest") || "Error processing request");
         setIsLoading(false);
         return;
       }
 
-      // Check if we found security questions
+      // If security questions exist, use them for verification
       if (securityQuestionsData) {
-        // Fetch the questions using the RPC function
+        // Get the specific questions for this user
         const { data: questions, error: questionsError } = await supabase.rpc(
           "get_security_questions",
           { user_email: normalizedEmail }
         );
 
         if (questionsError) {
-          console.error(
-            "Error fetching security questions via RPC:",
-            questionsError
-          );
-          // Fall back to email reset if we can't fetch questions
-          handleFallbackEmailReset(normalizedEmail);
+          console.error("Error fetching security questions:", questionsError);
+          // Fall back to email reset
+          sendPasswordResetEmail(normalizedEmail);
           return;
         }
 
         if (questions && questions.length > 0) {
-          // Found questions, proceed to security questions step
+          // Show security questions form
           setSecurityQuestions(questions[0]);
           setCurrentStep("questions");
           setIsLoading(false);
@@ -104,61 +100,47 @@ const ForgotPasswordContent = () => {
         }
       }
 
-      // If no security questions found, check if the user exists in auth
-      // First check in profiles table
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, email")
-        .ilike("email", normalizedEmail)
-        .maybeSingle();
-
-      if (profileError && profileError.code !== "PGRST116") {
-        console.error("Error checking profile:", profileError);
-      }
-
-      // If user found in profiles or we want to try anyway, send reset email
-      if (profileData || !profileData) {
-        handleFallbackEmailReset(normalizedEmail);
-        return;
-      }
+      // No security questions, send email reset
+      sendPasswordResetEmail(normalizedEmail);
     } catch (error) {
-      console.error("Error in email verification step:", error);
-      toast.error(t("errorProcessingRequest"));
+      console.error("Error in forgot password flow:", error);
+      toast.error(t("errorProcessingRequest") || "Error processing request");
       setIsLoading(false);
     }
   };
 
-  const handleFallbackEmailReset = async (userEmail) => {
+  const sendPasswordResetEmail = async (email) => {
     try {
-      const normalizedEmail = userEmail || email.trim().toLowerCase();
-
-      // Process the password reset request using email
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        normalizedEmail,
-        {
-          redirectTo: `${window.location.origin}/reset-password`,
-          emailRedirectTo: `${window.location.origin}/reset-password`,
-        }
-      );
+      // Send password reset email
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
 
       if (error) {
         console.error("Reset password error:", error);
-        // Don't show error for "User not found" to prevent user enumeration
+
+        // For security, still show success even if user not found
         if (error.message.includes("User not found")) {
-          setIsSubmitted(true);
           setCurrentStep("success");
-          toast.success(t("passwordResetEmailSent"));
+          toast.success(
+            t("passwordResetEmailSent") || "Password reset email sent"
+          );
         } else {
-          toast.error(error.message || t("passwordResetError"));
+          toast.error(
+            error.message ||
+              t("passwordResetError") ||
+              "Error sending reset email"
+          );
         }
       } else {
-        setIsSubmitted(true);
         setCurrentStep("success");
-        toast.success(t("passwordResetEmailSent"));
+        toast.success(
+          t("passwordResetEmailSent") || "Password reset email sent"
+        );
       }
     } catch (error) {
-      console.error("Reset password exception:", error);
-      toast.error(t("passwordResetError"));
+      console.error("Exception sending reset email:", error);
+      toast.error(t("passwordResetError") || "Error sending reset email");
     } finally {
       setIsLoading(false);
     }
@@ -168,14 +150,15 @@ const ForgotPasswordContent = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Validate answers
     if (!answers.answer1 || !answers.answer2 || !answers.answer3) {
-      toast.error(t("allAnswersRequired"));
+      toast.error(t("allAnswersRequired") || "All answers are required");
       setIsLoading(false);
       return;
     }
 
     try {
-      // Check if the answers are correct
+      // Verify security question answers
       const { data: isCorrect, error } = await supabase.rpc(
         "check_security_questions",
         {
@@ -187,42 +170,44 @@ const ForgotPasswordContent = () => {
       );
 
       if (error) {
-        console.error("Error checking security questions:", error);
-        toast.error(t("errorCheckingAnswers"));
+        console.error("Error checking security answers:", error);
+        toast.error(t("errorCheckingAnswers") || "Error verifying answers");
         setIsLoading(false);
         return;
       }
 
-      // If answers are correct (isCorrect will be true)
-      // If not correct or there was an error, fallback to email
+      // If answers are incorrect
       if (!isCorrect) {
-        toast.error(t("incorrectAnswers"));
+        toast.error(t("incorrectAnswers") || "Incorrect answers");
         setIsLoading(false);
         return;
       }
 
-      // Answers are correct, proceed with password reset
+      // Answers are correct, send password reset email
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
         email.trim().toLowerCase(),
         {
           redirectTo: `${window.location.origin}/reset-password`,
-          emailRedirectTo: `${window.location.origin}/reset-password`,
         }
       );
 
       if (resetError) {
-        console.error("Reset password error:", resetError);
-        toast.error(resetError.message || t("passwordResetError"));
+        console.error("Error sending reset email:", resetError);
+        toast.error(
+          resetError.message ||
+            t("passwordResetError") ||
+            "Error sending reset email"
+        );
         setIsLoading(false);
         return;
       }
 
       // Success
       setCurrentStep("success");
-      toast.success(t("passwordResetEmailSent"));
+      toast.success(t("passwordResetEmailSent") || "Password reset email sent");
     } catch (error) {
-      console.error("Error in answers verification step:", error);
-      toast.error(t("errorProcessingRequest"));
+      console.error("Error in security questions verification:", error);
+      toast.error(t("errorProcessingRequest") || "Error processing request");
     } finally {
       setIsLoading(false);
     }
@@ -244,10 +229,11 @@ const ForgotPasswordContent = () => {
           <Card className="shadow-lg">
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-2xl font-bold text-safedrop-primary">
-                {t("forgotPasswordTitle")}
+                {t("forgotPasswordTitle") || "Forgot Password"}
               </CardTitle>
               <CardDescription>
-                {t("forgotPasswordDescription")}
+                {t("forgotPasswordDescription") ||
+                  "Enter your email to reset your password"}
               </CardDescription>
             </CardHeader>
 
@@ -255,7 +241,7 @@ const ForgotPasswordContent = () => {
               <form onSubmit={handleEmailSubmit}>
                 <CardContent className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">{t("email")}</Label>
+                    <Label htmlFor="email">{t("email") || "Email"}</Label>
                     <div className="relative">
                       <MailIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
                       <Input
@@ -274,15 +260,15 @@ const ForgotPasswordContent = () => {
                   <Button
                     type="submit"
                     className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-                    disabled={isLoading || isSubmitted}
+                    disabled={isLoading}
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("checking")}
+                        {t("checking") || "Checking..."}
                       </>
                     ) : (
-                      t("continue")
+                      t("continue") || "Continue"
                     )}
                   </Button>
 
@@ -291,7 +277,7 @@ const ForgotPasswordContent = () => {
                     className="flex items-center justify-center text-safedrop-gold hover:underline"
                   >
                     <ArrowLeftIcon className="h-4 w-4 mr-2 rtl:ml-2 rtl:mr-0" />
-                    {t("backToLogin")}
+                    {t("backToLogin") || "Back to Login"}
                   </Link>
                 </CardFooter>
               </form>
@@ -303,7 +289,8 @@ const ForgotPasswordContent = () => {
                   <div className="mb-4">
                     <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
                       <p className="text-sm text-yellow-800">
-                        {t("securityQuestionsVerification")}
+                        {t("securityQuestionsVerification") ||
+                          "Please answer your security questions"}
                       </p>
                     </div>
                   </div>
@@ -319,7 +306,9 @@ const ForgotPasswordContent = () => {
                         type="text"
                         value={answers.answer1}
                         onChange={handleAnswerChange}
-                        placeholder={t("securityAnswerPlaceholder")}
+                        placeholder={
+                          t("securityAnswerPlaceholder") || "Your answer"
+                        }
                       />
                     </div>
 
@@ -333,7 +322,9 @@ const ForgotPasswordContent = () => {
                         type="text"
                         value={answers.answer2}
                         onChange={handleAnswerChange}
-                        placeholder={t("securityAnswerPlaceholder")}
+                        placeholder={
+                          t("securityAnswerPlaceholder") || "Your answer"
+                        }
                       />
                     </div>
 
@@ -347,7 +338,9 @@ const ForgotPasswordContent = () => {
                         type="text"
                         value={answers.answer3}
                         onChange={handleAnswerChange}
-                        placeholder={t("securityAnswerPlaceholder")}
+                        placeholder={
+                          t("securityAnswerPlaceholder") || "Your answer"
+                        }
                       />
                     </div>
                   </div>
@@ -362,10 +355,10 @@ const ForgotPasswordContent = () => {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {t("verifying")}
+                        {t("verifying") || "Verifying..."}
                       </>
                     ) : (
-                      t("verifyAnswers")
+                      t("verifyAnswers") || "Verify Answers"
                     )}
                   </Button>
 
@@ -376,7 +369,7 @@ const ForgotPasswordContent = () => {
                     onClick={() => setCurrentStep("email")}
                   >
                     <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                    {t("back")}
+                    {t("back") || "Back"}
                   </Button>
                 </CardFooter>
               </form>
@@ -386,14 +379,15 @@ const ForgotPasswordContent = () => {
               <CardContent className="py-6 space-y-6">
                 <div className="text-center space-y-4">
                   <p className="text-green-600">
-                    {t("passwordResetEmailSentDescription")}
+                    {t("passwordResetEmailSentDescription") ||
+                      "A password reset link has been sent to your email address. Please check your inbox and follow the instructions to reset your password."}
                   </p>
 
                   <Button
                     className="mt-4 bg-safedrop-gold hover:bg-safedrop-gold/90"
                     onClick={() => navigate("/login")}
                   >
-                    {t("backToLogin")}
+                    {t("backToLogin") || "Back to Login"}
                   </Button>
                 </div>
               </CardContent>
