@@ -39,17 +39,12 @@ const ResetPasswordContent = () => {
         const queryParams = new URLSearchParams(window.location.search);
         const token = queryParams.get("token");
         const type = queryParams.get("type");
-        const preventAutoLogin = queryParams.get("preventAutoLogin");
 
-        console.log("Reset link parameters:", {
-          token: !!token,
-          type,
-          preventAutoLogin,
-        });
+        console.log("Reset link parameters:", { token: !!token, type });
 
-        // Check if we have the necessary parameters
-        if (!token || type !== "recovery") {
-          console.log("Invalid reset link parameters");
+        // Check if we have a token parameter
+        if (!token) {
+          console.log("Missing token parameter");
           toast.error(t("invalidResetLink") || "Invalid reset link");
           setTimeout(() => {
             navigate("/forgot-password");
@@ -57,8 +52,9 @@ const ResetPasswordContent = () => {
           return;
         }
 
-        // We have a valid reset link
-        console.log("Valid reset parameters detected");
+        // We have a token, but we won't verify it yet (will do that during password update)
+        // This allows us to show the form even if the token might be expired
+        console.log("Token parameter detected");
       } catch (error) {
         console.error("Error processing reset link:", error);
         toast.error(
@@ -107,7 +103,7 @@ const ResetPasswordContent = () => {
         return;
       }
 
-      // First verify the token
+      // Try to verify the token, but handle expired tokens
       const { error: verifyError } = await supabase.auth.verifyOtp({
         token_hash: token,
         type: "recovery",
@@ -115,16 +111,33 @@ const ResetPasswordContent = () => {
 
       if (verifyError) {
         console.error("Error verifying token:", verifyError);
+
+        // If token is expired, show a specific error and guide the user
+        if (
+          verifyError.message.includes("expired") ||
+          verifyError.code === "otp_expired"
+        ) {
+          toast.error(
+            t("tokenExpired") ||
+              "Your reset link has expired. Please request a new one."
+          );
+          setTimeout(() => {
+            navigate("/forgot-password");
+          }, 3000);
+          setIsLoading(false);
+          return;
+        }
+
+        // For other errors
         toast.error(
-          verifyError.message ||
-            t("invalidOrExpiredToken") ||
-            "Invalid or expired token"
+          verifyError.message || t("invalidToken") || "Invalid token"
         );
         setIsLoading(false);
         return;
       }
 
-      // Then update the password
+      // If we get here, token was verified successfully
+      // Now update the password
       const { error } = await supabase.auth.updateUser({ password });
 
       if (error) {
