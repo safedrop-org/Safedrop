@@ -768,7 +768,11 @@ const DriverDashboardContent = () => {
 };
 
 const DriverDashboard = () => {
-  return <DriverDashboardContent />;
+  return (
+    <LanguageProvider>
+      <DriverDashboardContent />
+    </LanguageProvider>
+  );
 };
 
 export default DriverDashboard;
