@@ -1,77 +1,76 @@
-
 import { TranslationSection } from "./types";
 
 export const driver: TranslationSection = {
   manageOrders: {
     ar: "إدارة الطلبات",
-    en: "Manage Orders"
+    en: "Manage Orders",
   },
   availabilityStatus: {
     ar: "حالة التوفر",
-    en: "Availability Status"
+    en: "Availability Status",
   },
   availableForOrders: {
     ar: "متاح للطلبات",
-    en: "Available for Orders"
+    en: "Available for Orders",
   },
   notAvailableForOrders: {
     ar: "غير متاح للطلبات",
-    en: "Not Available for Orders"
+    en: "Not Available for Orders",
   },
   currentOrdersTab: {
     ar: "الطلبات الحالية",
-    en: "Current Orders"
+    en: "Current Orders",
   },
   availableOrdersTab: {
     ar: "الطلبات المتاحة",
-    en: "Available Orders"
+    en: "Available Orders",
   },
   completedOrdersTab: {
     ar: "الطلبات المكتملة",
-    en: "Completed Orders"
+    en: "Completed Orders",
   },
   browseAvailableOrders: {
     ar: "تصفح الطلبات المتاحة",
-    en: "Browse Available Orders"
+    en: "Browse Available Orders",
   },
   notAvailableMessage: {
     ar: "أنت غير متاح حالياً للطلبات الجديدة",
-    en: "You are currently not available for new orders"
+    en: "You are currently not available for new orders",
   },
   changeToAvailable: {
     ar: "تحويل إلى متاح",
-    en: "Change to Available"
+    en: "Change to Available",
   },
   noAvailableOrders: {
     ar: "لا توجد طلبات متاحة",
-    en: "No Available Orders"
+    en: "No Available Orders",
   },
   todayEarnings: {
     ar: "أرباح اليوم",
-    en: "Today's Earnings"
+    en: "Today's Earnings",
   },
   totalEarnings: {
     ar: "إجمالي الأرباح",
-    en: "Total Earnings"
+    en: "Total Earnings",
   },
   weeklyEarnings: {
     ar: "أرباح الأسبوع",
-    en: "Weekly Earnings"
+    en: "Weekly Earnings",
   },
   monthlyEarnings: {
     ar: "أرباح الشهر",
-    en: "Monthly Earnings"
+    en: "Monthly Earnings",
   },
   earningsAnalysis: {
     ar: "تحليل الأرباح",
-    en: "Earnings Analysis"
+    en: "Earnings Analysis",
   },
   earnings: {
     ar: "الأرباح",
-    en: "Earnings"
+    en: "Earnings",
   },
   currency: {
-    ar: "ريال",
-    en: "SAR"
-  }
+    ar: "ر.س",
+    en: "SAR",
+  },
 };

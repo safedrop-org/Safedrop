@@ -1,12 +1,14 @@
-
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/components/auth/AuthContext';
-import CustomerSidebar from '@/components/customer/CustomerSidebar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { CreditCard, DollarSign, Receipt, AlertCircle } from 'lucide-react';
-import { LanguageProvider, useLanguage } from '@/components/ui/language-context';
+import React, { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/auth/AuthContext";
+import CustomerSidebar from "@/components/customer/CustomerSidebar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { CreditCard, DollarSign, Receipt, AlertCircle } from "lucide-react";
+import {
+  LanguageProvider,
+  useLanguage,
+} from "@/components/ui/language-context";
 
 const CustomerBillingContent = () => {
   const { user } = useAuth();
@@ -21,22 +23,25 @@ const CustomerBillingContent = () => {
     const fetchTransactions = async () => {
       try {
         const { data: orders, error: ordersError } = await supabase
-          .from('orders')
-          .select('id, price, payment_status, created_at, status')
-          .eq('customer_id', user.id);
-        
+          .from("orders")
+          .select("id, price, payment_status, created_at, status")
+          .eq("customer_id", user.id);
+
         if (ordersError) throw ordersError;
 
         // Calculate total spent on completed orders
         const total = orders
-          .filter(order => order.status === 'completed' && order.payment_status === 'paid')
+          .filter(
+            (order) =>
+              order.status === "completed" && order.payment_status === "paid"
+          )
           .reduce((sum, order) => sum + (order.price || 0), 0);
-        
+
         setTotalSpent(total);
         setTransactions(orders || []);
       } catch (error) {
-        console.error('Error fetching billing data:', error);
-        toast.error(t('errorLoadingBillingData'));
+        console.error("Error fetching billing data:", error);
+        toast.error(t("errorLoadingBillingData"));
       } finally {
         setLoading(false);
       }
@@ -46,17 +51,19 @@ const CustomerBillingContent = () => {
   }, [user, t]);
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     }).format(date);
   };
-  
+
   const formatCurrency = (amount) => {
-    return amount ? `${amount.toFixed(2)} SAR` : '0.00 SAR';
+    return amount
+      ? `${amount.toFixed(2)} ${t("currency")}`
+      : `0.00 ${t("currency")}`;
   };
 
   const getPaymentStatusBadge = (status) => {
@@ -64,13 +71,13 @@ const CustomerBillingContent = () => {
       base: "px-2 py-1 rounded-full text-xs font-medium",
       paid: "bg-green-100 text-green-800",
       pending: "bg-yellow-100 text-yellow-800",
-      failed: "bg-red-100 text-red-800"
+      failed: "bg-red-100 text-red-800",
     };
-    
+
     const statusTranslation = {
-      paid: t('paid'),
-      pending: t('pending'),
-      failed: t('failed')
+      paid: t("paid"),
+      pending: t("pending"),
+      failed: t("failed"),
     };
 
     return (
@@ -84,7 +91,9 @@ const CustomerBillingContent = () => {
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">{t('Billing & Payment')}</h1>
+        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">
+          {t("Billing & Payment")}
+        </h1>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -97,32 +106,38 @@ const CustomerBillingContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-safedrop-gold" />
-                    <span>{t('Total Payments')}</span>
+                    <span>{t("Total Payments")}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-3xl font-bold">{formatCurrency(totalSpent)}</p>
+                  <p className="text-3xl font-bold">
+                    {formatCurrency(totalSpent)}
+                  </p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <CreditCard className="h-5 w-5 text-safedrop-gold" />
-                    <span>{t('Payment Method')}</span>
+                    <span>{t("Payment Method")}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-lg">{t('You need to add a payment method')}</p>
-                  <p className="text-sm text-gray-500">{t('No payment methods registered')}</p>
+                  <p className="text-lg">
+                    {t("You need to add a payment method")}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {t("No payment methods registered")}
+                  </p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Receipt className="h-5 w-5 text-safedrop-gold" />
-                    <span>{t('Number of Invoices')}</span>
+                    <span>{t("Number of Invoices")}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -133,7 +148,9 @@ const CustomerBillingContent = () => {
 
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-xl">{t('Payment History')}</CardTitle>
+                <CardTitle className="text-xl">
+                  {t("Payment History")}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {transactions.length > 0 ? (
@@ -141,10 +158,30 @@ const CustomerBillingContent = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('Invoice ID')}</th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('Date')}</th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('Amount')}</th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('Payment Status')}</th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            {t("Invoice ID")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            {t("Date")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            {t("Amount")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            {t("Payment Status")}
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -170,7 +207,7 @@ const CustomerBillingContent = () => {
                 ) : (
                   <div className="text-center py-10 text-gray-500">
                     <AlertCircle className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                    <p>{t('No financial transactions currently')}</p>
+                    <p>{t("No financial transactions currently")}</p>
                   </div>
                 )}
               </CardContent>

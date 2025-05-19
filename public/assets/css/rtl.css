@@ -1,4 +1,3 @@
-
 /* RTL Support for Arabic Language */
 [dir="rtl"] .flex-row {
   flex-direction: row-reverse;
@@ -88,6 +87,28 @@
 
 /* Fix for email addresses and phone numbers */
 [dir="rtl"] [dir="ltr"] {
-  direction: ltr;
+  direction: rtl;
   display: inline-block;
+}
+
+/* Add these styles to your global CSS file */
+[dir="rtl"] .select-trigger {
+  text-align: right;
+}
+
+[dir="rtl"] .select-item {
+  text-align: right;
+}
+
+/* If you're using Tailwind, you can also use Tailwind's RTL plugin or add these utility classes */
+.rtl\:text-right {
+  text-align: right;
+}
+
+.rtl\:pl-2 {
+  padding-left: 0.5rem;
+}
+
+.rtl\:pr-8 {
+  padding-right: 2rem;
 }

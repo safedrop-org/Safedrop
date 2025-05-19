@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,14 +18,18 @@ import { OrderDetails } from "@/components/admin/OrderDetails";
 import { toast } from "sonner";
 
 const OrdersTable = ({ orders, status, onViewOrder }) => {
-  const filteredOrders = status === "all" ? orders : orders.filter(order => order.status === status);
-  
+  const filteredOrders =
+    status === "all"
+      ? orders
+      : orders.filter((order) => order.status === status);
+
   return (
-    <div className="overflow-x-auto">
+    <div className={`overflow-x-auto`}>
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="text-center">رقم الطلب</TableHead>
+            <TableHead className="text-center">كود الطلب</TableHead>
             <TableHead className="text-center">العميل</TableHead>
             <TableHead className="text-center">السائق</TableHead>
             <TableHead className="text-center">التاريخ</TableHead>
@@ -36,49 +47,84 @@ const OrdersTable = ({ orders, status, onViewOrder }) => {
               </TableCell>
             </TableRow>
           ) : (
-            filteredOrders.map(order => (
+            filteredOrders.map((order) => (
               <TableRow key={order.id}>
-                <TableCell className="font-medium text-center">{order.id.substring(0, 8)}</TableCell>
-                <TableCell className="text-center">{order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'غير معروف'}</TableCell>
-                <TableCell className="text-center">{order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'غير معين'}</TableCell>
-                <TableCell className="text-center">{new Date(order.created_at).toLocaleDateString('ar-SA')}</TableCell>
-                <TableCell className="text-center">{order.price ? `${order.price} ر.س` : 'غير محدد'}</TableCell>
+                <TableCell className="font-medium text-center">
+                  {order.order_id}
+                </TableCell>
+                <TableCell className="font-medium text-center">
+                  {order.id.substring(0, 8)}
+                </TableCell>
+                <TableCell className="text-center">
+                  {order.customer
+                    ? `${order.customer.first_name} ${order.customer.last_name}`
+                    : "غير معروف"}
+                </TableCell>
+                <TableCell className="text-center">
+                  {order.driver
+                    ? `${order.driver.first_name} ${order.driver.last_name}`
+                    : "غير معين"}
+                </TableCell>
+                <TableCell className="text-center">
+                  {new Date(order.created_at).toLocaleDateString("ar-EG")}
+                </TableCell>
+                <TableCell className="text-center">
+                  {order.price ? `${order.price} ر.س` : "غير محدد"}
+                </TableCell>
                 <TableCell className="text-center">
                   <Badge
                     variant="outline"
                     className={
-                      order.status === "completed" ? "bg-green-100 text-green-800 border-green-200" :
-                      order.status === "approved" ? "bg-blue-100 text-blue-800 border-blue-200" :
-                      order.status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-                      order.status === "in_transit" ? "bg-purple-100 text-purple-800 border-purple-200" :
-                      order.status === "approaching" ? "bg-indigo-100 text-indigo-800 border-indigo-200" :
-                      "bg-red-100 text-red-800 border-red-200"
+                      order.status === "completed"
+                        ? "bg-green-100 text-green-800 border-green-200"
+                        : order.status === "approved"
+                        ? "bg-blue-100 text-blue-800 border-blue-200"
+                        : order.status === "pending"
+                        ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                        : order.status === "in_transit"
+                        ? "bg-purple-100 text-purple-800 border-purple-200"
+                        : order.status === "approaching"
+                        ? "bg-indigo-100 text-indigo-800 border-indigo-200"
+                        : "bg-red-100 text-red-800 border-red-200"
                     }
                   >
-                    {order.status === "completed" ? "مكتمل" :
-                     order.status === "approved" ? "موافق عليه" :
-                     order.status === "pending" ? "قيد الانتظار" :
-                     order.status === "in_transit" ? "قيد التوصيل" :
-                     order.status === "approaching" ? "اقترب" :
-                     "ملغي"}
+                    {order.status === "completed"
+                      ? "مكتمل"
+                      : order.status === "approved"
+                      ? "موافق عليه"
+                      : order.status === "pending"
+                      ? "قيد الانتظار"
+                      : order.status === "in_transit"
+                      ? "قيد التوصيل"
+                      : order.status === "approaching"
+                      ? "اقترب"
+                      : "ملغي"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge
                     variant="outline"
                     className={
-                      order.payment_status === "paid" ? "bg-green-100 text-green-800 border-green-200" :
-                      order.payment_status === "pending" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-                      "bg-purple-100 text-purple-800 border-purple-200"
+                      order.payment_status === "paid"
+                        ? "bg-green-100 text-green-800 border-green-200"
+                        : order.payment_status === "pending"
+                        ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                        : "bg-purple-100 text-purple-800 border-purple-200"
                     }
                   >
-                    {order.payment_status === "paid" ? "مدفوع" :
-                     order.payment_status === "pending" ? "غير مدفوع" :
-                     "مسترد"}
+                    {order.payment_status === "paid"
+                      ? "مدفوع"
+                      : order.payment_status === "pending"
+                      ? "غير مدفوع"
+                      : "مسترد"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center">
-                  <Button variant="ghost" size="icon" onClick={() => onViewOrder(order)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onViewOrder(order)}
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
                 </TableCell>
@@ -96,11 +142,11 @@ const Orders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { data: orders = [], isLoading, error, refetch } = useOrders(true); // Pass true for admin view
-  
+
   React.useEffect(() => {
     if (error) {
       console.error("Error fetching orders:", error);
-      toast.error('حدث خطأ أثناء تحميل الطلبات');
+      toast.error("حدث خطأ أثناء تحميل الطلبات");
     }
   }, [error]);
 
@@ -111,7 +157,7 @@ const Orders = () => {
 
   const handleOrderStatusUpdate = () => {
     refetch();
-    toast.success('تم تحديث الطلب بنجاح');
+    toast.success("تم تحديث الطلب بنجاح");
   };
 
   const handleCloseDetails = () => {
@@ -121,67 +167,93 @@ const Orders = () => {
 
   const handleExportOrders = () => {
     // Create CSV data
-    const headers = ["رقم الطلب", "العميل", "السائق", "التاريخ", "السعر", "الحالة", "حالة الدفع"];
-    
-    const csvData = orders.map(order => [
+    const headers = [
+      "رقم الطلب",
+      "العميل",
+      "السائق",
+      "التاريخ",
+      "السعر",
+      "الحالة",
+      "حالة الدفع",
+    ];
+
+    const csvData = orders.map((order) => [
       order.id,
-      order.customer ? `${order.customer.first_name} ${order.customer.last_name}` : 'غير معروف',
-      order.driver ? `${order.driver.first_name} ${order.driver.last_name}` : 'غير معين',
-      new Date(order.created_at).toLocaleDateString('ar-SA'),
-      order.price ? `${order.price} ر.س` : 'غير محدد',
+      order.customer
+        ? `${order.customer.first_name} ${order.customer.last_name}`
+        : "غير معروف",
+      order.driver
+        ? `${order.driver.first_name} ${order.driver.last_name}`
+        : "غير معين",
+      new Date(order.created_at).toLocaleDateString("ar-SA"),
+      order.price ? `${order.price} ر.س` : "غير محدد",
       order.status,
-      order.payment_status
+      order.payment_status,
     ]);
-    
+
     // Convert to CSV string
     let csvContent = headers.join(",") + "\n";
-    csvData.forEach(row => {
+    csvData.forEach((row) => {
       csvContent += row.join(",") + "\n";
     });
-    
+
     // Create and download the file
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `orders-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
+    link.setAttribute(
+      "download",
+      `orders-${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
-    toast.success('تم تصدير الطلبات بنجاح');
+
+    toast.success("تم تصدير الطلبات بنجاح");
   };
-  
-  const filteredOrders = orders.filter(order => 
-    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (order.customer && `${order.customer.first_name} ${order.customer.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (order.driver && `${order.driver.first_name} ${order.driver.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()))
+
+  const filteredOrders = orders.filter(
+    (order) =>
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.customer &&
+        `${order.customer.first_name} ${order.customer.last_name}`
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())) ||
+      (order.driver &&
+        `${order.driver.first_name} ${order.driver.last_name}`
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()))
   );
-  
+
   return (
     <div className="p-6 flex flex-col min-h-svh">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <h1 className="text-2xl font-bold">إدارة الطلبات</h1>
-        
+
         <div className="flex flex-col md:flex-row gap-3">
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input 
-              placeholder="بحث عن طلب..." 
-              className="pl-9" 
+            <Input
+              placeholder="بحث عن طلب..."
+              className="pl-9"
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
-          <Button variant="outline" className="gap-2" onClick={handleExportOrders}>
+
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={handleExportOrders}
+          >
             <Download size={16} />
             تصدير الطلبات
           </Button>
         </div>
       </div>
-      
+
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -189,11 +261,7 @@ const Orders = () => {
       ) : error ? (
         <div className="bg-red-50 p-4 rounded-md text-red-800">
           <p>حدث خطأ أثناء تحميل الطلبات. يرجى المحاولة مرة أخرى لاحقاً.</p>
-          <Button 
-            onClick={() => refetch()} 
-            className="mt-2"
-            variant="outline"
-          >
+          <Button onClick={() => refetch()} className="mt-2" variant="outline">
             إعادة المحاولة
           </Button>
         </div>
@@ -205,26 +273,62 @@ const Orders = () => {
           <CardContent>
             <Tabs defaultValue="all" className="w-full">
               <TabsList className="mb-4 grid grid-cols-4 w-full">
-                <TabsTrigger value="all" className="flex-1 text-center whitespace-nowrap px-4">الكل</TabsTrigger>
-                <TabsTrigger value="pending" className="flex-1 text-center whitespace-nowrap px-4">في العرض</TabsTrigger>
-                <TabsTrigger value="in_transit" className="flex-1 text-center whitespace-nowrap px-4">جاري التوصيل</TabsTrigger>
-                <TabsTrigger value="completed" className="flex-1 text-center whitespace-nowrap px-4">مكتمل</TabsTrigger>
+                <TabsTrigger
+                  value="all"
+                  className="flex-1 text-center whitespace-nowrap px-4"
+                >
+                  الكل
+                </TabsTrigger>
+                <TabsTrigger
+                  value="pending"
+                  className="flex-1 text-center whitespace-nowrap px-4"
+                >
+                  في العرض
+                </TabsTrigger>
+                <TabsTrigger
+                  value="in_transit"
+                  className="flex-1 text-center whitespace-nowrap px-4"
+                >
+                  جاري التوصيل
+                </TabsTrigger>
+                <TabsTrigger
+                  value="completed"
+                  className="flex-1 text-center whitespace-nowrap px-4"
+                >
+                  مكتمل
+                </TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="all" className="mt-0">
-                <OrdersTable orders={filteredOrders} status="all" onViewOrder={handleViewOrder} />
+                <OrdersTable
+                  orders={filteredOrders}
+                  status="all"
+                  onViewOrder={handleViewOrder}
+                />
               </TabsContent>
-              
+
               <TabsContent value="pending" className="mt-0">
-                <OrdersTable orders={filteredOrders} status="pending" onViewOrder={handleViewOrder} />
+                <OrdersTable
+                  orders={filteredOrders}
+                  status="pending"
+                  onViewOrder={handleViewOrder}
+                />
               </TabsContent>
-              
+
               <TabsContent value="in_transit" className="mt-0">
-                <OrdersTable orders={filteredOrders} status="in_transit" onViewOrder={handleViewOrder} />
+                <OrdersTable
+                  orders={filteredOrders}
+                  status="in_transit"
+                  onViewOrder={handleViewOrder}
+                />
               </TabsContent>
-              
+
               <TabsContent value="completed" className="mt-0">
-                <OrdersTable orders={filteredOrders} status="completed" onViewOrder={handleViewOrder} />
+                <OrdersTable
+                  orders={filteredOrders}
+                  status="completed"
+                  onViewOrder={handleViewOrder}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -232,7 +336,7 @@ const Orders = () => {
       )}
 
       {selectedOrder && (
-        <OrderDetails 
+        <OrderDetails
           order={selectedOrder}
           isOpen={isDetailsOpen}
           onClose={handleCloseDetails}

@@ -28,23 +28,94 @@ const ResetPasswordContent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [hasToken, setHasToken] = useState(false);
+  const [isCheckingToken, setIsCheckingToken] = useState(true);
   const navigate = useNavigate();
 
   // Check if we have a recovery token in the URL
   useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    if (!hashParams.get("access_token")) {
-      toast.error(t("invalidResetLink"));
-      setHasToken(false);
-      setTimeout(() => {
-        navigate("/forgot-password");
-      }, 3000);
-    } else {
-      setHasToken(true);
-    }
+    const checkToken = async () => {
+      try {
+        // Try to get hash params first (standard format)
+        const hashParams = new URLSearchParams(
+          window.location.hash.substring(1)
+        );
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+        const type = hashParams.get("type");
+
+        // Try to get query params as fallback
+        const queryParams = new URLSearchParams(window.location.search);
+        const queryToken = queryParams.get("token");
+
+        if (accessToken && refreshToken) {
+          // Set the session with the tokens
+          try {
+            const { error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (error) throw error;
+            setHasToken(true);
+          } catch (err) {
+            console.error("Error setting session:", err);
+            setHasToken(false);
+            toast.error(t("invalidResetLink"));
+            setTimeout(() => {
+              navigate("/forgot-password");
+            }, 3000);
+          }
+        } else if (queryToken && type === "recovery") {
+          // Try to verify the OTP token if it's in the query parameters
+          try {
+            const { error } = await supabase.auth.verifyOtp({
+              token_hash: queryToken,
+              type: "recovery",
+            });
+
+            if (error) throw error;
+            setHasToken(true);
+          } catch (err) {
+            console.error("Error verifying OTP:", err);
+            setHasToken(false);
+            toast.error(t("invalidResetLink"));
+            setTimeout(() => {
+              navigate("/forgot-password");
+            }, 3000);
+          }
+        } else {
+          // Check if we already have a valid session that can update password
+          const {
+            data: { session },
+            error: sessionError,
+          } = await supabase.auth.getSession();
+
+          if (sessionError || !session) {
+            setHasToken(false);
+            toast.error(t("invalidResetLink"));
+            setTimeout(() => {
+              navigate("/forgot-password");
+            }, 3000);
+          } else {
+            setHasToken(true);
+          }
+        }
+      } catch (error) {
+        console.error("Token verification error:", error);
+        setHasToken(false);
+        toast.error(t("invalidResetLink"));
+        setTimeout(() => {
+          navigate("/forgot-password");
+        }, 3000);
+      } finally {
+        setIsCheckingToken(false);
+      }
+    };
+
+    checkToken();
   }, [navigate, t]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -67,6 +138,20 @@ const ResetPasswordContent = () => {
     }
 
     try {
+      // Double-check session before updating password
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        toast.error(t("sessionExpired"));
+        setIsLoading(false);
+        setTimeout(() => {
+          navigate("/forgot-password");
+        }, 2000);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({ password });
 
       if (error) {
@@ -75,18 +160,43 @@ const ResetPasswordContent = () => {
       } else {
         setIsComplete(true);
         toast.success(t("passwordUpdatedSuccess"));
+
+        // Sign out after password reset
+        await supabase.auth.signOut();
+
         // Redirect after a few seconds
         setTimeout(() => {
           navigate("/login");
-        }, 5000);
+        }, 3000);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Password reset exception:", error);
       toast.error(t("passwordUpdateError"));
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isCheckingToken) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow py-16 bg-gray-50">
+          <div className="max-w-md mx-auto px-4">
+            <Card className="shadow-lg">
+              <CardContent className="py-6 space-y-6">
+                <div className="text-center space-y-4">
+                  <Loader2 className="h-12 w-12 text-safedrop-primary animate-spin mx-auto" />
+                  <p>{t("verifyingResetLink")}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -110,7 +220,7 @@ const ResetPasswordContent = () => {
                     className="mt-4 bg-safedrop-gold hover:bg-safedrop-gold/90"
                     onClick={() => navigate("/forgot-password")}
                   >
-                    {t("backToLogin")}
+                    {t("goToForgotPassword")}
                   </Button>
                 </div>
               </CardContent>

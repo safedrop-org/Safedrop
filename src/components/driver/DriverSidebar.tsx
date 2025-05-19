@@ -1,11 +1,22 @@
-
-import { LayoutDashboard, Package, UserIcon, Settings, LogOut, Star, DollarSign, Bell, HelpCircle, Menu, ShieldQuestion } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useLanguage } from '@/components/ui/language-context';
-import { useAuth } from '@/components/auth/AuthContext';
+import {
+  LayoutDashboard,
+  Package,
+  UserIcon,
+  Settings,
+  LogOut,
+  Star,
+  DollarSign,
+  Bell,
+  HelpCircle,
+  Menu,
+  ShieldQuestion,
+} from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useLanguage } from "@/components/ui/language-context";
+import { useAuth } from "@/components/auth/AuthContext";
 
 const DriverSidebar = () => {
   const { t, language } = useLanguage();
@@ -20,151 +31,129 @@ const DriverSidebar = () => {
 
   const handleLogout = () => {
     signOut();
-    navigate('/driver/logout');
+    navigate("/driver/logout");
   };
 
   const menuItems = [
     {
       icon: <LayoutDashboard className="h-5 w-5" />,
-      label: t('dashboard'),
-      path: "/driver/dashboard"
-    }, {
+      label: t("dashboard"),
+      path: "/driver/dashboard",
+    },
+    {
       icon: <Package className="h-5 w-5" />,
-      label: t('orders'),
-      path: "/driver/orders"
-    }, {
+      label: t("orders"),
+      path: "/driver/orders",
+    },
+    {
       icon: <UserIcon className="h-5 w-5" />,
-      label: t('Profile'),
-      path: "/driver/profile"
-    }, {
+      label: t("Profile"),
+      path: "/driver/profile",
+    },
+    {
       icon: <Star className="h-5 w-5" />,
-      label: t('ratings'),
-      path: "/driver/ratings"
-    }, {
+      label: t("ratings"),
+      path: "/driver/ratings",
+    },
+    {
       icon: <DollarSign className="h-5 w-5" />,
-      label: t('earnings'),
-      path: "/driver/earnings"
-    }, {
+      label: t("earnings"),
+      path: "/driver/earnings",
+    },
+    {
       icon: <Bell className="h-5 w-5" />,
-      label: t('notifications'),
-      path: "/driver/notifications"
-    }, {
+      label: t("notifications"),
+      path: "/driver/notifications",
+    },
+    {
       icon: <HelpCircle className="h-5 w-5" />,
-      label: t('support'),
-      path: "/driver/support"
-    }, {
+      label: t("support"),
+      path: "/driver/support",
+    },
+    {
       icon: <ShieldQuestion className="h-5 w-5" />,
-      label: t('securityQuestions'),
-      path: "/driver/security-questions"
-    }, {
+      label: t("securityQuestions"),
+      path: "/driver/security-questions",
+    },
+    {
       icon: <Settings className="h-5 w-5" />,
-      label: t('Settings'),
-      path: "/driver/settings"
-    }, {
-      icon: <LogOut className="h-5 w-5" />,
-      label: t('Logout'),
-      path: "/driver/logout"
-    }
+      label: t("Settings"),
+      path: "/driver/settings",
+    },
   ];
+
+  const SidebarContent = () => (
+    <>
+      <div className="p-4 flex items-center flex-col gap-2">
+        <img
+          alt="SafeDrop Logo"
+          className="h-20"
+          src="/lovable-uploads/23d24828-2c22-46a3-a28c-04dc362e92cd.png"
+        />
+        <h1 className="text-xl font-bold">{t("siteTitle")}</h1>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto py-4">
+        <ul className="space-y-1 px-2">
+          {menuItems.map((item, index) => (
+            <li key={index}>
+              <Link
+                to={item.path}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-colors ${
+                  isActive(item.path)
+                    ? "bg-white/10 font-medium"
+                    : "hover:bg-white/5"
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div className="p-4">
+        <button
+          onClick={handleLogout}
+          className="flex items-center justify-center w-full gap-2 py-2 px-4 rounded-md bg-safedrop-gold hover:bg-safedrop-gold/90  transition-colors"
+        >
+          <LogOut className="h-5 w-5" />
+          <span>{t("Logout")}</span>
+        </button>
+      </div>
+    </>
+  );
 
   return (
     <>
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="md:hidden fixed top-4 right-4 z-50" 
+      <Button
+        variant="ghost"
+        size="icon"
+        className={`md:hidden fixed top-4 ${
+          language === "ar" ? "left-4" : "right-4"
+        } z-50`}
         onClick={() => setIsOpen(true)}
       >
         <Menu className="h-6 w-6" />
-        <span className="sr-only">{t('toggleMenu')}</span>
+        <span className="sr-only">{t("toggleMenu")}</span>
       </Button>
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent side={language === 'ar' ? 'right' : 'left'} className="w-[280px] sm:w-[340px] p-0">
-          <div className="bg-safedrop-primary text-white h-full flex flex-col">
-            <div className="p-4">
-              <Link to="/" className="flex flex-col items-center">
-                <img 
-                  alt={t('siteTitle')} 
-                  src="/lovable-uploads/78b0a264-3066-4690-bdc3-775d48ad5001.png" 
-                  className="h-20" 
-                />
-                <div className="text-center mt-2 font-bold">{t('siteTitle')}</div>
-              </Link>
-            </div>
-            
-            <nav className="flex-1">
-              <ul>
-                {menuItems.map((item, index) => (
-                  <li key={index}>
-                    {item.path === "/driver/logout" ? (
-                      <button
-                        onClick={handleLogout}
-                        className={`flex w-full items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left ${
-                          isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                        }`}
-                      >
-                        {item.icon}
-                        <span>{item.label}</span>
-                      </button>
-                    ) : (
-                      <Link 
-                        to={item.path} 
-                        className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                          isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                        }`} 
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {item.icon}
-                        <span>{item.label}</span>
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
+        <SheetContent
+          side={language === "ar" ? "right" : "left"}
+          className="w-[280px] sm:w-[340px] p-0"
+        >
+          <aside className="bg-safedrop-primary text-white h-full flex flex-col">
+            <SidebarContent />
+          </aside>
         </SheetContent>
       </Sheet>
 
-      <div className="hidden md:flex bg-safedrop-primary text-white min-h-screen w-64 shadow-lg flex-col">
-        <div className="p-4 flex items-center justify-center">
-          <Link to="/">
-            <img alt="SafeDrop Logo" className="h-20" src="/lovable-uploads/289fb913-2d65-4eb7-8518-9e5e699f2217.png" />
-            <div className="text-center mt-2 font-bold">{t('siteTitle')}</div>
-          </Link>
-        </div>
-        
-        <nav className="flex-1">
-          <ul>
-            {menuItems.map((item, index) => (
-              <li key={index}>
-                {item.path === "/driver/logout" ? (
-                  <button
-                    onClick={handleLogout}
-                    className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left ${
-                      isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                    }`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                ) : (
-                  <Link 
-                    to={item.path} 
-                    className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                      isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                    }`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </Link>
-                )}
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
+      <aside className="hidden md:flex bg-safedrop-primary text-white w-64 h-screen flex-col">
+        <SidebarContent />
+      </aside>
     </>
   );
 };

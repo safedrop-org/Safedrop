@@ -2,6 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
+/**
+ * Hook to fetch orders with optimized data loading
+ * @param isAdmin - Whether the current user is an admin
+ */
 export function useOrders(isAdmin = false) {
   const { user } = useAuth();
 
@@ -10,166 +14,106 @@ export function useOrders(isAdmin = false) {
     queryFn: async () => {
       if (!user) throw new Error("Not authenticated");
 
-      try {
-        console.log("Fetching orders for driver:", user.id);
+      // Fetch orders with optimized query
+      const { data: orders, error } = await supabase
+        .from("orders")
+        .select("*")
+        .order("order_id", { ascending: false });
 
-        let query = supabase.from("orders").select("*");
+      if (error) throw error;
+      if (!orders?.length) return [];
 
-        // For non-admins (drivers), RLS policies will automatically:
-        // 1. Show ALL orders with status='available'
-        // 2. Show any order assigned to this driver
-        if (!isAdmin) {
-          console.log("Filtering for driver:", user.id);
-        }
+      // Collect all unique customer IDs to fetch in a single batch
+      const customerIds = [
+        ...new Set(orders.map((order) => order.customer_id)),
+      ];
 
-        const { data: orders, error } = await query.order("created_at", {
-          ascending: false,
-        });
+      // Batch fetch all customer profiles in a single query
+      const { data: customers, error: customersError } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, phone")
+        .in("id", customerIds);
 
-        if (error) {
-          console.error("Error fetching orders:", error);
-          throw error;
-        }
-
-        if (!orders || orders.length === 0) {
-          console.log("No orders found");
-          return [];
-        }
-
-        console.log(`Found ${orders.length} orders before filtering`);
-
-        // Enrich orders with customer data
-        const enrichedOrders = await Promise.all(
-          orders.map(async (order) => {
-            try {
-              // Get customer data
-              const { data: customer, error: customerError } = await supabase
-                .from("profiles")
-                .select("first_name, last_name, phone")
-                .eq("id", order.customer_id)
-                .maybeSingle();
-
-              if (customerError) {
-                console.error(
-                  `Error fetching customer data for order ${order.id}:`,
-                  customerError
-                );
-                return { ...order, customer: null };
-              }
-
-              // Verify ownership - this is handled by RLS now
-              // Driver can modify orders if:
-              // 1. They are assigned to them
-              // 2. OR the order is available and they are approved
-              const canModify = true; // RLS will handle the actual permissions
-
-              return {
-                ...order,
-                customer,
-                canModify,
-              };
-            } catch (err) {
-              console.error(`Error enriching order ${order.id}:`, err);
-              return { ...order, customer: null, canModify: false };
-            }
-          })
-        );
-
-        console.log("Enriched orders:", enrichedOrders.length);
-        return enrichedOrders;
-      } catch (error) {
-        console.error("Error in useOrders hook:", error);
-        throw error;
+      if (customersError) {
+        console.error("Error fetching customer data:", customersError);
       }
+
+      // Create a lookup map for quick access
+      const customerMap = (customers || []).reduce((acc, customer) => {
+        acc[customer.id] = customer;
+        return acc;
+      }, {});
+
+      // Enrich orders with customer data from the map
+      return orders.map((order) => ({
+        ...order,
+        customer: customerMap[order.customer_id] || null,
+        // RLS handles actual permissions
+        canModify: true,
+      }));
     },
     enabled: !!user,
-    refetchOnMount: true,
-    retry: 2,
-    refetchInterval: 5000, // Refresh every 5 seconds to keep order list updated
+    // Optimized refetch settings
+    staleTime: 60000, // Data stays fresh for 1 minute
+    gcTime: 300000, // Cache kept for 5 minutes
     refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
-    staleTime: 2000,
+    refetchOnMount: true,
+    // Use manual refetch trigger for real-time updates instead of polling
+    refetchInterval: false,
   });
 }
 
-export function useOrderById(orderId: string) {
+/**
+ * Hook to fetch a single order by ID
+ * @param orderId - The ID of the order to fetch
+ */
+export function useOrderById(orderId) {
   const { user } = useAuth();
 
   return useQuery({
     queryKey: ["order", orderId],
     queryFn: async () => {
-      if (!user) throw new Error("Not authenticated");
+      if (!user || !orderId) throw new Error("Missing required parameters");
 
-      if (!orderId) {
-        console.error("No order ID provided");
-        throw new Error("No order ID provided");
-      }
+      // Fetch order data
+      const { data: order, error } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", orderId)
+        .maybeSingle();
 
-      try {
-        console.log("Fetching order details for ID:", orderId);
+      if (error) throw error;
+      if (!order) throw new Error("Order not found");
 
-        // Modified query to avoid using foreign key constraints
-        const { data: order, error } = await supabase
-          .from("orders")
-          .select("*")
-          .eq("id", orderId)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error fetching order details:", error);
-          throw error;
-        }
-
-        if (!order) {
-          console.error("Order not found");
-          throw new Error("Order not found");
-        }
-
-        console.log("Order data fetched:", order);
-
-        // Fetch customer and driver profiles separately
-
-        // Customer profile
-        const { data: customer, error: customerError } = await supabase
+      // Fetch both customer and driver profiles in parallel
+      const [customerResult, driverResult] = await Promise.all([
+        // Fetch customer profile
+        supabase
           .from("profiles")
           .select("first_name, last_name, phone")
           .eq("id", order.customer_id)
-          .maybeSingle();
+          .maybeSingle(),
 
-        if (customerError) {
-          console.error("Error fetching customer profile:", customerError);
-        }
+        // Conditionally fetch driver profile if exists
+        order.driver_id
+          ? supabase
+              .from("profiles")
+              .select("first_name, last_name, phone")
+              .eq("id", order.driver_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
 
-        // Driver profile if available
-        let driver = null;
-        if (order.driver_id) {
-          const { data: driverData, error: driverError } = await supabase
-            .from("profiles")
-            .select("first_name, last_name, phone")
-            .eq("id", order.driver_id)
-            .maybeSingle();
-
-          if (driverError) {
-            console.error("Error fetching driver profile:", driverError);
-          } else {
-            driver = driverData;
-          }
-        }
-
-        const enrichedOrder = {
-          ...order,
-          customer,
-          driver,
-        };
-
-        console.log("Enriched order data:", enrichedOrder);
-        return enrichedOrder;
-      } catch (error) {
-        console.error("Error in useOrderById hook:", error);
-        throw error;
-      }
+      // Return enriched order
+      return {
+        ...order,
+        customer: customerResult.error ? null : customerResult.data,
+        driver: driverResult.error ? null : driverResult.data,
+      };
     },
-    enabled: !!user && !!orderId,
+    enabled: Boolean(user && orderId),
+    staleTime: 30000, // Consider data fresh for 30 seconds
+    refetchOnWindowFocus: false,
     retry: 1,
   });
 }

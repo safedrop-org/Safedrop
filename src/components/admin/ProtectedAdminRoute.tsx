@@ -56,7 +56,7 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
     );
   }
 
-  return <>{children}</>;
+  return <div className="">{children}</div>;
 };
 
 export default ProtectedAdminRoute;

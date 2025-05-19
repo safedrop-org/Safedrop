@@ -828,10 +828,6 @@ const AdminDashboardContent = () => {
             <h1 className="text-xl font-bold text-gray-900">
               لوحة تحكم المشرف
             </h1>
-            <Button variant="outline" className="gap-2" onClick={handleLogout}>
-              <LogOutIcon className="h-4 w-4" />
-              تسجيل الخروج
-            </Button>
           </div>
         </header>
 

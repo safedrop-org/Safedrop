@@ -12,52 +12,48 @@ export function useProfile() {
     queryFn: async () => {
       if (!user) throw new Error("Not authenticated");
 
-      // First check if we have user_type in user metadata
-      if (user.user_metadata?.user_type) {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (error) {
-          // If profile doesn't exist yet but we have metadata, create a minimal profile
-          if (error.code === "PGRST116") {
-            const newProfile = {
-              id: user.id,
-              first_name: user.user_metadata.first_name || "",
-              last_name: user.user_metadata.last_name || "",
-              phone: user.user_metadata.phone || "",
-              user_type: user.user_metadata.user_type,
-              email: user.email,
-            };
-
-            // Create profile
-            const { data: createdProfile, error: createError } = await supabase
-              .from("profiles")
-              .insert(newProfile)
-              .select()
-              .single();
-
-            if (createError) throw createError;
-            return createdProfile;
-          }
-          throw error;
-        }
-
-        return data;
-      }
-
-      // Fallback to normal profile lookup
+      // Try to get existing profile
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      // If profile exists, return it
+      if (data) return data;
+
+      // If error is not "not found", throw it
+      if (error && error.code !== "PGRST116") throw error;
+
+      // Profile doesn't exist - create from user metadata
+      if (user.user_metadata?.user_type) {
+        const newProfile = {
+          id: user.id,
+          first_name: user.user_metadata.first_name || "",
+          last_name: user.user_metadata.last_name || "",
+          phone: user.user_metadata.phone || "",
+          user_type: user.user_metadata.user_type,
+          email: user.email,
+        };
+
+        // Create profile
+        const { data: createdProfile, error: createError } = await supabase
+          .from("profiles")
+          .insert(newProfile)
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        return createdProfile;
+      }
+
+      // No metadata to create profile from
+      throw new Error("Profile not found and insufficient data to create one");
     },
     enabled: !!user,
+    staleTime: 300000, // Profile data stays fresh for 5 minutes
+    cacheTime: 600000, // Keep in cache for 10 minutes
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 }

@@ -293,6 +293,14 @@ const DriverDashboardContent = () => {
     enabled: !!user?.id && !!financialStats,
   });
 
+  // Add currency formatter helper
+  const formatCurrency = (amount: number) => {
+    const formattedAmount = amount.toFixed(2);
+    return language === "ar"
+      ? `${formattedAmount} ر.س`
+      : `SAR ${formattedAmount}`;
+  };
+
   useEffect(() => {
     const checkAuthAndData = async () => {
       const driverAuth = localStorage.getItem("driverAuth");
@@ -348,7 +356,7 @@ const DriverDashboardContent = () => {
     if (driverData.status === "approved") {
       return (
         <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
-          <div className="flex items-start">
+          <div className="flex items-start gap-3">
             <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
             <div>
               <p className="font-medium text-green-800">
@@ -456,9 +464,6 @@ const DriverDashboardContent = () => {
   const completedOrdersCount =
     financialStats?.completedOrders || ordersCountData || 0;
 
-  // Format the available balance to always show 2 decimal places
-  const formattedBalance = (financialStats?.availableBalance || 0).toFixed(2);
-
   // Format the rating to show one decimal place
   const formattedRating = (ratingData || 0).toFixed(1);
 
@@ -544,11 +549,14 @@ const DriverDashboardContent = () => {
                       <p className="text-sm font-medium text-gray-500">
                         {t("availableBalance")}
                       </p>
-                      <h3 className="text-2xl font-bold" dir="ltr">
+                      <h3
+                        className="text-2xl font-bold"
+                        dir={language === "ar" ? "rtl" : "ltr"}
+                      >
                         {isLoadingFinancial ? (
                           <span className="animate-pulse">...</span>
                         ) : (
-                          `${formattedBalance} ر.س`
+                          formatCurrency(financialStats?.availableBalance || 0)
                         )}
                       </h3>
                     </div>
@@ -656,9 +664,7 @@ const DriverDashboardContent = () => {
                         {isLoadingFinancial ? (
                           <span className="animate-pulse">...</span>
                         ) : (
-                          `${
-                            financialStats?.totalEarnings.toFixed(2) || "0.00"
-                          } ر.س`
+                          formatCurrency(financialStats?.totalEarnings || 0)
                         )}
                       </p>
                     </div>
@@ -668,10 +674,9 @@ const DriverDashboardContent = () => {
                         {isLoadingFinancial ? (
                           <span className="animate-pulse">...</span>
                         ) : (
-                          `${
-                            financialStats?.platformCommission.toFixed(2) ||
-                            "0.00"
-                          } ر.س`
+                          formatCurrency(
+                            financialStats?.platformCommission || 0
+                          )
                         )}
                       </p>
                     </div>
@@ -682,10 +687,9 @@ const DriverDashboardContent = () => {
                           {isLoadingFinancial ? (
                             <span className="animate-pulse">...</span>
                           ) : (
-                            `${
-                              financialStats?.availableBalance.toFixed(2) ||
-                              "0.00"
-                            } ر.س`
+                            formatCurrency(
+                              financialStats?.availableBalance || 0
+                            )
                           )}
                         </p>
                       </div>

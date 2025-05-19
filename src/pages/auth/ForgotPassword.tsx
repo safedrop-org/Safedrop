@@ -55,29 +55,30 @@ const ForgotPasswordContent = () => {
       return;
     }
 
-    console.log("Checking for email:", normalizedEmail);
-
     try {
-      // First check directly in the security_questions table
+      // First check if security questions exist for this user
       const { data: securityQuestionsData, error: securityQuestionsError } =
         await supabase
           .from("security_questions")
           .select("*")
-          .ilike("email", normalizedEmail);
+          .ilike("email", normalizedEmail)
+          .maybeSingle();
 
-      if (securityQuestionsError) {
+      if (
+        securityQuestionsError &&
+        securityQuestionsError.code !== "PGRST116"
+      ) {
         console.error(
           "Error checking security questions:",
           securityQuestionsError
         );
-      } else {
-        console.log("Security questions search result:", securityQuestionsData);
+        toast.error(t("errorProcessingRequest"));
+        setIsLoading(false);
+        return;
       }
 
-      // Check if we have any security questions for this email
-      if (securityQuestionsData && securityQuestionsData.length > 0) {
-        console.log("Found security questions for email:", normalizedEmail);
-
+      // Check if we found security questions
+      if (securityQuestionsData) {
         // Fetch the questions using the RPC function
         const { data: questions, error: questionsError } = await supabase.rpc(
           "get_security_questions",
@@ -89,12 +90,10 @@ const ForgotPasswordContent = () => {
             "Error fetching security questions via RPC:",
             questionsError
           );
-          toast.error(t("errorFetchingSecurityQuestions"));
-          setIsLoading(false);
+          // Fall back to email reset if we can't fetch questions
+          handleFallbackEmailReset(normalizedEmail);
           return;
         }
-
-        console.log("Questions retrieved from function:", questions);
 
         if (questions && questions.length > 0) {
           // Found questions, proceed to security questions step
@@ -105,33 +104,23 @@ const ForgotPasswordContent = () => {
         }
       }
 
-      // If we got here, no security questions were found, check profiles table
+      // If no security questions found, check if the user exists in auth
+      // First check in profiles table
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("id, email")
-        .ilike("email", normalizedEmail);
+        .ilike("email", normalizedEmail)
+        .maybeSingle();
 
-      console.log("Profile search result:", profileData);
-
-      if (profileError) {
+      if (profileError && profileError.code !== "PGRST116") {
         console.error("Error checking profile:", profileError);
       }
 
-      // Check if the email exists in auth system
-      // Note: We cannot directly query auth.users from the client
-      // Instead, we'll try to initiate a password reset and let Supabase validate the email
-
-      // If we found the user in profiles, fall back to email reset
-      if (profileData && profileData.length > 0) {
-        console.log("User found in profiles, proceeding with email reset");
-        handleFallbackEmailReset();
+      // If user found in profiles or we want to try anyway, send reset email
+      if (profileData || !profileData) {
+        handleFallbackEmailReset(normalizedEmail);
         return;
       }
-
-      // If we reached here, the user wasn't found in any table
-      console.log("User not found with email:", normalizedEmail);
-      toast.error(t("userNotFound"));
-      setIsLoading(false);
     } catch (error) {
       console.error("Error in email verification step:", error);
       toast.error(t("errorProcessingRequest"));
@@ -139,22 +128,29 @@ const ForgotPasswordContent = () => {
     }
   };
 
-  const handleFallbackEmailReset = async () => {
+  const handleFallbackEmailReset = async (userEmail) => {
     try {
-      const normalizedEmail = email.trim().toLowerCase();
-      console.log("Using fallback email reset for:", normalizedEmail);
+      const normalizedEmail = userEmail || email.trim().toLowerCase();
 
       // Process the password reset request using email
       const { error } = await supabase.auth.resetPasswordForEmail(
         normalizedEmail,
         {
           redirectTo: `${window.location.origin}/reset-password`,
+          emailRedirectTo: `${window.location.origin}/reset-password`,
         }
       );
 
       if (error) {
         console.error("Reset password error:", error);
-        toast.error(error.message || t("passwordResetError"));
+        // Don't show error for "User not found" to prevent user enumeration
+        if (error.message.includes("User not found")) {
+          setIsSubmitted(true);
+          setCurrentStep("success");
+          toast.success(t("passwordResetEmailSent"));
+        } else {
+          toast.error(error.message || t("passwordResetError"));
+        }
       } else {
         setIsSubmitted(true);
         setCurrentStep("success");
@@ -197,6 +193,8 @@ const ForgotPasswordContent = () => {
         return;
       }
 
+      // If answers are correct (isCorrect will be true)
+      // If not correct or there was an error, fallback to email
       if (!isCorrect) {
         toast.error(t("incorrectAnswers"));
         setIsLoading(false);
@@ -208,6 +206,7 @@ const ForgotPasswordContent = () => {
         email.trim().toLowerCase(),
         {
           redirectTo: `${window.location.origin}/reset-password`,
+          emailRedirectTo: `${window.location.origin}/reset-password`,
         }
       );
 

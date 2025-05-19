@@ -1,12 +1,22 @@
-
-import { useLanguage } from '@/components/ui/language-context';
-import { UsersIcon, TruckIcon, PackageIcon, BarChart2Icon, SettingsIcon, ShieldIcon, DollarSign, MessageSquareIcon, Menu, LogOutIcon } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAuth } from '@/components/auth/AuthContext';
-import { toast } from 'sonner';
+import { useLanguage } from "@/components/ui/language-context";
+import {
+  UsersIcon,
+  TruckIcon,
+  PackageIcon,
+  BarChart2Icon,
+  SettingsIcon,
+  ShieldIcon,
+  DollarSign,
+  MessageSquareIcon,
+  Menu,
+  LogOut,
+} from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useAuth } from "@/components/auth/AuthContext";
+import { toast } from "sonner";
 
 const AdminSidebar = () => {
   const { t, language } = useLanguage();
@@ -15,177 +25,143 @@ const AdminSidebar = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
-  const isActive = (path: string) => {
+  const isActive = (path) => {
     return location.pathname === path;
   };
 
   const handleLogout = async () => {
     try {
       await signOut();
-      localStorage.removeItem('adminAuth');
-      localStorage.removeItem('adminEmail');
-      toast.success('تم تسجيل الخروج بنجاح');
-      navigate('/login?logout=true', { replace: true });
+      localStorage.removeItem("adminAuth");
+      localStorage.removeItem("adminEmail");
+      toast.success(
+        language === "ar" ? "تم تسجيل الخروج بنجاح" : "Logged out successfully"
+      );
+      navigate("/login?logout=true", { replace: true });
     } catch (error) {
       console.error("Error signing out:", error);
-      toast.error('حدث خطأ أثناء تسجيل الخروج');
+      toast.error(
+        language === "ar" ? "حدث خطأ أثناء تسجيل الخروج" : "Error during logout"
+      );
     }
   };
 
   const menuItems = [
     {
       icon: <BarChart2Icon className="h-5 w-5" />,
-      label: language === 'ar' ? "لوحة المعلومات" : "Dashboard",
-      path: "/admin/dashboard"
+      label: language === "ar" ? "لوحة المعلومات" : "Dashboard",
+      path: "/admin/dashboard",
     },
     {
       icon: <DollarSign className="h-5 w-5" />,
-      label: language === 'ar' ? "الملخص المالي" : "Financial Summary",
-      path: "/admin/finance"
+      label: language === "ar" ? "الملخص المالي" : "Financial Summary",
+      path: "/admin/finance",
     },
     {
       icon: <TruckIcon className="h-5 w-5" />,
-      label: language === 'ar' ? "إدارة السائقين" : "Driver Management",
-      path: "/admin/driver-verification"
+      label: language === "ar" ? "إدارة السائقين" : "Driver Management",
+      path: "/admin/driver-verification",
     },
     {
       icon: <UsersIcon className="h-5 w-5" />,
-      label: language === 'ar' ? "إدارة العملاء" : "Customer Management",
-      path: "/admin/customers"
+      label: language === "ar" ? "إدارة العملاء" : "Customer Management",
+      path: "/admin/customers",
     },
     {
       icon: <PackageIcon className="h-5 w-5" />,
-      label: language === 'ar' ? "إدارة الطلبات" : "Order Management",
-      path: "/admin/orders"
+      label: language === "ar" ? "إدارة الطلبات" : "Order Management",
+      path: "/admin/orders",
     },
     {
       icon: <MessageSquareIcon className="h-5 w-5" />,
-      label: language === 'ar' ? "الشكاوى والدعم" : "Complaints & Support",
-      path: "/admin/complaints"
+      label: language === "ar" ? "الشكاوى والدعم" : "Complaints & Support",
+      path: "/admin/complaints",
     },
     {
       icon: <SettingsIcon className="h-5 w-5" />,
-      label: language === 'ar' ? "الإعدادات" : "Settings",
-      path: "/admin/settings"
+      label: language === "ar" ? "الإعدادات" : "Settings",
+      path: "/admin/settings",
     },
-    {
-      icon: <LogOutIcon className="h-5 w-5" />,
-      label: language === 'ar' ? "تسجيل الخروج" : "Logout",
-      path: "/logout",
-      onClick: handleLogout,
-      isButton: true
-    }
   ];
 
-  // النسخة الخاصة بالهواتف المحمولة
-  const MobileSidebar = () => (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="md:hidden fixed top-4 right-4 z-50"
-        >
-          <Menu className="h-6 w-6" />
-          <span className="sr-only">فتح القائمة</span>
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="right" className="w-[280px] sm:w-[340px] p-0">
-        <div className="bg-safedrop-primary text-white h-full flex flex-col">
-          <div className="p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-              <ShieldIcon className="h-6 w-6 text-safedrop-primary" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</h2>
-              <p className="text-xs opacity-75">{language === 'ar' ? 'لوحة تحكم المشرف' : 'Admin Dashboard'}</p>
-            </div>
-          </div>
-          
-          <nav className="mt-6 flex-1">
-            <ul>
-              {menuItems.map((item, index) => (
-                <li key={index}>
-                  {item.isButton ? (
-                    <button
-                      onClick={item.onClick}
-                      className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left ${
-                        isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                      }`}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </button>
-                  ) : (
-                    <Link
-                      to={item.path}
-                      className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                        isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                      }`}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-
-  // النسخة الخاصة بأجهزة سطح المكتب
-  const DesktopSidebar = () => (
-    <div className="hidden md:block bg-safedrop-primary text-white min-h-screen w-64 shadow-lg flex flex-col">
-      <div className="p-4 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-          <ShieldIcon className="h-6 w-6 text-safedrop-primary" />
+  const SidebarContent = () => (
+    <>
+      <div className="p-4 flex items-center gap-3 flex-col">
+        <div className=" rounded-full bg-white flex items-center justify-center">
+          <ShieldIcon className="text-safedrop-primary h-20 w-20" />
         </div>
         <div>
-          <h2 className="text-xl font-bold">{language === 'ar' ? 'سيف دروب' : 'SafeDrop'}</h2>
-          <p className="text-xs opacity-75">{language === 'ar' ? 'لوحة تحكم المشرف' : 'Admin Dashboard'}</p>
+          <h2 className="text-xl font-bold">
+            {language === "ar" ? "سيف دروب" : "SafeDrop"}
+          </h2>
+          <p className="text-xs opacity-75">
+            {language === "ar" ? "لوحة تحكم المشرف" : "Admin Dashboard"}
+          </p>
         </div>
       </div>
-      
-      <nav className="mt-6 flex-1">
-        <ul>
+
+      <nav className="flex-1 overflow-y-auto py-4">
+        <ul className="space-y-1 px-2">
           {menuItems.map((item, index) => (
             <li key={index}>
-              {item.isButton ? (
-                <button
-                  onClick={item.onClick}
-                  className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors text-left ${
-                    isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                  }`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </button>
-              ) : (
-                <Link
-                  to={item.path}
-                  className={`flex items-center gap-3 px-6 py-3 hover:bg-white/10 transition-colors ${
-                    isActive(item.path) ? 'bg-white/10 border-r-4 border-safedrop-gold' : ''
-                  }`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              )}
+              <Link
+                to={item.path}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-colors ${
+                  isActive(item.path)
+                    ? "bg-white/10 font-medium"
+                    : "hover:bg-white/5"
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </Link>
             </li>
           ))}
         </ul>
       </nav>
-    </div>
+      <div className="p-4">
+        <button
+          onClick={handleLogout}
+          className="flex items-center justify-center w-full gap-2 py-2 px-4 rounded-md bg-safedrop-gold hover:bg-safedrop-gold/90 transition-colors"
+        >
+          <LogOut className="h-5 w-5" />
+          <span>{t("Logout")}</span>
+        </button>
+      </div>
+    </>
   );
 
   return (
     <>
-      <MobileSidebar />
-      <DesktopSidebar />
+      <Button
+        variant="ghost"
+        size="icon"
+        className={`md:hidden fixed top-4 ${
+          language === "ar" ? "left-4" : "right-4"
+        } z-50`}
+        onClick={() => setIsOpen(true)}
+      >
+        <Menu className="h-6 w-6" />
+        <span className="sr-only">
+          {language === "ar" ? "فتح القائمة" : "Toggle Menu"}
+        </span>
+      </Button>
+
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetContent
+          side={language === "ar" ? "right" : "left"}
+          className="w-[280px] sm:w-[340px] p-0"
+        >
+          <aside className="bg-safedrop-primary text-white h-full flex flex-col">
+            <SidebarContent />
+          </aside>
+        </SheetContent>
+      </Sheet>
+
+      <aside className="hidden md:flex bg-safedrop-primary text-white w-64 h-screen flex-col">
+        <SidebarContent />
+      </aside>
     </>
   );
 };
