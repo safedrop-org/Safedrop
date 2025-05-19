@@ -66,7 +66,7 @@ const Footer = () => {
           </div>
 
           {/* Column 2 - Services */}
-          <div className="col-span-1 order-2">
+          <div className="col-span-1 order-1">
             <h3 className="text-lg font-semibold mb-4">{t("services")}</h3>
             <ul className="space-y-2">
               <li>
@@ -105,7 +105,7 @@ const Footer = () => {
           </div>
 
           {/* Column 3 - Get Started */}
-          <div className="col-span-1 order-1">
+          <div className="col-span-1 order-2">
             <h3 className="text-lg font-semibold mb-4">{t("getStarted")}</h3>
             <ul className="space-y-2">
               <li>
