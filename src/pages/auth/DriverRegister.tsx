@@ -201,7 +201,7 @@ const DriverRegisterContent = () => {
               user_type: "driver",
               birth_date: data.birthDate,
             },
-            emailRedirectTo: window.location.origin + "/email-verification",
+            emailRedirectTo: window.location.origin + "/auth/callback",
           },
         }
       );
