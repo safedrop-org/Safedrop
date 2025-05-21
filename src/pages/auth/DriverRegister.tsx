@@ -1,5 +1,4 @@
-// src/components/DriverRegister.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,43 +26,53 @@ import {
   PhoneIcon,
   Calendar,
   CheckCircle2,
+  AlertCircle,
   FileText,
   CreditCard,
 } from "lucide-react";
 import Cookies from "js-cookie";
 
 const driverRegisterSchema = z.object({
-  firstName: z.string().min(2, { message: "الاسم الأول مطلوب" }),
-  lastName: z.string().min(2, { message: "اسم العائلة مطلوب" }),
-  email: z.string().email({ message: "البريد الإلكتروني غير صالح" }),
-  phone: z.string().min(10, { message: "رقم الهاتف غير صالح" }),
-  password: z
-    .string()
-    .min(8, { message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }),
-  birthDate: z.date({
-    required_error: "تاريخ الميلاد مطلوب",
-    invalid_type_error: "تاريخ الميلاد غير صالح",
+  firstName: z.string().min(2, {
+    message: "الاسم الأول مطلوب",
   }),
-  nationalId: z.string().min(10, { message: "رقم الهوية مطلوب" }),
-  licenseNumber: z.string().min(5, { message: "رقم الرخصة مطلوب" }),
+  lastName: z.string().min(2, {
+    message: "اسم العائلة مطلوب",
+  }),
+  email: z.string().email({
+    message: "البريد الإلكتروني غير صالح",
+  }),
+  phone: z.string().min(10, {
+    message: "رقم الهاتف غير صالح",
+  }),
+  password: z.string().min(8, {
+    message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
+  }),
+  birthDate: z.string().min(1, {
+    message: "تاريخ الميلاد مطلوب",
+  }),
+  nationalId: z.string().min(10, {
+    message: "رقم الهوية مطلوب",
+  }),
+  licenseNumber: z.string().min(5, {
+    message: "رقم الرخصة مطلوب",
+  }),
   vehicleInfo: z.object({
-    make: z.string().min(2, { message: "نوع السيارة مطلوب" }),
-    model: z.string().min(2, { message: "موديل السيارة مطلوب" }),
-    year: z.string().regex(/^\d{4}$/, { message: "السنة يجب أن تكون 4 أرقام" }),
-    plateNumber: z.string().min(4, { message: "رقم اللوحة مطلوب" }),
+    make: z.string().min(2, {
+      message: "نوع السيارة مطلوب",
+    }),
+    model: z.string().min(2, {
+      message: "موديل السيارة مطلوب",
+    }),
+    year: z.string().regex(/^\d{4}$/, {
+      message: "السنة يجب أن تكون 4 أرقام",
+    }),
+    plateNumber: z.string().min(4, {
+      message: "رقم اللوحة مطلوب",
+    }),
   }),
-  id_image: z
-    .any()
-    .refine((val) => val instanceof File || !val, {
-      message: "صورة الهوية يجب أن تكون ملف صالح",
-    })
-    .optional(),
-  license_image: z
-    .any()
-    .refine((val) => val instanceof File || !val, {
-      message: "صورة الرخصة يجب أن تكون ملف صالح",
-    })
-    .optional(),
+  id_image: z.any().optional(),
+  license_image: z.any().optional(),
 });
 
 type DriverFormValues = z.infer<typeof driverRegisterSchema>;
@@ -73,36 +82,24 @@ const DriverRegisterContent = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState(false);
-  const [waitTime, setWaitTime] = useState(0);
   const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [registrationError, setRegistrationError] = useState(null);
+  const [waitTime, setWaitTime] = useState(0);
 
-  // Clear any leftover auth tokens/cookies on mount
-  useEffect(() => {
-    clearAuthData();
+  // Timer for rate limiting
+  React.useEffect(() => {
+    let timer;
     if (waitTime > 0) {
-      const timer = setTimeout(() => setWaitTime((w) => w - 1), 1000);
-      return () => clearTimeout(timer);
+      timer = setTimeout(() => {
+        setWaitTime(waitTime - 1);
+      }, 1000);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [waitTime]);
 
-  const clearAuthData = () => {
-    // Clear cookies
-    document.cookie.split(";").forEach((c) => {
-      document.cookie = c
-        .replace(/^ +/, "")
-        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
-    // Clear pending data
-    Cookies.remove("pendingDriverDetails");
-    // Clear Supabase tokens
-    if (window.localStorage) {
-      Object.keys(localStorage)
-        .filter((k) => k.startsWith("sb-"))
-        .forEach((k) => localStorage.removeItem(k));
-    }
-  };
-
-  const form = useForm<DriverFormValues>({
+  const form = useForm({
     resolver: zodResolver(driverRegisterSchema),
     defaultValues: {
       firstName: "",
@@ -110,10 +107,15 @@ const DriverRegisterContent = () => {
       email: "",
       phone: "",
       password: "",
-      birthDate: null,
+      birthDate: "",
       nationalId: "",
       licenseNumber: "",
-      vehicleInfo: { make: "", model: "", year: "", plateNumber: "" },
+      vehicleInfo: {
+        make: "",
+        model: "",
+        year: "",
+        plateNumber: "",
+      },
       id_image: undefined,
       license_image: undefined,
     },
@@ -126,30 +128,95 @@ const DriverRegisterContent = () => {
     );
   };
 
-  const uploadFile = async (file: File, folder: string, userId: string) => {
-    const ext = file.name.split(".").pop();
-    const fileName = `${userId}_${folder}_${Date.now()}.${ext}`;
-    const filePath = `${folder}/${fileName}`;
-    // Upload to your Supabase bucket
-    const { error: uploadError } = await supabase.storage
-      .from("driver-documents")
-      .upload(filePath, file, { cacheControl: "3600", upsert: false });
-    if (uploadError) throw uploadError;
-    const { data } = supabase.storage
-      .from("driver-documents")
-      .getPublicUrl(filePath);
-    return data.publicUrl;
+  // File upload function - only used if files are provided
+  const storeFileUploads = async (files) => {
+    if (!files.id_image && !files.license_image) return null;
+
+    // We'll store file information in localStorage for later processing after email verification
+    const fileInfo = {};
+
+    if (files.id_image) {
+      // Read file as data URL for temporary storage
+      const reader = new FileReader();
+      return new Promise((resolve) => {
+        reader.onload = (e) => {
+          if (e.target && e.target.result) {
+            fileInfo.id_image = {
+              name: files.id_image.name,
+              type: files.id_image.type,
+              size: files.id_image.size,
+              dataUrl: e.target.result,
+            };
+          }
+
+          if (files.license_image) {
+            const licenseReader = new FileReader();
+            licenseReader.onload = (licenseEvent) => {
+              if (licenseEvent.target && licenseEvent.target.result) {
+                fileInfo.license_image = {
+                  name: files.license_image.name,
+                  type: files.license_image.type,
+                  size: files.license_image.size,
+                  dataUrl: licenseEvent.target.result,
+                };
+              }
+              resolve(fileInfo);
+            };
+            licenseReader.readAsDataURL(files.license_image);
+          } else {
+            resolve(fileInfo);
+          }
+        };
+        reader.readAsDataURL(files.id_image);
+      });
+    } else if (files.license_image) {
+      const reader = new FileReader();
+      return new Promise((resolve) => {
+        reader.onload = (e) => {
+          if (e.target && e.target.result) {
+            fileInfo.license_image = {
+              name: files.license_image.name,
+              type: files.license_image.type,
+              size: files.license_image.size,
+              dataUrl: e.target.result,
+            };
+          }
+          resolve(fileInfo);
+        };
+        reader.readAsDataURL(files.license_image);
+      });
+    }
+
+    return null;
   };
 
-  const onSubmit = async (data: DriverFormValues) => {
+  const onSubmit = async (data) => {
     if (waitTime > 0) {
       toast.error(`يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى`);
       return;
     }
 
     setIsLoading(true);
+    setRegistrationError(null);
+
     try {
-      // 1) Sign up with Supabase Auth
+      // Handle file uploads if any
+      let fileInfo = null;
+      if (data.id_image || data.license_image) {
+        setUploadingFiles(true);
+        try {
+          fileInfo = await storeFileUploads({
+            id_image: data.id_image,
+            license_image: data.license_image,
+          });
+        } catch (uploadError) {
+          console.error("Error preparing file uploads:", uploadError);
+        } finally {
+          setUploadingFiles(false);
+        }
+      }
+
+      // Step 1: Create auth user (similar to CustomerRegister)
       const { data: authData, error: signUpError } = await supabase.auth.signUp(
         {
           email: data.email,
@@ -160,81 +227,69 @@ const DriverRegisterContent = () => {
               last_name: data.lastName,
               phone: data.phone,
               user_type: "driver",
-              birth_date: new Date(data.birthDate).toISOString(),
+              birth_date: data.birthDate,
             },
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         }
       );
+
       if (signUpError) {
         if (
-          signUpError.code === "over_email_send_rate_limit" ||
-          signUpError.message.toLowerCase().includes("rate limit")
+          signUpError.message.includes("rate limit") ||
+          signUpError.message
+            .toLowerCase()
+            .includes("email rate limit exceeded") ||
+          signUpError.code === "over_email_send_rate_limit"
         ) {
           handleRateLimitError();
-          return;
-        }
-        if (signUpError.message.includes("already registered")) {
-          toast.error(
+        } else if (signUpError.message.includes("already registered")) {
+          throw new Error(
             "البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول"
           );
-          return;
-        }
-        throw signUpError;
-      }
-
-      const userId = authData.user!.id;
-
-      // 2) Upload documents
-      let idImageUrl: string | null = null;
-      let licenseImageUrl: string | null = null;
-      if (data.id_image || data.license_image) {
-        setUploadingFiles(true);
-        toast.info("جاري رفع المستندات...");
-        try {
-          const uploads: Promise<string | null>[] = [];
-          if (data.id_image)
-            uploads.push(uploadFile(data.id_image, "id-cards", userId));
-          if (data.license_image)
-            uploads.push(uploadFile(data.license_image, "licenses", userId));
-          const results = await Promise.all(uploads);
-          [idImageUrl, licenseImageUrl] =
-            results.length === 2 ? results : [results[0], results[1] || null];
-        } catch (e) {
-          console.warn("Upload warning:", e);
-          toast.warning("تحذير: فشل رفع المستندات، سيتم المتابعة دون صور");
-        } finally {
-          setUploadingFiles(false);
+        } else {
+          throw signUpError;
         }
       }
 
-      // 3) Store everything in a cookie (1h expiry)
-      Cookies.set(
-        "pendingDriverDetails",
-        JSON.stringify({
-          id: userId,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          phone: data.phone,
-          email: data.email,
-          user_type: "driver",
-          birth_date: new Date(data.birthDate).toISOString(),
-          nationalId: data.nationalId,
-          licenseNumber: data.licenseNumber,
-          vehicleInfo: data.vehicleInfo,
-          idImageUrl,
-          licenseImageUrl,
-        }),
-        { expires: 1 / 24, secure: true, sameSite: "strict" }
-      );
+      if (!authData.user) {
+        throw new Error("فشل إنشاء حساب المستخدم");
+      }
+
+      // Store driver details in cookies for later use in AuthCallback
+      const pendingDriverDetails = {
+        id: authData.user.id,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        phone: data.phone,
+        email: data.email,
+        user_type: "driver",
+        birth_date: data.birthDate,
+        national_id: data.nationalId,
+        license_number: data.licenseNumber,
+        vehicle_info: data.vehicleInfo,
+      };
+
+      // Store in cookie with 1 hour expiry
+      Cookies.set("pendingUserDetails", JSON.stringify(pendingDriverDetails), {
+        expires: 1 / 24, // 1 hour
+        secure: true,
+        sameSite: "strict",
+      });
+
+      // If we have file info, store it in local storage
+      if (fileInfo) {
+        localStorage.setItem(
+          `driverFiles_${authData.user.id}`,
+          JSON.stringify(fileInfo)
+        );
+      }
 
       setRegistrationComplete(true);
-      toast.success(
-        "تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى التحقق منها."
-      );
-    } catch (e: any) {
-      console.error("Registration error:", e);
-      toast.error("حدث خطأ أثناء التسجيل: " + e.message);
+    } catch (error) {
+      const errorMsg = error.message || t("registrationError");
+      setRegistrationError(errorMsg);
+      toast.error(t("registrationError"), { description: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -242,23 +297,28 @@ const DriverRegisterContent = () => {
 
   if (registrationComplete) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-8">
-        <div className="max-w-md w-full bg-white shadow-lg rounded-xl p-8 text-center">
-          <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
+          <div className="mx-auto flex items-center justify-center">
+            <CheckCircle2 className="h-16 w-16 text-green-500" />
+          </div>
           <h2 className="text-2xl font-bold text-safedrop-primary">
-            {t("registrationSuccess") || "تم التسجيل بنجاح!"}
+            تم إنشاء حسابك بنجاح!
           </h2>
           <p className="mt-2 text-gray-600">
-            {language === "ar"
-              ? "لقد تم إرسال رسالة تأكيد إلى بريدك الإلكتروني."
-              : "A confirmation email has been sent to your inbox."}
+            لقد تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى التحقق من بريدك
+            الإلكتروني وتأكيد حسابك قبل تسجيل الدخول.
           </p>
           <div className="mt-6">
             <Button
-              onClick={() => navigate("/login")}
+              onClick={() =>
+                navigate("/login", {
+                  state: { email: form.getValues("email") },
+                })
+              }
               className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
             >
-              {t("login") || "تسجيل الدخول"}
+              الذهاب إلى صفحة تسجيل الدخول
             </Button>
           </div>
         </div>
@@ -267,13 +327,13 @@ const DriverRegisterContent = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-8">
-      <div className="max-w-md w-full bg-white shadow-lg rounded-xl p-8">
-        <div className="text-center mb-6">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8">
+        <div className="text-center">
           <img
             alt="SafeDrop Logo"
-            src="/lovable-uploads/264169e0-0b4b-414f-b808-612506987f4a.png"
             className="mx-auto h-20 w-auto mb-4"
+            src="/lovable-uploads/264169e0-0b4b-414f-b808-612506987f4a.png"
           />
           <h2 className="text-3xl font-bold text-safedrop-primary">
             {t("driverRegister") || "تسجيل سائق"}
@@ -300,13 +360,23 @@ const DriverRegisterContent = () => {
           </div>
         )}
 
+        {registrationError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+            <div className="flex gap-2 items-center justify-center">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <p className="text-red-700">{registrationError}</p>
+            </div>
+          </div>
+        )}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Personal Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
                 المعلومات الشخصية
               </h3>
+
               <div className="flex gap-4">
                 <FormField
                   control={form.control}
@@ -318,7 +388,9 @@ const DriverRegisterContent = () => {
                         <div className="relative">
                           <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                           <Input
-                            placeholder={t("firstName") || "الاسم الأول"}
+                            placeholder={
+                              language === "ar" ? "الاسم الأول" : "First Name"
+                            }
                             className="pl-10"
                             {...field}
                           />
@@ -328,6 +400,7 @@ const DriverRegisterContent = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="lastName"
@@ -338,7 +411,9 @@ const DriverRegisterContent = () => {
                         <div className="relative">
                           <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                           <Input
-                            placeholder={t("lastName") || "اسم العائلة"}
+                            placeholder={
+                              language === "ar" ? "اسم العائلة" : "Last Name"
+                            }
                             className="pl-10"
                             {...field}
                           />
@@ -349,6 +424,7 @@ const DriverRegisterContent = () => {
                   )}
                 />
               </div>
+
               <FormField
                 control={form.control}
                 name="birthDate"
@@ -360,22 +436,11 @@ const DriverRegisterContent = () => {
                         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <Input
                           type="date"
-                          placeholder={t("birthDate") || "تاريخ الميلاد"}
+                          placeholder={
+                            language === "ar" ? "تاريخ الميلاد" : "Birth Date"
+                          }
                           className="pl-10"
                           {...field}
-                          value={
-                            field.value
-                              ? new Date(field.value)
-                                  .toISOString()
-                                  .split("T")[0]
-                              : ""
-                          }
-                          onChange={(e) => {
-                            const date = e.target.value
-                              ? new Date(e.target.value)
-                              : null;
-                            field.onChange(date);
-                          }}
                         />
                       </div>
                     </FormControl>
@@ -383,6 +448,7 @@ const DriverRegisterContent = () => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="email"
@@ -394,7 +460,9 @@ const DriverRegisterContent = () => {
                         <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <Input
                           type="email"
-                          placeholder={t("email") || "البريد الإلكتروني"}
+                          placeholder={
+                            language === "ar" ? "البريد الإلكتروني" : "Email"
+                          }
                           className="pl-10"
                           {...field}
                         />
@@ -404,6 +472,7 @@ const DriverRegisterContent = () => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="phone"
@@ -415,7 +484,9 @@ const DriverRegisterContent = () => {
                         <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <Input
                           type="tel"
-                          placeholder={t("phone") || "رقم الهاتف"}
+                          placeholder={
+                            language === "ar" ? "رقم الهاتف" : "Phone Number"
+                          }
                           className="pl-10"
                           {...field}
                         />
@@ -425,6 +496,7 @@ const DriverRegisterContent = () => {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="password"
@@ -436,7 +508,9 @@ const DriverRegisterContent = () => {
                         <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <Input
                           type="password"
-                          placeholder="••••••••"
+                          placeholder={
+                            language === "ar" ? "••••••••" : "••••••••"
+                          }
                           className="pl-10"
                           {...field}
                         />
@@ -450,9 +524,10 @@ const DriverRegisterContent = () => {
 
             {/* Driver Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
                 معلومات السائق
               </h3>
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -464,7 +539,11 @@ const DriverRegisterContent = () => {
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={t("nationalId") || "رقم الهوية الوطنية"}
+                          placeholder={
+                            language === "ar"
+                              ? "رقم الهوية الوطنية"
+                              : "National ID"
+                          }
                           {...field}
                         />
                       </FormControl>
@@ -472,6 +551,7 @@ const DriverRegisterContent = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="licenseNumber"
@@ -482,7 +562,11 @@ const DriverRegisterContent = () => {
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={t("licenseNumber") || "رقم رخصة القيادة"}
+                          placeholder={
+                            language === "ar"
+                              ? "رقم رخصة القيادة"
+                              : "License Number"
+                          }
                           {...field}
                         />
                       </FormControl>
@@ -495,9 +579,10 @@ const DriverRegisterContent = () => {
 
             {/* Vehicle Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
                 معلومات المركبة
               </h3>
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -507,7 +592,9 @@ const DriverRegisterContent = () => {
                       <FormLabel>{t("vehicleMake") || "نوع السيارة"}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={t("vehicleMake") || "نوع السيارة"}
+                          placeholder={
+                            language === "ar" ? "نوع السيارة" : "Vehicle Make"
+                          }
                           {...field}
                         />
                       </FormControl>
@@ -515,6 +602,7 @@ const DriverRegisterContent = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="vehicleInfo.model"
@@ -525,7 +613,11 @@ const DriverRegisterContent = () => {
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={t("vehicleModel") || "موديل السيارة"}
+                          placeholder={
+                            language === "ar"
+                              ? "موديل السيارة"
+                              : "Vehicle Model"
+                          }
                           {...field}
                         />
                       </FormControl>
@@ -533,6 +625,7 @@ const DriverRegisterContent = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="vehicleInfo.year"
@@ -542,9 +635,9 @@ const DriverRegisterContent = () => {
                       <FormControl>
                         <Input
                           type="number"
-                          min="1990"
-                          max={new Date().getFullYear() + 1}
-                          placeholder={t("vehicleYear") || "سنة الصنع"}
+                          placeholder={
+                            language === "ar" ? "سنة الصنع" : "Vehicle Year"
+                          }
                           {...field}
                         />
                       </FormControl>
@@ -552,6 +645,7 @@ const DriverRegisterContent = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="vehicleInfo.plateNumber"
@@ -560,7 +654,9 @@ const DriverRegisterContent = () => {
                       <FormLabel>{t("plateNumber") || "رقم اللوحة"}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={t("plateNumber") || "رقم اللوحة"}
+                          placeholder={
+                            language === "ar" ? "رقم اللوحة" : "Plate Number"
+                          }
                           {...field}
                         />
                       </FormControl>
@@ -571,9 +667,9 @@ const DriverRegisterContent = () => {
               </div>
             </div>
 
-            {/* Document Uploads */}
+            {/* Document Uploads - Optional in this approach */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b pb-2">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
                 المستندات المطلوبة
               </h3>
               <p className="text-sm text-gray-600">
@@ -581,6 +677,7 @@ const DriverRegisterContent = () => {
                   ? "يرجى رفع صور واضحة للمستندات المطلوبة (بحد أقصى 5 ميجابايت لكل ملف)"
                   : "Please upload clear images of required documents (max 5MB per file)"}
               </p>
+
               <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
@@ -598,12 +695,15 @@ const DriverRegisterContent = () => {
                             accept="image/*"
                             onChange={(e) => {
                               const file = e.target.files?.[0];
-                              if (file && file.size <= 5 * 1024 * 1024) {
+                              if (file) {
+                                // Validate file size (max 5MB)
+                                if (file.size > 5 * 1024 * 1024) {
+                                  toast.error(
+                                    "حجم الملف كبير جداً، الحد الأقصى 5 ميجابايت"
+                                  );
+                                  return;
+                                }
                                 field.onChange(file);
-                              } else {
-                                toast.error(
-                                  "حجم الملف كبير جداً، الحد الأقصى 5 ميجابايت"
-                                );
                               }
                             }}
                             className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-safedrop-gold/10 file:text-safedrop-primary hover:file:bg-safedrop-gold/20"
@@ -624,6 +724,7 @@ const DriverRegisterContent = () => {
                     </FormItem>
                   )}
                 />
+
                 <FormField
                   control={form.control}
                   name="license_image"
@@ -640,12 +741,15 @@ const DriverRegisterContent = () => {
                             accept="image/*"
                             onChange={(e) => {
                               const file = e.target.files?.[0];
-                              if (file && file.size <= 5 * 1024 * 1024) {
+                              if (file) {
+                                // Validate file size (max 5MB)
+                                if (file.size > 5 * 1024 * 1024) {
+                                  toast.error(
+                                    "حجم الملف كبير جداً، الحد الأقصى 5 ميجابايت"
+                                  );
+                                  return;
+                                }
                                 field.onChange(file);
-                              } else {
-                                toast.error(
-                                  "حجم الملف كبير جداً، الحد الأقصى 5 ميجابا이트"
-                                );
                               }
                             }}
                             className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-safedrop-gold/10 file:text-safedrop-primary hover:file:bg-safedrop-gold/20"
@@ -685,21 +789,23 @@ const DriverRegisterContent = () => {
           </form>
         </Form>
 
-        <p className="text-center mt-4">
+        <div className="text-center mt-4">
           {t("alreadyHaveAccount") || "هل لديك حساب بالفعل؟"}{" "}
           <Link to="/login" className="text-safedrop-gold hover:underline">
             {t("login") || "تسجيل الدخول"}
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );
 };
 
-const DriverRegister = () => (
-  <LanguageProvider>
-    <DriverRegisterContent />
-  </LanguageProvider>
-);
+const DriverRegister = () => {
+  return (
+    <LanguageProvider>
+      <DriverRegisterContent />
+    </LanguageProvider>
+  );
+};
 
 export default DriverRegister;
