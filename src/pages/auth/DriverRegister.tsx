@@ -26,11 +26,11 @@ import {
   PhoneIcon,
   Calendar,
   CheckCircle2,
-  AlertCircle,
   FileText,
   CreditCard,
 } from "lucide-react";
 
+// Enhanced schema with file uploads
 const driverRegisterSchema = z.object({
   firstName: z.string().min(2, {
     message: "الاسم الأول مطلوب",
@@ -70,12 +70,18 @@ const driverRegisterSchema = z.object({
       message: "رقم اللوحة مطلوب",
     }),
   }),
-  id_image: z.any().refine((file) => file instanceof File, {
-    message: "صورة الهوية مطلوبة",
-  }),
-  license_image: z.any().refine((file) => file instanceof File, {
-    message: "صورة الرخصة مطلوبة",
-  }),
+  id_image: z
+    .any()
+    .refine((val) => val instanceof File || !val, {
+      message: "صورة الهوية يجب أن تكون ملف صالح",
+    })
+    .optional(),
+  license_image: z
+    .any()
+    .refine((val) => val instanceof File || !val, {
+      message: "صورة الرخصة يجب أن تكون ملف صالح",
+    })
+    .optional(),
 });
 
 type DriverFormValues = z.infer<typeof driverRegisterSchema>;
@@ -85,14 +91,15 @@ const DriverRegisterContent = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [submitAttempts, setSubmitAttempts] = useState(0);
   const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [debugInfo, setDebugInfo] = useState(null);
   const [waitTime, setWaitTime] = useState(0);
 
+  // Clear any existing auth data on component mount
   useEffect(() => {
-    // Clear any existing auth data on component mount
     clearAuthData();
 
-    // Set up timer for rate limiting
     let timer;
     if (waitTime > 0) {
       timer = setTimeout(() => {
@@ -142,8 +149,8 @@ const DriverRegisterContent = () => {
         year: "",
         plateNumber: "",
       },
-      id_image: null,
-      license_image: null,
+      id_image: undefined,
+      license_image: undefined,
     },
   });
 
@@ -154,7 +161,10 @@ const DriverRegisterContent = () => {
     );
   };
 
+  // File upload function
   const uploadFile = async (file, folder, userId) => {
+    if (!file) return null;
+
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `${userId}_${folder}_${Date.now()}.${fileExt}`;
@@ -192,6 +202,7 @@ const DriverRegisterContent = () => {
     }
 
     setIsLoading(true);
+    setDebugInfo(null);
 
     try {
       // Step 1: Create auth user
@@ -213,6 +224,11 @@ const DriverRegisterContent = () => {
       );
 
       if (signUpError) {
+        setDebugInfo({
+          stage: "auth_signup",
+          error: signUpError,
+        });
+
         if (
           signUpError.message.includes("rate limit") ||
           signUpError.message
@@ -228,11 +244,18 @@ const DriverRegisterContent = () => {
         } else {
           toast.error("خطأ أثناء إنشاء الحساب: " + signUpError.message);
         }
+
         setIsLoading(false);
         return;
       }
 
       if (!authData.user) {
+        setDebugInfo({
+          stage: "auth_signup",
+          error: "No user data returned",
+          response: authData,
+        });
+
         toast.error("فشل إنشاء الحساب، يرجى المحاولة مرة أخرى");
         setIsLoading(false);
         return;
@@ -240,82 +263,178 @@ const DriverRegisterContent = () => {
 
       const userId = authData.user.id;
 
-      // Step 2: Upload documents
-      setUploadingFiles(true);
-      toast.info("جاري رفع المستندات...");
+      // Step 2: Upload document files if provided
+      let idImageUrl = null;
+      let licenseImageUrl = null;
 
-      let idImageUrl, licenseImageUrl;
+      if (data.id_image || data.license_image) {
+        setUploadingFiles(true);
+        toast.info("جاري رفع المستندات...");
 
+        try {
+          // Perform uploads in parallel if both files exist
+          const uploadPromises = [];
+
+          if (data.id_image) {
+            uploadPromises.push(uploadFile(data.id_image, "id-cards", userId));
+          }
+
+          if (data.license_image) {
+            uploadPromises.push(
+              uploadFile(data.license_image, "licenses", userId)
+            );
+          }
+
+          const results = await Promise.all(uploadPromises);
+
+          // Assign results based on which files were uploaded
+          if (data.id_image && data.license_image) {
+            [idImageUrl, licenseImageUrl] = results;
+          } else if (data.id_image) {
+            [idImageUrl] = results;
+          } else if (data.license_image) {
+            [licenseImageUrl] = results;
+          }
+        } catch (uploadError) {
+          toast.warning(
+            "تحذير: فشل في رفع المستندات، سيتم الاستمرار في التسجيل دون صور"
+          );
+          console.error("Upload error:", uploadError);
+          // Continue with registration even if uploads fail
+        } finally {
+          setUploadingFiles(false);
+        }
+      }
+
+      // Step 3: Try to use the server function
       try {
-        [idImageUrl, licenseImageUrl] = await Promise.all([
-          uploadFile(data.id_image, "id-cards", userId),
-          uploadFile(data.license_image, "licenses", userId),
-        ]);
-      } catch (uploadError) {
-        toast.error("فشل في رفع المستندات: " + uploadError.message);
+        const { data: funcResult, error: funcError } = await supabase.rpc(
+          "register_driver",
+          {
+            user_id: userId,
+            first_name: data.firstName,
+            last_name: data.lastName,
+            phone: data.phone,
+            email: data.email,
+            birth_date: data.birthDate,
+            national_id: data.nationalId,
+            license_number: data.licenseNumber,
+            vehicle_info: data.vehicleInfo,
+            status: "pending",
+            is_available: false,
+          }
+        );
+
+        if (funcError) {
+          console.error("Server function error:", funcError);
+          setDebugInfo({
+            stage: "server_function",
+            error: funcError,
+          });
+          throw new Error(funcError.message);
+        }
+
+        if (funcResult && funcResult.success) {
+          // Server function worked! Now update the image URLs if needed
+          if (idImageUrl || licenseImageUrl) {
+            const updateData = {};
+            if (idImageUrl) updateData.id_image = idImageUrl;
+            if (licenseImageUrl) updateData.license_image = licenseImageUrl;
+
+            await supabase.from("drivers").update(updateData).eq("id", userId);
+          }
+
+          setRegistrationComplete(true);
+          toast.success(t("registrationSuccess") || "تم التسجيل بنجاح");
+          return;
+        } else {
+          throw new Error("Server function did not return success");
+        }
+      } catch (serverFuncError) {
+        console.warn(
+          "Server function failed, falling back to direct inserts:",
+          serverFuncError
+        );
+        // Continue with direct inserts below
+      }
+
+      // Step 4: Fall back to direct inserts if server function failed
+      const profileData = {
+        id: userId,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        phone: data.phone,
+        email: data.email,
+        user_type: "driver",
+        birth_date: data.birthDate,
+      };
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert(profileData);
+
+      if (profileError) {
+        setDebugInfo({
+          stage: "profile_insert",
+          error: profileError,
+          attempted_data: profileData,
+        });
+
+        toast.error("خطأ أثناء حفظ بيانات الحساب، يرجى المحاولة لاحقًا");
         setIsLoading(false);
-        setUploadingFiles(false);
         return;
       }
 
-      // Step 3: Use the server-side function to register the driver
-      const { data: registrationResult, error: registrationError } =
-        await supabase.rpc("register_driver_v3", {
-          user_id: userId,
-          first_name: data.firstName,
-          last_name: data.lastName,
-          phone: data.phone,
-          email: data.email,
-          birth_date: data.birthDate,
-          national_id: data.nationalId,
-          license_number: data.licenseNumber,
-          vehicle_info: {
-            make: data.vehicleInfo.make,
-            model: data.vehicleInfo.model,
-            year: data.vehicleInfo.year,
-            plateNumber: data.vehicleInfo.plateNumber,
-          },
-          id_image: idImageUrl,
-          license_image: licenseImageUrl,
+      const driverData = {
+        id: userId,
+        national_id: data.nationalId,
+        license_number: data.licenseNumber,
+        vehicle_info: data.vehicleInfo,
+        status: "pending",
+        is_available: false,
+        // Add image URLs if available
+        ...(idImageUrl && { id_image: idImageUrl }),
+        ...(licenseImageUrl && { license_image: licenseImageUrl }),
+      };
+
+      const { error: driverInsertError } = await supabase
+        .from("drivers")
+        .insert(driverData);
+
+      if (driverInsertError) {
+        setDebugInfo({
+          stage: "driver_insert",
+          error: driverInsertError,
+          attempted_data: driverData,
         });
 
-      if (
-        registrationError ||
-        (registrationResult && !registrationResult.success)
-      ) {
-        // Alert the user of the error but don't stop registration flow
-        console.error(
-          "Registration function error:",
-          registrationError || registrationResult?.error
-        );
-
-        // Store minimal data for admin processing as backup
-        localStorage.setItem(
-          "pendingDriverData",
-          JSON.stringify({
-            userId,
-            email: data.email,
-            timestamp: new Date().toISOString(),
-          })
-        );
-
-        toast.warning(
-          "تم تسجيل بياناتك، ولكن قد تكون هناك مشكلة في النظام. سيتم مراجعة طلبك يدويًا."
-        );
-      } else {
-        toast.success(t("registrationSuccess") || "تم التسجيل بنجاح");
+        toast.error("خطأ أثناء حفظ بيانات السائق، يرجى المحاولة لاحقًا");
+        setIsLoading(false);
+        return;
       }
 
-      // Always consider registration complete - the server function should have handled the registration
-      setRegistrationComplete(true);
+      const { error: roleError } = await supabase.from("user_roles").insert({
+        user_id: userId,
+        role: "driver",
+      });
 
-      // Sign out to clear session
-      await supabase.auth.signOut();
+      if (roleError) {
+        console.error("Error assigning driver role:", roleError);
+        toast.warning("تم إنشاء الحساب، لكن حدثت مشكلة في تعيين الدور");
+      }
+
+      setRegistrationComplete(true);
+      toast.success(t("registrationSuccess") || "تم التسجيل بنجاح");
     } catch (error) {
-      toast.error("حدث خطأ غير متوقع أثناء التسجيل: " + error.message);
+      setDebugInfo({
+        stage: "unexpected_error",
+        error,
+      });
+
+      toast.error("حدث خطأ غير متوقع أثناء التسجيل، يرجى المحاولة مرة أخرى");
+      setSubmitAttempts((prev) => prev + 1);
     } finally {
       setIsLoading(false);
-      setUploadingFiles(false);
     }
   };
 
