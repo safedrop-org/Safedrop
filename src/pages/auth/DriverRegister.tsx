@@ -47,8 +47,9 @@ const driverRegisterSchema = z.object({
   password: z.string().min(8, {
     message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
   }),
-  birthDate: z.string().min(1, {
-    message: "تاريخ الميلاد مطلوب",
+  birthDate: z.date({
+    required_error: "تاريخ الميلاد مطلوب",
+    invalid_type_error: "تاريخ الميلاد غير صالح",
   }),
   nationalId: z.string().min(10, {
     message: "رقم الهوية مطلوب",
@@ -140,7 +141,7 @@ const DriverRegisterContent = () => {
       email: "",
       phone: "",
       password: "",
-      birthDate: "",
+      birthDate: null,
       nationalId: "",
       licenseNumber: "",
       vehicleInfo: {
@@ -579,6 +580,19 @@ const DriverRegisterContent = () => {
                           }
                           className="pl-10"
                           {...field}
+                          value={
+                            field.value
+                              ? new Date(field.value)
+                                  .toISOString()
+                                  .split("T")[0]
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const date = e.target.value
+                              ? new Date(e.target.value)
+                              : null;
+                            field.onChange(date);
+                          }}
                         />
                       </div>
                     </FormControl>
