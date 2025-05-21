@@ -84,6 +84,7 @@ const DriverRegisterContent = () => {
   const [licenseImagePreview, setLicenseImagePreview] = useState("");
   const [idImageFile, setIdImageFile] = useState(null);
   const [licenseImageFile, setLicenseImageFile] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
 
   useEffect(() => {
     let timer;
@@ -141,6 +142,68 @@ const DriverRegisterContent = () => {
     reader.readAsDataURL(file);
   };
 
+  // Upload files directly to Supabase Storage
+  const uploadFilesToSupabase = async (userId) => {
+    const uploadResults = {};
+    try {
+      // Upload ID image if exists
+      if (idImageFile) {
+        const fileExt = idImageFile.name.split(".").pop();
+        const fileName = `${userId}_id_image_${Date.now()}.${fileExt}`;
+        const filePath = `id-cards/${fileName}`;
+
+        const { error: idUploadError } = await supabase.storage
+          .from("driver-documents")
+          .upload(filePath, idImageFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (!idUploadError) {
+          // Get public URL
+          const { data: idImageData } = supabase.storage
+            .from("driver-documents")
+            .getPublicUrl(filePath);
+
+          uploadResults.id_image = idImageData.publicUrl;
+        } else {
+          console.error("Error uploading ID image:", idUploadError);
+        }
+      }
+
+      // Upload license image if exists
+      if (licenseImageFile) {
+        const fileExt = licenseImageFile.name.split(".").pop();
+        const fileName = `${userId}_license_image_${Date.now()}.${fileExt}`;
+        const filePath = `licenses/${fileName}`;
+
+        const { error: licenseUploadError } = await supabase.storage
+          .from("driver-documents")
+          .upload(filePath, licenseImageFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (!licenseUploadError) {
+          // Get public URL
+          const { data: licenseImageData } = supabase.storage
+            .from("driver-documents")
+            .getPublicUrl(filePath);
+
+          uploadResults.license_image = licenseImageData.publicUrl;
+        } else {
+          console.error("Error uploading license image:", licenseUploadError);
+        }
+      }
+
+      return uploadResults;
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      return uploadResults;
+    }
+  };
+
+  // Store file data in localStorage as backup
   const storeFileData = (userId, idImage, licenseImage) => {
     const fileData = {};
 
@@ -164,12 +227,68 @@ const DriverRegisterContent = () => {
     }
   };
 
+  // Create driver record directly
+  const createDriverRecord = async (userId, data, imageUrls) => {
+    try {
+      const driverData = {
+        id: userId,
+        national_id: data.nationalId,
+        license_number: data.licenseNumber,
+        vehicle_info: data.vehicleInfo,
+        status: "pending",
+        is_available: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ...(imageUrls.id_image && { id_image: imageUrls.id_image }),
+        ...(imageUrls.license_image && {
+          license_image: imageUrls.license_image,
+        }),
+      };
+
+      const { error: driverError } = await supabase
+        .from("drivers")
+        .insert(driverData);
+
+      if (driverError) {
+        console.error("Error creating driver record:", driverError);
+        setDebugInfo({
+          stage: "driver_insertion",
+          error: driverError,
+          data: driverData,
+        });
+        return false;
+      }
+
+      // Add driver role
+      const { error: roleError } = await supabase.from("user_roles").insert({
+        user_id: userId,
+        role: "driver",
+        created_at: new Date().toISOString(),
+      });
+
+      if (roleError) {
+        console.error("Error adding driver role:", roleError);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in createDriverRecord:", error);
+      setDebugInfo({
+        stage: "driver_creation",
+        error: error,
+      });
+      return false;
+    }
+  };
+
   const onSubmit = async (data: DriverFormValues) => {
     if (waitTime > 0) {
       toast.error(`يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى`);
       return;
     }
+
     setIsLoading(true);
+    setDebugInfo(null);
 
     try {
       // Step 1: Register the user
@@ -215,7 +334,22 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      // Store user's pending details in a cookie for auth callback
+      // Step 2: Upload files directly to storage
+      const imageUrls = await uploadFilesToSupabase(authData.user.id);
+
+      // Step 3: Create driver record in the database
+      const driverCreated = await createDriverRecord(
+        authData.user.id,
+        data,
+        imageUrls
+      );
+
+      if (!driverCreated) {
+        // Store files in localStorage as backup for the auth callback to process
+        storeFileData(authData.user.id, idImageFile, licenseImageFile);
+      }
+
+      // Step 4: Store user's pending details in a cookie for auth callback
       const pendingUserDetails = {
         first_name: data.firstName,
         last_name: data.lastName,
@@ -235,14 +369,16 @@ const DriverRegisterContent = () => {
         sameSite: "strict",
       });
 
-      // Step 2: Store image data in localStorage for processing after email verification
-      storeFileData(authData.user.id, idImageFile, licenseImageFile);
-
       // Success - show confirmation screen
       setRegistrationComplete(true);
       toast.success(t("registrationSuccess"));
     } catch (error) {
+      console.error("Unexpected error during registration:", error);
       toast.error("حدث خطأ غير متوقع أثناء التسجيل، يرجى المحاولة مرة أخرى");
+      setDebugInfo({
+        stage: "unexpected_error",
+        error: error,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -309,6 +445,23 @@ const DriverRegisterContent = () => {
                 ? `الوقت المتبقي: ${waitTime} ثانية`
                 : `Time remaining: ${waitTime} seconds`}
             </p>
+          </div>
+        )}
+
+        {debugInfo && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4 text-xs">
+            <h3 className="text-red-800 font-medium">
+              Debug Info (Admin Only)
+            </h3>
+            <p className="text-red-700">Stage: {debugInfo.stage}</p>
+            <p className="text-red-700">
+              Error: {JSON.stringify(debugInfo.error)}
+            </p>
+            {debugInfo.data && (
+              <pre className="mt-2 overflow-auto max-h-32">
+                {JSON.stringify(debugInfo.data, null, 2)}
+              </pre>
+            )}
           </div>
         )}
 
