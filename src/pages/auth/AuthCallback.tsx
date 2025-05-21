@@ -16,6 +16,7 @@ const AuthCallbackContent = () => {
   const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState(null);
   const [userType, setUserType] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   // File upload handling for driver document images
   const processDriverFiles = async (userId) => {
@@ -24,7 +25,12 @@ const AuthCallbackContent = () => {
       const fileDataKey = `driverFiles_${userId}`;
       const fileDataStr = localStorage.getItem(fileDataKey);
 
-      if (!fileDataStr) return null;
+      if (!fileDataStr) {
+        console.log("No file data found in localStorage");
+        return null;
+      }
+
+      console.log("Found file data in localStorage, processing...");
 
       const fileData = JSON.parse(fileDataStr);
       const uploadResults = {};
@@ -32,6 +38,8 @@ const AuthCallbackContent = () => {
       // Process each file
       for (const fileType of ["id_image", "license_image"]) {
         if (fileData[fileType]) {
+          console.log(`Processing ${fileType}...`);
+
           // Convert data URL back to file
           const dataURLParts = fileData[fileType].dataUrl.split(",");
           const mime = dataURLParts[0].match(/:(.*?);/)[1];
@@ -54,6 +62,8 @@ const AuthCallbackContent = () => {
             fileType === "id_image" ? "id-cards" : "licenses"
           }/${fileName}`;
 
+          console.log(`Uploading ${fileType} to ${filePath}...`);
+
           const { error: uploadError } = await supabase.storage
             .from("driver-documents")
             .upload(filePath, file, {
@@ -72,11 +82,13 @@ const AuthCallbackContent = () => {
           } = supabase.storage.from("driver-documents").getPublicUrl(filePath);
 
           uploadResults[fileType] = publicUrl;
+          console.log(`Successfully uploaded ${fileType}, URL: ${publicUrl}`);
         }
       }
 
       // Clean up localStorage
       localStorage.removeItem(fileDataKey);
+      console.log("Removed file data from localStorage");
 
       return Object.keys(uploadResults).length > 0 ? uploadResults : null;
     } catch (error) {
@@ -87,6 +99,8 @@ const AuthCallbackContent = () => {
 
   const verifyEmail = useCallback(async () => {
     try {
+      console.log("Starting email verification process...");
+
       const queryParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
 
@@ -98,11 +112,13 @@ const AuthCallbackContent = () => {
 
       // Try to verify with query token
       if (tokenInQuery && typeInQuery) {
+        console.log("Found token in query, attempting to verify OTP...");
         try {
           await supabase.auth.verifyOtp({
             token_hash: tokenInQuery,
             type: typeInQuery === "signup" ? "signup" : "recovery",
           });
+          console.log("OTP verification successful");
         } catch (e) {
           // Continue even if verification fails
           console.warn("OTP verification warning:", e);
@@ -110,11 +126,13 @@ const AuthCallbackContent = () => {
       }
       // Try to set session with hash tokens
       else if (accessToken && refreshToken) {
+        console.log("Found tokens in hash, attempting to set session...");
         try {
           await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
+          console.log("Session set successfully");
         } catch (e) {
           // Continue even if setting session fails
           console.warn("Session setting warning:", e);
@@ -122,15 +140,20 @@ const AuthCallbackContent = () => {
       }
 
       // Check for current session
+      console.log("Checking for current session...");
       const {
         data: { session },
         error: sessionError,
       } = await supabase.auth.getSession();
 
-      if (sessionError) throw new Error("خطأ في الجلسة");
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        throw new Error("خطأ في الجلسة");
+      }
 
       // Handle no session case
       if (!session) {
+        console.log("No session found, checking for email in URL or cookie");
         const emailFromUrl =
           queryParams.get("email") || hashParams.get("email");
 
@@ -142,64 +165,101 @@ const AuthCallbackContent = () => {
             if (pendingUserDetails) {
               const details = JSON.parse(pendingUserDetails);
               pendingEmail = details.email;
+              console.log(
+                "Found email in pendingUserDetails cookie:",
+                pendingEmail
+              );
             }
           } catch (e) {
+            console.warn("Error parsing pendingUserDetails cookie:", e);
             // Continue without email
           }
         }
 
         // Redirect to login with success message if we have an email
         if (pendingEmail) {
+          console.log("No session but have email, redirecting to login");
+          setSuccess(true);
           toast.success(
             "تم التحقق من البريد الإلكتروني بنجاح. يرجى تسجيل الدخول."
           );
-          navigate("/login", {
-            replace: true,
-            state: {
-              message:
-                "تم التحقق من البريد الإلكتروني بنجاح. يرجى تسجيل الدخول.",
-              type: "success",
-              verifiedEmail: pendingEmail,
-            },
-          });
+
+          // Remove cookie
+          console.log("Removing pendingUserDetails cookie");
+          Cookies.remove("pendingUserDetails", { path: "/" });
+
+          setTimeout(() => {
+            navigate("/login", {
+              replace: true,
+              state: {
+                message:
+                  "تم التحقق من البريد الإلكتروني بنجاح. يرجى تسجيل الدخول.",
+                type: "success",
+                verifiedEmail: pendingEmail,
+              },
+            });
+          }, 2000);
           return;
         }
 
+        console.error("No session and no email found");
         throw new Error("لم يتم العثور على جلسة المستخدم");
       }
 
       // Get user details
+      console.log("Session found, getting user details");
       const {
         data: { user },
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError || !user) throw new Error("لم يتم العثور على المستخدم");
-      if (!user.email_confirmed_at)
+      if (userError || !user) {
+        console.error("User error:", userError);
+        throw new Error("لم يتم العثور على المستخدم");
+      }
+
+      console.log(
+        "User found:",
+        user.id,
+        "Email confirmed at:",
+        user.email_confirmed_at
+      );
+
+      if (!user.email_confirmed_at) {
+        console.error("Email not confirmed yet");
         throw new Error("لم يتم تأكيد البريد الإلكتروني بعد");
+      }
 
       // Get user type from metadata
       let userTypeValue = user.user_metadata?.user_type;
+      console.log("User type from metadata:", userTypeValue);
 
       // Try to get pending details from cookie
       let pendingUserDetails = null;
       try {
         const cookieData = Cookies.get("pendingUserDetails");
-        if (cookieData) pendingUserDetails = JSON.parse(cookieData);
+        if (cookieData) {
+          pendingUserDetails = JSON.parse(cookieData);
+          console.log("Found pendingUserDetails:", pendingUserDetails);
+        }
       } catch (e) {
         console.warn("Error parsing pendingUserDetails cookie:", e);
         // Continue without pending details
       }
 
       // Check if profile exists
+      console.log("Checking if profile exists");
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("user_type")
+        .select("*")
         .eq("id", user.id)
         .maybeSingle();
 
+      console.log("Profile check result:", profileData, profileError);
+
       // Create profile if it doesn't exist
       if (!profileData && (!profileError || profileError.code === "PGRST116")) {
+        console.log("Profile doesn't exist, creating it");
         const userMetadata = {
           id: user.id,
           first_name:
@@ -225,19 +285,31 @@ const AuthCallbackContent = () => {
           updated_at: new Date().toISOString(),
         };
 
+        console.log("Inserting profile with data:", userMetadata);
         try {
           const { error: insertProfileError } = await supabase
             .from("profiles")
             .insert(userMetadata);
 
-          if (insertProfileError) throw insertProfileError;
+          if (insertProfileError) {
+            console.error("Error inserting profile:", insertProfileError);
+            throw insertProfileError;
+          }
 
           userTypeValue = userMetadata.user_type;
+          console.log(
+            "Profile created successfully, user type:",
+            userTypeValue
+          );
 
           // If the user is a driver, create the driver record
           if (userTypeValue === "driver") {
+            console.log("User is a driver, creating driver record");
+
             // Process driver files if available
+            console.log("Processing driver files");
             const fileUrls = await processDriverFiles(user.id);
+            console.log("File upload results:", fileUrls);
 
             // Create the driver record
             const driverData = {
@@ -255,15 +327,19 @@ const AuthCallbackContent = () => {
               }),
             };
 
+            console.log("Inserting driver record:", driverData);
             const { error: driverError } = await supabase
               .from("drivers")
               .insert(driverData);
 
             if (driverError) {
               console.error("Error creating driver record:", driverError);
+            } else {
+              console.log("Driver record created successfully");
             }
 
             // Add driver role
+            console.log("Adding driver role");
             const { error: roleError } = await supabase
               .from("user_roles")
               .insert({
@@ -274,6 +350,8 @@ const AuthCallbackContent = () => {
 
             if (roleError) {
               console.error("Error assigning driver role:", roleError);
+            } else {
+              console.log("Driver role assigned successfully");
             }
           }
         } catch (e) {
@@ -281,17 +359,25 @@ const AuthCallbackContent = () => {
           // Continue even if profile creation fails
         }
       } else if (profileData) {
+        console.log("Profile exists, updating email_verified");
         userTypeValue = profileData.user_type;
 
-        // Update email_verified if column exists
+        // Update email_verified
         try {
-          await supabase
+          console.log("Updating email_verified to true");
+          const { error: updateError } = await supabase
             .from("profiles")
             .update({
               email_verified: true,
               updated_at: new Date().toISOString(),
             })
             .eq("id", user.id);
+
+          if (updateError) {
+            console.error("Error updating email_verified:", updateError);
+          } else {
+            console.log("email_verified updated successfully");
+          }
         } catch (e) {
           console.warn("Error updating email_verified:", e);
           // Continue even if update fails
@@ -299,19 +385,24 @@ const AuthCallbackContent = () => {
       }
 
       // Remove the pending user cookie
-      Cookies.remove("pendingUserDetails");
+      console.log("Removing pendingUserDetails cookie");
+      Cookies.remove("pendingUserDetails", { path: "/" });
 
       setUserType(userTypeValue);
+      setSuccess(true);
       toast.success("تم التحقق من البريد الإلكتروني بنجاح");
 
       // Sign out and redirect
+      console.log("Signing out user");
       await supabase.auth.signOut();
 
       // Use direct window location instead of navigate for more reliable redirect
+      console.log("Redirecting to login page");
       setTimeout(() => {
         window.location.href = "/login?verified=true";
-      }, 100);
+      }, 2000);
     } catch (err) {
+      console.error("Verification error:", err);
       const errorMessage =
         err instanceof Error
           ? err.message
@@ -320,8 +411,10 @@ const AuthCallbackContent = () => {
       toast.error("حدث خطأ أثناء التحقق من البريد الإلكتروني");
 
       try {
+        console.log("Signing out after error");
         await supabase.auth.signOut();
       } catch (e) {
+        console.warn("Error during sign out:", e);
         // Ignore sign out errors
       }
     } finally {
@@ -364,7 +457,10 @@ const AuthCallbackContent = () => {
           <p className="text-gray-600">{error}</p>
           <div className="mt-6">
             <Button
-              onClick={() => navigate("/login")}
+              onClick={() => {
+                Cookies.remove("pendingUserDetails", { path: "/" });
+                navigate("/login");
+              }}
               className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
             >
               الذهاب إلى صفحة تسجيل الدخول
@@ -375,21 +471,26 @@ const AuthCallbackContent = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-        <div className="mx-auto flex items-center justify-center">
-          <CheckCircle2 className="h-16 w-16 text-green-500" />
+  if (success) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
+          <div className="mx-auto flex items-center justify-center">
+            <CheckCircle2 className="h-16 w-16 text-green-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-safedrop-primary">
+            تم التحقق من البريد الإلكتروني
+          </h2>
+          <p className="text-gray-600">
+            تم تأكيد بريدك الإلكتروني بنجاح. جاري تحويلك إلى صفحة تسجيل
+            الدخول...
+          </p>
         </div>
-        <h2 className="text-2xl font-bold text-safedrop-primary">
-          تم التحقق من البريد الإلكتروني
-        </h2>
-        <p className="text-gray-600">
-          تم تأكيد بريدك الإلكتروني بنجاح. جاري تحويلك إلى صفحة تسجيل الدخول...
-        </p>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 };
 
 const AuthCallback = () => (
