@@ -17,7 +17,6 @@ const AuthCallbackContent = () => {
   const [error, setError] = useState(null);
   const [userType, setUserType] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [debugInfo, setDebugInfo] = useState(null);
 
   // File upload handling for driver document images
   const processDriverFiles = async (userId) => {
@@ -95,114 +94,6 @@ const AuthCallbackContent = () => {
     } catch (error) {
       console.error("Error processing driver files:", error);
       return null;
-    }
-  };
-
-  // Create driver record with all related data
-  const createDriverRecord = async (userId, driverData, fileUrls) => {
-    try {
-      console.log("Creating driver record using the function");
-      // Try to use the function first (which bypasses RLS)
-      const { data: result, error: functionError } = await supabase.rpc(
-        "create_driver_with_related_records",
-        {
-          in_user_id: userId,
-          in_national_id: driverData.national_id || "",
-          in_license_number: driverData.license_number || "",
-          in_vehicle_info: driverData.vehicle_info || {},
-          in_id_image: fileUrls?.id_image || null,
-          in_license_image: fileUrls?.license_image || null,
-        }
-      );
-
-      if (functionError) {
-        console.error("Error creating driver with function:", functionError);
-        setDebugInfo({
-          stage: "driver_function_call",
-          error: functionError,
-        });
-
-        // Fallback to direct insertion
-        console.log("Falling back to direct driver record insertion");
-        const directDriverData = {
-          id: userId,
-          national_id: driverData.national_id || "",
-          license_number: driverData.license_number || "",
-          vehicle_info: driverData.vehicle_info || {},
-          status: "pending",
-          is_available: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          ...(fileUrls?.id_image && { id_image: fileUrls.id_image }),
-          ...(fileUrls?.license_image && {
-            license_image: fileUrls.license_image,
-          }),
-        };
-
-        // Insert driver record
-        const { error: driverError } = await supabase
-          .from("drivers")
-          .insert(directDriverData);
-        if (driverError) {
-          console.error("Error inserting driver record directly:", driverError);
-          setDebugInfo({
-            stage: "driver_direct_insert",
-            error: driverError,
-            data: directDriverData,
-          });
-          throw driverError;
-        }
-
-        // Insert role
-        const { error: roleError } = await supabase.from("user_roles").insert({
-          user_id: userId,
-          role: "driver",
-          created_at: new Date().toISOString(),
-        });
-
-        if (roleError) {
-          console.warn("Error creating driver role:", roleError);
-        }
-
-        // Create earnings record
-        try {
-          await supabase.from("driver_earnings").insert({
-            driver_id: userId,
-            amount: 0,
-            status: "initial",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-        } catch (earningsError) {
-          console.warn(
-            "Error creating initial earnings record:",
-            earningsError
-          );
-        }
-
-        // Create welcome notification
-        try {
-          await supabase.from("driver_notifications").insert({
-            driver_id: userId,
-            title: "مرحبا بك في منصة سيف دروب",
-            message:
-              "شكرا لانضمامك إلى فريق سائقي سيف دروب! طلبك قيد المراجعة وسيتم إعلامك فور الموافقة عليه.",
-            notification_type: "welcome",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-        } catch (notificationError) {
-          console.warn(
-            "Error creating welcome notification:",
-            notificationError
-          );
-        }
-      }
-
-      return true;
-    } catch (error) {
-      console.error("Error in createDriverRecord:", error);
-      return false;
     }
   };
 
@@ -420,24 +311,47 @@ const AuthCallbackContent = () => {
             const fileUrls = await processDriverFiles(user.id);
             console.log("File upload results:", fileUrls);
 
-            // Prepare the driver data
+            // Create the driver record
             const driverData = {
+              id: user.id,
               national_id: pendingUserDetails?.national_id || "",
               license_number: pendingUserDetails?.license_number || "",
               vehicle_info: pendingUserDetails?.vehicle_info || {},
+              status: "pending",
+              is_available: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              ...(fileUrls?.id_image && { id_image: fileUrls.id_image }),
+              ...(fileUrls?.license_image && {
+                license_image: fileUrls.license_image,
+              }),
             };
 
-            // Create driver record and related data
-            const driverCreated = await createDriverRecord(
-              user.id,
-              driverData,
-              fileUrls
-            );
+            console.log("Inserting driver record:", driverData);
+            const { error: driverError } = await supabase
+              .from("drivers")
+              .insert(driverData);
 
-            if (!driverCreated) {
-              console.error("Failed to create driver record");
+            if (driverError) {
+              console.error("Error creating driver record:", driverError);
             } else {
               console.log("Driver record created successfully");
+            }
+
+            // Add driver role
+            console.log("Adding driver role");
+            const { error: roleError } = await supabase
+              .from("user_roles")
+              .insert({
+                user_id: user.id,
+                role: "driver",
+                created_at: new Date().toISOString(),
+              });
+
+            if (roleError) {
+              console.error("Error assigning driver role:", roleError);
+            } else {
+              console.log("Driver role assigned successfully");
             }
           }
         } catch (e) {
@@ -559,12 +473,6 @@ const AuthCallbackContent = () => {
             فشل التحقق من البريد الإلكتروني
           </h2>
           <p className="text-gray-600">{error}</p>
-          {debugInfo && (
-            <div className="bg-red-50 p-3 rounded mt-4 text-xs text-left overflow-auto max-h-32">
-              <p className="font-semibold text-red-800">Debug Info:</p>
-              <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
-            </div>
-          )}
           <div className="mt-6">
             <Button
               onClick={() => {

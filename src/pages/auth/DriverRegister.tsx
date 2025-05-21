@@ -142,7 +142,68 @@ const DriverRegisterContent = () => {
     reader.readAsDataURL(file);
   };
 
-  // Store file data in localStorage for AuthCallback to process
+  // Upload files directly to Supabase Storage
+  const uploadFilesToSupabase = async (userId) => {
+    const uploadResults = {};
+    try {
+      // Upload ID image if exists
+      if (idImageFile) {
+        const fileExt = idImageFile.name.split(".").pop();
+        const fileName = `${userId}_id_image_${Date.now()}.${fileExt}`;
+        const filePath = `id-cards/${fileName}`;
+
+        const { error: idUploadError } = await supabase.storage
+          .from("driver-documents")
+          .upload(filePath, idImageFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (!idUploadError) {
+          // Get public URL
+          const { data: idImageData } = supabase.storage
+            .from("driver-documents")
+            .getPublicUrl(filePath);
+
+          uploadResults.id_image = idImageData.publicUrl;
+        } else {
+          console.error("Error uploading ID image:", idUploadError);
+        }
+      }
+
+      // Upload license image if exists
+      if (licenseImageFile) {
+        const fileExt = licenseImageFile.name.split(".").pop();
+        const fileName = `${userId}_license_image_${Date.now()}.${fileExt}`;
+        const filePath = `licenses/${fileName}`;
+
+        const { error: licenseUploadError } = await supabase.storage
+          .from("driver-documents")
+          .upload(filePath, licenseImageFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (!licenseUploadError) {
+          // Get public URL
+          const { data: licenseImageData } = supabase.storage
+            .from("driver-documents")
+            .getPublicUrl(filePath);
+
+          uploadResults.license_image = licenseImageData.publicUrl;
+        } else {
+          console.error("Error uploading license image:", licenseUploadError);
+        }
+      }
+
+      return uploadResults;
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      return uploadResults;
+    }
+  };
+
+  // Store file data in localStorage as backup
   const storeFileData = (userId, idImage, licenseImage) => {
     const fileData = {};
 
@@ -163,6 +224,60 @@ const DriverRegisterContent = () => {
     if (Object.keys(fileData).length > 0) {
       const fileDataKey = `driverFiles_${userId}`;
       localStorage.setItem(fileDataKey, JSON.stringify(fileData));
+    }
+  };
+
+  // Create driver record directly
+  const createDriverRecord = async (userId, data, imageUrls) => {
+    try {
+      const driverData = {
+        id: userId,
+        national_id: data.nationalId,
+        license_number: data.licenseNumber,
+        vehicle_info: data.vehicleInfo,
+        status: "pending",
+        is_available: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ...(imageUrls.id_image && { id_image: imageUrls.id_image }),
+        ...(imageUrls.license_image && {
+          license_image: imageUrls.license_image,
+        }),
+      };
+
+      const { error: driverError } = await supabase
+        .from("drivers")
+        .insert(driverData);
+
+      if (driverError) {
+        console.error("Error creating driver record:", driverError);
+        setDebugInfo({
+          stage: "driver_insertion",
+          error: driverError,
+          data: driverData,
+        });
+        return false;
+      }
+
+      // Add driver role
+      const { error: roleError } = await supabase.from("user_roles").insert({
+        user_id: userId,
+        role: "driver",
+        created_at: new Date().toISOString(),
+      });
+
+      if (roleError) {
+        console.error("Error adding driver role:", roleError);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in createDriverRecord:", error);
+      setDebugInfo({
+        stage: "driver_creation",
+        error: error,
+      });
+      return false;
     }
   };
 
@@ -219,12 +334,22 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      // Step 2: Store files in localStorage for AuthCallback to process
-      if (idImageFile || licenseImageFile) {
+      // Step 2: Upload files directly to storage
+      const imageUrls = await uploadFilesToSupabase(authData.user.id);
+
+      // Step 3: Create driver record in the database
+      const driverCreated = await createDriverRecord(
+        authData.user.id,
+        data,
+        imageUrls
+      );
+
+      if (!driverCreated) {
+        // Store files in localStorage as backup for the auth callback to process
         storeFileData(authData.user.id, idImageFile, licenseImageFile);
       }
 
-      // Step 3: Store user's pending details in a cookie for auth callback
+      // Step 4: Store user's pending details in a cookie for auth callback
       const pendingUserDetails = {
         first_name: data.firstName,
         last_name: data.lastName,
