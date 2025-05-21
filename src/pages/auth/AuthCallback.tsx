@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+// src/components/AuthCallback.tsx
+import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   LanguageProvider,
@@ -15,183 +16,142 @@ const AuthCallbackContent = () => {
   const { t } = useLanguage();
   const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userType, setUserType] = useState<string | null>(null);
 
   const verifyEmail = useCallback(async () => {
     try {
-      const queryParams = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      // 1) Parse tokens from URL
+      const query = new URLSearchParams(window.location.search);
+      const hash = new URLSearchParams(window.location.hash.substring(1));
+      const token = query.get("token");
+      const type = query.get("type");
+      const access_token = hash.get("access_token");
+      const refresh_token = hash.get("refresh_token");
 
-      // Extract tokens from URL
-      const tokenInQuery = queryParams.get("token");
-      const typeInQuery = queryParams.get("type");
-      const accessToken = hashParams.get("access_token");
-      const refreshToken = hashParams.get("refresh_token");
-
-      // Try to verify with query token
-      if (tokenInQuery && typeInQuery) {
-        try {
-          await supabase.auth.verifyOtp({
-            token_hash: tokenInQuery,
-            type: typeInQuery === "signup" ? "signup" : "recovery",
-          });
-        } catch (e) {
-          // Continue even if verification fails
-        }
+      // 2) If this is the OTP flow, verify
+      if (token && type) {
+        await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: type === "signup" ? "signup" : "recovery",
+        });
       }
-      // Try to set session with hash tokens
-      else if (accessToken && refreshToken) {
-        try {
-          await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-        } catch (e) {
-          // Continue even if setting session fails
-        }
+      // 3) Otherwise, set session from the hash fragment
+      else if (access_token && refresh_token) {
+        await supabase.auth.setSession({ access_token, refresh_token });
       }
 
-      // Check for current session
+      // 4) Retrieve session
       const {
         data: { session },
         error: sessionError,
       } = await supabase.auth.getSession();
-
       if (sessionError) throw new Error("خطأ في الجلسة");
-
-      // Handle no session case
       if (!session) {
-        const emailFromUrl =
-          queryParams.get("email") || hashParams.get("email");
-
-        // Try to get email from cookie if not in URL
-        let pendingEmail = emailFromUrl;
-        if (!pendingEmail) {
-          try {
-            const pendingUserDetails = Cookies.get("pendingUserDetails");
-            if (pendingUserDetails) {
-              const details = JSON.parse(pendingUserDetails);
-              pendingEmail = details.email;
-            }
-          } catch (e) {
-            // Continue without email
-          }
-        }
-
-        // Redirect to login with success message if we have an email
-        if (pendingEmail) {
-          toast.success(
-            "تم التحقق من البريد الإلكتروني بنجاح. يرجى تسجيل الدخول."
-          );
-          navigate("/login", {
-            replace: true,
-            state: {
-              message:
-                "تم التحقق من البريد الإلكتروني بنجاح. يرجى تسجيل الدخول.",
-              type: "success",
-              verifiedEmail: pendingEmail,
-            },
-          });
-          return;
-        }
-
-        throw new Error("لم يتم العثور على جلسة المستخدم");
+        // No session: email confirmed but not signed in
+        toast.success(
+          "تم التحقق من البريد الإلكتروني بنجاح. يرجى تسجيل الدخول."
+        );
+        return navigate("/login", {
+          replace: true,
+          state: {
+            message: "تم التحقق من البريد الإلكتروني بنجاح. يرجى تسجيل الدخول.",
+            type: "success",
+            verifiedEmail: query.get("email") || hash.get("email"),
+          },
+        });
       }
 
-      // Get user details
+      // 5) Get the authenticated user
       const {
         data: { user },
         error: userError,
       } = await supabase.auth.getUser();
-
       if (userError || !user) throw new Error("لم يتم العثور على المستخدم");
       if (!user.email_confirmed_at)
         throw new Error("لم يتم تأكيد البريد الإلكتروني بعد");
 
-      // Get user type from metadata
-      let userTypeValue = user.user_metadata?.user_type;
+      // 6) Read pending details from cookie
+      const pendingDriverStr = Cookies.get("pendingDriverDetails");
+      const pendingDriver = pendingDriverStr
+        ? JSON.parse(pendingDriverStr)
+        : null;
+      const pendingCustomerStr = Cookies.get("pendingUserDetails");
+      const pendingCustomer = pendingCustomerStr
+        ? JSON.parse(pendingCustomerStr)
+        : null;
 
-      // Try to get pending details from cookie
-      let pendingUserDetails = null;
-      try {
-        const cookieData = Cookies.get("pendingUserDetails");
-        if (cookieData) pendingUserDetails = JSON.parse(cookieData);
-      } catch (e) {
-        // Continue without pending details
-      }
-
-      // Check if profile exists
+      // 7) Check if a profile already exists
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("user_type")
         .eq("id", user.id)
         .maybeSingle();
 
-      // Create profile if it doesn't exist
-      if (!profileData && (!profileError || profileError.code === "PGRST116")) {
-        const userMetadata = {
-          id: user.id,
-          first_name:
-            pendingUserDetails?.first_name ||
-            user.user_metadata?.first_name ||
-            "",
-          last_name:
-            pendingUserDetails?.last_name ||
-            user.user_metadata?.last_name ||
-            "",
-          phone: pendingUserDetails?.phone || user.user_metadata?.phone || "",
-          user_type:
-            pendingUserDetails?.user_type ||
-            user.user_metadata?.user_type ||
-            "customer",
-        };
-
-        try {
-          await supabase.from("profiles").insert(userMetadata);
-          userTypeValue = userMetadata.user_type;
-        } catch (e) {
-          // Continue even if profile creation fails
-        }
-      } else if (profileData) {
-        userTypeValue = profileData.user_type;
-
-        // Update email_verified if column exists
-        try {
-          await supabase
-            .from("profiles")
-            .update({ email_verified: true })
-            .eq("id", user.id);
-        } catch (e) {
-          // Continue even if update fails
+      // 8) If no profile row, insert based on user_type
+      if (
+        !profileData &&
+        (!profileError || (profileError as any).code === "PGRST116")
+      ) {
+        if (pendingDriver?.user_type === "driver") {
+          // a) Insert into profiles
+          await supabase.from("profiles").insert({
+            id: user.id,
+            first_name: pendingDriver.firstName,
+            last_name: pendingDriver.lastName,
+            phone: pendingDriver.phone,
+            email: pendingDriver.email,
+            user_type: "driver",
+            birth_date: pendingDriver.birth_date,
+          });
+          // b) Insert into drivers
+          await supabase.from("drivers").insert({
+            id: user.id,
+            national_id: pendingDriver.nationalId,
+            license_number: pendingDriver.licenseNumber,
+            vehicle_info: pendingDriver.vehicleInfo,
+            status: "pending",
+            is_available: false,
+            id_image: pendingDriver.idImageUrl,
+            license_image: pendingDriver.licenseImageUrl,
+          });
+          // c) Assign driver role
+          await supabase.from("user_roles").insert({
+            user_id: user.id,
+            role: "driver",
+          });
+        } else {
+          // Default / customer flow: just insert in profiles
+          await supabase.from("profiles").insert({
+            id: user.id,
+            first_name:
+              pendingCustomer?.first_name ||
+              user.user_metadata?.first_name ||
+              "",
+            last_name:
+              pendingCustomer?.last_name || user.user_metadata?.last_name || "",
+            phone: pendingCustomer?.phone || user.user_metadata?.phone || "",
+            email: user.email!,
+            user_type: "customer",
+          });
         }
       }
 
-      // Remove the pending user cookie
+      // 9) Clean up pending cookies
+      Cookies.remove("pendingDriverDetails");
       Cookies.remove("pendingUserDetails");
 
-      setUserType(userTypeValue);
+      // 10) Success, sign out & redirect
       toast.success("تم التحقق من البريد الإلكتروني بنجاح");
-
-      // Sign out and redirect
       await supabase.auth.signOut();
-
-      // Use direct window location instead of navigate for more reliable redirect
       setTimeout(() => {
         window.location.href = "/login?verified=true";
       }, 100);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "حدث خطأ أثناء التحقق من البريد الإلكتروني";
-      setError(errorMessage);
-      toast.error("حدث خطأ أثناء التحقق من البريد الإلكتروني");
-
+    } catch (e: any) {
+      console.error("AuthCallback error:", e);
+      setError(e.message || "حدث خطأ أثناء التحقق من البريد الإلكتروني");
+      toast.error("فشل التحقق من البريد الإلكتروني");
       try {
         await supabase.auth.signOut();
-      } catch (e) {
-        // Ignore sign out errors
-      }
+      } catch {}
     } finally {
       setIsVerifying(false);
     }
@@ -203,17 +163,13 @@ const AuthCallbackContent = () => {
 
   if (isVerifying) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <div className="mx-auto flex items-center justify-center">
-            <Loader2 className="h-16 w-16 text-safedrop-primary animate-spin" />
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white shadow-lg rounded-xl p-8 text-center">
+          <Loader2 className="h-16 w-16 text-safedrop-primary animate-spin mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-safedrop-primary">
             جاري التحقق من البريد الإلكتروني
           </h2>
-          <p className="text-gray-600">
-            يرجى الانتظار بينما نتحقق من بريدك الإلكتروني...
-          </p>
+          <p className="mt-2 text-gray-600">يرجى الانتظار...</p>
         </div>
       </div>
     );
@@ -221,21 +177,19 @@ const AuthCallbackContent = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <div className="mx-auto flex items-center justify-center">
-            <AlertCircle className="h-16 w-16 text-red-500" />
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white shadow-lg rounded-xl p-8 text-center">
+          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-safedrop-primary">
-            فشل التحقق من البريد الإلكتروني
+            فشل التحقق
           </h2>
-          <p className="text-gray-600">{error}</p>
+          <p className="mt-2 text-gray-600">{error}</p>
           <div className="mt-6">
             <Button
-              onClick={() => navigate("/login")}
-              className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
+              onClick={() => (window.location.href = "/login")}
+              className="bg-safedrop-gold hover:bg-safedrop-gold/90"
             >
-              الذهاب إلى صفحة تسجيل الدخول
+              العودة لتسجيل الدخول
             </Button>
           </div>
         </div>
