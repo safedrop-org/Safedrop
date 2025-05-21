@@ -216,7 +216,7 @@ const DriverRegisterContent = () => {
               last_name: data.lastName,
               phone: data.phone,
               user_type: "driver",
-              birth_date: data.birthDate,
+              birth_date: new Date(data.birthDate),
             },
             emailRedirectTo: window.location.origin + "/auth/callback",
           },
@@ -316,7 +316,7 @@ const DriverRegisterContent = () => {
             last_name: data.lastName,
             phone: data.phone,
             email: data.email,
-            birth_date: data.birthDate,
+            birth_date: new Date(data.birthDate),
             national_id: data.nationalId,
             license_number: data.licenseNumber,
             vehicle_info: data.vehicleInfo,
@@ -366,7 +366,7 @@ const DriverRegisterContent = () => {
         phone: data.phone,
         email: data.email,
         user_type: "driver",
-        birth_date: data.birthDate,
+        birth_date: new Date(data.birthDate),
       };
 
       const { error: profileError } = await supabase
