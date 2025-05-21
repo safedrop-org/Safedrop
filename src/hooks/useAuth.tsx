@@ -25,8 +25,15 @@ export function useAuth() {
     });
 
     // Clear localStorage items related to auth
-    localStorage.removeItem("pendingDriverRegistration");
-    localStorage.removeItem("pendingDriverData");
+    for (const key of Object.keys(localStorage)) {
+      if (
+        key.startsWith("driverFiles_") ||
+        key === "pendingDriverRegistration" ||
+        key === "pendingDriverData"
+      ) {
+        localStorage.removeItem(key);
+      }
+    }
 
     // Clear Supabase tokens from localStorage
     if (window.localStorage) {
@@ -180,7 +187,7 @@ export function useAuth() {
     try {
       // Use the server function
       const { data, error } = await supabase.rpc("get_driver_status_v3", {
-        driver_id: userId,
+        in_driver_id: userId,
       });
 
       if (error) throw error;

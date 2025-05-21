@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   LanguageProvider,
@@ -382,6 +382,24 @@ const AuthCallbackContent = () => {
           console.warn("Error updating email_verified:", e);
           // Continue even if update fails
         }
+      }
+
+      // Call the verify_user_email RPC function
+      try {
+        const { data: verifyResult, error: verifyError } = await supabase.rpc(
+          "verify_user_email",
+          {
+            user_id: user.id,
+          }
+        );
+
+        if (verifyError) {
+          console.warn("Error calling verify_user_email:", verifyError);
+        } else {
+          console.log("verify_user_email result:", verifyResult);
+        }
+      } catch (e) {
+        console.warn("Exception calling verify_user_email:", e);
       }
 
       // Remove the pending user cookie

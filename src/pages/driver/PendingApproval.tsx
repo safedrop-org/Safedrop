@@ -1,4 +1,3 @@
-// src/components/PendingApproval.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -16,17 +15,26 @@ const PendingApprovalContent = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const [driverStatus, setDriverStatus] = useState<{
-    status: "pending" | "approved" | "rejected";
-    rejection_reason?: string;
-  } | null>(null);
+  const [driverStatus, setDriverStatus] = useState({
+    status: "pending",
+    rejection_reason: null,
+  });
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   // Clear any orphaned cookies/storage on mount
   useEffect(() => {
-    Cookies.remove("pendingDriverDetails");
-  }, []);
+    Cookies.remove("pendingUserDetails");
+
+    // Also clean up any driver file entries that don't match current user
+    if (user?.id) {
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith("driverFiles_") && !key.includes(user.id)) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
+  }, [user?.id]);
 
   const fetchDriverStatus = async () => {
     if (!user?.id) {
@@ -40,7 +48,7 @@ const PendingApprovalContent = () => {
     setError(null);
 
     try {
-      // Note: RPC expects `in_driver_id`
+      // Use the server function to check driver status
       const { data, error: rpcError } = await supabase.rpc(
         "get_driver_status_v3",
         {
@@ -55,7 +63,7 @@ const PendingApprovalContent = () => {
       // If the row simply doesn't exist yet, treat as pending
       if (!data?.success) {
         if (data.error?.includes("No driver record")) {
-          setDriverStatus({ status: "pending" });
+          setDriverStatus({ status: "pending", rejection_reason: null });
         } else {
           throw new Error(data.error || "فشل في جلب حالة السائق");
         }
@@ -65,13 +73,13 @@ const PendingApprovalContent = () => {
           rejection_reason: data.rejection_reason,
         });
 
-        // auto‐redirect approved drivers
+        // Auto-redirect approved drivers
         if (data.status === "approved") {
           navigate("/driver/dashboard");
           return;
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error fetching driver status:", err);
       setError("حدث خطأ أثناء التحقق من حالة طلبك");
     } finally {
@@ -79,22 +87,22 @@ const PendingApprovalContent = () => {
     }
   };
 
-  // initial + polling every 30s
+  // Initial + polling every 30s
   useEffect(() => {
     fetchDriverStatus();
-    const interval = setInterval(fetchDriverStatus, 30_000);
+    const interval = setInterval(fetchDriverStatus, 30000);
     return () => clearInterval(interval);
   }, [user?.id]);
 
-  const clearAll = () => {
-    // remove cookies + localStorage + sessionStorage
-    Object.keys(Cookies.get()).forEach((c) => Cookies.remove(c));
+  const clearAll = async () => {
+    // Remove cookies + localStorage + sessionStorage
+    Object.keys(Cookies.get()).forEach((c) => Cookies.remove(c, { path: "/" }));
     localStorage.clear();
     sessionStorage.clear();
   };
 
   const handleBackToLogin = async () => {
-    clearAll();
+    await clearAll();
     await supabase.auth.signOut();
     navigate("/login");
   };
