@@ -260,7 +260,7 @@ const DriverRegisterContent = () => {
 
       // Step 3: Use the server-side function to register the driver
       const { data: registrationResult, error: registrationError } =
-        await supabase.rpc("register_driver_v2", {
+        await supabase.rpc("register_driver_v3", {
           user_id: userId,
           first_name: data.firstName,
           last_name: data.lastName,

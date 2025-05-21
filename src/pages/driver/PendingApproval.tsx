@@ -73,7 +73,7 @@ const PendingApprovalContent = () => {
 
       try {
         // Use the server-side function to get driver status
-        const { data, error } = await supabase.rpc("get_driver_status_v2", {
+        const { data, error } = await supabase.rpc("get_driver_status_v3", {
           driver_id: user.id,
         });
 
@@ -173,7 +173,7 @@ const PendingApprovalContent = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.rpc("get_driver_status_v2", {
+      const { data, error } = await supabase.rpc("get_driver_status_v3", {
         driver_id: user.id,
       });
 
