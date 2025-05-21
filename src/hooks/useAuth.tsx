@@ -179,7 +179,7 @@ export function useAuth() {
   const checkDriverStatus = useCallback(async (userId) => {
     try {
       // Use the server function
-      const { data, error } = await supabase.rpc("get_driver_status_v2", {
+      const { data, error } = await supabase.rpc("get_driver_status_v3", {
         driver_id: userId,
       });
 
