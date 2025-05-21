@@ -17,8 +17,37 @@ const AuthCallbackContent = () => {
   const [error, setError] = useState<string | null>(null);
   const [userType, setUserType] = useState<string | null>(null);
 
+  // Clear all cookies and local storage to prevent auth issues
+  const clearAuthData = useCallback(() => {
+    // Clear all cookies
+    Object.keys(Cookies.get()).forEach((cookieName) => {
+      Cookies.remove(cookieName, { path: "/" });
+    });
+
+    // Clear localStorage items related to auth
+    localStorage.removeItem("pendingDriverRegistration");
+    localStorage.removeItem("pendingDriverData");
+
+    // Clear Supabase tokens from localStorage
+    if (window.localStorage) {
+      Object.keys(localStorage)
+        .filter((key) => key.startsWith("sb-"))
+        .forEach((key) => localStorage.removeItem(key));
+    }
+
+    // Clear any session storage
+    try {
+      sessionStorage.clear();
+    } catch (error) {
+      console.error("Error clearing sessionStorage:", error);
+    }
+  }, []);
+
   const verifyEmail = useCallback(async () => {
     try {
+      // Clear any existing auth data first to prevent conflicts
+      clearAuthData();
+
       const queryParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
 
@@ -27,6 +56,7 @@ const AuthCallbackContent = () => {
       const typeInQuery = queryParams.get("type");
       const accessToken = hashParams.get("access_token");
       const refreshToken = hashParams.get("refresh_token");
+      const emailFromUrl = queryParams.get("email") || hashParams.get("email");
 
       // Try to verify with query token
       if (tokenInQuery && typeInQuery) {
@@ -36,7 +66,8 @@ const AuthCallbackContent = () => {
             type: typeInQuery === "signup" ? "signup" : "recovery",
           });
         } catch (e) {
-          // Continue even if verification fails
+          console.warn("OTP verification failed, continuing with flow:", e);
+          // Continue even if verification fails, as the token may have already been used
         }
       }
       // Try to set session with hash tokens
@@ -47,6 +78,7 @@ const AuthCallbackContent = () => {
             refresh_token: refreshToken,
           });
         } catch (e) {
+          console.warn("Session setting failed, continuing with flow:", e);
           // Continue even if setting session fails
         }
       }
@@ -61,9 +93,6 @@ const AuthCallbackContent = () => {
 
       // Handle no session case
       if (!session) {
-        const emailFromUrl =
-          queryParams.get("email") || hashParams.get("email");
-
         // Try to get email from cookie if not in URL
         let pendingEmail = emailFromUrl;
         if (!pendingEmail) {
@@ -74,7 +103,7 @@ const AuthCallbackContent = () => {
               pendingEmail = details.email;
             }
           } catch (e) {
-            // Continue without email
+            console.warn("Failed to parse pendingUserDetails cookie:", e);
           }
         }
 
@@ -83,6 +112,11 @@ const AuthCallbackContent = () => {
           toast.success(
             "تم التحقق من البريد الإلكتروني بنجاح. يرجى تسجيل الدخول."
           );
+
+          // Clean up any cookies before redirecting
+          clearAuthData();
+
+          // Add verified email to URL for auto-fill
           navigate("/login", {
             replace: true,
             state: {
@@ -117,7 +151,7 @@ const AuthCallbackContent = () => {
         const cookieData = Cookies.get("pendingUserDetails");
         if (cookieData) pendingUserDetails = JSON.parse(cookieData);
       } catch (e) {
-        // Continue without pending details
+        console.warn("Failed to parse pendingUserDetails cookie:", e);
       }
 
       // Check if profile exists
@@ -144,13 +178,17 @@ const AuthCallbackContent = () => {
             pendingUserDetails?.user_type ||
             user.user_metadata?.user_type ||
             "customer",
+          email: user.email,
+          email_verified: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
 
         try {
           await supabase.from("profiles").insert(userMetadata);
           userTypeValue = userMetadata.user_type;
         } catch (e) {
-          // Continue even if profile creation fails
+          console.warn("Profile creation failed, continuing with flow:", e);
         }
       } else if (profileData) {
         userTypeValue = profileData.user_type;
@@ -159,21 +197,25 @@ const AuthCallbackContent = () => {
         try {
           await supabase
             .from("profiles")
-            .update({ email_verified: true })
+            .update({
+              email_verified: true,
+              updated_at: new Date().toISOString(),
+            })
             .eq("id", user.id);
         } catch (e) {
-          // Continue even if update fails
+          console.warn("Profile update failed, continuing with flow:", e);
         }
       }
 
-      // Remove the pending user cookie
-      Cookies.remove("pendingUserDetails");
-
       setUserType(userTypeValue);
-      toast.success("تم التحقق من البريد الإلكتروني بنجاح");
+
+      // Remove all cookies and session data
+      clearAuthData();
 
       // Sign out and redirect
       await supabase.auth.signOut();
+
+      toast.success("تم التحقق من البريد الإلكتروني بنجاح");
 
       // Use direct window location instead of navigate for more reliable redirect
       setTimeout(() => {
@@ -189,13 +231,14 @@ const AuthCallbackContent = () => {
 
       try {
         await supabase.auth.signOut();
+        clearAuthData();
       } catch (e) {
-        // Ignore sign out errors
+        console.warn("Sign out during error handling failed:", e);
       }
     } finally {
       setIsVerifying(false);
     }
-  }, [navigate, t]);
+  }, [navigate, t, clearAuthData]);
 
   useEffect(() => {
     verifyEmail();
@@ -232,7 +275,10 @@ const AuthCallbackContent = () => {
           <p className="text-gray-600">{error}</p>
           <div className="mt-6">
             <Button
-              onClick={() => navigate("/login")}
+              onClick={() => {
+                clearAuthData();
+                navigate("/login");
+              }}
               className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
             >
               الذهاب إلى صفحة تسجيل الدخول

@@ -85,12 +85,14 @@ const DriverRegisterContent = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState(false);
-  const [submitAttempts, setSubmitAttempts] = useState(0);
   const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [debugInfo, setDebugInfo] = useState(null);
   const [waitTime, setWaitTime] = useState(0);
 
   useEffect(() => {
+    // Clear any existing auth data on component mount
+    clearAuthData();
+
+    // Set up timer for rate limiting
     let timer;
     if (waitTime > 0) {
       timer = setTimeout(() => {
@@ -101,6 +103,27 @@ const DriverRegisterContent = () => {
       if (timer) clearTimeout(timer);
     };
   }, [waitTime]);
+
+  // Clear auth data helper function
+  const clearAuthData = () => {
+    // Clear all auth related cookies
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+
+    // Clear localStorage items
+    localStorage.removeItem("pendingDriverRegistration");
+    localStorage.removeItem("pendingDriverData");
+
+    // Clear Supabase tokens from localStorage
+    if (window.localStorage) {
+      Object.keys(localStorage)
+        .filter((key) => key.startsWith("sb-"))
+        .forEach((key) => localStorage.removeItem(key));
+    }
+  };
 
   const form = useForm({
     resolver: zodResolver(driverRegisterSchema),
@@ -129,22 +152,6 @@ const DriverRegisterContent = () => {
     toast.error(
       "تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار دقيقة واحدة قبل المحاولة مرة أخرى"
     );
-  };
-
-  const checkEmailExists = async (email) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false,
-        },
-      });
-      if (!error) return true;
-      if (error.message.includes("not found")) return false;
-      return null;
-    } catch {
-      return null;
-    }
   };
 
   const uploadFile = async (file, folder, userId) => {
@@ -185,7 +192,6 @@ const DriverRegisterContent = () => {
     }
 
     setIsLoading(true);
-    setDebugInfo(null);
 
     try {
       // Step 1: Create auth user
@@ -207,11 +213,6 @@ const DriverRegisterContent = () => {
       );
 
       if (signUpError) {
-        setDebugInfo({
-          stage: "auth_signup",
-          error: signUpError,
-        });
-
         if (
           signUpError.message.includes("rate limit") ||
           signUpError.message
@@ -232,11 +233,6 @@ const DriverRegisterContent = () => {
       }
 
       if (!authData.user) {
-        setDebugInfo({
-          stage: "auth_signup",
-          error: "No user data returned",
-          response: authData,
-        });
         toast.error("فشل إنشاء الحساب، يرجى المحاولة مرة أخرى");
         setIsLoading(false);
         return;
@@ -256,10 +252,6 @@ const DriverRegisterContent = () => {
           uploadFile(data.license_image, "licenses", userId),
         ]);
       } catch (uploadError) {
-        setDebugInfo({
-          stage: "document_upload",
-          error: uploadError,
-        });
         toast.error("فشل في رفع المستندات: " + uploadError.message);
         setIsLoading(false);
         setUploadingFiles(false);
@@ -267,7 +259,6 @@ const DriverRegisterContent = () => {
       }
 
       // Step 3: Use the server-side function to register the driver
-      // This bypasses RLS policy restrictions
       const { data: registrationResult, error: registrationError } =
         await supabase.rpc("register_driver", {
           user_id: userId,
@@ -288,132 +279,43 @@ const DriverRegisterContent = () => {
           license_image: licenseImageUrl,
         });
 
-      if (registrationError) {
-        setDebugInfo({
-          stage: "registration",
-          error: registrationError,
-        });
+      if (
+        registrationError ||
+        (registrationResult && !registrationResult.success)
+      ) {
+        // Alert the user of the error but don't stop registration flow
+        console.error(
+          "Registration function error:",
+          registrationError || registrationResult?.error
+        );
 
-        // Try the fallback client-side approach if server-side fails
-        await clientSideRegistration(userId, data, idImageUrl, licenseImageUrl);
-      } else if (registrationResult && !registrationResult.success) {
-        setDebugInfo({
-          stage: "registration",
-          error: registrationResult.error,
-        });
+        // Store minimal data for admin processing as backup
+        localStorage.setItem(
+          "pendingDriverData",
+          JSON.stringify({
+            userId,
+            email: data.email,
+            timestamp: new Date().toISOString(),
+          })
+        );
 
-        // Try the fallback client-side approach if server-side fails
-        await clientSideRegistration(userId, data, idImageUrl, licenseImageUrl);
+        toast.warning(
+          "تم تسجيل بياناتك، ولكن قد تكون هناك مشكلة في النظام. سيتم مراجعة طلبك يدويًا."
+        );
       } else {
-        // Registration successful
-        setRegistrationComplete(true);
         toast.success(t("registrationSuccess") || "تم التسجيل بنجاح");
       }
+
+      // Always consider registration complete - the server function should have handled the registration
+      setRegistrationComplete(true);
+
+      // Sign out to clear session
+      await supabase.auth.signOut();
     } catch (error) {
-      setDebugInfo({
-        stage: "unexpected_error",
-        error,
-      });
       toast.error("حدث خطأ غير متوقع أثناء التسجيل: " + error.message);
-      setSubmitAttempts((prev) => prev + 1);
     } finally {
       setIsLoading(false);
       setUploadingFiles(false);
-    }
-  };
-
-  // Add this fallback client-side registration function
-  const clientSideRegistration = async (
-    userId,
-    data,
-    idImageUrl,
-    licenseImageUrl
-  ) => {
-    try {
-      // Try direct insertions, ignoring errors
-      try {
-        await supabase.from("profiles").insert({
-          id: userId,
-          first_name: data.firstName,
-          last_name: data.lastName,
-          phone: data.phone,
-          email: data.email,
-          user_type: "driver",
-          birth_date: data.birthDate,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
-      } catch (profileError) {
-        console.error("Profile insert error:", profileError);
-      }
-
-      try {
-        await supabase.from("drivers").insert({
-          id: userId,
-          national_id: data.nationalId,
-          license_number: data.licenseNumber,
-          vehicle_info: {
-            make: data.vehicleInfo.make,
-            model: data.vehicleInfo.model,
-            year: data.vehicleInfo.year,
-            plateNumber: data.vehicleInfo.plateNumber,
-          },
-          id_image: idImageUrl,
-          license_image: licenseImageUrl,
-          status: "pending",
-          is_available: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
-      } catch (driverError) {
-        console.error("Driver insert error:", driverError);
-      }
-
-      try {
-        await supabase.from("user_roles").insert({
-          user_id: userId,
-          role: "driver",
-          created_at: new Date().toISOString(),
-        });
-      } catch (roleError) {
-        console.error("Role insert error:", roleError);
-      }
-
-      // Store data for admin processing
-      localStorage.setItem(
-        "pendingDriverRegistration",
-        JSON.stringify({
-          userId,
-          data: {
-            firstName: data.firstName,
-            lastName: data.lastName,
-            phone: data.phone,
-            email: data.email,
-            birthDate: data.birthDate,
-            nationalId: data.nationalId,
-            licenseNumber: data.licenseNumber,
-            vehicleInfo: {
-              make: data.vehicleInfo.make,
-              model: data.vehicleInfo.model,
-              year: data.vehicleInfo.year,
-              plateNumber: data.vehicleInfo.plateNumber,
-            },
-          },
-          documents: {
-            idImage: idImageUrl,
-            licenseImage: licenseImageUrl,
-          },
-          timestamp: new Date().toISOString(),
-        })
-      );
-
-      // Despite errors, consider registration successful
-      // since we stored the data for admin processing
-      setRegistrationComplete(true);
-      toast.success(t("registrationSuccess") || "تم التسجيل بنجاح");
-    } catch (error) {
-      console.error("Client-side registration fallback error:", error);
-      throw error;
     }
   };
 
@@ -483,68 +385,6 @@ const DriverRegisterContent = () => {
                 ? "تم تجاوز الحد المسموح لمحاولات التسجيل. يرجى الانتظار قليلاً."
                 : "Registration attempt limit exceeded. Please wait a moment."}
             </p>
-          </div>
-        )}
-
-        {debugInfo && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-            <h3 className="text-red-800 font-medium">
-              {language === "ar"
-                ? "معلومات تشخيص الخطأ:"
-                : "Debug Information:"}
-            </h3>
-            <p className="text-red-700 text-sm mt-1">
-              {language === "ar"
-                ? `المرحلة: ${debugInfo.stage}`
-                : `Stage: ${debugInfo.stage}`}
-            </p>
-            <p className="text-red-700 text-sm mt-1">
-              {language === "ar"
-                ? `رسالة الخطأ: ${
-                    debugInfo.error?.message || JSON.stringify(debugInfo.error)
-                  }`
-                : `Error message: ${
-                    debugInfo.error?.message || JSON.stringify(debugInfo.error)
-                  }`}
-            </p>
-            {debugInfo.attempted_data && (
-              <details className="mt-2">
-                <summary className="text-red-700 text-sm cursor-pointer">
-                  {language === "ar"
-                    ? "عرض البيانات المرسلة"
-                    : "View submitted data"}
-                </summary>
-                <pre className="text-xs bg-red-100 p-2 mt-1 rounded overflow-auto">
-                  {JSON.stringify(debugInfo.attempted_data, null, 2)}
-                </pre>
-              </details>
-            )}
-            {debugInfo.stage === "profile_insert" && (
-              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                <p className="text-sm text-yellow-800 font-medium">
-                  {language === "ar"
-                    ? "معلومات مفيدة للتصحيح:"
-                    : "Helpful debugging information:"}
-                </p>
-                <ul className="list-disc list-inside text-xs text-yellow-700 mt-1">
-                  <li>
-                    {language === "ar"
-                      ? "تأكد من أن حقول الجدول profiles تتطابق مع البيانات المرسلة"
-                      : "Ensure profiles table fields match the submitted data"}
-                  </li>
-                  <li>
-                    {language === "ar"
-                      ? "تأكد من أن سياسات RLS مفعلة بشكل صحيح"
-                      : "Verify that RLS policies are correctly configured"}
-                  </li>
-                  <li>
-                    {language === "ar"
-                      ? "قد تكون هناك مشكلة في الربط بين المستخدم والملف الشخصي"
-                      : "There may be an issue linking the user and profile"}
-                  </li>
-                </ul>
-              </div>
-            )}
           </div>
         )}
 

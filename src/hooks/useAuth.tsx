@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import type { User, Session } from "@supabase/supabase-js";
 import Cookies from "js-cookie";
 
 // Cookie settings object for reuse
@@ -12,28 +11,60 @@ const COOKIE_OPTIONS = {
 } as const;
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [userType, setUserType] = useState<string | null>(null);
+  const [userType, setUserType] = useState(null);
   const navigate = useNavigate();
 
-  // Set auth cookie based on user type - extracted for reuse
-  const setAuthCookieByType = useCallback((type: string, email?: string) => {
+  // Clear all auth data (cookies, localStorage, etc)
+  const clearAuthData = useCallback(() => {
+    // Clear all cookies
+    Object.keys(Cookies.get()).forEach((cookieName) => {
+      Cookies.remove(cookieName, { path: "/" });
+    });
+
+    // Clear localStorage items related to auth
+    localStorage.removeItem("pendingDriverRegistration");
+    localStorage.removeItem("pendingDriverData");
+
+    // Clear Supabase tokens from localStorage
+    if (window.localStorage) {
+      Object.keys(localStorage)
+        .filter((key) => key.startsWith("sb-"))
+        .forEach((key) => localStorage.removeItem(key));
+    }
+
+    // Clear any other app-specific storage
+    try {
+      sessionStorage.clear();
+    } catch (error) {
+      console.error("Error clearing sessionStorage:", error);
+    }
+  }, []);
+
+  // Set auth cookie based on user type
+  const setAuthCookieByType = useCallback((type, email) => {
+    // First remove any existing auth cookies to prevent conflicts
+    Object.keys(Cookies.get())
+      .filter((key) => key.includes("Auth") || key.includes("Email"))
+      .forEach((key) => Cookies.remove(key, { path: "/" }));
+
+    // Set new cookie
     Cookies.set(`${type}Auth`, "true", COOKIE_OPTIONS);
     if (email && type === "admin") {
       Cookies.set("adminEmail", email, COOKIE_OPTIONS);
     }
   }, []);
 
-  // Handle user type detection and cookie setting
+  // Handle user type detection
   const handleUserType = useCallback(
-    async (userData: User) => {
+    async (userData) => {
       // Try metadata first (faster)
       if (userData.user_metadata?.user_type) {
         const type = userData.user_metadata.user_type;
         setUserType(type);
-        setAuthCookieByType(type, userData.email || undefined);
+        setAuthCookieByType(type, userData.email);
         return;
       }
 
@@ -47,7 +78,7 @@ export function useAuth() {
 
         if (data?.user_type) {
           setUserType(data.user_type);
-          setAuthCookieByType(data.user_type, userData.email || undefined);
+          setAuthCookieByType(data.user_type, userData.email);
         }
       } catch (error) {
         console.error("Error fetching user type:", error);
@@ -56,27 +87,24 @@ export function useAuth() {
     [setAuthCookieByType]
   );
 
-  // Clear all auth data (cookies and localStorage)
-  const clearAuthData = useCallback(() => {
-    // Clear cookies
-    Cookies.remove("adminAuth");
-    Cookies.remove("adminEmail");
-    Cookies.remove("customerAuth");
-    Cookies.remove("driverAuth");
-
-    // Clear Supabase tokens from localStorage
-    if (window.localStorage) {
-      Object.keys(localStorage)
-        .filter((key) => key.startsWith("sb-"))
-        .forEach((key) => localStorage.removeItem(key));
-    }
-  }, []);
-
   // Set up auth state listener
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      console.log("Auth state changed:", event);
+
+      // Handle sign-out event
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+        setSession(null);
+        setUserType(null);
+        clearAuthData();
+        setLoading(false);
+        return;
+      }
+
+      // Handle other auth events
       setSession(newSession);
       setUser(newSession?.user || null);
 
@@ -112,32 +140,71 @@ export function useAuth() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [handleUserType]);
+  }, [handleUserType, clearAuthData]);
 
   // Sign out function
   const signOut = useCallback(async () => {
     try {
-      await supabase.auth.signOut();
+      // First, clear client-side auth data
+      clearAuthData();
 
-      // Reset state
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+
+      // Reset state even if there was an error signing out from Supabase
       setUser(null);
       setSession(null);
       setUserType(null);
 
-      // Clear auth data
-      clearAuthData();
+      if (error) {
+        console.warn("Error during Supabase sign out:", error);
+        return { success: true, warning: error.message };
+      }
 
-      // Direct navigation for reliability
-      window.location.href = "/login";
+      return { success: true };
     } catch (error) {
       console.error("Error signing out:", error);
+
+      // Clear auth data and reset state anyway
       clearAuthData();
-      window.location.href = "/login";
+      setUser(null);
+      setSession(null);
+      setUserType(null);
+
+      return { success: false, error };
     }
   }, [clearAuthData]);
 
+  // Check driver status using the server function
+  const checkDriverStatus = useCallback(async (userId) => {
+    try {
+      // Use the server function
+      const { data, error } = await supabase.rpc("get_driver_status", {
+        driver_id: userId,
+      });
+
+      if (error) throw error;
+
+      if (!data || !data.success) {
+        return {
+          success: false,
+          error: data?.error || "Failed to get driver status",
+        };
+      }
+
+      return {
+        success: true,
+        status: data.status,
+        rejection_reason: data.rejection_reason,
+      };
+    } catch (err) {
+      console.error("Error checking driver status:", err);
+      return { success: false, error: err.message };
+    }
+  }, []);
+
   // Check user profile
-  const checkUserProfile = useCallback(async (userId: string) => {
+  const checkUserProfile = useCallback(async (userId) => {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -153,31 +220,19 @@ export function useAuth() {
     }
   }, []);
 
-  // Check driver status
-  const checkDriverStatus = useCallback(async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("drivers")
-        .select("status, rejection_reason")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
-    } catch (err) {
-      console.error("Error checking driver status:", err);
-      return null;
-    }
-  }, []);
-
   return {
     user,
     session,
     loading,
     signOut,
+    clearAuthData,
     checkUserProfile,
     checkDriverStatus,
     userType,
     isAuthenticated: !!session || !!user,
+
+    // Added helper methods
+    setAuthCookieByType,
+    handleUserType,
   };
 }
