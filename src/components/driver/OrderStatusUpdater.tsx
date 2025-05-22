@@ -41,22 +41,18 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
     // Reset error state
     setErrorMessage(null);
 
-    if (!driverLocation) {
-      toast.error(t("status.no_location"));
-      return;
-    }
-
     if (!orderId) {
       toast.error(t("status.invalid_order_id"));
       return;
     }
 
-    // Validate that the current user is the assigned driver
+    // Validate that the current user is logged in
     if (!user) {
       toast.error(t("status.login_required"));
       return;
     }
 
+    // Check if user is authorized for this order
     if (driverId && driverId !== user.id) {
       setErrorMessage(t("status.unauthorized_order"));
       toast.error(t("status.unauthorized_order"));
@@ -67,15 +63,17 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
     setUpdatingStatus(newStatus);
 
     try {
-      console.log(`Updating order ${orderId} status to ${newStatus}`, {
-        driverLocation,
-      });
+      console.log(`Updating order ${orderId} status to ${newStatus}`);
 
       const orderUpdate: any = {
         status: newStatus,
-        driver_location: driverLocation,
         updated_at: new Date().toISOString(),
       };
+
+      // Include driver location if available (optional)
+      if (driverLocation) {
+        orderUpdate.driver_location = driverLocation;
+      }
 
       // إذا كانت هذه أول عملية التقاط، قم بتعيين السائق للطلب
       if (currentStatus === "available" && newStatus === "picked_up") {
@@ -130,6 +128,9 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
   const isCompleted = currentStatus === "completed";
   const isDriverAuthorized = !driverId || driverId === user?.id;
 
+  // Removed driverLocation check from disabled condition
+  const buttonDisabled = isUpdating || isCompleted || !isDriverAuthorized;
+
   return (
     <div className="space-y-2">
       {errorMessage && (
@@ -144,12 +145,7 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
           <Button
             variant="outline"
             onClick={() => updateOrderStatus("picked_up")}
-            disabled={
-              isUpdating ||
-              !driverLocation ||
-              isCompleted ||
-              !isDriverAuthorized
-            }
+            disabled={buttonDisabled}
             className="gap-1"
           >
             {isUpdating && updatingStatus === "picked_up" ? (
@@ -165,12 +161,7 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
           <Button
             variant="default"
             onClick={() => updateOrderStatus("in_transit")}
-            disabled={
-              isUpdating ||
-              !driverLocation ||
-              isCompleted ||
-              !isDriverAuthorized
-            }
+            disabled={buttonDisabled}
             className="gap-1"
           >
             {isUpdating && updatingStatus === "in_transit" ? (
@@ -178,7 +169,6 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
             ) : (
               <Truck className="h-4 w-4 ml-1" />
             )}
-
             {t("status.in_transit")}
           </Button>
         )}
@@ -187,12 +177,7 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
           <Button
             variant="default"
             onClick={() => updateOrderStatus("approaching")}
-            disabled={
-              isUpdating ||
-              !driverLocation ||
-              isCompleted ||
-              !isDriverAuthorized
-            }
+            disabled={buttonDisabled}
             className="gap-1"
           >
             {isUpdating && updatingStatus === "approaching" ? (
@@ -200,7 +185,7 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
             ) : (
               <Clock className="h-4 w-4 ml-1" />
             )}
-            اقترب
+            {t("status.approaching")}
           </Button>
         )}
 
