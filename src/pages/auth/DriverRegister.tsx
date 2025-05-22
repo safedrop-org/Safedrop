@@ -5,6 +5,7 @@ import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -26,6 +27,7 @@ import {
   PhoneIcon,
   Calendar,
   Upload,
+  ExternalLink,
 } from "lucide-react";
 import Cookies from "js-cookie";
 
@@ -40,6 +42,7 @@ const DriverRegisterContent = () => {
   const [idImageFile, setIdImageFile] = useState(null);
   const [licenseImageFile, setLicenseImageFile] = useState(null);
   const [debugInfo, setDebugInfo] = useState(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const driverRegisterSchema = z.object({
     firstName: z.string().min(2, {
@@ -82,6 +85,12 @@ const DriverRegisterContent = () => {
     }),
     idImage: z.any().optional(),
     licenseImage: z.any().optional(),
+    acceptTerms: z.boolean().refine((val) => val === true, {
+      message:
+        language === "ar"
+          ? "يجب الموافقة على الشروط والأحكام"
+          : "You must accept the terms and conditions",
+    }),
   });
 
   type DriverFormValues = z.infer<typeof driverRegisterSchema>;
@@ -115,6 +124,7 @@ const DriverRegisterContent = () => {
         year: "",
         plateNumber: "",
       },
+      acceptTerms: false,
     },
   });
 
@@ -281,9 +291,22 @@ const DriverRegisterContent = () => {
     }
   };
 
+  const openDriverTerms = () => {
+    window.open("/driver-terms", "_blank");
+  };
+
   const onSubmit = async (data: DriverFormValues) => {
     if (waitTime > 0) {
       toast.error(`يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى`);
+      return;
+    }
+
+    if (!acceptedTerms) {
+      toast.error(
+        language === "ar"
+          ? "يجب الموافقة على الشروط والأحكام"
+          : "You must accept the terms and conditions"
+      );
       return;
     }
 
@@ -389,7 +412,7 @@ const DriverRegisterContent = () => {
       <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
           <img
-            src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png"
+            src="/lovable-uploads/264169e0-0b4b-414f-b808-612506987f4a.png"
             alt="SafeDrop Logo"
             className="mx-auto h-20 w-auto mb-4"
           />
@@ -409,7 +432,7 @@ const DriverRegisterContent = () => {
           <div className="mt-8">
             <Button
               onClick={() => navigate("/login")}
-              className="bg-safedrop-gold hover:bg-safedrop-gold/90"
+              className="bg-safedrop-gold hover:bg-safedrop-gold/90 w-full"
             >
               {t("login")}
             </Button>
@@ -758,10 +781,61 @@ const DriverRegisterContent = () => {
               </div>
             </FormItem>
 
+            {/* Terms and Conditions Checkbox */}
+            <FormField
+              control={form.control}
+              name="acceptTerms"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start gap-1 rtl:gap-3  space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={acceptedTerms}
+                      onCheckedChange={(checked) => {
+                        setAcceptedTerms(checked);
+                        field.onChange(checked);
+                      }}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="cursor-pointer">
+                      {language === "ar" ? (
+                        <span className="text-sm">
+                          أوافق على{" "}
+                          <a href="/driver-terms" target="_blank">
+                            <button
+                              type="button"
+                              onClick={openDriverTerms}
+                              className="text-safedrop-gold hover:underline inline-flex items-center gap-1"
+                            >
+                              الشروط والأحكام
+                              <ExternalLink className="h-3 w-3" />
+                            </button>
+                          </a>
+                        </span>
+                      ) : (
+                        <span className="text-sm">
+                          I agree to the{" "}
+                          <button
+                            type="button"
+                            onClick={openDriverTerms}
+                            className="text-safedrop-gold hover:underline inline-flex items-center gap-1"
+                          >
+                            Terms & Conditions
+                            <ExternalLink className="h-3 w-3" />
+                          </button>
+                        </span>
+                      )}
+                    </FormLabel>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+
             <Button
               type="submit"
               className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-              disabled={isLoading || waitTime > 0}
+              disabled={isLoading || waitTime > 0 || !acceptedTerms}
             >
               {isLoading ? t("registering") : t("register")}
             </Button>

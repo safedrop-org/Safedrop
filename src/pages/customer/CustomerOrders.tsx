@@ -297,7 +297,8 @@ const CustomerOrdersContent = () => {
                               {order.order_id}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {order.id.slice(0, 8)}...
+                              {order.order_number ||
+                                order.order_number.slice(0, 8)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {formatDate(order.created_at)}

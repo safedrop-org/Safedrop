@@ -245,7 +245,7 @@ const PendingApprovalContent = () => {
     >
       <div className="max-w-md w-full bg-white shadow-xl rounded-xl p-8 text-center">
         <img
-          src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png"
+          src="/lovable-uploads/264169e0-0b4b-414f-b808-612506987f4a.png"
           alt="SafeDrop Logo"
           className="h-20 mx-auto mb-6"
         />

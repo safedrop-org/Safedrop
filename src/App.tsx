@@ -65,6 +65,7 @@ import DriverLogout from "./pages/driver/Logout";
 import { useAuth } from "@/components/auth/AuthContext";
 import ProtectedAdminRoute from "@/components/admin/ProtectedAdminRoute";
 import { supabase } from "@/integrations/supabase/client";
+import DriverTerms from "./pages/DriverTerms";
 
 // Protected Routes for Customer
 const ProtectedCustomerRoute = ({ children }) => {
@@ -256,6 +257,14 @@ const AppContent = () => {
           element={
             <PublicRoute>
               <Terms />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/driver-terms"
+          element={
+            <PublicRoute>
+              <DriverTerms />
             </PublicRoute>
           }
         />

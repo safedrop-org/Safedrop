@@ -158,7 +158,124 @@ export const orders: TranslationSection = {
     ar: "إرسال الطلب",
     en: "Submit Order",
   },
+  errorCheckingDriverStatus: {
+    ar: "خطأ في التحقق من حالة السائق",
+    en: "Error checking driver status",
+  },
+  driverNotApproved: {
+    ar: "يجب الموافقة على حسابك من قبل الإدارة أولاً",
+    en: "Your account must be approved by admin first",
+  },
+  errorUpdatingAvailability: {
+    ar: "خطأ في تحديث حالة التوفر",
+    en: "Error updating availability",
+  },
+  nowAvailableForOrders: {
+    ar: "أنت متاح الآن لاستلام الطلبات",
+    en: "You are now available for orders",
+  },
+  nowNotAvailableForOrders: {
+    ar: "أنت غير متاح لاستلام الطلبات",
+    en: "You are not available for orders",
+  },
+  updating: {
+    ar: "جاري التحديث...",
+    en: "Updating...",
+  },
 
+  // Loading and error states
+  loadingOrders: {
+    ar: "جاري تحميل الطلبات...",
+    en: "Loading orders...",
+  },
+  errorLoadingOrders: {
+    ar: "خطأ في تحميل الطلبات",
+    en: "Error loading orders",
+  },
+  tryAgain: {
+    ar: "حاول مرة أخرى",
+    en: "Try Again",
+  },
+  refreshOrders: {
+    ar: "تحديث الطلبات",
+    en: "Refresh Orders",
+  },
+
+  // Order management messages
+  mustLoginToAcceptOrder: {
+    ar: "يجب تسجيل الدخول لقبول الطلب",
+    en: "Must login to accept order",
+  },
+  errorCheckingOrderStatus: {
+    ar: "حدث خطأ أثناء التحقق من حالة الطلب",
+    en: "Error checking order status",
+  },
+  orderNotFound: {
+    ar: "لم يتم العثور على الطلب",
+    en: "Order not found",
+  },
+  orderNoLongerAvailable: {
+    ar: "هذا الطلب لم يعد متاحاً للقبول",
+    en: "This order is no longer available",
+  },
+  errorAcceptingOrder: {
+    ar: "حدث خطأ أثناء قبول الطلب",
+    en: "Error accepting order",
+  },
+  errorAcceptingOrderNoData: {
+    ar: "حدث خطأ أثناء قبول الطلب - لم يتم العثور على الطلب",
+    en: "Error accepting order - order not found",
+  },
+  orderAcceptedSuccessfully: {
+    ar: "تم قبول الطلب بنجاح",
+    en: "Order accepted successfully",
+  },
+
+  // Driver management interface
+  manageOrders: {
+    ar: "إدارة الطلبات",
+    en: "Manage Orders",
+  },
+  availabilityStatus: {
+    ar: "حالة التوفر",
+    en: "Availability Status",
+  },
+  availableForOrders: {
+    ar: "متاح للطلبات",
+    en: "Available for Orders",
+  },
+  notAvailableForOrders: {
+    ar: "غير متاح للطلبات",
+    en: "Not Available for Orders",
+  },
+  currentOrdersTab: {
+    ar: "الطلبات الحالية",
+    en: "Current Orders",
+  },
+  availableOrdersTab: {
+    ar: "الطلبات المتاحة",
+    en: "Available Orders",
+  },
+  completedOrdersTab: {
+    ar: "الطلبات المكتملة",
+    en: "Completed Orders",
+  },
+  browseAvailableOrders: {
+    ar: "تصفح الطلبات المتاحة",
+    en: "Browse Available Orders",
+  },
+  notAvailableMessage: {
+    ar: "أنت غير متاح حالياً للطلبات الجديدة",
+    en: "You are currently not available for new orders",
+  },
+  changeToAvailable: {
+    ar: "تحويل إلى متاح",
+    en: "Change to Available",
+  },
+  noAvailableOrders: {
+    ar: "لا توجد طلبات متاحة",
+    en: "No Available Orders",
+  },
   // Order Details Card
   orderId: {
     ar: "طلب #",
@@ -285,5 +402,29 @@ export const orders: TranslationSection = {
   "status.cancelled": {
     ar: "ملغي",
     en: "Cancelled",
+  },
+  "status.no_location": {
+    ar: "لا يمكن تحديث الحالة بدون تحديد الموقع",
+    en: "Cannot update status without location",
+  },
+  "status.invalid_order_id": {
+    ar: "معرف الطلب غير صالح",
+    en: "Invalid order ID",
+  },
+  "status.login_required": {
+    ar: "يجب تسجيل الدخول لتحديث حالة الطلب",
+    en: "Login required to update order status",
+  },
+  "status.unauthorized_order": {
+    ar: "لا يمكنك تعديل طلب غير مسند إليك",
+    en: "You cannot modify an order not assigned to you",
+  },
+  "status.order_update_failed": {
+    ar: "فشل تحديث حالة الطلب",
+    en: "Order update failed",
+  },
+  "status.order_updated": {
+    ar: "تم تحديث حالة الطلب",
+    en: "Order updated",
   },
 };

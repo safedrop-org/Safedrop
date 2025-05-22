@@ -126,7 +126,7 @@ export const driver: TranslationSection = {
     en: "National ID",
   },
   licenseNumber: {
-    ar: "رقم الرخصة",
+    ar: "الرقم التسلسلي",
     en: "License Number",
   },
 
@@ -198,7 +198,7 @@ export const driver: TranslationSection = {
     en: "ID Card Image",
   },
   licenseImage: {
-    ar: "صورة رخصة القيادة",
+    ar: "صورة رخصة السير",
     en: "Driver License Image",
   },
   view: {

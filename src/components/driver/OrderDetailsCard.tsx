@@ -36,18 +36,72 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
+  const [customerData, setCustomerData] = useState(null);
+  const [loadingCustomer, setLoadingCustomer] = useState(false);
   const { user } = useAuth();
-  const { t, language } = useLanguage(); // Using your language context
+  const { t, language } = useLanguage();
 
   const [distance, setDistance] = useState("-");
   const [duration, setDuration] = useState("-");
+
+  // Fetch customer data if not already present
+  useEffect(() => {
+    const fetchCustomerData = async () => {
+      // If customer data is already present, use it
+      if (order.customer) {
+        setCustomerData(order.customer);
+        return;
+      }
+
+      // If no customer_id, skip
+      if (!order.customer_id) {
+        console.log("No customer_id in order:", order.id);
+        return;
+      }
+
+      setLoadingCustomer(true);
+      try {
+        console.log("Fetching customer data for:", order.customer_id);
+
+        const { data: customer, error } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name, phone, email")
+          .eq("id", order.customer_id)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Error fetching customer data:", error);
+          return;
+        }
+
+        if (customer) {
+          console.log("Customer data fetched:", customer);
+          setCustomerData(customer);
+        } else {
+          console.log("No customer found for ID:", order.customer_id);
+        }
+      } catch (err) {
+        console.error("Error in fetchCustomerData:", err);
+      } finally {
+        setLoadingCustomer(false);
+      }
+    };
+
+    fetchCustomerData();
+  }, [order.customer_id, order.customer]);
 
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
       // Use Arabic locale for Arabic language, English locale for English
       const locale = language === "ar" ? "ar-EG" : "en-US";
-      return date.toLocaleString(locale);
+      return date.toLocaleString(locale, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } catch (error) {
       console.error("Error formatting date:", error);
       return dateString;
@@ -192,6 +246,14 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
     return t("notSpecified");
   };
 
+  const getLocationDetails = (location: any) => {
+    if (!location || !location.details) return null;
+    return location.details;
+  };
+
+  // Use customerData from state (fetched if needed) or fallback to order.customer
+  const customer = customerData || order.customer;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-gray-50 pb-2">
@@ -199,10 +261,15 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
           <CardTitle className="text-lg flex items-center gap-2">
             <span>
               {t("orderId")}
-              {order.id.substring(0, 8)}
+              {order.order_number || order.number.substring(0, 8)}
             </span>
           </CardTitle>
-          <Badge variant="outline" className={getStatusColor(order.status)}>
+          <Badge
+            variant="outline"
+            className={`${getStatusColor(
+              order.status
+            )} flex items-center gap-1`}
+          >
             {getStatusIcon(order.status)}
             {getStatusLabel(order.status)}
           </Badge>
@@ -212,16 +279,29 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <p className="text-sm text-gray-500 mb-1">{t("customerInfo")}</p>
-            <p className="font-medium">
-              {order.customer
-                ? `${order.customer.first_name} ${order.customer.last_name}`
-                : t("unknown")}
-            </p>
-            {order.customer?.phone && (
-              <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                <PhoneIcon className="h-3 w-3" />
-                <span>{order.customer.phone}</span>
+            {loadingCustomer ? (
+              <div className="flex items-center gap-2">
+                <Loader2Icon className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-gray-500">
+                  {t("loadingOrders")}
+                </span>
               </div>
+            ) : customer ? (
+              <>
+                <p className="font-medium">
+                  {`${customer.first_name || ""} ${
+                    customer.last_name || ""
+                  }`.trim() || t("unknown")}
+                </p>
+                {customer.phone && (
+                  <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+                    <PhoneIcon className="h-3 w-3" />
+                    <span>{customer.phone}</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="font-medium text-gray-500">{t("unknown")}</p>
             )}
           </div>
           <div>
@@ -230,23 +310,37 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
           </div>
         </div>
 
-        <div className="space-y-2 mb-4">
+        <div className="space-y-3 mb-4">
           <div className="flex items-start gap-2">
             <div className="mt-1 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
               <MapPinIcon className="h-3 w-3 text-green-600" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm text-gray-500">{t("pickupPoint")}</p>
-              <p>{getLocationAddress(order.pickup_location)}</p>
+              <p className="font-medium">
+                {getLocationAddress(order.pickup_location)}
+              </p>
+              {getLocationDetails(order.pickup_location) && (
+                <p className="text-sm text-gray-600 mt-1">
+                  {getLocationDetails(order.pickup_location)}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-start gap-2">
             <div className="mt-1 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
               <MapPinIcon className="h-3 w-3 text-red-600" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="text-sm text-gray-500">{t("dropoffPoint")}</p>
-              <p>{getLocationAddress(order.dropoff_location)}</p>
+              <p className="font-medium">
+                {getLocationAddress(order.dropoff_location)}
+              </p>
+              {getLocationDetails(order.dropoff_location) && (
+                <p className="text-sm text-gray-600 mt-1">
+                  {getLocationDetails(order.dropoff_location)}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -254,11 +348,19 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
         <div className="grid grid-cols-3 gap-4 mt-4 text-center">
           <div className="bg-gray-50 rounded p-2">
             <p className="text-sm text-gray-500">{t("distance")}</p>
-            <p className="font-medium">{distance}</p>
+            <p className="font-medium">
+              {order.estimated_distance
+                ? `${order.estimated_distance} km`
+                : distance}
+            </p>
           </div>
           <div className="bg-gray-50 rounded p-2">
             <p className="text-sm text-gray-500">{t("estimatedTime")}</p>
-            <p className="font-medium">{duration}</p>
+            <p className="font-medium">
+              {order.estimated_duration
+                ? `${order.estimated_duration} min`
+                : duration}
+            </p>
           </div>
           <div className="bg-gray-50 rounded p-2">
             <p className="text-sm text-gray-500">{t("amount")}</p>
@@ -294,10 +396,10 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
             </p>
           </div>
           <div className="flex flex-wrap gap-2 justify-end">
-            {order.customer?.phone && (
+            {customer?.phone && (
               <Button
                 variant="outline"
-                onClick={() => handleContactCustomer(order.customer.phone)}
+                onClick={() => handleContactCustomer(customer.phone)}
                 className="flex items-center gap-1"
                 disabled={isUpdating || isAccepting}
               >

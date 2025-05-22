@@ -24,7 +24,9 @@ const CustomerBillingContent = () => {
       try {
         const { data: orders, error: ordersError } = await supabase
           .from("orders")
-          .select("id, price, payment_status, created_at, status")
+          .select(
+            "id, order_id, order_number, price, payment_status, created_at, status"
+          )
           .eq("customer_id", user.id);
 
         if (ordersError) throw ordersError;
@@ -168,6 +170,12 @@ const CustomerBillingContent = () => {
                             scope="col"
                             className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
+                            {t("Order ID")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
                             {t("Date")}
                           </th>
                           <th
@@ -188,7 +196,10 @@ const CustomerBillingContent = () => {
                         {transactions.map((tx) => (
                           <tr key={tx.id}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {tx.id.slice(0, 8)}...
+                              {tx.order_id}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {tx.order_number}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {formatDate(tx.created_at)}
