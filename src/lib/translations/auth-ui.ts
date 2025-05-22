@@ -67,6 +67,82 @@ export const authUI: TranslationSection = {
     en: "Admin Login",
   },
 
+  requiredFirstName: {
+    ar: "الاسم الأول مطلوب",
+    en: "First name is required",
+  },
+  requiredLastName: {
+    ar: "الاسم الأخير مطلوب",
+    en: "Last name is required",
+  },
+  requiredEmail: {
+    ar: "البريد الإلكتروني مطلوب",
+    en: "Email is required",
+  },
+  invalidEmail: {
+    ar: "البريد الإلكتروني غير صالح",
+    en: "Invalid email",
+  },
+  requiredPassword: {
+    ar: "كلمة المرور مطلوبة",
+    en: "Password is required",
+  },
+  requiredPhone: {
+    ar: "الرقم الهاتفي مطلوب",
+    en: "Phone number is required",
+  },
+  invalidPhoneNumber: {
+    ar: "رقم الهاتف مطلوب",
+    en: "Phone number is required",
+  },
+  requiredNationalId: {
+    ar: "الرقم القومي مطلوب",
+    en: "National ID is required",
+  },
+  requiredLicenseNumber: {
+    ar: "رقم الرخصة مطلوب",
+    en: "License number is required",
+  },
+  requiredVehicleMake: {
+    ar: "معلومات المركبة مطلوبة",
+    en: "Vehicle information is required",
+  },
+  requiredVehicleModel: {
+    ar: "موديل المركبة مطلوب",
+    en: "Vehicle model is required",
+  },
+  requiredVehicleColor: {
+    ar: "لون المركبة مطلوب",
+    en: "Vehicle color is required",
+  },
+  requiredVehiclePlateNumber: {
+    ar: "رقم اللوحة المركبة مطلوب",
+    en: "Vehicle plate number is required",
+  },
+  requiredVehicleYear: {
+    ar: "سنة المركبة مطلوبة",
+    en: "Vehicle year is required",
+  },
+  requiredPlateNumber: {
+    ar: "رقم اللوحة مطلوب",
+    en: "Plate number is required",
+  },
+  requiredLicenseImage: {
+    ar: "صورة الرخصة مطلوبة",
+    en: "License image is required",
+  },
+  requiredIdImage: {
+    ar: "صورة الهوية مطلوبة",
+    en: "ID image is required",
+  },
+  requiredBirthDate: {
+    ar: "تاريخ الميلاد مطلوب",
+    en: "Birth date is required",
+  },
+  passwordMinLength: {
+    ar: "يجب أن يكون كلمة المرور أطول من 8 أحرف",
+    en: "Password must be at least 8 characters long",
+  },
   // Login page translations
   login: {
     ar: "تسجيل الدخول",

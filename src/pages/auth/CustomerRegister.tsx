@@ -29,18 +29,6 @@ import {
 } from "lucide-react";
 import Cookies from "js-cookie";
 
-const customerRegisterSchema = z.object({
-  firstName: z.string().min(2, { message: "الاسم الأول مطلوب" }),
-  lastName: z.string().min(2, { message: "اسم العائلة مطلوب" }),
-  email: z.string().email({ message: "البريد الإلكتروني غير صالح" }),
-  phone: z.string().min(10, { message: "رقم الهاتف غير صالح" }),
-  password: z
-    .string()
-    .min(8, { message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }),
-});
-
-type CustomerFormValues = z.infer<typeof customerRegisterSchema>;
-
 const CustomerRegisterContent = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -49,6 +37,16 @@ const CustomerRegisterContent = () => {
   const [registrationError, setRegistrationError] = useState<string | null>(
     null
   );
+
+  const customerRegisterSchema = z.object({
+    firstName: z.string().min(2, { message: t("requiredFirstName") }),
+    lastName: z.string().min(2, { message: t("requiredLastName") }),
+    email: z.string().email({ message: t("invalidEmail") }),
+    phone: z.string().min(10, { message: t("invalidPhoneNumber") }),
+    password: z.string().min(8, { message: t("passwordMinLength") }),
+  });
+
+  type CustomerFormValues = z.infer<typeof customerRegisterSchema>;
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerRegisterSchema),
@@ -85,7 +83,7 @@ const CustomerRegisterContent = () => {
       );
 
       if (signUpError) throw signUpError;
-      if (!authData.user) throw new Error("فشل إنشاء حساب المستخدم");
+      if (!authData.user) throw new Error(t("userCreationFailed"));
 
       const pendingUserDetails = {
         id: authData.user.id,
@@ -126,12 +124,9 @@ const CustomerRegisterContent = () => {
             <CheckCircle2 className="h-16 w-16 text-green-500" />
           </div>
           <h2 className="text-2xl font-bold text-safedrop-primary">
-            تم إنشاء حسابك بنجاح!
+            {t("accountCreatedSuccessfully")}
           </h2>
-          <p className="mt-2 text-gray-600">
-            لقد تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى التحقق من بريدك
-            الإلكتروني وتأكيد حسابك قبل تسجيل الدخول.
-          </p>
+          <p className="mt-2 text-gray-600">{t("emailVerificationSuccess")}</p>
           <div className="mt-6">
             <Button
               onClick={() =>
@@ -141,7 +136,7 @@ const CustomerRegisterContent = () => {
               }
               className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
             >
-              الذهاب إلى صفحة تسجيل الدخول
+              {t("goToLoginPage")}
             </Button>
           </div>
         </div>

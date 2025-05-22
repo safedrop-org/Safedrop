@@ -43,7 +43,7 @@ interface AuthError {
 }
 
 const LoginContent = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { user, userType } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,7 +64,7 @@ const LoginContent = () => {
 
     if (verified) {
       setStatusMessage({
-        text: t("emailVerifiedSuccess"),
+        text: t("emailVerified"),
         type: "success",
       });
 
@@ -98,7 +98,7 @@ const LoginContent = () => {
         document.title
       );
     }
-  }, [location, t]);
+  }, [location]);
 
   // Set auth cookies
   const setAuthCookie = useCallback(
@@ -210,7 +210,7 @@ const LoginContent = () => {
       clearAuthCookies();
       setIsCheckingSession(false);
     }
-  }, [navigate, setAuthCookie, t]);
+  }, [navigate, setAuthCookie]);
 
   // Get user type from metadata or profile
   const getUserType = async (user: User) => {
@@ -439,30 +439,27 @@ const LoginContent = () => {
 
   if (isCheckingSession) {
     return (
-      <div
-        className={`min-h-screen flex flex-col justify-center items-center bg-gray-50 ${
-          language === "ar" ? "rtl" : "ltr"
-        }`}
-      >
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
         <div className="w-16 h-16 flex items-center justify-center">
           <Loader2 className="h-8 w-8 text-safedrop-primary animate-spin" />
         </div>
-        <p className="mt-4 text-gray-600">{t("loading")}</p>
+        <p className="mt-4 text-gray-600">{t("checkingLoginStatus")}</p>
       </div>
     );
   }
 
   return (
-    <div
-      className={`min-h-screen flex flex-col ${
-        language === "ar" ? "rtl" : "ltr"
-      }`}
-    >
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow py-16 bg-gray-50">
         <div className="max-w-md mx-auto px-4">
           <Card className="shadow-lg">
             <CardHeader className="text-center pb-2">
+              <img
+                alt="SafeDrop Logo"
+                className="mx-auto h-20 w-auto mb-2"
+                src="/lovable-uploads/abbaa84d-9220-43c2-833e-afb017f5a986.png"
+              />
               <CardTitle className="text-2xl font-bold text-safedrop-primary">
                 {t("login")}
               </CardTitle>
@@ -477,11 +474,7 @@ const LoginContent = () => {
                     : "bg-red-50 border border-red-200 text-red-800"
                 }`}
               >
-                <div
-                  className={`flex items-center gap-2 ${
-                    language === "ar" ? "flex-row-reverse" : ""
-                  }`}
-                >
+                <div className="flex items-center gap-2">
                   {statusMessage.type === "success" ? (
                     <CheckCircle className="h-5 w-5" />
                   ) : (
@@ -495,25 +488,14 @@ const LoginContent = () => {
             <form onSubmit={handleLogin}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className={language === "ar" ? "text-right block" : ""}
-                  >
-                    {t("email")}
-                  </Label>
+                  <Label htmlFor="email">{t("email")}</Label>
                   <div className="relative">
-                    <MailIcon
-                      className={`h-5 w-5 absolute top-1/2 transform -translate-y-1/2 text-gray-400 ${
-                        language === "ar" ? "right-3" : "left-3"
-                      }`}
-                    />
+                    <MailIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
                     <Input
                       id="email"
                       type="email"
-                      className={
-                        language === "ar" ? "pr-10 text-right" : "pl-10"
-                      }
-                      placeholder={t("emailPlaceholder")}
+                      className="pl-10 rtl:pl-4 rtl:pr-10"
+                      placeholder="your@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
@@ -521,24 +503,13 @@ const LoginContent = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="password"
-                    className={language === "ar" ? "text-right block" : ""}
-                  >
-                    {t("password")}
-                  </Label>
+                  <Label htmlFor="password">{t("password")}</Label>
                   <div className="relative">
-                    <LockIcon
-                      className={`h-5 w-5 absolute top-1/2 transform -translate-y-1/2 text-gray-400 ${
-                        language === "ar" ? "right-3" : "left-3"
-                      }`}
-                    />
+                    <LockIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
                     <Input
                       id="password"
                       type="password"
-                      className={
-                        language === "ar" ? "pr-10 text-right" : "pl-10"
-                      }
+                      className="pl-10 rtl:pl-4 rtl:pr-10"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -546,16 +517,8 @@ const LoginContent = () => {
                   </div>
                 </div>
 
-                <div
-                  className={`flex items-center justify-between ${
-                    language === "ar" ? "flex-row-reverse" : ""
-                  }`}
-                >
-                  <div
-                    className={`flex items-center gap-2 ${
-                      language === "ar" ? "flex-row-reverse" : ""
-                    }`}
-                  >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <input
                       type="checkbox"
                       id="remember"
@@ -584,11 +547,7 @@ const LoginContent = () => {
                 >
                   {isLoading ? (
                     <>
-                      <Loader2
-                        className={`h-4 w-4 animate-spin ${
-                          language === "ar" ? "ml-2" : "mr-2"
-                        }`}
-                      />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       {t("loggingIn")}
                     </>
                   ) : (

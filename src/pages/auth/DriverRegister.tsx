@@ -29,51 +29,6 @@ import {
 } from "lucide-react";
 import Cookies from "js-cookie";
 
-const driverRegisterSchema = z.object({
-  firstName: z.string().min(2, {
-    message: "الاسم الأول مطلوب",
-  }),
-  lastName: z.string().min(2, {
-    message: "اسم العائلة مطلوب",
-  }),
-  email: z.string().email({
-    message: "البريد الإلكتروني غير صالح",
-  }),
-  phone: z.string().min(10, {
-    message: "رقم الهاتف غير صالح",
-  }),
-  password: z.string().min(8, {
-    message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
-  }),
-  birthDate: z.string().min(1, {
-    message: "تاريخ الميلاد مطلوب",
-  }),
-  nationalId: z.string().min(10, {
-    message: "رقم الهوية مطلوب",
-  }),
-  licenseNumber: z.string().min(5, {
-    message: "رقم الرخصة مطلوب",
-  }),
-  vehicleInfo: z.object({
-    make: z.string().min(2, {
-      message: "نوع السيارة مطلوب",
-    }),
-    model: z.string().min(2, {
-      message: "موديل السيارة مطلوب",
-    }),
-    year: z.string().regex(/^\d{4}$/, {
-      message: "السنة يجب أن تكون 4 أرقام",
-    }),
-    plateNumber: z.string().min(4, {
-      message: "رقم اللوحة مطلوب",
-    }),
-  }),
-  idImage: z.any().optional(),
-  licenseImage: z.any().optional(),
-});
-
-type DriverFormValues = z.infer<typeof driverRegisterSchema>;
-
 const DriverRegisterContent = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
@@ -85,6 +40,51 @@ const DriverRegisterContent = () => {
   const [idImageFile, setIdImageFile] = useState(null);
   const [licenseImageFile, setLicenseImageFile] = useState(null);
   const [debugInfo, setDebugInfo] = useState(null);
+
+  const driverRegisterSchema = z.object({
+    firstName: z.string().min(2, {
+      message: t("requiredFirstName"),
+    }),
+    lastName: z.string().min(2, {
+      message: t("requiredLastName"),
+    }),
+    email: z.string().email({
+      message: t("invalidEmail"),
+    }),
+    phone: z.string().min(10, {
+      message: t("invalidPhoneNumber"),
+    }),
+    password: z.string().min(8, {
+      message: t("passwordMinLength"),
+    }),
+    birthDate: z.string().min(1, {
+      message: t("requiredBirthDate"),
+    }),
+    nationalId: z.string().min(10, {
+      message: t("requiredNationalId"),
+    }),
+    licenseNumber: z.string().min(5, {
+      message: t("requiredLicenseNumber"),
+    }),
+    vehicleInfo: z.object({
+      make: z.string().min(2, {
+        message: t("requiredVehicleMake"),
+      }),
+      model: z.string().min(2, {
+        message: t("requiredVehicleModel"),
+      }),
+      year: z.string().regex(/^\d{4}$/, {
+        message: t("requiredVehicleYear"),
+      }),
+      plateNumber: z.string().min(4, {
+        message: t("requiredPlateNumber"),
+      }),
+    }),
+    idImage: z.any().optional(),
+    licenseImage: z.any().optional(),
+  });
+
+  type DriverFormValues = z.infer<typeof driverRegisterSchema>;
 
   useEffect(() => {
     let timer;
