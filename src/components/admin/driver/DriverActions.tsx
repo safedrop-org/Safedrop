@@ -1,8 +1,11 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import { Check, X, Loader2 } from "lucide-react";
+import {
+  LanguageProvider,
+  useLanguage,
+} from "@/components/ui/language-context";
 
 interface DriverActionsProps {
   status?: string;
@@ -11,19 +14,21 @@ interface DriverActionsProps {
   processingAction: boolean;
 }
 
-export const DriverActions = ({
+const DriverActionsContent = ({
   status,
   onApprove,
   onReject,
-  processingAction
+  processingAction,
 }: DriverActionsProps) => {
+  const { t, language } = useLanguage();
+
   const isApproved = status === "approved";
   const isRejected = status === "rejected";
-  
+
   return (
     <CardFooter className="flex justify-center gap-4 pt-4">
-      <Button 
-        variant="outline" 
+      <Button
+        variant="outline"
         className="bg-green-50 hover:bg-green-100 border-green-200 disabled:opacity-50"
         onClick={onApprove}
         disabled={processingAction || isApproved}
@@ -33,10 +38,10 @@ export const DriverActions = ({
         ) : (
           <Check size={16} className="ml-1" />
         )}
-        {isApproved ? "تم القبول" : "قبول"}
+        {isApproved ? t("alreadyApproved") : t("approve")}
       </Button>
-      
-      <Button 
+
+      <Button
         variant="destructive"
         onClick={onReject}
         disabled={processingAction || isRejected}
@@ -47,8 +52,16 @@ export const DriverActions = ({
         ) : (
           <X size={16} className="ml-1" />
         )}
-        {isRejected ? "تم الرفض" : "رفض"}
+        {isRejected ? t("alreadyRejected") : t("reject")}
       </Button>
     </CardFooter>
+  );
+};
+
+export const DriverActions = (props: DriverActionsProps) => {
+  return (
+    <LanguageProvider>
+      <DriverActionsContent {...props} />
+    </LanguageProvider>
   );
 };

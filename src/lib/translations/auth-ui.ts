@@ -654,6 +654,10 @@ export const authUI: TranslationSection = {
     ar: "الذهاب إلى صفحة تسجيل الدخول",
     en: "Go to Login Page",
   },
+  checkingLoginStatus: {
+    ar: "جاري التحقق من حالة تسجيل الدخول...",
+    en: "Checking login status...",
+  },
 
   // Pending Approval translations
   accountUnderReview: {

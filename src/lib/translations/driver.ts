@@ -73,4 +73,212 @@ export const driver: TranslationSection = {
     ar: "ر.س",
     en: "SAR",
   },
+
+  // Driver Details Page
+  driverDetails: {
+    ar: "تفاصيل السائق",
+    en: "Driver Details",
+  },
+  driverDocuments: {
+    ar: "وثائق السائق",
+    en: "Driver Documents",
+  },
+  back: {
+    ar: "العودة",
+    en: "Back",
+  },
+  loadingData: {
+    ar: "جاري تحميل البيانات...",
+    en: "Loading data...",
+  },
+  driverNotFound: {
+    ar: "لم يتم العثور على بيانات السائق",
+    en: "Driver data not found",
+  },
+
+  // Personal Information Fields
+  firstName: {
+    ar: "الاسم الأول",
+    en: "First Name",
+  },
+  lastName: {
+    ar: "اسم العائلة",
+    en: "Last Name",
+  },
+  email: {
+    ar: "البريد الإلكتروني",
+    en: "Email",
+  },
+  phone: {
+    ar: "رقم الهاتف",
+    en: "Phone Number",
+  },
+  birthDate: {
+    ar: "تاريخ الميلاد",
+    en: "Birth Date",
+  },
+  address: {
+    ar: "العنوان",
+    en: "Address",
+  },
+  nationalId: {
+    ar: "رقم الهوية",
+    en: "National ID",
+  },
+  licenseNumber: {
+    ar: "رقم الرخصة",
+    en: "License Number",
+  },
+
+  // Vehicle Information
+  vehicleType: {
+    ar: "نوع السيارة",
+    en: "Vehicle Type",
+  },
+  vehicleModel: {
+    ar: "موديل السيارة",
+    en: "Vehicle Model",
+  },
+  manufacturingYear: {
+    ar: "سنة الصنع",
+    en: "Manufacturing Year",
+  },
+  plateNumber: {
+    ar: "رقم اللوحة",
+    en: "Plate Number",
+  },
+
+  // Status Related
+  status: {
+    ar: "الحالة",
+    en: "Status",
+  },
+  pending: {
+    ar: "قيد المراجعة",
+    en: "Under Review",
+  },
+  approved: {
+    ar: "مقبول",
+    en: "Approved",
+  },
+  rejected: {
+    ar: "مرفوض",
+    en: "Rejected",
+  },
+  notSpecified: {
+    ar: "غير محدد",
+    en: "Not Specified",
+  },
+  notAvailable: {
+    ar: "غير متوفر",
+    en: "Not Available",
+  },
+
+  // Actions
+  approve: {
+    ar: "قبول",
+    en: "Approve",
+  },
+  reject: {
+    ar: "رفض",
+    en: "Reject",
+  },
+  alreadyApproved: {
+    ar: "تم القبول",
+    en: "Already Approved",
+  },
+  alreadyRejected: {
+    ar: "تم الرفض",
+    en: "Already Rejected",
+  },
+
+  // Documents
+  idImage: {
+    ar: "صورة بطاقة الهوية",
+    en: "ID Card Image",
+  },
+  licenseImage: {
+    ar: "صورة رخصة القيادة",
+    en: "Driver License Image",
+  },
+  view: {
+    ar: "عرض",
+    en: "View",
+  },
+  download: {
+    ar: "تحميل",
+    en: "Download",
+  },
+  noDocuments: {
+    ar: "لا توجد وثائق مرفوعة لهذا السائق",
+    en: "No documents uploaded for this driver",
+  },
+
+  // Rejection Dialog
+  rejectionReason: {
+    ar: "سبب الرفض",
+    en: "Rejection Reason",
+  },
+  rejectDriverRequest: {
+    ar: "رفض طلب السائق",
+    en: "Reject Driver Request",
+  },
+  pleaseEnterRejectionReason: {
+    ar: "الرجاء كتابة سبب الرفض ليتم إبلاغ السائق به",
+    en: "Please enter the rejection reason to inform the driver",
+  },
+  cancel: {
+    ar: "إلغاء",
+    en: "Cancel",
+  },
+  processing: {
+    ar: "جاري المعالجة...",
+    en: "Processing...",
+  },
+  confirmRejection: {
+    ar: "تأكيد الرفض",
+    en: "Confirm Rejection",
+  },
+
+  // Error and Success Messages
+  noAdminPermission: {
+    ar: "لا توجد صلاحية مسؤول. يرجى تسجيل الدخول كمسؤول أولاً.",
+    en: "No admin permission. Please login as admin first.",
+  },
+  adminAccessError: {
+    ar: "خطأ في التحقق من صلاحيات المسؤول",
+    en: "Error verifying admin permissions",
+  },
+  dataFetchError: {
+    ar: "خطأ في جلب بيانات السائق",
+    en: "Error fetching driver data",
+  },
+  invalidDriverId: {
+    ar: "معرف السائق غير صالح",
+    en: "Invalid driver ID",
+  },
+  driverApprovedSuccess: {
+    ar: "تم قبول السائق بنجاح",
+    en: "Driver approved successfully",
+  },
+  driverRejectedSuccess: {
+    ar: "تم رفض السائق بنجاح",
+    en: "Driver rejected successfully",
+  },
+  statusUpdateError: {
+    ar: "فشل في تحديث حالة السائق. الرجاء التأكد من صلاحيات المسؤول الخاصة بك",
+    en: "Failed to update driver status. Please verify your admin permissions",
+  },
+  rejectionReasonRequired: {
+    ar: "يرجى كتابة سبب الرفض",
+    en: "Please enter rejection reason",
+  },
+  imageDownloadSuccess: {
+    ar: "تم تحميل الصورة بنجاح",
+    en: "Image downloaded successfully",
+  },
+  imageDownloadError: {
+    ar: "خطأ في تحميل الصورة",
+    en: "Error downloading image",
+  },
 };

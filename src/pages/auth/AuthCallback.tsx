@@ -268,8 +268,7 @@ const AuthCallbackContent = () => {
             navigate("/login", {
               replace: true,
               state: {
-                message:
-                  t("emailVerifiedSuccess") || "Email verified successfully!",
+                message: t("emailVerified") || "Email verified successfully!",
                 type: "success",
                 verifiedEmail: pendingEmail,
               },
@@ -407,8 +406,7 @@ const AuthCallbackContent = () => {
           navigate("/login", {
             replace: true,
             state: {
-              message:
-                t("emailVerifiedSuccess") || "Email verified successfully!",
+              message: t("emailVerified") || "Email verified successfully!",
               type: "success",
               verified: true,
             },

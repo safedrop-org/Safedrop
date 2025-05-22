@@ -13,7 +13,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const DriverSupport = () => {
+const DriverSupportContent = () => {
   const { t } = useLanguage();
 
   const faqItems = [
@@ -32,78 +32,84 @@ const DriverSupport = () => {
   ];
 
   return (
-    <LanguageProvider>
-      <div className="flex h-screen bg-gray-50">
-        <DriverSidebar />
+    <div className="flex h-screen bg-gray-50">
+      <DriverSidebar />
 
-        <div className="flex-1 flex flex-col overflow-auto">
-          <header className="bg-white shadow">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-              <h1 className="text-xl font-bold text-gray-900">
-                {t("supportTitle")}
-              </h1>
-            </div>
-          </header>
+      <div className="flex-1 flex flex-col overflow-auto">
+        <header className="bg-white shadow">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <h1 className="text-xl font-bold text-gray-900">
+              {t("supportTitle")}
+            </h1>
+          </div>
+        </header>
 
-          <main className="flex-1 overflow-auto p-4">
-            <div className="max-w-4xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex flex-col items-center text-center">
-                      <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                        <Phone className="h-6 w-6 text-green-600" />
-                      </div>
-                      <h3 className="font-medium mb-2">{t("callUs")}</h3>
-                      <p className="text-sm text-gray-500 mb-4">
-                        {t("contactPhone")}
-                      </p>
-                      <Button variant="outline" className="w-full">
-                        {t("callUs")}
-                      </Button>
+        <main className="flex-1 overflow-auto p-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                      <Phone className="h-6 w-6 text-green-600" />
                     </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex flex-col items-center text-center">
-                      <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                        <Mail className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <h3 className="font-medium mb-2">{t("emailSupport")}</h3>
-                      <p className="text-sm text-gray-500 mb-4">
-                        {t("contactEmail")}
-                      </p>
-                      <Button variant="outline" className="w-full">
-                        {t("emailSupport")}
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    <h3 className="font-medium mb-2">{t("callUs")}</h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                      {t("contactPhone")}
+                    </p>
+                    <Button variant="outline" className="w-full">
+                      {t("callUs")}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>{t("faqTitle")}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Accordion type="single" collapsible>
-                    {faqItems.map((item, index) => (
-                      <AccordionItem key={index} value={`item-${index}`}>
-                        <AccordionTrigger>{item.question}</AccordionTrigger>
-                        <AccordionContent>
-                          <p className="text-gray-600">{item.answer}</p>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
+                <CardContent className="p-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                      <Mail className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <h3 className="font-medium mb-2">{t("emailSupport")}</h3>
+                    <p className="text-sm text-gray-500 mb-4">
+                      {t("contactEmail")}
+                    </p>
+                    <Button variant="outline" className="w-full">
+                      {t("emailSupport")}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
-          </main>
-        </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("faqTitle")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible>
+                  {faqItems.map((item, index) => (
+                    <AccordionItem key={index} value={`item-${index}`}>
+                      <AccordionTrigger>{item.question}</AccordionTrigger>
+                      <AccordionContent>
+                        <p className="text-gray-600">{item.answer}</p>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
       </div>
+    </div>
+  );
+};
+
+const DriverSupport = () => {
+  return (
+    <LanguageProvider>
+      <DriverSupportContent />
     </LanguageProvider>
   );
 };

@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Dialog,
@@ -10,6 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  LanguageProvider,
+  useLanguage,
+} from "@/components/ui/language-context";
 
 interface RejectionDialogProps {
   open: boolean;
@@ -21,48 +24,60 @@ interface RejectionDialogProps {
   processing: boolean;
 }
 
-export const RejectionDialog = ({
+const RejectionDialogContent = ({
   open,
   onOpenChange,
   onConfirm,
   onCancel,
   rejectionReason,
   onReasonChange,
-  processing
+  processing,
 }: RejectionDialogProps) => {
+  const { t, language } = useLanguage();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md text-right">
         <DialogHeader>
-          <DialogTitle className="text-center">رفض طلب السائق</DialogTitle>
+          <DialogTitle className="text-center">
+            {t("rejectDriverRequest")}
+          </DialogTitle>
           <DialogDescription className="text-center">
-            الرجاء كتابة سبب الرفض ليتم إبلاغ السائق به
+            {t("pleaseEnterRejectionReason")}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <Textarea
-            placeholder="سبب الرفض"
+            placeholder={t("rejectionReason")}
             value={rejectionReason}
             onChange={(e) => onReasonChange(e.target.value)}
             rows={4}
             className="text-right"
           />
         </div>
-        
+
         <DialogFooter className="flex sm:justify-center gap-2">
           <Button variant="outline" onClick={onCancel}>
-            إلغاء
+            {t("cancel")}
           </Button>
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             onClick={onConfirm}
             disabled={processing || !rejectionReason.trim()}
           >
-            {processing ? "جاري المعالجة..." : "تأكيد الرفض"}
+            {processing ? t("processing") : t("confirmRejection")}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+};
+
+export const RejectionDialog = (props: RejectionDialogProps) => {
+  return (
+    <LanguageProvider>
+      <RejectionDialogContent {...props} />
+    </LanguageProvider>
   );
 };

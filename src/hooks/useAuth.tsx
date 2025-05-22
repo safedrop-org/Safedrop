@@ -81,6 +81,8 @@ export function useAuth() {
   // Handle user type detection
   const handleUserType = useCallback(
     async (userData) => {
+      if (!userData) return null;
+
       // Try metadata first (faster)
       if (userData.user_metadata?.user_type) {
         const type = userData.user_metadata.user_type;
@@ -106,25 +108,41 @@ export function useAuth() {
         console.error("Error fetching user type:", error);
       }
 
-      return null;
+      // Fallback: check for admin role in user_roles table
+      try {
+        const { data } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userData.id)
+          .eq("role", "admin")
+          .maybeSingle();
+
+        if (data) {
+          setUserType("admin");
+          setAuthCookieByType("admin", userData.email);
+          return "admin";
+        }
+      } catch (error) {
+        console.error("Error checking admin role:", error);
+      }
+
+      // Default to customer if no type found
+      setUserType("customer");
+      return "customer";
     },
     [setAuthCookieByType]
   );
 
   // Set up auth state listener
   useEffect(() => {
-    let isFirstLoad = true;
+    let mounted = true;
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log("Auth state changed:", event, "Session:", !!newSession);
 
-      // Don't process events during initial load to prevent conflicts
-      if (isFirstLoad && event === "INITIAL_SESSION") {
-        isFirstLoad = false;
-        return;
-      }
+      if (!mounted) return;
 
       // Handle sign-out event
       if (event === "SIGNED_OUT") {
@@ -144,17 +162,29 @@ export function useAuth() {
         return;
       }
 
-      // Handle successful sign in
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        console.log("Processing sign in/token refresh");
+      // Handle successful sign in or token refresh
+      if (
+        event === "SIGNED_IN" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "INITIAL_SESSION"
+      ) {
+        console.log("Processing sign in/token refresh/initial session");
+
         setSession(newSession);
         setUser(newSession?.user || null);
 
         if (newSession?.user) {
           await handleUserType(newSession.user);
+        } else {
+          setUserType(null);
         }
 
         setLoading(false);
+
+        // Mark as initialized after first session check
+        if (!isInitialized) {
+          setIsInitialized(true);
+        }
         return;
       }
 
@@ -164,6 +194,8 @@ export function useAuth() {
 
       if (newSession?.user) {
         await handleUserType(newSession.user);
+      } else {
+        setUserType(null);
       }
 
       setLoading(false);
@@ -179,27 +211,38 @@ export function useAuth() {
 
         console.log("Initial session:", !!initialSession);
 
+        if (!mounted) return;
+
         setSession(initialSession);
         setUser(initialSession?.user || null);
 
         if (initialSession?.user) {
           await handleUserType(initialSession.user);
+        } else {
+          setUserType(null);
         }
       } catch (error) {
         console.error("Error fetching initial session:", error);
+        if (mounted) {
+          setUser(null);
+          setSession(null);
+          setUserType(null);
+        }
       } finally {
-        setLoading(false);
-        setIsInitialized(true);
-        isFirstLoad = false;
+        if (mounted) {
+          setLoading(false);
+          setIsInitialized(true); // ← MAKE SURE THIS LINE EXISTS
+        }
       }
     };
 
     getInitialSession();
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, [handleUserType, clearAuthData]);
+  }, [handleUserType, clearAuthData, isInitialized]);
 
   // Sign out function
   const signOut = useCallback(async () => {
@@ -239,7 +282,6 @@ export function useAuth() {
   // Check driver status using the server function
   const checkDriverStatus = useCallback(async (userId) => {
     try {
-      // Use the server function
       const { data, error } = await supabase.rpc("get_driver_status_v3", {
         in_driver_id: userId,
       });
@@ -281,6 +323,9 @@ export function useAuth() {
     }
   }, []);
 
+  // Computed value for authentication status
+  const isAuthenticated = !!(session || user);
+
   return {
     user,
     session,
@@ -290,7 +335,7 @@ export function useAuth() {
     checkUserProfile,
     checkDriverStatus,
     userType,
-    isAuthenticated: !!session || !!user,
+    isAuthenticated,
     isInitialized,
 
     // Added helper methods

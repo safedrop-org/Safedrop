@@ -1,7 +1,10 @@
-
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  LanguageProvider,
+  useLanguage,
+} from "@/components/ui/language-context";
 
 interface VehicleInfo {
   make?: string;
@@ -24,7 +27,7 @@ interface DriverInfoCardProps {
   rejection_reason?: string;
 }
 
-export const DriverInfoCard = ({
+const DriverInfoCardContent = ({
   first_name,
   last_name,
   email,
@@ -37,97 +40,125 @@ export const DriverInfoCard = ({
   status,
   rejection_reason,
 }: DriverInfoCardProps) => {
+  const { t, language } = useLanguage();
+
+  const getStatusText = (status?: string) => {
+    switch (status) {
+      case "approved":
+        return t("approved");
+      case "rejected":
+        return t("rejected");
+      case "pending":
+        return t("pending");
+      default:
+        return t("notSpecified");
+    }
+  };
+
+  const getStatusColor = (status?: string) => {
+    switch (status) {
+      case "approved":
+        return "text-green-600";
+      case "rejected":
+        return "text-red-600";
+      case "pending":
+        return "text-yellow-600";
+      default:
+        return "text-gray-600";
+    }
+  };
+
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-3">
             <div>
-              <span className="font-bold">الاسم الأول: </span>
-              <span>{first_name || "غير متوفر"}</span>
+              <span className="font-bold">{t("firstName")}: </span>
+              <span>{first_name || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">اسم العائلة: </span>
-              <span>{last_name || "غير متوفر"}</span>
+              <span className="font-bold">{t("lastName")}: </span>
+              <span>{last_name || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">البريد الإلكتروني: </span>
-              <span>{email || "غير متوفر"}</span>
+              <span className="font-bold">{t("email")}: </span>
+              <span>{email || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">رقم الهاتف: </span>
-              <span>{phone || "غير متوفر"}</span>
+              <span className="font-bold">{t("phone")}: </span>
+              <span>{phone || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">تاريخ الميلاد: </span>
-              <span>{birth_date || "غير متوفر"}</span>
+              <span className="font-bold">{t("birthDate")}: </span>
+              <span>{birth_date || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">العنوان: </span>
-              <span>{address || "غير متوفر"}</span>
+              <span className="font-bold">{t("address")}: </span>
+              <span>{address || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">الحالة: </span>
-              <span className={
-                status === "approved" ? "text-green-600" :
-                status === "rejected" ? "text-red-600" :
-                status === "pending" ? "text-yellow-600" :
-                "text-gray-600"
-              }>
-                {status === "approved" ? "مقبول" :
-                 status === "rejected" ? "مرفوض" :
-                 status === "pending" ? "قيد المراجعة" :
-                 "غير محدد"}
+              <span className="font-bold">{t("status")}: </span>
+              <span className={getStatusColor(status)}>
+                {getStatusText(status)}
               </span>
             </div>
           </div>
-          
+
           <div className="space-y-3">
             <div>
-              <span className="font-bold">رقم الهوية: </span>
-              <span>{national_id || "غير متوفر"}</span>
+              <span className="font-bold">{t("nationalId")}: </span>
+              <span>{national_id || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">رقم الرخصة: </span>
-              <span>{license_number || "غير متوفر"}</span>
+              <span className="font-bold">{t("licenseNumber")}: </span>
+              <span>{license_number || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">نوع السيارة: </span>
-              <span>{vehicle_info?.make || "غير متوفر"}</span>
+              <span className="font-bold">{t("vehicleType")}: </span>
+              <span>{vehicle_info?.make || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">موديل السيارة: </span>
-              <span>{vehicle_info?.model || "غير متوفر"}</span>
+              <span className="font-bold">{t("vehicleModel")}: </span>
+              <span>{vehicle_info?.model || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">سنة الصنع: </span>
-              <span>{vehicle_info?.year || "غير متوفر"}</span>
+              <span className="font-bold">{t("manufacturingYear")}: </span>
+              <span>{vehicle_info?.year || t("notAvailable")}</span>
             </div>
-            
+
             <div>
-              <span className="font-bold">رقم اللوحة: </span>
-              <span>{vehicle_info?.plateNumber || "غير متوفر"}</span>
+              <span className="font-bold">{t("plateNumber")}: </span>
+              <span>{vehicle_info?.plateNumber || t("notAvailable")}</span>
             </div>
           </div>
         </div>
-        
+
         {status === "rejected" && rejection_reason && (
           <Alert className="mt-4 bg-red-50 border-red-200 text-right">
-            <div className="font-bold mb-1">سبب الرفض:</div>
+            <div className="font-bold mb-1">{t("rejectionReason")}:</div>
             <AlertDescription>{rejection_reason}</AlertDescription>
           </Alert>
         )}
       </CardContent>
     </Card>
+  );
+};
+
+export const DriverInfoCard = (props: DriverInfoCardProps) => {
+  return (
+    <LanguageProvider>
+      <DriverInfoCardContent {...props} />
+    </LanguageProvider>
   );
 };

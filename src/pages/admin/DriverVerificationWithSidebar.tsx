@@ -1,4 +1,3 @@
-import React from "react";
 import DriverVerification from "./DriverVerification";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { LanguageProvider } from "@/components/ui/language-context";

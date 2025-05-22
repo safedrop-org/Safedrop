@@ -7,7 +7,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useLanguage } from "@/components/ui/language-context";
+import {
+  LanguageProvider,
+  useLanguage,
+} from "@/components/ui/language-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -34,7 +37,7 @@ interface DriverStatusCategory {
 }
 
 const DriverVerification = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [statusCategories, setStatusCategories] = useState<
     DriverStatusCategory[]
@@ -43,6 +46,8 @@ const DriverVerification = () => {
   const [searchEmail, setSearchEmail] = useState("");
   const [currentTab, setCurrentTab] = useState("pending");
   const navigate = useNavigate();
+
+  console.log(statusCategories);
 
   const fetchDriverStatusCategories = async () => {
     try {
@@ -150,7 +155,16 @@ const DriverVerification = () => {
 
   const getStatusBadgeColor = (status: string) => {
     const category = statusCategories.find((cat) => cat.name === status);
-    return category ? category.color : "gray";
+    return category ? category.color : "#6c757d";
+  };
+
+  const getStatusBadgeStyle = (status: string) => {
+    const color = getStatusBadgeColor(status);
+    return {
+      backgroundColor: color,
+      color: "#ffffff",
+      border: "none",
+    };
   };
 
   return (
@@ -226,10 +240,14 @@ const DriverVerification = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge
-                          variant="outline"
-                          className={`bg-${statusCategory?.color}-50 text-${statusCategory?.color}-600`}
+                          style={getStatusBadgeStyle(
+                            driver.status || "pending"
+                          )}
+                          className="text-white border-0"
                         >
-                          {statusCategory?.display_name_ar || driver.status}
+                          {language === "ar"
+                            ? statusCategory?.display_name_ar || driver.status
+                            : statusCategory?.name || driver.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
