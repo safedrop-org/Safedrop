@@ -160,8 +160,9 @@ const AuthCallbackContent = () => {
             .from("driver_notifications")
             .insert({
               driver_id: userId,
-              title: t("accountUnderReview"),
-              message: t("thankYouForRegistering"),
+              title: t("accountUnderReview") || "Account Under Review",
+              message:
+                t("thankYouForRegistering") || "Thank you for registering",
               notification_type: "welcome",
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
@@ -189,46 +190,56 @@ const AuthCallbackContent = () => {
       const accessToken = hashParams.get("access_token");
       const refreshToken = hashParams.get("refresh_token");
 
-      // First, try to get existing session
-      const {
-        data: { session: existingSession },
-      } = await supabase.auth.getSession();
+      console.log("URL params:", {
+        token: !!tokenInQuery,
+        type: typeInQuery,
+        accessToken: !!accessToken,
+        refreshToken: !!refreshToken,
+      });
 
-      let session = existingSession;
+      let verificationResult = null;
 
       // Handle different verification scenarios
       if (tokenInQuery && typeInQuery) {
-        console.log("Found token in query, attempting to verify OTP...");
-        const { data, error: otpError } = await supabase.auth.verifyOtp({
+        console.log("Attempting OTP verification...");
+        verificationResult = await supabase.auth.verifyOtp({
           token_hash: tokenInQuery,
           type: typeInQuery === "signup" ? "signup" : "recovery",
         });
 
-        if (otpError) {
-          console.error("OTP verification failed:", otpError);
+        if (verificationResult.error) {
+          console.error("OTP verification failed:", verificationResult.error);
           throw new Error(t("invalidToken") || "Invalid verification token");
         }
-
-        session = data.session;
-      } else if (accessToken && refreshToken && !existingSession) {
-        console.log("Found tokens in hash, attempting to set session...");
-        const { data, error: sessionError } = await supabase.auth.setSession({
+      } else if (accessToken && refreshToken) {
+        console.log("Attempting session setup...");
+        verificationResult = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
 
-        if (sessionError) {
-          console.error("Session setting failed:", sessionError);
+        if (verificationResult.error) {
+          console.error("Session setup failed:", verificationResult.error);
           throw new Error(t("sessionExpired") || "Session expired");
         }
-
-        session = data.session;
       }
 
-      // Handle case where we have no session but might have successful verification
-      if (!session) {
-        console.log("No session found after verification attempts");
+      // Get the session after verification
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        throw new Error(t("sessionExpired") || "Session expired");
+      }
+
+      // Handle case where verification succeeded but no active session
+      if (!session) {
+        console.log("No session found after verification");
+
+        // Check for pending email in various places
         let pendingEmail = queryParams.get("email") || hashParams.get("email");
 
         if (!pendingEmail) {
@@ -243,6 +254,7 @@ const AuthCallbackContent = () => {
           }
         }
 
+        // If we have verification tokens and an email, it's likely successful
         if (pendingEmail && (tokenInQuery || accessToken)) {
           console.log("Email verification successful, redirecting to login");
           Cookies.remove("pendingUserDetails", { path: "/" });
@@ -269,7 +281,7 @@ const AuthCallbackContent = () => {
         throw new Error(t("invalidToken") || "Invalid verification token");
       }
 
-      // We have a valid session, proceed with user setup
+      // We have a valid session, get user details
       const {
         data: { user },
         error: userError,
@@ -385,20 +397,24 @@ const AuthCallbackContent = () => {
         t("emailVerifiedSuccess") || "Email verified successfully!"
       );
 
-      // Sign out and redirect to login
-      await supabase.auth.signOut();
+      // Important: Give the auth hook time to process the state change
+      setTimeout(async () => {
+        // Sign out and redirect to login
+        await supabase.auth.signOut();
 
-      setTimeout(() => {
-        navigate("/login", {
-          replace: true,
-          state: {
-            message:
-              t("emailVerifiedSuccess") || "Email verified successfully!",
-            type: "success",
-            verified: true,
-          },
-        });
-      }, 2000);
+        // Small delay to ensure sign out is processed
+        setTimeout(() => {
+          navigate("/login", {
+            replace: true,
+            state: {
+              message:
+                t("emailVerifiedSuccess") || "Email verified successfully!",
+              type: "success",
+              verified: true,
+            },
+          });
+        }, 500);
+      }, 1500);
     } catch (err) {
       console.error("Verification error:", err);
       const errorMessage =
@@ -420,7 +436,9 @@ const AuthCallbackContent = () => {
   }, [navigate, t]);
 
   useEffect(() => {
-    verifyEmail();
+    // Add a small delay to ensure the component is fully mounted
+    const timer = setTimeout(verifyEmail, 100);
+    return () => clearTimeout(timer);
   }, [verifyEmail]);
 
   if (isVerifying) {
