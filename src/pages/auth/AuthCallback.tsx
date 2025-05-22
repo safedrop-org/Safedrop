@@ -178,8 +178,6 @@ const AuthCallbackContent = () => {
   };
 
   const verifyEmail = useCallback(async () => {
-    let verificationSuccessful = false;
-
     try {
       console.log("Starting email verification process...");
 
@@ -191,47 +189,45 @@ const AuthCallbackContent = () => {
       const accessToken = hashParams.get("access_token");
       const refreshToken = hashParams.get("refresh_token");
 
-      // Handle verification based on available tokens
+      // First, try to get existing session
+      const {
+        data: { session: existingSession },
+      } = await supabase.auth.getSession();
+
+      let session = existingSession;
+
+      // Handle different verification scenarios
       if (tokenInQuery && typeInQuery) {
         console.log("Found token in query, attempting to verify OTP...");
-        const { error: otpError } = await supabase.auth.verifyOtp({
+        const { data, error: otpError } = await supabase.auth.verifyOtp({
           token_hash: tokenInQuery,
           type: typeInQuery === "signup" ? "signup" : "recovery",
         });
 
         if (otpError) {
           console.error("OTP verification failed:", otpError);
-          throw new Error(t("invalidToken"));
+          throw new Error(t("invalidToken") || "Invalid verification token");
         }
-        verificationSuccessful = true;
-      } else if (accessToken && refreshToken) {
+
+        session = data.session;
+      } else if (accessToken && refreshToken && !existingSession) {
         console.log("Found tokens in hash, attempting to set session...");
-        const { error: sessionError } = await supabase.auth.setSession({
+        const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
 
         if (sessionError) {
           console.error("Session setting failed:", sessionError);
-          throw new Error(t("sessionExpired"));
+          throw new Error(t("sessionExpired") || "Session expired");
         }
-        verificationSuccessful = true;
+
+        session = data.session;
       }
 
-      // Get current session
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-        throw new Error(t("sessionExpired"));
-      }
-
-      // If no session, check for email in cookies for success redirect
+      // Handle case where we have no session but might have successful verification
       if (!session) {
-        console.log("No session found, checking for pending email...");
+        console.log("No session found after verification attempts");
 
         let pendingEmail = queryParams.get("email") || hashParams.get("email");
 
@@ -247,19 +243,21 @@ const AuthCallbackContent = () => {
           }
         }
 
-        if (pendingEmail && verificationSuccessful) {
+        if (pendingEmail && (tokenInQuery || accessToken)) {
           console.log("Email verification successful, redirecting to login");
           Cookies.remove("pendingUserDetails", { path: "/" });
 
-          // Set success state first
           setSuccess(true);
-          toast.success(t("emailVerifiedSuccess"));
+          toast.success(
+            t("emailVerifiedSuccess") || "Email verified successfully!"
+          );
 
           setTimeout(() => {
             navigate("/login", {
               replace: true,
               state: {
-                message: t("emailVerifiedSuccess"),
+                message:
+                  t("emailVerifiedSuccess") || "Email verified successfully!",
                 type: "success",
                 verifiedEmail: pendingEmail,
               },
@@ -268,28 +266,22 @@ const AuthCallbackContent = () => {
           return;
         }
 
-        // If we get here without a session and no pending email, it's an error
-        throw new Error(t("invalidToken"));
+        throw new Error(t("invalidToken") || "Invalid verification token");
       }
 
-      // We have a session, get user details
+      // We have a valid session, proceed with user setup
       const {
         data: { user },
         error: userError,
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        throw new Error(t("userNotFound"));
+        throw new Error(t("userNotFound") || "User not found");
       }
 
-      if (!user.email_confirmed_at) {
-        throw new Error(t("emailNotConfirmed"));
-      }
+      console.log("User verified successfully:", user.email);
 
-      // Email verification is successful at this point
-      verificationSuccessful = true;
-
-      // Get pending user details
+      // Get pending user details from cookies
       let pendingUserDetails = null;
       try {
         const cookieData = Cookies.get("pendingUserDetails");
@@ -300,7 +292,7 @@ const AuthCallbackContent = () => {
         console.warn("Error parsing pendingUserDetails cookie:", e);
       }
 
-      let userTypeValue = user.user_metadata?.user_type;
+      let userTypeValue = user.user_metadata?.user_type || "customer";
 
       // Check if profile exists
       const { data: profileData } = await supabase
@@ -309,7 +301,7 @@ const AuthCallbackContent = () => {
         .eq("id", user.id)
         .maybeSingle();
 
-      // Create or update profile (don't let this fail the verification)
+      // Create or update profile
       if (!profileData) {
         const userMetadata = {
           id: user.id,
@@ -337,28 +329,33 @@ const AuthCallbackContent = () => {
         };
 
         try {
-          await supabase.from("profiles").insert(userMetadata);
-          userTypeValue = userMetadata.user_type;
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .insert(userMetadata);
 
-          // Create driver record if needed
-          if (userTypeValue === "driver") {
-            const fileUrls = await processDriverFiles(user.id);
-            const driverData = {
-              national_id: pendingUserDetails?.national_id || "",
-              license_number: pendingUserDetails?.license_number || "",
-              vehicle_info: pendingUserDetails?.vehicle_info || {},
-            };
-            await createDriverRecord(user.id, driverData, fileUrls);
+          if (profileError) {
+            console.error("Profile creation error:", profileError);
+          } else {
+            userTypeValue = userMetadata.user_type;
+            console.log("Profile created successfully");
+
+            // Create driver record if needed
+            if (userTypeValue === "driver" && pendingUserDetails) {
+              const fileUrls = await processDriverFiles(user.id);
+              const driverData = {
+                national_id: pendingUserDetails.national_id || "",
+                license_number: pendingUserDetails.license_number || "",
+                vehicle_info: pendingUserDetails.vehicle_info || {},
+              };
+              await createDriverRecord(user.id, driverData, fileUrls);
+            }
           }
         } catch (e) {
-          console.warn(
-            "Profile/driver creation failed, but email verification succeeded:",
-            e
-          );
+          console.error("Profile creation failed:", e);
         }
       } else {
         userTypeValue = profileData.user_type;
-        // Update email_verified
+        // Update email_verified status
         try {
           await supabase
             .from("profiles")
@@ -372,9 +369,10 @@ const AuthCallbackContent = () => {
         }
       }
 
-      // Cleanup and redirect
+      // Clean up cookies
       Cookies.remove("pendingUserDetails", { path: "/" });
 
+      // Call RPC function if available
       try {
         await supabase.rpc("verify_user_email", { user_id: user.id });
       } catch (e) {
@@ -383,29 +381,38 @@ const AuthCallbackContent = () => {
 
       setUserType(userTypeValue);
       setSuccess(true);
-      toast.success(t("emailVerifiedSuccess"));
+      toast.success(
+        t("emailVerifiedSuccess") || "Email verified successfully!"
+      );
 
-      // Sign out and redirect
+      // Sign out and redirect to login
       await supabase.auth.signOut();
 
       setTimeout(() => {
-        window.location.href = "/login?verified=true";
+        navigate("/login", {
+          replace: true,
+          state: {
+            message:
+              t("emailVerifiedSuccess") || "Email verified successfully!",
+            type: "success",
+            verified: true,
+          },
+        });
       }, 2000);
     } catch (err) {
       console.error("Verification error:", err);
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : t("errorProcessingRequest") || "Error processing request";
+      setError(errorMessage);
+      toast.error(t("emailVerificationFailed") || "Email verification failed");
 
-      // Only set error if verification wasn't successful
-      if (!verificationSuccessful) {
-        const errorMessage =
-          err instanceof Error ? err.message : t("errorProcessingRequest");
-        setError(errorMessage);
-        toast.error(t("emailVerificationFailed"));
-
-        try {
-          await supabase.auth.signOut();
-        } catch (e) {
-          console.warn("Error during sign out:", e);
-        }
+      // Ensure we sign out on error
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.warn("Error during sign out:", e);
       }
     } finally {
       setIsVerifying(false);
@@ -428,9 +435,12 @@ const AuthCallbackContent = () => {
             <Loader2 className="h-16 w-16 text-safedrop-primary animate-spin" />
           </div>
           <h2 className="text-2xl font-bold text-safedrop-primary">
-            {t("verifyingEmail")}
+            {t("verifyingEmail") || "Verifying Email"}
           </h2>
-          <p className="text-gray-600">{t("pleaseWaitVerifyingEmail")}</p>
+          <p className="text-gray-600">
+            {t("pleaseWaitVerifyingEmail") ||
+              "Please wait while we verify your email..."}
+          </p>
         </div>
       </div>
     );
@@ -448,7 +458,7 @@ const AuthCallbackContent = () => {
             <AlertCircle className="h-16 w-16 text-red-500" />
           </div>
           <h2 className="text-2xl font-bold text-safedrop-primary">
-            {t("emailVerificationFailed")}
+            {t("emailVerificationFailed") || "Email Verification Failed"}
           </h2>
           <p className="text-gray-600">{error}</p>
           <div className="mt-6">
@@ -459,7 +469,7 @@ const AuthCallbackContent = () => {
               }}
               className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
             >
-              {t("goToLoginPage")}
+              {t("goToLoginPage") || "Go to Login Page"}
             </Button>
           </div>
         </div>
@@ -479,9 +489,15 @@ const AuthCallbackContent = () => {
             <CheckCircle2 className="h-16 w-16 text-green-500" />
           </div>
           <h2 className="text-2xl font-bold text-safedrop-primary">
-            {t("emailVerified")}
+            {t("emailVerified") || "Email Verified"}
           </h2>
-          <p className="text-gray-600">{t("emailVerifiedSuccess")}</p>
+          <p className="text-gray-600">
+            {t("emailVerifiedSuccess") ||
+              "Your email has been verified successfully!"}
+          </p>
+          <p className="text-sm text-gray-500">
+            {t("redirectingToLogin") || "Redirecting to login page..."}
+          </p>
         </div>
       </div>
     );
