@@ -12,11 +12,12 @@ import Cookies from "js-cookie";
 
 const AuthCallbackContent = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState(null);
   const [userType, setUserType] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [debugInfo, setDebugInfo] = useState(null);
 
   // File upload handling for driver document images
   const processDriverFiles = async (userId) => {
@@ -97,6 +98,114 @@ const AuthCallbackContent = () => {
     }
   };
 
+  // Create driver record with all related data
+  const createDriverRecord = async (userId, driverData, fileUrls) => {
+    try {
+      console.log("Creating driver record using the function");
+      // Try to use the function first (which bypasses RLS)
+      const { data: result, error: functionError } = await supabase.rpc(
+        "create_driver_with_related_records",
+        {
+          in_user_id: userId,
+          in_national_id: driverData.national_id || "",
+          in_license_number: driverData.license_number || "",
+          in_vehicle_info: driverData.vehicle_info || {},
+          in_id_image: fileUrls?.id_image || null,
+          in_license_image: fileUrls?.license_image || null,
+        }
+      );
+
+      if (functionError) {
+        console.error("Error creating driver with function:", functionError);
+        setDebugInfo({
+          stage: "driver_function_call",
+          error: functionError,
+        });
+
+        // Fallback to direct insertion
+        console.log("Falling back to direct driver record insertion");
+        const directDriverData = {
+          id: userId,
+          national_id: driverData.national_id || "",
+          license_number: driverData.license_number || "",
+          vehicle_info: driverData.vehicle_info || {},
+          status: "pending",
+          is_available: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          ...(fileUrls?.id_image && { id_image: fileUrls.id_image }),
+          ...(fileUrls?.license_image && {
+            license_image: fileUrls.license_image,
+          }),
+        };
+
+        // Insert driver record
+        const { error: driverError } = await supabase
+          .from("drivers")
+          .insert(directDriverData);
+
+        if (driverError) {
+          console.error("Error inserting driver record directly:", driverError);
+          setDebugInfo({
+            stage: "driver_direct_insert",
+            error: driverError,
+            data: directDriverData,
+          });
+          throw driverError;
+        }
+
+        // Insert role
+        const { error: roleError } = await supabase.from("user_roles").insert({
+          user_id: userId,
+          role: "driver",
+          created_at: new Date().toISOString(),
+        });
+
+        if (roleError) {
+          console.warn("Error creating driver role:", roleError);
+        }
+
+        // Create earnings record
+        try {
+          await supabase.from("driver_earnings").insert({
+            driver_id: userId,
+            amount: 0,
+            status: "initial",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        } catch (earningsError) {
+          console.warn(
+            "Error creating initial earnings record:",
+            earningsError
+          );
+        }
+
+        // Create welcome notification
+        try {
+          await supabase.from("driver_notifications").insert({
+            driver_id: userId,
+            title: t("accountUnderReview"),
+            message: t("thankYouForRegistering"),
+            notification_type: "welcome",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        } catch (notificationError) {
+          console.warn(
+            "Error creating welcome notification:",
+            notificationError
+          );
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in createDriverRecord:", error);
+      return false;
+    }
+  };
+
   const verifyEmail = useCallback(async () => {
     try {
       console.log("Starting email verification process...");
@@ -148,7 +257,7 @@ const AuthCallbackContent = () => {
 
       if (sessionError) {
         console.error("Session error:", sessionError);
-        throw new Error("خطأ في الجلسة");
+        throw new Error(t("sessionExpired"));
       }
 
       // Handle no session case
@@ -180,9 +289,7 @@ const AuthCallbackContent = () => {
         if (pendingEmail) {
           console.log("No session but have email, redirecting to login");
           setSuccess(true);
-          toast.success(
-            "تم التحقق من البريد الإلكتروني بنجاح. يرجى تسجيل الدخول."
-          );
+          toast.success(t("emailVerifiedSuccess"));
 
           // Remove cookie
           console.log("Removing pendingUserDetails cookie");
@@ -192,8 +299,7 @@ const AuthCallbackContent = () => {
             navigate("/login", {
               replace: true,
               state: {
-                message:
-                  "تم التحقق من البريد الإلكتروني بنجاح. يرجى تسجيل الدخول.",
+                message: t("emailVerifiedSuccess"),
                 type: "success",
                 verifiedEmail: pendingEmail,
               },
@@ -203,7 +309,7 @@ const AuthCallbackContent = () => {
         }
 
         console.error("No session and no email found");
-        throw new Error("لم يتم العثور على جلسة المستخدم");
+        throw new Error(t("userNotFound"));
       }
 
       // Get user details
@@ -215,7 +321,7 @@ const AuthCallbackContent = () => {
 
       if (userError || !user) {
         console.error("User error:", userError);
-        throw new Error("لم يتم العثور على المستخدم");
+        throw new Error(t("userNotFound"));
       }
 
       console.log(
@@ -227,7 +333,7 @@ const AuthCallbackContent = () => {
 
       if (!user.email_confirmed_at) {
         console.error("Email not confirmed yet");
-        throw new Error("لم يتم تأكيد البريد الإلكتروني بعد");
+        throw new Error(t("emailNotConfirmed"));
       }
 
       // Get user type from metadata
@@ -311,47 +417,24 @@ const AuthCallbackContent = () => {
             const fileUrls = await processDriverFiles(user.id);
             console.log("File upload results:", fileUrls);
 
-            // Create the driver record
+            // Prepare the driver data
             const driverData = {
-              id: user.id,
               national_id: pendingUserDetails?.national_id || "",
               license_number: pendingUserDetails?.license_number || "",
               vehicle_info: pendingUserDetails?.vehicle_info || {},
-              status: "pending",
-              is_available: false,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              ...(fileUrls?.id_image && { id_image: fileUrls.id_image }),
-              ...(fileUrls?.license_image && {
-                license_image: fileUrls.license_image,
-              }),
             };
 
-            console.log("Inserting driver record:", driverData);
-            const { error: driverError } = await supabase
-              .from("drivers")
-              .insert(driverData);
+            // Create driver record and related data
+            const driverCreated = await createDriverRecord(
+              user.id,
+              driverData,
+              fileUrls
+            );
 
-            if (driverError) {
-              console.error("Error creating driver record:", driverError);
+            if (!driverCreated) {
+              console.error("Failed to create driver record");
             } else {
               console.log("Driver record created successfully");
-            }
-
-            // Add driver role
-            console.log("Adding driver role");
-            const { error: roleError } = await supabase
-              .from("user_roles")
-              .insert({
-                user_id: user.id,
-                role: "driver",
-                created_at: new Date().toISOString(),
-              });
-
-            if (roleError) {
-              console.error("Error assigning driver role:", roleError);
-            } else {
-              console.log("Driver role assigned successfully");
             }
           }
         } catch (e) {
@@ -408,7 +491,7 @@ const AuthCallbackContent = () => {
 
       setUserType(userTypeValue);
       setSuccess(true);
-      toast.success("تم التحقق من البريد الإلكتروني بنجاح");
+      toast.success(t("emailVerifiedSuccess"));
 
       // Sign out and redirect
       console.log("Signing out user");
@@ -422,11 +505,9 @@ const AuthCallbackContent = () => {
     } catch (err) {
       console.error("Verification error:", err);
       const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "حدث خطأ أثناء التحقق من البريد الإلكتروني";
+        err instanceof Error ? err.message : t("errorProcessingRequest");
       setError(errorMessage);
-      toast.error("حدث خطأ أثناء التحقق من البريد الإلكتروني");
+      toast.error(t("emailVerificationFailed"));
 
       try {
         console.log("Signing out after error");
@@ -446,17 +527,19 @@ const AuthCallbackContent = () => {
 
   if (isVerifying) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
+      <div
+        className={`min-h-screen flex flex-col justify-center items-center bg-gray-50 ${
+          language === "ar" ? "rtl" : "ltr"
+        }`}
+      >
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
           <div className="mx-auto flex items-center justify-center">
             <Loader2 className="h-16 w-16 text-safedrop-primary animate-spin" />
           </div>
           <h2 className="text-2xl font-bold text-safedrop-primary">
-            جاري التحقق من البريد الإلكتروني
+            {t("verifyingEmail")}
           </h2>
-          <p className="text-gray-600">
-            يرجى الانتظار بينما نتحقق من بريدك الإلكتروني...
-          </p>
+          <p className="text-gray-600">{t("pleaseWaitVerifyingEmail")}</p>
         </div>
       </div>
     );
@@ -464,15 +547,29 @@ const AuthCallbackContent = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
+      <div
+        className={`min-h-screen flex flex-col justify-center items-center bg-gray-50 ${
+          language === "ar" ? "rtl" : "ltr"
+        }`}
+      >
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
           <div className="mx-auto flex items-center justify-center">
             <AlertCircle className="h-16 w-16 text-red-500" />
           </div>
           <h2 className="text-2xl font-bold text-safedrop-primary">
-            فشل التحقق من البريد الإلكتروني
+            {t("emailVerificationFailed")}
           </h2>
           <p className="text-gray-600">{error}</p>
+          {debugInfo && (
+            <div
+              className={`bg-red-50 p-3 rounded mt-4 text-xs overflow-auto max-h-32 ${
+                language === "ar" ? "text-right" : "text-left"
+              }`}
+            >
+              <p className="font-semibold text-red-800">Debug Info:</p>
+              <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+            </div>
+          )}
           <div className="mt-6">
             <Button
               onClick={() => {
@@ -481,7 +578,7 @@ const AuthCallbackContent = () => {
               }}
               className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
             >
-              الذهاب إلى صفحة تسجيل الدخول
+              {t("goToLoginPage")}
             </Button>
           </div>
         </div>
@@ -491,18 +588,19 @@ const AuthCallbackContent = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
+      <div
+        className={`min-h-screen flex flex-col justify-center items-center bg-gray-50 ${
+          language === "ar" ? "rtl" : "ltr"
+        }`}
+      >
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
           <div className="mx-auto flex items-center justify-center">
             <CheckCircle2 className="h-16 w-16 text-green-500" />
           </div>
           <h2 className="text-2xl font-bold text-safedrop-primary">
-            تم التحقق من البريد الإلكتروني
+            {t("emailVerified")}
           </h2>
-          <p className="text-gray-600">
-            تم تأكيد بريدك الإلكتروني بنجاح. جاري تحويلك إلى صفحة تسجيل
-            الدخول...
-          </p>
+          <p className="text-gray-600">{t("emailVerifiedSuccess")}</p>
         </div>
       </div>
     );

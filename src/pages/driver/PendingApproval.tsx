@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import Cookies from "js-cookie";
 
 const PendingApprovalContent = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [driverStatus, setDriverStatus] = useState({
@@ -38,9 +38,7 @@ const PendingApprovalContent = () => {
 
   const fetchDriverStatus = async () => {
     if (!user?.id) {
-      setError(
-        "لم يتم العثور على بيانات تسجيل الدخول، يرجى تسجيل الدخول مرة أخرى"
-      );
+      setError(t("failedToGetUserInfo"));
       setIsLoading(false);
       return;
     }
@@ -65,7 +63,7 @@ const PendingApprovalContent = () => {
         if (data.error?.includes("No driver record")) {
           setDriverStatus({ status: "pending", rejection_reason: null });
         } else {
-          throw new Error(data.error || "فشل في جلب حالة السائق");
+          throw new Error(data.error || t("profileCheckError"));
         }
       } else {
         setDriverStatus({
@@ -81,7 +79,7 @@ const PendingApprovalContent = () => {
       }
     } catch (err) {
       console.error("Error fetching driver status:", err);
-      setError("حدث خطأ أثناء التحقق من حالة طلبك");
+      setError(t("profileCheckError"));
     } finally {
       setIsLoading(false);
     }
@@ -109,7 +107,11 @@ const PendingApprovalContent = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div
+        className={`min-h-screen flex items-center justify-center bg-gray-50 p-4 ${
+          language === "ar" ? "rtl" : "ltr"
+        }`}
+      >
         <div className="w-full max-w-md p-8 bg-white shadow-xl rounded-xl animate-pulse">
           <div className="h-6 bg-gray-200 rounded mb-4" />
           <div className="h-6 bg-gray-200 rounded mb-4" />
@@ -121,11 +123,21 @@ const PendingApprovalContent = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div
+        className={`min-h-screen flex items-center justify-center bg-gray-50 p-4 ${
+          language === "ar" ? "rtl" : "ltr"
+        }`}
+      >
         <div className="max-w-md w-full bg-white shadow-xl rounded-xl p-8 text-center">
           <AlertTriangle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
-          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 text-right">
-            <p className="font-bold text-amber-800">خطأ في النظام</p>
+          <div
+            className={`bg-amber-50 border-amber-500 p-4 mb-6 ${
+              language === "ar"
+                ? "border-r-4 text-right"
+                : "border-l-4 text-left"
+            }`}
+          >
+            <p className="font-bold text-amber-800">{t("systemError")}</p>
             <p className="text-amber-700 mt-2">{error}</p>
           </div>
           <div className="space-y-4">
@@ -134,14 +146,14 @@ const PendingApprovalContent = () => {
               className="w-full"
               onClick={fetchDriverStatus}
             >
-              إعادة المحاولة
+              {t("retryAction")}
             </Button>
             <Button
               variant="destructive"
               className="w-full"
               onClick={handleBackToLogin}
             >
-              العودة إلى صفحة تسجيل الدخول
+              {t("backToLoginPage")}
             </Button>
           </div>
         </div>
@@ -152,21 +164,31 @@ const PendingApprovalContent = () => {
   // APPROVED
   if (driverStatus?.status === "approved") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div
+        className={`min-h-screen flex items-center justify-center bg-gray-50 p-4 ${
+          language === "ar" ? "rtl" : "ltr"
+        }`}
+      >
         <div className="max-w-md w-full bg-white shadow-xl rounded-xl p-8 text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6 text-right">
-            <p className="font-bold text-green-800">تمت الموافقة على طلبك</p>
-            <p className="text-green-700 mt-2">
-              يمكنك الآن استخدام تطبيق سائق سيف دروب!
+          <div
+            className={`bg-green-50 border-green-500 p-4 mb-6 ${
+              language === "ar"
+                ? "border-r-4 text-right"
+                : "border-l-4 text-left"
+            }`}
+          >
+            <p className="font-bold text-green-800">
+              {t("applicationApproved")}
             </p>
+            <p className="text-green-700 mt-2">{t("canNowUseApp")}</p>
           </div>
           <Button
             variant="default"
             className="w-full mt-4"
             onClick={() => navigate("/driver/dashboard")}
           >
-            الذهاب إلى لوحة التحكم
+            {t("goToDashboard")}
           </Button>
         </div>
       </div>
@@ -176,13 +198,23 @@ const PendingApprovalContent = () => {
   // REJECTED
   if (driverStatus?.status === "rejected") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div
+        className={`min-h-screen flex items-center justify-center bg-gray-50 p-4 ${
+          language === "ar" ? "rtl" : "ltr"
+        }`}
+      >
         <div className="max-w-md w-full bg-white shadow-xl rounded-xl p-8 text-center">
           <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 text-right">
-            <p className="font-bold text-red-800">تم رفض طلبك</p>
+          <div
+            className={`bg-red-50 border-red-500 p-4 mb-6 ${
+              language === "ar"
+                ? "border-r-4 text-right"
+                : "border-l-4 text-left"
+            }`}
+          >
+            <p className="font-bold text-red-800">{t("applicationRejected")}</p>
             <p className="text-red-700 mt-2">
-              {driverStatus.rejection_reason || "لم يتم تحديد سبب للرفض"}
+              {driverStatus.rejection_reason || t("noRejectionReason")}
             </p>
           </div>
           <Button
@@ -190,14 +222,14 @@ const PendingApprovalContent = () => {
             className="w-full mb-2"
             onClick={signOut}
           >
-            تسجيل الخروج
+            {t("signOut")}
           </Button>
           <Button
             variant="outline"
             className="w-full"
             onClick={handleBackToLogin}
           >
-            العودة إلى صفحة تسجيل الدخول
+            {t("backToLoginPage")}
           </Button>
         </div>
       </div>
@@ -206,38 +238,59 @@ const PendingApprovalContent = () => {
 
   // PENDING (no record yet or still under review)
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div
+      className={`min-h-screen flex items-center justify-center bg-gray-50 p-4 ${
+        language === "ar" ? "rtl" : "ltr"
+      }`}
+    >
       <div className="max-w-md w-full bg-white shadow-xl rounded-xl p-8 text-center">
         <img
           src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png"
           alt="SafeDrop Logo"
           className="h-20 mx-auto mb-6"
         />
-        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6 text-right">
-          <div className="flex items-start">
-            <Clock className="h-6 w-6 text-yellow-500 ml-3" />
+        <div
+          className={`bg-yellow-50 border-yellow-500 p-4 mb-6 ${
+            language === "ar" ? "border-r-4 text-left" : "border-l-4 text-left"
+          }`}
+        >
+          <div
+            className={`flex items-start ${
+              language === "ar" ? "flex-row" : "gap-2"
+            }`}
+          >
+            <Clock
+              className={`h-10 w-10 text-yellow-500 ${
+                language === "ar" ? "ml-3" : "mr-3"
+              }`}
+            />
             <div>
-              <p className="font-bold text-yellow-800">حسابك قيد المراجعة</p>
+              <p className="font-bold text-yellow-800">
+                {t("accountUnderReview")}
+              </p>
               <p className="text-yellow-700 mt-2">
-                شكرًا لتسجيلك في منصة سيف دروب. طلبك قيد المراجعة من قبل
-                الإدارة. سنُعلمك عبر البريد فور انتهاء المراجعة.
+                {t("thankYouForRegistering")}
               </p>
             </div>
           </div>
         </div>
 
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          ماذا يحدث الآن؟
+          {t("whatHappensNow")}
         </h2>
-        <ol className="text-right space-y-2 mb-6">
+        <ol
+          className={`space-y-2 mb-6 ${
+            language === "ar" ? "text-left" : "text-left"
+          }`}
+        >
           <li>
-            <strong>1.</strong> يقوم فريقنا بالتحقق من بياناتك
+            <strong>1.</strong> {t("reviewStep1")}
           </li>
           <li>
-            <strong>2.</strong> قد يستغرق هذا ما بين 1–3 أيام عمل
+            <strong>2.</strong> {t("reviewStep2")}
           </li>
           <li>
-            <strong>3.</strong> عند الموافقة، ستتم إعادة توجيهك تلقائيًا
+            <strong>3.</strong> {t("reviewStep3")}
           </li>
         </ol>
 
@@ -247,14 +300,14 @@ const PendingApprovalContent = () => {
             className="w-full"
             onClick={fetchDriverStatus}
           >
-            تحديث الحالة
+            {t("updateStatus")}
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             className="w-full"
             onClick={handleBackToLogin}
           >
-            العودة إلى صفحة تسجيل الدخول
+            {t("backToLoginPage")}
           </Button>
         </div>
       </div>

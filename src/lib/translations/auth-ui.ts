@@ -430,4 +430,224 @@ export const authUI: TranslationSection = {
     ar: "استخدم هذا البريد الإلكتروني عند محاولة استعادة كلمة المرور، حيث سيتم استخدامه للتحقق من هويتك من خلال الأسئلة الأمنية",
     en: "Use this email when attempting to recover your password, as it will be used to verify your identity through security questions",
   },
+
+  // Registration translations
+  register: {
+    ar: "التسجيل",
+    en: "Register",
+  },
+  registering: {
+    ar: "جاري التسجيل...",
+    en: "Registering...",
+  },
+  registrationSuccess: {
+    ar: "تم التسجيل بنجاح",
+    en: "Registration successful",
+  },
+  registrationError: {
+    ar: "حدث خطأ أثناء التسجيل",
+    en: "An error occurred during registration",
+  },
+  alreadyHaveAccount: {
+    ar: "لديك حساب بالفعل؟",
+    en: "Already have an account?",
+  },
+
+  // Customer Registration
+  customerRegister: {
+    ar: "تسجيل العميل",
+    en: "Customer Registration",
+  },
+
+  // Driver Registration
+  driverRegister: {
+    ar: "تسجيل السائق",
+    en: "Driver Registration",
+  },
+
+  // Form fields
+  firstName: {
+    ar: "الاسم الأول",
+    en: "First Name",
+  },
+  lastName: {
+    ar: "اسم العائلة",
+    en: "Last Name",
+  },
+  phone: {
+    ar: "رقم الهاتف",
+    en: "Phone Number",
+  },
+  birthDate: {
+    ar: "تاريخ الميلاد",
+    en: "Birth Date",
+  },
+  nationalId: {
+    ar: "رقم الهوية الوطنية",
+    en: "National ID",
+  },
+  licenseNumber: {
+    ar: "رقم رخصة القيادة",
+    en: "License Number",
+  },
+
+  // Vehicle information
+  vehicleMake: {
+    ar: "نوع السيارة",
+    en: "Vehicle Make",
+  },
+  vehicleModel: {
+    ar: "موديل السيارة",
+    en: "Vehicle Model",
+  },
+  vehicleYear: {
+    ar: "سنة الصنع",
+    en: "Vehicle Year",
+  },
+  plateNumber: {
+    ar: "رقم اللوحة",
+    en: "Plate Number",
+  },
+
+  // Image uploads
+  idImage: {
+    ar: "صورة الهوية",
+    en: "ID Image",
+  },
+  licenseImage: {
+    ar: "صورة رخصة القيادة",
+    en: "Driver License Image",
+  },
+  uploadIdImage: {
+    ar: "اضغط لتحميل صورة الهوية",
+    en: "Click to upload ID image",
+  },
+  uploadLicenseImage: {
+    ar: "اضغط لتحميل صورة الرخصة",
+    en: "Click to upload license image",
+  },
+  clickToChangeImage: {
+    ar: "انقر لتغيير الصورة",
+    en: "Click to change image",
+  },
+
+  // Placeholders
+  emailPlaceholder: {
+    ar: "البريد الإلكتروني",
+    en: "Email",
+  },
+  phonePlaceholder: {
+    ar: "رقم الهاتف",
+    en: "Phone Number",
+  },
+
+  // AuthCallback translations
+  verifyingEmail: {
+    ar: "جاري التحقق من البريد الإلكتروني",
+    en: "Verifying Email",
+  },
+  pleaseWaitVerifyingEmail: {
+    ar: "يرجى الانتظار بينما نتحقق من بريدك الإلكتروني...",
+    en: "Please wait while we verify your email...",
+  },
+  emailVerificationFailed: {
+    ar: "فشل التحقق من البريد الإلكتروني",
+    en: "Email Verification Failed",
+  },
+  emailVerified: {
+    ar: "تم التحقق من البريد الإلكتروني",
+    en: "Email Verified",
+  },
+  emailVerifiedSuccess: {
+    ar: "تم تأكيد بريدك الإلكتروني بنجاح. جاري تحويلك إلى صفحة تسجيل الدخول...",
+    en: "Your email has been verified successfully. Redirecting to login page...",
+  },
+  goToLoginPage: {
+    ar: "الذهاب إلى صفحة تسجيل الدخول",
+    en: "Go to Login Page",
+  },
+
+  // Pending Approval translations
+  accountUnderReview: {
+    ar: "حسابك قيد المراجعة",
+    en: "Your Account is Under Review",
+  },
+  thankYouForRegistering: {
+    ar: "شكرًا لتسجيلك في منصة سيف دروب. طلبك قيد المراجعة من قبل الإدارة. سنُعلمك عبر البريد فور انتهاء المراجعة.",
+    en: "Thank you for registering with SafeDrop platform. Your application is under review by our administration. We will notify you via email once the review is complete.",
+  },
+  whatHappensNow: {
+    ar: "ماذا يحدث الآن؟",
+    en: "What happens now?",
+  },
+  reviewStep1: {
+    ar: "يقوم فريقنا بالتحقق من بياناتك",
+    en: "Our team verifies your information",
+  },
+  reviewStep2: {
+    ar: "قد يستغرق هذا ما بين 1–3 أيام عمل",
+    en: "This may take 1-3 business days",
+  },
+  reviewStep3: {
+    ar: "عند الموافقة، ستتم إعادة توجيهك تلقائيًا",
+    en: "Upon approval, you will be automatically redirected",
+  },
+  updateStatus: {
+    ar: "تحديث الحالة",
+    en: "Update Status",
+  },
+  applicationApproved: {
+    ar: "تمت الموافقة على طلبك",
+    en: "Your Application has been Approved",
+  },
+  canNowUseApp: {
+    ar: "يمكنك الآن استخدام تطبيق سائق سيف دروب!",
+    en: "You can now use the SafeDrop driver app!",
+  },
+  goToDashboard: {
+    ar: "الذهاب إلى لوحة التحكم",
+    en: "Go to Dashboard",
+  },
+  applicationRejected: {
+    ar: "تم رفض طلبك",
+    en: "Your Application has been Rejected",
+  },
+  noRejectionReason: {
+    ar: "لم يتم تحديد سبب للرفض",
+    en: "No rejection reason specified",
+  },
+  systemError: {
+    ar: "خطأ في النظام",
+    en: "System Error",
+  },
+  retryAction: {
+    ar: "إعادة المحاولة",
+    en: "Retry",
+  },
+  backToLoginPage: {
+    ar: "العودة إلى صفحة تسجيل الدخول",
+    en: "Back to Login Page",
+  },
+  signOut: {
+    ar: "تسجيل الخروج",
+    en: "Sign Out",
+  },
+
+  // Wait time messages
+  pleaseWaitBeforeRetry: {
+    ar: "يرجى الانتظار قبل المحاولة مرة أخرى",
+    en: "Please wait before trying again",
+  },
+  timeRemaining: {
+    ar: "الوقت المتبقي",
+    en: "Time remaining",
+  },
+  seconds: {
+    ar: "ثانية",
+    en: "seconds",
+  },
+  registrationAttemptLimitExceeded: {
+    ar: "تم تجاوز الحد المسموح لمحاولات التسجيل. يرجى الانتظار قليلاً.",
+    en: "Registration attempt limit exceeded. Please wait a moment.",
+  },
 };
