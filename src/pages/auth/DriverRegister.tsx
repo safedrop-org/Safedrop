@@ -120,7 +120,9 @@ const DriverRegisterContent = () => {
 
   const handleRateLimitError = () => {
     setWaitTime(60);
-    toast.error(t("registrationAttemptLimitExceeded"));
+    toast.error(
+      "تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار دقيقة واحدة قبل المحاولة مرة أخرى"
+    );
   };
 
   const handleImageChange = (e, type) => {
@@ -140,7 +142,68 @@ const DriverRegisterContent = () => {
     reader.readAsDataURL(file);
   };
 
-  // Store file data in localStorage for AuthCallback to process
+  // Upload files directly to Supabase Storage
+  const uploadFilesToSupabase = async (userId) => {
+    const uploadResults = {};
+    try {
+      // Upload ID image if exists
+      if (idImageFile) {
+        const fileExt = idImageFile.name.split(".").pop();
+        const fileName = `${userId}_id_image_${Date.now()}.${fileExt}`;
+        const filePath = `id-cards/${fileName}`;
+
+        const { error: idUploadError } = await supabase.storage
+          .from("driver-documents")
+          .upload(filePath, idImageFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (!idUploadError) {
+          // Get public URL
+          const { data: idImageData } = supabase.storage
+            .from("driver-documents")
+            .getPublicUrl(filePath);
+
+          uploadResults.id_image = idImageData.publicUrl;
+        } else {
+          console.error("Error uploading ID image:", idUploadError);
+        }
+      }
+
+      // Upload license image if exists
+      if (licenseImageFile) {
+        const fileExt = licenseImageFile.name.split(".").pop();
+        const fileName = `${userId}_license_image_${Date.now()}.${fileExt}`;
+        const filePath = `licenses/${fileName}`;
+
+        const { error: licenseUploadError } = await supabase.storage
+          .from("driver-documents")
+          .upload(filePath, licenseImageFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (!licenseUploadError) {
+          // Get public URL
+          const { data: licenseImageData } = supabase.storage
+            .from("driver-documents")
+            .getPublicUrl(filePath);
+
+          uploadResults.license_image = licenseImageData.publicUrl;
+        } else {
+          console.error("Error uploading license image:", licenseUploadError);
+        }
+      }
+
+      return uploadResults;
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      return uploadResults;
+    }
+  };
+
+  // Store file data in localStorage as backup
   const storeFileData = (userId, idImage, licenseImage) => {
     const fileData = {};
 
@@ -164,9 +227,63 @@ const DriverRegisterContent = () => {
     }
   };
 
+  // Create driver record directly
+  const createDriverRecord = async (userId, data, imageUrls) => {
+    try {
+      const driverData = {
+        id: userId,
+        national_id: data.nationalId,
+        license_number: data.licenseNumber,
+        vehicle_info: data.vehicleInfo,
+        status: "pending",
+        is_available: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ...(imageUrls.id_image && { id_image: imageUrls.id_image }),
+        ...(imageUrls.license_image && {
+          license_image: imageUrls.license_image,
+        }),
+      };
+
+      const { error: driverError } = await supabase
+        .from("drivers")
+        .insert(driverData);
+
+      if (driverError) {
+        console.error("Error creating driver record:", driverError);
+        setDebugInfo({
+          stage: "driver_insertion",
+          error: driverError,
+          data: driverData,
+        });
+        return false;
+      }
+
+      // Add driver role
+      const { error: roleError } = await supabase.from("user_roles").insert({
+        user_id: userId,
+        role: "driver",
+        created_at: new Date().toISOString(),
+      });
+
+      if (roleError) {
+        console.error("Error adding driver role:", roleError);
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error in createDriverRecord:", error);
+      setDebugInfo({
+        stage: "driver_creation",
+        error: error,
+      });
+      return false;
+    }
+  };
+
   const onSubmit = async (data: DriverFormValues) => {
     if (waitTime > 0) {
-      toast.error(`${t("pleaseWaitBeforeRetry")} ${waitTime} ${t("seconds")}`);
+      toast.error(`يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى`);
       return;
     }
 
@@ -201,26 +318,38 @@ const DriverRegisterContent = () => {
         ) {
           handleRateLimitError();
         } else if (signUpError.message.includes("already registered")) {
-          toast.error(t("invalidCredentials"));
+          toast.error(
+            "البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول"
+          );
         } else {
-          toast.error(`${t("registrationError")}: ${signUpError.message}`);
+          toast.error("خطأ أثناء إنشاء الحساب: " + signUpError.message);
         }
         setIsLoading(false);
         return;
       }
 
       if (!authData.user) {
-        toast.error(t("registrationError"));
+        toast.error("فشل إنشاء الحساب، يرجى المحاولة مرة أخرى");
         setIsLoading(false);
         return;
       }
 
-      // Step 2: Store files in localStorage for AuthCallback to process
-      if (idImageFile || licenseImageFile) {
+      // Step 2: Upload files directly to storage
+      const imageUrls = await uploadFilesToSupabase(authData.user.id);
+
+      // Step 3: Create driver record in the database
+      const driverCreated = await createDriverRecord(
+        authData.user.id,
+        data,
+        imageUrls
+      );
+
+      if (!driverCreated) {
+        // Store files in localStorage as backup for the auth callback to process
         storeFileData(authData.user.id, idImageFile, licenseImageFile);
       }
 
-      // Step 3: Store user's pending details in a cookie for auth callback
+      // Step 4: Store user's pending details in a cookie for auth callback
       const pendingUserDetails = {
         first_name: data.firstName,
         last_name: data.lastName,
@@ -245,7 +374,7 @@ const DriverRegisterContent = () => {
       toast.success(t("registrationSuccess"));
     } catch (error) {
       console.error("Unexpected error during registration:", error);
-      toast.error(t("registrationError"));
+      toast.error("حدث خطأ غير متوقع أثناء التسجيل، يرجى المحاولة مرة أخرى");
       setDebugInfo({
         stage: "unexpected_error",
         error: error,
@@ -257,11 +386,7 @@ const DriverRegisterContent = () => {
 
   if (registrationComplete) {
     return (
-      <div
-        className={`min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 ${
-          language === "ar" ? "rtl" : "ltr"
-        }`}
-      >
+      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
           <img
             src="/lovable-uploads/921d22da-3d5c-4dd1-af5f-458968c49478.png"
@@ -271,7 +396,11 @@ const DriverRegisterContent = () => {
           <h2 className="text-2xl font-bold text-safedrop-primary mt-6">
             {t("registrationSuccess")}
           </h2>
-          <p className="mt-4 text-gray-600">{t("thankYouForRegistering")}</p>
+          <p className="mt-4 text-gray-600">
+            {language === "ar"
+              ? "شكراً لتسجيلك في سيف دروب. تم إرسال رسالة تأكيد إلى بريدك الإلكتروني."
+              : "Thank you for registering with SafeDrop. A confirmation email has been sent to your email."}
+          </p>
           <p className="mt-4 text-gray-600">
             {language === "ar"
               ? "يرجى فتح البريد الإلكتروني والنقر على رابط التأكيد لإكمال عملية التسجيل."
@@ -291,11 +420,7 @@ const DriverRegisterContent = () => {
   }
 
   return (
-    <div
-      className={`min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 ${
-        language === "ar" ? "rtl" : "ltr"
-      }`}
-    >
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8">
         <div className="text-center">
           <img
@@ -316,18 +441,11 @@ const DriverRegisterContent = () => {
             <p className="text-amber-700 mt-1">
               {t("timeRemaining")}: {waitTime} {t("seconds")}
             </p>
-            <p className="text-amber-600 text-sm mt-1">
-              {t("registrationAttemptLimitExceeded")}
-            </p>
           </div>
         )}
 
         {debugInfo && (
-          <div
-            className={`bg-red-50 border border-red-200 rounded-md p-4 mb-4 text-xs ${
-              language === "ar" ? "text-right" : "text-left"
-            }`}
-          >
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4 text-xs">
             <h3 className="text-red-800 font-medium">
               Debug Info (Admin Only)
             </h3>
@@ -354,14 +472,10 @@ const DriverRegisterContent = () => {
                     <FormLabel>{t("firstName")}</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <UserIcon
-                          className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 ${
-                            language === "ar" ? "right-3" : "left-3"
-                          }`}
-                        />
+                        <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <Input
                           placeholder={t("firstName")}
-                          className={language === "ar" ? "pr-10" : "pl-10"}
+                          className="pl-10"
                           {...field}
                         />
                       </div>
@@ -378,14 +492,10 @@ const DriverRegisterContent = () => {
                     <FormLabel>{t("lastName")}</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <UserIcon
-                          className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 ${
-                            language === "ar" ? "right-3" : "left-3"
-                          }`}
-                        />
+                        <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <Input
                           placeholder={t("lastName")}
-                          className={language === "ar" ? "pr-10" : "pl-10"}
+                          className="pl-10"
                           {...field}
                         />
                       </div>
@@ -404,15 +514,11 @@ const DriverRegisterContent = () => {
                   <FormLabel>{t("birthDate")}</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <Calendar
-                        className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 ${
-                          language === "ar" ? "right-3" : "left-3"
-                        }`}
-                      />
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       <Input
                         type="date"
                         placeholder={t("birthDate")}
-                        className={language === "ar" ? "pr-10" : "pl-10"}
+                        className="pl-10"
                         {...field}
                       />
                     </div>
@@ -430,15 +536,11 @@ const DriverRegisterContent = () => {
                   <FormLabel>{t("email")}</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <MailIcon
-                        className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 ${
-                          language === "ar" ? "right-3" : "left-3"
-                        }`}
-                      />
+                      <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       <Input
                         type="email"
                         placeholder={t("emailPlaceholder")}
-                        className={language === "ar" ? "pr-10" : "pl-10"}
+                        className="pl-10"
                         {...field}
                       />
                     </div>
@@ -456,15 +558,11 @@ const DriverRegisterContent = () => {
                   <FormLabel>{t("phone")}</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <PhoneIcon
-                        className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 ${
-                          language === "ar" ? "right-3" : "left-3"
-                        }`}
-                      />
+                      <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       <Input
                         type="tel"
                         placeholder={t("phonePlaceholder")}
-                        className={language === "ar" ? "pr-10" : "pl-10"}
+                        className="pl-10"
                         {...field}
                       />
                     </div>
@@ -482,15 +580,11 @@ const DriverRegisterContent = () => {
                   <FormLabel>{t("password")}</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <LockIcon
-                        className={`absolute top-1/2 transform -translate-y-1/2 text-gray-400 ${
-                          language === "ar" ? "right-3" : "left-3"
-                        }`}
-                      />
+                      <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                       <Input
                         type="password"
                         placeholder="••••••••"
-                        className={language === "ar" ? "pr-10" : "pl-10"}
+                        className="pl-10"
                         {...field}
                       />
                     </div>

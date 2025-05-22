@@ -151,51 +151,56 @@ const AuthCallbackContent = () => {
             error: driverError,
             data: directDriverData,
           });
-          throw driverError;
-        }
-
-        // Insert role
-        const { error: roleError } = await supabase.from("user_roles").insert({
-          user_id: userId,
-          role: "driver",
-          created_at: new Date().toISOString(),
-        });
-
-        if (roleError) {
-          console.warn("Error creating driver role:", roleError);
-        }
-
-        // Create earnings record
-        try {
-          await supabase.from("driver_earnings").insert({
-            driver_id: userId,
-            amount: 0,
-            status: "initial",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-        } catch (earningsError) {
+          // Don't throw error - continue with verification
           console.warn(
-            "Error creating initial earnings record:",
-            earningsError
+            "Driver record creation failed, but continuing with email verification"
           );
-        }
+        } else {
+          // Insert role
+          const { error: roleError } = await supabase
+            .from("user_roles")
+            .insert({
+              user_id: userId,
+              role: "driver",
+              created_at: new Date().toISOString(),
+            });
 
-        // Create welcome notification
-        try {
-          await supabase.from("driver_notifications").insert({
-            driver_id: userId,
-            title: t("accountUnderReview"),
-            message: t("thankYouForRegistering"),
-            notification_type: "welcome",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-        } catch (notificationError) {
-          console.warn(
-            "Error creating welcome notification:",
-            notificationError
-          );
+          if (roleError) {
+            console.warn("Error creating driver role:", roleError);
+          }
+
+          // Create earnings record
+          try {
+            await supabase.from("driver_earnings").insert({
+              driver_id: userId,
+              amount: 0,
+              status: "initial",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+          } catch (earningsError) {
+            console.warn(
+              "Error creating initial earnings record:",
+              earningsError
+            );
+          }
+
+          // Create welcome notification
+          try {
+            await supabase.from("driver_notifications").insert({
+              driver_id: userId,
+              title: t("accountUnderReview"),
+              message: t("thankYouForRegistering"),
+              notification_type: "welcome",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+          } catch (notificationError) {
+            console.warn(
+              "Error creating welcome notification:",
+              notificationError
+            );
+          }
         }
       }
 
@@ -223,28 +228,40 @@ const AuthCallbackContent = () => {
       if (tokenInQuery && typeInQuery) {
         console.log("Found token in query, attempting to verify OTP...");
         try {
-          await supabase.auth.verifyOtp({
+          const { error: otpError } = await supabase.auth.verifyOtp({
             token_hash: tokenInQuery,
             type: typeInQuery === "signup" ? "signup" : "recovery",
           });
+
+          if (otpError) {
+            console.error("OTP verification failed:", otpError);
+            throw new Error(t("invalidToken"));
+          }
+
           console.log("OTP verification successful");
         } catch (e) {
-          // Continue even if verification fails
-          console.warn("OTP verification warning:", e);
+          console.error("OTP verification error:", e);
+          throw e;
         }
       }
       // Try to set session with hash tokens
       else if (accessToken && refreshToken) {
         console.log("Found tokens in hash, attempting to set session...");
         try {
-          await supabase.auth.setSession({
+          const { error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
+
+          if (sessionError) {
+            console.error("Session setting failed:", sessionError);
+            throw new Error(t("sessionExpired"));
+          }
+
           console.log("Session set successfully");
         } catch (e) {
-          // Continue even if setting session fails
-          console.warn("Session setting warning:", e);
+          console.error("Session setting error:", e);
+          throw e;
         }
       }
 
@@ -309,7 +326,7 @@ const AuthCallbackContent = () => {
         }
 
         console.error("No session and no email found");
-        throw new Error(t("userNotFound"));
+        throw new Error(t("invalidToken"));
       }
 
       // Get user details
@@ -399,7 +416,10 @@ const AuthCallbackContent = () => {
 
           if (insertProfileError) {
             console.error("Error inserting profile:", insertProfileError);
-            throw insertProfileError;
+            // Don't throw error, continue with verification
+            console.warn(
+              "Profile creation failed, but email verification succeeded"
+            );
           }
 
           userTypeValue = userMetadata.user_type;
@@ -433,6 +453,10 @@ const AuthCallbackContent = () => {
 
             if (!driverCreated) {
               console.error("Failed to create driver record");
+              // Don't throw error, continue with verification
+              console.warn(
+                "Driver record creation failed, but email verification succeeded"
+              );
             } else {
               console.log("Driver record created successfully");
             }
@@ -440,6 +464,9 @@ const AuthCallbackContent = () => {
         } catch (e) {
           console.error("Error creating profile:", e);
           // Continue even if profile creation fails
+          console.warn(
+            "Profile creation failed, but email verification succeeded"
+          );
         }
       } else if (profileData) {
         console.log("Profile exists, updating email_verified");

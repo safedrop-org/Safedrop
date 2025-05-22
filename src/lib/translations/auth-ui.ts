@@ -66,6 +66,18 @@ export const authUI: TranslationSection = {
     ar: "تسجيل دخول المشرف",
     en: "Admin Login",
   },
+  accountCreatedSuccessfully: {
+    ar: "تم إنشاء الحساب بنجاح",
+    en: "Account created successfully",
+  },
+  emailVerificationSuccess: {
+    ar: "تم التحقق من البريد الإلكتروني بنجاح",
+    en: "Email verified successfully",
+  },
+  emailVerificationSuccessDescription: {
+    ar: "يرجى التحقق من بريدك الإلكتروني وتأكيد حسابك",
+    en: "Please check your email and confirm your account",
+  },
 
   requiredFirstName: {
     ar: "الاسم الأول مطلوب",
