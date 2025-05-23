@@ -276,6 +276,83 @@ export const orders: TranslationSection = {
     ar: "لا توجد طلبات متاحة",
     en: "No Available Orders",
   },
+
+  // Location-related translations (MISSING KEYS)
+  locationNotSupported: {
+    ar: "الموقع الجغرافي غير مدعوم في هذا المتصفح",
+    en: "Geolocation is not supported in this browser",
+  },
+  locationEnabledSuccessfully: {
+    ar: "تم تفعيل الموقع الجغرافي بنجاح",
+    en: "Location enabled successfully",
+  },
+  locationRequestFailed: {
+    ar: "فشل في الحصول على الموقع الجغرافي",
+    en: "Failed to get location",
+  },
+  locationPermissionDenied: {
+    ar: "تم رفض الإذن للوصول للموقع الجغرافي",
+    en: "Location permission denied",
+  },
+  locationUnavailable: {
+    ar: "الموقع الجغرافي غير متاح",
+    en: "Location unavailable",
+  },
+  locationTimeout: {
+    ar: "انتهت مهلة الحصول على الموقع الجغرافي",
+    en: "Location request timeout",
+  },
+  locationError: {
+    ar: "خطأ في الموقع الجغرافي",
+    en: "Location error",
+  },
+  enableLocation: {
+    ar: "تفعيل الموقع",
+    en: "Enable Location",
+  },
+  locationActive: {
+    ar: "الموقع مفعل",
+    en: "Location Active",
+  },
+  locationInactive: {
+    ar: "الموقع غير مفعل",
+    en: "Location Inactive",
+  },
+  locationBlocked: {
+    ar: "الموقع محظور",
+    en: "Location Blocked",
+  },
+  allowLocation: {
+    ar: "السماح بالموقع",
+    en: "Allow Location",
+  },
+  requesting: {
+    ar: "جاري الطلب...",
+    en: "Requesting...",
+  },
+
+  // Error dialog translations (MISSING KEYS)
+  retry: {
+    ar: "إعادة المحاولة",
+    en: "Retry",
+  },
+  refreshPage: {
+    ar: "تحديث الصفحة",
+    en: "Refresh Page",
+  },
+  howToEnableLocation: {
+    ar: "كيفية تفعيل الموقع:",
+    en: "How to enable location:",
+  },
+  clickLockIcon: {
+    ar: "اضغط على أيقونة القفل 🔒 في شريط العنوان",
+    en: "Click the lock icon 🔒 in the address bar",
+  },
+  chooseAllowLocation: {
+    ar: "اختر 'السماح' للموقع الجغرافي",
+    en: "Choose 'Allow' for location access",
+  },
+
   // Order Details Card
   orderId: {
     ar: "طلب #",
@@ -442,5 +519,21 @@ export const orders: TranslationSection = {
   "status.location_disabled": {
     ar: "الموقع معطل",
     en: "Location disabled",
+  },
+  "status.location_enabled": {
+    ar: "الموقع مفعل",
+    en: "Location enabled",
+  },
+  "status.location_unavailable": {
+    ar: "الموقع غير متاح",
+    en: "Location unavailable",
+  },
+  "status.location_timeout": {
+    ar: "انتهت مهلة الحصول على الموقع الجغرافي",
+    en: "Location timeout",
+  },
+  "status.location_error": {
+    ar: "خطأ في الموقع الجغرافي",
+    en: "Location error",
   },
 };

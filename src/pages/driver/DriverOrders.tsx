@@ -39,8 +39,12 @@ const DriverOrdersContent = () => {
   // Request location permission and start tracking
   const requestLocation = async () => {
     if (!navigator.geolocation) {
-      setLocationError("الموقع الجغرافي غير مدعوم في هذا المتصفح");
-      toast.error("الموقع الجغرافي غير مدعوم في هذا المتصفح");
+      setLocationError(
+        t("locationNotSupported") || "الموقع الجغرافي غير مدعوم في هذا المتصفح"
+      );
+      toast.error(
+        t("locationNotSupported") || "الموقع الجغرافي غير مدعوم في هذا المتصفح"
+      );
       return;
     }
 
@@ -66,7 +70,9 @@ const DriverOrdersContent = () => {
 
       setDriverLocation(location);
       setLocationError(null);
-      toast.success("تم تفعيل الموقع الجغرافي بنجاح");
+      toast.success(
+        t("locationEnabledSuccessfully") || "تم تفعيل الموقع الجغرافي بنجاح"
+      );
 
       // Start watching position for continuous updates
       const watchId = navigator.geolocation.watchPosition(
@@ -89,17 +95,21 @@ const DriverOrdersContent = () => {
       setLocationWatchId(watchId);
     } catch (error: any) {
       console.error("Location request error:", error);
-      let errorMessage = "فشل في الحصول على الموقع الجغرافي";
+      let errorMessage =
+        t("locationRequestFailed") || "فشل في الحصول على الموقع الجغرافي";
 
       switch (error.code) {
         case 1: // PERMISSION_DENIED
-          errorMessage = "تم رفض الإذن للوصول للموقع الجغرافي";
+          errorMessage =
+            t("locationPermissionDenied") ||
+            "تم رفض الإذن للوصول للموقع الجغرافي";
           break;
         case 2: // POSITION_UNAVAILABLE
-          errorMessage = "الموقع الجغرافي غير متاح";
+          errorMessage = t("locationUnavailable") || "الموقع الجغرافي غير متاح";
           break;
         case 3: // TIMEOUT
-          errorMessage = "انتهت مهلة الحصول على الموقع الجغرافي";
+          errorMessage =
+            t("locationTimeout") || "انتهت مهلة الحصول على الموقع الجغرافي";
           break;
       }
 
@@ -497,7 +507,7 @@ const DriverOrdersContent = () => {
               <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
                 <h3 className="text-red-800 font-semibold mb-2">
-                  خطأ في الموقع الجغرافي
+                  {t("locationError") || "خطأ في الموقع الجغرافي"}
                 </h3>
                 <div className="text-red-700 text-sm whitespace-pre-line leading-relaxed">
                   {locationError}
@@ -510,7 +520,7 @@ const DriverOrdersContent = () => {
                     disabled={isRequestingLocation}
                     className="border-red-300 text-red-700 hover:bg-red-100"
                   >
-                    إعادة المحاولة
+                    {t("retry") || "إعادة المحاولة"}
                   </Button>
                   <Button
                     size="sm"
@@ -518,16 +528,19 @@ const DriverOrdersContent = () => {
                     onClick={() => window.location.reload()}
                     className="border-blue-300 text-blue-700 hover:bg-blue-100"
                   >
-                    تحديث الصفحة
+                    {t("refreshPage") || "تحديث الصفحة"}
                   </Button>
                 </div>
                 <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-blue-800 text-xs">
-                  <strong>كيفية تفعيل الموقع:</strong>
-                  <br />
-                  • اضغط على أيقونة القفل 🔒 في شريط العنوان
-                  <br />
-                  • اختر "السماح" للموقع الجغرافي
-                  <br />• اضغط "تحديث الصفحة" أدناه
+                  <strong>
+                    {t("howToEnableLocation") || "كيفية تفعيل الموقع:"}{" "}
+                  </strong>
+                  <br />•{" "}
+                  {t("clickLockIcon") ||
+                    "اضغط على أيقونة القفل 🔒 في شريط العنوان"}
+                  <br />•{" "}
+                  {t("chooseAllowLocation") || "اختر السماح للموقع الجغرافي"}
+                  <br />• {t("refreshPage") || "اضغط تحديث الصفحة أدناه"}
                 </div>
               </div>
             </div>
