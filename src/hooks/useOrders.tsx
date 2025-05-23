@@ -95,8 +95,9 @@ export function useOrders(isAdmin = false) {
             ...(availableOrdersResult.data || []),
             ...(assignedOrdersResult.data || []),
           ];
-        } else if (isCustomer) {
-          // Customer: Fetch only their orders
+        } else if (isCustomer || userRoles?.length === 0) {
+          // Customer: Fetch their orders with driver information
+          // Also allow users with no roles (for backwards compatibility)
           const { data: customerOrders, error } = await supabase
             .from("orders")
             .select("*")
@@ -115,48 +116,108 @@ export function useOrders(isAdmin = false) {
         return [];
       }
 
-      // Extract unique customer IDs
+      // Extract unique customer IDs and driver IDs
       const customerIds = orders
         .map((order) => order.customer_id)
         .filter(Boolean)
         .filter((id, index, arr) => arr.indexOf(id) === index);
 
-      if (customerIds.length === 0) {
-        return orders.map((order) => ({
-          ...order,
-          customer: null,
-          canModify: true,
-        }));
+      const driverIds = orders
+        .map((order) => order.driver_id)
+        .filter(Boolean)
+        .filter((id, index, arr) => arr.indexOf(id) === index);
+
+      console.log("Fetching profiles for:", { customerIds, driverIds });
+
+      // Fetch customer and driver profiles in parallel
+      const fetchProfiles = async () => {
+        const results = await Promise.allSettled([
+          // Fetch customers
+          customerIds.length > 0
+            ? supabase
+                .from("profiles")
+                .select("id, first_name, last_name, phone, email")
+                .in("id", customerIds)
+            : Promise.resolve({ data: [] }),
+
+          // Fetch drivers
+          driverIds.length > 0
+            ? supabase
+                .from("profiles")
+                .select("id, first_name, last_name, phone, email")
+                .in("id", driverIds)
+            : Promise.resolve({ data: [] }),
+        ]);
+
+        return {
+          customerResult:
+            results[0].status === "fulfilled"
+              ? results[0].value
+              : { data: [], error: results[0].reason },
+          driverResult:
+            results[1].status === "fulfilled"
+              ? results[1].value
+              : { data: [], error: results[1].reason },
+        };
+      };
+
+      const { customerResult, driverResult } = await fetchProfiles();
+
+      if (customerResult.error) {
+        console.error("Error fetching customers:", customerResult.error);
       }
 
-      // Fetch customer profiles
-      const { data: customers, error: customersError } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, phone, email")
-        .in("id", customerIds);
-
-      if (customersError) {
-        console.error("Error fetching customers:", customersError);
-        return orders.map((order) => ({
-          ...order,
-          customer: null,
-          canModify: true,
-        }));
+      if (driverResult.error) {
+        console.error("Error fetching drivers:", driverResult.error);
       }
 
-      // Create customer lookup map
-      const customerMap = (customers || []).reduce((acc, customer) => {
-        acc[customer.id] = customer;
+      console.log("Profile fetch results:", {
+        customers: customerResult.data || [],
+        drivers: driverResult.data || [],
+      });
+
+      // Create lookup maps
+      const customerMap = (customerResult.data || []).reduce(
+        (acc, customer) => {
+          acc[customer.id] = customer;
+          return acc;
+        },
+        {}
+      );
+
+      const driverMap = (driverResult.data || []).reduce((acc, driver) => {
+        acc[driver.id] = driver;
         return acc;
       }, {});
 
-      // Enrich orders with customer data
-      const enrichedOrders = orders.map((order) => ({
-        ...order,
-        customer: customerMap[order.customer_id] || null,
-        canModify: true,
-      }));
+      console.log("Created lookup maps:", {
+        customerMapSize: Object.keys(customerMap).length,
+        driverMapSize: Object.keys(driverMap).length,
+        customerMap,
+        driverMap,
+      });
 
+      // Enrich orders with customer and driver data
+      const enrichedOrders = orders.map((order) => {
+        const customer = customerMap[order.customer_id] || null;
+        const driver = driverMap[order.driver_id] || null;
+
+        console.log(`Order ${order.id}:`, {
+          customer_id: order.customer_id,
+          driver_id: order.driver_id,
+          customer: customer,
+          driver: driver,
+        });
+
+        return {
+          ...order,
+          customer,
+          driver,
+          canModify: true,
+        };
+      });
+
+      console.log("Final enriched orders:", enrichedOrders);
       return enrichedOrders;
     },
     enabled: !!user,

@@ -742,4 +742,8 @@ export const authUI: TranslationSection = {
     ar: "تم تجاوز الحد المسموح لمحاولات التسجيل. يرجى الانتظار قليلاً.",
     en: "Registration attempt limit exceeded. Please wait a moment.",
   },
+  loggingOut: {
+    ar: "جاري تسجيل الخروج...",
+    en: "Logging out...",
+  },
 };

@@ -128,6 +128,57 @@ const DriverRegisterContent = () => {
     },
   });
 
+  // Email checking function
+  const checkEmailExists = async (email) => {
+    try {
+      // Check in profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("email", email.toLowerCase())
+        .maybeSingle();
+
+      if (profileError && profileError.code !== "PGRST116") {
+        console.error("Error checking email in profiles:", profileError);
+        return false; // Continue on error
+      }
+
+      // If found in profiles, email exists
+      if (profileData) {
+        return true;
+      }
+
+      // Also check auth.users by attempting a password reset (this will tell us if email exists)
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email.toLowerCase(),
+        {
+          redirectTo: "https://never-redirect.com", // Dummy redirect
+        }
+      );
+
+      // If no error, email exists in auth
+      // If error contains "email not found" or similar, email doesn't exist
+      if (!resetError) {
+        return true; // Email exists in auth
+      }
+
+      // Check specific error messages that indicate email doesn't exist
+      if (
+        resetError.message.includes("not found") ||
+        resetError.message.includes("does not exist") ||
+        resetError.message.includes("invalid email")
+      ) {
+        return false; // Email doesn't exist
+      }
+
+      // For other errors, assume email might exist (be safe)
+      return false;
+    } catch (error) {
+      console.error("Error in email check:", error);
+      return false; // Allow registration to continue on error
+    }
+  };
+
   const handleRateLimitError = () => {
     setWaitTime(60);
     toast.error(
@@ -170,7 +221,6 @@ const DriverRegisterContent = () => {
           });
 
         if (!idUploadError) {
-          // Get public URL
           const { data: idImageData } = supabase.storage
             .from("driver-documents")
             .getPublicUrl(filePath);
@@ -195,7 +245,6 @@ const DriverRegisterContent = () => {
           });
 
         if (!licenseUploadError) {
-          // Get public URL
           const { data: licenseImageData } = supabase.storage
             .from("driver-documents")
             .getPublicUrl(filePath);
@@ -314,7 +363,20 @@ const DriverRegisterContent = () => {
     setDebugInfo(null);
 
     try {
-      // Step 1: Register the user
+      // Step 1: Check if email already exists
+      const emailExists = await checkEmailExists(data.email);
+
+      if (emailExists) {
+        toast.error(
+          language === "ar"
+            ? "هذا البريد الإلكتروني مسجل بالفعل. يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول."
+            : "This email is already registered. Please use a different email or login."
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // Step 2: Register the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp(
         {
           email: data.email,
@@ -357,10 +419,10 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      // Step 2: Upload files directly to storage
+      // Step 3: Upload files directly to storage
       const imageUrls = await uploadFilesToSupabase(authData.user.id);
 
-      // Step 3: Create driver record in the database
+      // Step 4: Create driver record in the database
       const driverCreated = await createDriverRecord(
         authData.user.id,
         data,
@@ -372,7 +434,7 @@ const DriverRegisterContent = () => {
         storeFileData(authData.user.id, idImageFile, licenseImageFile);
       }
 
-      // Step 4: Store user's pending details in a cookie for auth callback
+      // Step 5: Store user's pending details in a cookie for auth callback
       const pendingUserDetails = {
         first_name: data.firstName,
         last_name: data.lastName,

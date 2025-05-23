@@ -27,7 +27,8 @@ const CustomerBillingContent = () => {
           .select(
             "id, order_id, order_number, price, payment_status, created_at, status"
           )
-          .eq("customer_id", user.id);
+          .eq("customer_id", user.id)
+          .order("created_at", { ascending: false });
 
         if (ordersError) throw ordersError;
 

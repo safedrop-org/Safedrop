@@ -36,12 +36,8 @@ const CustomerOrdersContent = () => {
           .from("orders")
           .select("*")
           .eq("customer_id", user.id)
-          .in("status", [
-            "available",
-            "picked_up",
-            "in_transit",
-            "approaching",
-          ]);
+          .in("status", ["available", "picked_up", "in_transit", "approaching"])
+          .order("created_at", { ascending: false });
 
         if (activeError) throw activeError;
 
@@ -50,7 +46,8 @@ const CustomerOrdersContent = () => {
           .from("orders")
           .select("*")
           .eq("customer_id", user.id)
-          .in("status", ["completed", "cancelled"]);
+          .in("status", ["completed", "cancelled"])
+          .order("created_at", { ascending: false });
 
         if (historyError) throw historyError;
 
@@ -378,7 +375,15 @@ const CustomerOrdersContent = () => {
                         <th
                           scope="col"
                           className={`px-6 py-3 text-${
-                            language === "ar" ? "right" : "left"
+                            language === "ar" ? "left" : "right"
+                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
+                        >
+                          {t("Order Code")}
+                        </th>
+                        <th
+                          scope="col"
+                          className={`px-6 py-3 text-${
+                            language === "ar" ? "left" : "right"
                           } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                         >
                           {t("Order ID")}
@@ -386,7 +391,7 @@ const CustomerOrdersContent = () => {
                         <th
                           scope="col"
                           className={`px-6 py-3 text-${
-                            language === "ar" ? "right" : "left"
+                            language === "ar" ? "left" : "right"
                           } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                         >
                           {t("orderDate")}
@@ -394,7 +399,7 @@ const CustomerOrdersContent = () => {
                         <th
                           scope="col"
                           className={`px-6 py-3 text-${
-                            language === "ar" ? "right" : "left"
+                            language === "ar" ? "left" : "right"
                           } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                         >
                           {t("from")}
@@ -402,7 +407,7 @@ const CustomerOrdersContent = () => {
                         <th
                           scope="col"
                           className={`px-6 py-3 text-${
-                            language === "ar" ? "right" : "left"
+                            language === "ar" ? "left" : "right"
                           } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                         >
                           {t("to")}
@@ -410,7 +415,7 @@ const CustomerOrdersContent = () => {
                         <th
                           scope="col"
                           className={`px-6 py-3 text-${
-                            language === "ar" ? "right" : "left"
+                            language === "ar" ? "left" : "right"
                           } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                         >
                           {t("Driver")}
@@ -418,7 +423,7 @@ const CustomerOrdersContent = () => {
                         <th
                           scope="col"
                           className={`px-6 py-3 text-${
-                            language === "ar" ? "right" : "left"
+                            language === "ar" ? "left" : "right"
                           } text-xs font-medium text-gray-500 uppercase tracking-wider`}
                         >
                           {t("Status")}
@@ -429,7 +434,11 @@ const CustomerOrdersContent = () => {
                       {historyOrders.map((order) => (
                         <tr key={order.id}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {order.id.slice(0, 8)}...
+                            {order.order_id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {order.order_number ||
+                              order.order_number.slice(0, 8)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {formatDate(order.created_at)}

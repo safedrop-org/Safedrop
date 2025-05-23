@@ -21,6 +21,7 @@ export function useDriverRatings() {
             comment,
             created_at,
             order_id,
+            order_number,
             customer_id
           `
           )

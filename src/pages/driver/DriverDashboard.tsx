@@ -26,7 +26,7 @@ import { useQuery } from "@tanstack/react-query";
 
 type Notification = {
   id: number;
-  type: "document" | "order" | "payment";
+  type: "order" | "payment";
   message: string;
   date: string;
   isRead: boolean;
@@ -142,55 +142,50 @@ const DriverDashboardContent = () => {
     retry: 2,
   });
 
+  // FIXED RATING QUERY - Now fetches from driver_ratings table
   const { data: ratingData } = useQuery({
     queryKey: ["driver-rating", user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
 
       try {
-        // First try to get rating from drivers table
-        const { data: driver, error } = await supabase
-          .from("drivers")
+        // Get all ratings for this driver from driver_ratings table
+        const { data: ratings, error: ratingsError } = await supabase
+          .from("driver_ratings")
           .select("rating")
-          .eq("id", user.id)
-          .maybeSingle();
+          .eq("driver_id", user.id);
 
-        console.log("Driver rating from drivers table:", driver?.rating);
-
-        if (error) {
-          console.error(
-            "Error fetching driver rating from drivers table:",
-            error
-          );
-          throw error;
+        if (ratingsError) {
+          console.error("Error fetching driver ratings:", ratingsError);
+          throw ratingsError;
         }
 
-        // If no rating in drivers table or it's null, calculate from ratings table
-        if (!driver || driver.rating === null) {
-          const { data: ratings, error: ratingsError } = await supabase
-            .from("driver_ratings")
-            .select("rating")
-            .eq("driver_id", user.id);
+        console.log("Driver ratings from ratings table:", ratings);
 
-          if (ratingsError) {
-            console.error("Error fetching driver ratings:", ratingsError);
-            throw ratingsError;
-          }
-
-          console.log("Driver ratings from ratings table:", ratings);
-
-          if (ratings && ratings.length > 0) {
-            const avgRating =
-              ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length;
+        // Calculate average rating if ratings exist
+        if (ratings && ratings.length > 0) {
+          // Ensure we're working with numbers
+          const validRatings = ratings.filter(
+            (r) => r.rating != null && !isNaN(r.rating)
+          );
+          if (validRatings.length > 0) {
+            const totalRating = validRatings.reduce(
+              (sum, r) => sum + Number(r.rating),
+              0
+            );
+            const avgRating = totalRating / validRatings.length;
+            console.log(
+              `Calculated average rating: ${avgRating} from ${validRatings.length} ratings`
+            );
             return avgRating;
           }
-
-          return 0;
         }
 
-        return driver.rating || 0;
+        // Return 0 if no ratings found
+        console.log("No valid ratings found for driver");
+        return 0;
       } catch (error) {
-        console.error("Error getting driver rating:", error);
+        console.error("Error calculating driver rating:", error);
         return 0;
       }
     },
@@ -230,63 +225,21 @@ const DriverDashboardContent = () => {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const { data: driver, error } = await supabase
-        .from("drivers")
-        .select("documents, license_image")
-        .eq("id", user.id)
-        .single();
-
-      if (error) throw error;
-
       const notifications: Notification[] = [];
 
-      if (driver?.documents?.national_id_expiry) {
-        const expiryDate = new Date(driver.documents.national_id_expiry);
-        const now = new Date();
-        const daysToExpiry = Math.floor(
-          (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-        );
-
-        if (daysToExpiry < 30) {
-          notifications.push({
-            id: 1,
-            type: "document",
-            message: "الهوية الوطنية ستنتهي قريبًا، يرجى تحديثها",
-            date: expiryDate.toISOString().split("T")[0],
-            isRead: false,
-          });
-        }
+      // Add payment notification if there's available balance
+      if (financialStats?.availableBalance > 0) {
+        notifications.push({
+          id: 3,
+          type: "payment",
+          message: `تم إيداع مبلغ ${financialStats.availableBalance} ريال في حسابك البنكي`,
+          date: new Date().toISOString().split("T")[0],
+          isRead: false,
+        });
       }
 
-      if (driver?.documents?.license_expiry) {
-        const expiryDate = new Date(driver.documents.license_expiry);
-        const now = new Date();
-        const daysToExpiry = Math.floor(
-          (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-        );
-
-        if (daysToExpiry < 30) {
-          notifications.push({
-            id: 2,
-            type: "document",
-            message: "رخصة القيادة ستنتهي قريبًا، يرجى تحديثها",
-            date: expiryDate.toISOString().split("T")[0],
-            isRead: false,
-          });
-        }
-      }
-
-      if (notifications.length < 3) {
-        if (financialStats?.availableBalance > 0) {
-          notifications.push({
-            id: 3,
-            type: "payment",
-            message: `تم إيداع مبلغ ${financialStats.availableBalance} ريال في حسابك البنكي`,
-            date: new Date().toISOString().split("T")[0],
-            isRead: false,
-          });
-        }
-      }
+      // You can add other non-document notifications here
+      // Example: Order notifications, system updates, etc.
 
       return notifications;
     },
@@ -514,6 +467,7 @@ const DriverDashboardContent = () => {
                       <p className="text-sm font-medium text-gray-500">
                         {t("rating")}
                       </p>
+                      {/* UPDATED RATING DISPLAY */}
                       <div
                         className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => navigate("/driver/ratings")}
@@ -525,11 +479,17 @@ const DriverDashboardContent = () => {
                           {Array(5)
                             .fill(0)
                             .map((_, i) => (
-                              <span key={i}>
-                                {i < Math.round(ratingData || 0) ? "★" : "☆"}
+                              <span key={i} className="inline-block">
+                                {i < Math.floor(ratingData || 0)
+                                  ? "★"
+                                  : i === Math.floor(ratingData || 0) &&
+                                    (ratingData || 0) % 1 >= 0.5
+                                  ? "★"
+                                  : "☆"}
                               </span>
                             ))}
                         </div>
+                        <span className="text-sm text-gray-500 ml-2">/5.0</span>
                       </div>
                     </div>
                     <div
@@ -591,16 +551,11 @@ const DriverDashboardContent = () => {
                         >
                           <div
                             className={`p-2 rounded-full ${
-                              notification.type === "document"
-                                ? "bg-yellow-100 text-yellow-600"
-                                : notification.type === "order"
+                              notification.type === "order"
                                 ? "bg-blue-100 text-blue-600"
                                 : "bg-green-100 text-green-600"
                             }`}
                           >
-                            {notification.type === "document" && (
-                              <AlertTriangle className="h-5 w-5" />
-                            )}
                             {notification.type === "order" && (
                               <Bell className="h-5 w-5" />
                             )}

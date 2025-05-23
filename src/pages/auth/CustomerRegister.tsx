@@ -59,6 +59,57 @@ const CustomerRegisterContent = () => {
     },
   });
 
+  // Email checking function
+  const checkEmailExists = async (email) => {
+    try {
+      // Check in profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("email", email.toLowerCase())
+        .maybeSingle();
+
+      if (profileError && profileError.code !== "PGRST116") {
+        console.error("Error checking email in profiles:", profileError);
+        return false; // Continue on error
+      }
+
+      // If found in profiles, email exists
+      if (profileData) {
+        return true;
+      }
+
+      // Also check auth.users by attempting a password reset (this will tell us if email exists)
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email.toLowerCase(),
+        {
+          redirectTo: "https://never-redirect.com", // Dummy redirect
+        }
+      );
+
+      // If no error, email exists in auth
+      // If error contains "email not found" or similar, email doesn't exist
+      if (!resetError) {
+        return true; // Email exists in auth
+      }
+
+      // Check specific error messages that indicate email doesn't exist
+      if (
+        resetError.message.includes("not found") ||
+        resetError.message.includes("does not exist") ||
+        resetError.message.includes("invalid email")
+      ) {
+        return false; // Email doesn't exist
+      }
+
+      // For other errors, assume email might exist (be safe)
+      return false;
+    } catch (error) {
+      console.error("Error in email check:", error);
+      return false; // Allow registration to continue on error
+    }
+  };
+
   const onSubmit = async (data: CustomerFormValues) => {
     if (isLoading) return;
 
@@ -66,6 +117,19 @@ const CustomerRegisterContent = () => {
     setRegistrationError(null);
 
     try {
+      // Step 1: Check if email already exists
+      const emailExists = await checkEmailExists(data.email);
+
+      if (emailExists) {
+        setRegistrationError(
+          "هذا البريد الإلكتروني مسجل بالفعل. يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول."
+        );
+        toast.error("هذا البريد الإلكتروني مسجل بالفعل");
+        setIsLoading(false);
+        return;
+      }
+
+      // Step 2: Register the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp(
         {
           email: data.email,
@@ -85,6 +149,7 @@ const CustomerRegisterContent = () => {
       if (signUpError) throw signUpError;
       if (!authData.user) throw new Error(t("userCreationFailed"));
 
+      // Step 3: Store user details in cookie for auth callback
       const pendingUserDetails = {
         id: authData.user.id,
         first_name: data.firstName,
@@ -102,6 +167,7 @@ const CustomerRegisterContent = () => {
       });
 
       setRegistrationComplete(true);
+      toast.success(t("registrationSuccess"));
     } catch (error: any) {
       const errorMsg =
         error.message?.includes("duplicate key") ||
