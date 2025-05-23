@@ -2,10 +2,11 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
 import { toast } from "sonner";
-
+import { useLanguage } from "@/components/ui/language-context";
 const Logout = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const performLogout = async () => {

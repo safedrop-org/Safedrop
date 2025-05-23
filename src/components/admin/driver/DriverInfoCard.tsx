@@ -145,7 +145,7 @@ const DriverInfoCardContent = ({
         </div>
 
         {status === "rejected" && rejection_reason && (
-          <Alert className="mt-4 bg-red-50 border-red-200 text-right">
+          <Alert className="mt-4 bg-red-50 border-red-200 text-left">
             <div className="font-bold mb-1">{t("rejectionReason")}:</div>
             <AlertDescription>{rejection_reason}</AlertDescription>
           </Alert>

@@ -133,7 +133,7 @@ const PendingApprovalContent = () => {
           <div
             className={`bg-amber-50 border-amber-500 p-4 mb-6 ${
               language === "ar"
-                ? "border-r-4 text-right"
+                ? "border-r-4 text-left"
                 : "border-l-4 text-left"
             }`}
           >
@@ -174,7 +174,7 @@ const PendingApprovalContent = () => {
           <div
             className={`bg-green-50 border-green-500 p-4 mb-6 ${
               language === "ar"
-                ? "border-r-4 text-right"
+                ? "border-r-4 text-left"
                 : "border-l-4 text-left"
             }`}
           >
@@ -208,7 +208,7 @@ const PendingApprovalContent = () => {
           <div
             className={`bg-red-50 border-red-500 p-4 mb-6 ${
               language === "ar"
-                ? "border-r-4 text-right"
+                ? "border-r-4 text-left"
                 : "border-l-4 text-left"
             }`}
           >

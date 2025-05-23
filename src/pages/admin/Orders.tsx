@@ -53,7 +53,7 @@ const OrdersTable = ({ orders, status, onViewOrder }) => {
                   {order.order_id}
                 </TableCell>
                 <TableCell className="font-medium text-center">
-                  {order.id.substring(0, 8)}
+                  {order.order_number.substring(0, 8)}
                 </TableCell>
                 <TableCell className="text-center">
                   {order.customer
