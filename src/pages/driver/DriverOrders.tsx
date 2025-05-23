@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DriverSidebar from "@/components/driver/DriverSidebar";
-import { ClockIcon, AlertTriangleIcon } from "lucide-react";
+import { Clock, AlertTriangle, MapPin, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +26,103 @@ const DriverOrdersContent = () => {
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
+
+  // Location state
+  const [driverLocation, setDriverLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+  const [locationWatchId, setLocationWatchId] = useState<number | null>(null);
+
+  // Request location permission and start tracking
+  const requestLocation = async () => {
+    if (!navigator.geolocation) {
+      setLocationError("الموقع الجغرافي غير مدعوم في هذا المتصفح");
+      toast.error("الموقع الجغرافي غير مدعوم في هذا المتصفح");
+      return;
+    }
+
+    setIsRequestingLocation(true);
+    setLocationError(null);
+
+    try {
+      // Request high accuracy location
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000,
+          });
+        }
+      );
+
+      const location = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+
+      setDriverLocation(location);
+      setLocationError(null);
+      toast.success("تم تفعيل الموقع الجغرافي بنجاح");
+
+      // Start watching position for continuous updates
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          setDriverLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Location watch error:", error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 30000,
+          maximumAge: 60000,
+        }
+      );
+
+      setLocationWatchId(watchId);
+    } catch (error: any) {
+      console.error("Location request error:", error);
+      let errorMessage = "فشل في الحصول على الموقع الجغرافي";
+
+      switch (error.code) {
+        case 1: // PERMISSION_DENIED
+          errorMessage = "تم رفض الإذن للوصول للموقع الجغرافي";
+          break;
+        case 2: // POSITION_UNAVAILABLE
+          errorMessage = "الموقع الجغرافي غير متاح";
+          break;
+        case 3: // TIMEOUT
+          errorMessage = "انتهت مهلة الحصول على الموقع الجغرافي";
+          break;
+      }
+
+      setLocationError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsRequestingLocation(false);
+    }
+  };
+
+  // Auto-request location on component mount
+  useEffect(() => {
+    if (user?.id && !driverLocation && !locationError) {
+      requestLocation();
+    }
+
+    // Cleanup location watch on unmount
+    return () => {
+      if (locationWatchId) {
+        navigator.geolocation.clearWatch(locationWatchId);
+      }
+    };
+  }, [user?.id]);
 
   // Fetch driver's current availability status on component mount
   useEffect(() => {
@@ -302,7 +399,7 @@ const DriverOrdersContent = () => {
         <DriverSidebar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <AlertTriangleIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <p className="text-red-600 mb-4">
               {t("errorLoadingOrders") || "خطأ في تحميل الطلبات"}
             </p>
@@ -326,6 +423,36 @@ const DriverOrdersContent = () => {
               {t("manageOrders")}
             </h1>
             <div className="flex items-center gap-4">
+              {/* Location Status */}
+              <div className="flex items-center gap-2">
+                <MapPin
+                  className={`h-4 w-4 ${
+                    driverLocation ? "text-green-500" : "text-red-500"
+                  }`}
+                />
+                <span className="text-sm">
+                  {driverLocation ? "الموقع مفعل" : "الموقع غير مفعل"}
+                </span>
+                {!driverLocation && !isRequestingLocation && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={requestLocation}
+                    className="text-xs"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    تفعيل الموقع
+                  </Button>
+                )}
+                {isRequestingLocation && (
+                  <div className="flex items-center gap-1">
+                    <div className="animate-spin h-3 w-3 border border-gray-400 border-t-transparent rounded-full"></div>
+                    <span className="text-xs">جاري التحديد...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Availability Toggle */}
               <div className="flex items-center gap-2">
                 <span className="text-sm">{t("availabilityStatus")}:</span>
                 <div
@@ -363,6 +490,50 @@ const DriverOrdersContent = () => {
           </div>
         </header>
 
+        {/* Location Error Alert */}
+        {locationError && (
+          <div className="bg-red-50 border border-red-200 p-4 mx-4 mt-4 rounded-md">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="text-red-800 font-semibold mb-2">
+                  خطأ في الموقع الجغرافي
+                </h3>
+                <div className="text-red-700 text-sm whitespace-pre-line leading-relaxed">
+                  {locationError}
+                </div>
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={requestLocation}
+                    disabled={isRequestingLocation}
+                    className="border-red-300 text-red-700 hover:bg-red-100"
+                  >
+                    إعادة المحاولة
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => window.location.reload()}
+                    className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                  >
+                    تحديث الصفحة
+                  </Button>
+                </div>
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-blue-800 text-xs">
+                  <strong>كيفية تفعيل الموقع:</strong>
+                  <br />
+                  • اضغط على أيقونة القفل 🔒 في شريط العنوان
+                  <br />
+                  • اختر "السماح" للموقع الجغرافي
+                  <br />• اضغط "تحديث الصفحة" أدناه
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <main className="flex-1 overflow-auto p-4">
           <div className="max-w-7xl mx-auto">
             <Tabs
@@ -389,7 +560,7 @@ const DriverOrdersContent = () => {
                 {currentOrders.length === 0 ? (
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
-                      <ClockIcon className="h-12 w-12 text-gray-400 mb-4" />
+                      <Clock className="h-12 w-12 text-gray-400 mb-4" />
                       <p className="text-gray-500 mb-4">
                         {t("noCurrentOrders") || "لا توجد طلبات حالية"}
                       </p>
@@ -408,7 +579,7 @@ const DriverOrdersContent = () => {
                       key={order.id}
                       order={order}
                       onOrderUpdate={refetch}
-                      driverLocation={null}
+                      driverLocation={driverLocation}
                     />
                   ))
                 )}
@@ -421,7 +592,7 @@ const DriverOrdersContent = () => {
                 {!isAvailable ? (
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
-                      <AlertTriangleIcon className="h-12 w-12 text-yellow-500 mb-4" />
+                      <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
                       <p className="text-gray-600 mb-4">
                         {t("notAvailableMessage")}
                       </p>
@@ -440,7 +611,7 @@ const DriverOrdersContent = () => {
                 ) : availableOrders.length === 0 ? (
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
-                      <ClockIcon className="h-12 w-12 text-gray-400 mb-4" />
+                      <Clock className="h-12 w-12 text-gray-400 mb-4" />
                       <p className="text-gray-500">{t("noAvailableOrders")}</p>
                       <Button
                         variant="outline"
@@ -457,7 +628,7 @@ const DriverOrdersContent = () => {
                       key={order.id}
                       order={order}
                       onOrderUpdate={refetch}
-                      driverLocation={null}
+                      driverLocation={driverLocation}
                       showAcceptButton={true}
                       onAcceptOrder={handleAcceptOrder}
                     />
@@ -472,7 +643,7 @@ const DriverOrdersContent = () => {
                 {completedOrders.length === 0 ? (
                   <div className="bg-white rounded-lg shadow p-6 text-center">
                     <div className="flex flex-col items-center justify-center">
-                      <ClockIcon className="h-12 w-12 text-gray-400 mb-4" />
+                      <Clock className="h-12 w-12 text-gray-400 mb-4" />
                       <p className="text-gray-500">
                         {t("noCompletedOrders") || "لا توجد طلبات مكتملة"}
                       </p>
@@ -484,7 +655,7 @@ const DriverOrdersContent = () => {
                       key={order.id}
                       order={order}
                       onOrderUpdate={refetch}
-                      driverLocation={null}
+                      driverLocation={driverLocation}
                       showCompleteButton={false}
                     />
                   ))

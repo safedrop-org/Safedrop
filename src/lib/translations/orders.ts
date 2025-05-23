@@ -427,4 +427,20 @@ export const orders: TranslationSection = {
     ar: "تم تحديث حالة الطلب",
     en: "Order updated",
   },
+  "status.order_completed": {
+    ar: "تم إكمال الطلب",
+    en: "Order completed",
+  },
+  "status.order_cancelled": {
+    ar: "تم إلغاء الطلب",
+    en: "Order cancelled",
+  },
+  "status.location_required": {
+    ar: "يجب تحديد الموقع لتحديث حالة الطلب",
+    en: "Location required to update order status",
+  },
+  "status.location_disabled": {
+    ar: "الموقع معطل",
+    en: "Location disabled",
+  },
 };

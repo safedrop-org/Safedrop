@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Truck, Clock, Loader2, AlertCircle, Package } from "lucide-react";
+import {
+  Truck,
+  Clock,
+  Loader2,
+  AlertCircle,
+  Package,
+  MapPin,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 import { useLanguage } from "../ui/language-context";
@@ -42,20 +49,37 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
     setErrorMessage(null);
 
     if (!orderId) {
-      toast.error(t("status.invalid_order_id"));
+      toast.error(t("status.invalid_order_id") || "معرف الطلب غير صحيح");
       return;
     }
 
     // Validate that the current user is logged in
     if (!user) {
-      toast.error(t("status.login_required"));
+      toast.error(t("status.login_required") || "يجب تسجيل الدخول أولاً");
       return;
     }
 
     // Check if user is authorized for this order
     if (driverId && driverId !== user.id) {
-      setErrorMessage(t("status.unauthorized_order"));
-      toast.error(t("status.unauthorized_order"));
+      setErrorMessage(
+        t("status.unauthorized_order") || "غير مخول لتحديث هذا الطلب"
+      );
+      toast.error(
+        t("status.unauthorized_order") || "غير مخول لتحديث هذا الطلب"
+      );
+      return;
+    }
+
+    // Check for location requirement with better UX
+    if (!driverLocation) {
+      setErrorMessage(
+        t("status.no_location") ||
+          "يرجى تفعيل الموقع الجغرافي لتحديث حالة الطلب"
+      );
+      toast.error(
+        t("status.no_location") ||
+          "يرجى تفعيل الموقع الجغرافي لتحديث حالة الطلب"
+      );
       return;
     }
 
@@ -63,17 +87,15 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
     setUpdatingStatus(newStatus);
 
     try {
-      console.log(`Updating order ${orderId} status to ${newStatus}`);
+      console.log(`Updating order ${orderId} status to ${newStatus}`, {
+        driverLocation,
+      });
 
       const orderUpdate: any = {
         status: newStatus,
+        driver_location: driverLocation,
         updated_at: new Date().toISOString(),
       };
-
-      // Include driver location if available (optional)
-      if (driverLocation) {
-        orderUpdate.driver_location = driverLocation;
-      }
 
       // إذا كانت هذه أول عملية التقاط، قم بتعيين السائق للطلب
       if (currentStatus === "available" && newStatus === "picked_up") {
@@ -92,7 +114,9 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
       }
 
       if (!data || data.length === 0) {
-        throw new Error(t("status.order_update_failed"));
+        throw new Error(
+          t("status.order_update_failed") || "فشل تحديث حالة الطلب"
+        );
       }
 
       console.log("Order status updated successfully:", data);
@@ -100,25 +124,35 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
       let statusMessage = "";
       switch (newStatus) {
         case "picked_up":
-          statusMessage = t("status.picked_up");
+          statusMessage = t("status.picked_up") || "تم الاستلام";
           break;
         case "in_transit":
-          statusMessage = t("status.in_transit");
+          statusMessage = t("status.in_transit") || "في الطريق";
           break;
         case "approaching":
-          statusMessage = t("status.approaching");
+          statusMessage = t("status.approaching") || "يقترب";
           break;
       }
 
-      toast.success(`${t("status.order_updated")} ${statusMessage}`);
+      toast.success(
+        `${t("status.order_updated") || "تم تحديث الطلب"} - ${statusMessage}`
+      );
 
       if (onStatusUpdated) {
         onStatusUpdated();
       }
     } catch (error: any) {
       console.error("Error updating order status:", error);
-      setErrorMessage(error.message || t("status.order_update_failed"));
-      toast.error(`${t("status.order_update_failed")}: ${error.message || ""}`);
+      setErrorMessage(
+        error.message ||
+          t("status.order_update_failed") ||
+          "فشل تحديث حالة الطلب"
+      );
+      toast.error(
+        `${t("status.order_update_failed") || "فشل تحديث حالة الطلب"}: ${
+          error.message || ""
+        }`
+      );
     } finally {
       setIsUpdating(false);
       setUpdatingStatus(null);
@@ -127,9 +161,11 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
 
   const isCompleted = currentStatus === "completed";
   const isDriverAuthorized = !driverId || driverId === user?.id;
+  const hasLocation = !!driverLocation;
 
-  // Removed driverLocation check from disabled condition
-  const buttonDisabled = isUpdating || isCompleted || !isDriverAuthorized;
+  // Button is disabled if: updating, completed, not authorized, or no location
+  const buttonDisabled =
+    isUpdating || isCompleted || !isDriverAuthorized || !hasLocation;
 
   return (
     <div className="space-y-2">
@@ -140,6 +176,17 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
         </div>
       )}
 
+      {/* Location Status Indicator */}
+      {!hasLocation && (
+        <div className="bg-amber-50 text-amber-800 p-3 rounded-md flex items-center gap-2 mb-2">
+          <MapPin className="h-4 w-4" />
+          <span>
+            {t("status.location_required") ||
+              "يتطلب تفعيل الموقع الجغرافي لتحديث حالة الطلب"}
+          </span>
+        </div>
+      )}
+
       <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 md:space-x-reverse">
         {currentStatus === "available" && (
           <Button
@@ -147,13 +194,14 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
             onClick={() => updateOrderStatus("picked_up")}
             disabled={buttonDisabled}
             className="gap-1"
+            title={!hasLocation ? "يجب تفعيل الموقع الجغرافي أولاً" : ""}
           >
             {isUpdating && updatingStatus === "picked_up" ? (
               <Loader2 className="h-4 w-4 ml-1 animate-spin" />
             ) : (
               <Package className="h-4 w-4 ml-1" />
             )}
-            {t("status.picked_up")}
+            {t("status.picked_up") || "تم الاستلام"}
           </Button>
         )}
 
@@ -163,13 +211,14 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
             onClick={() => updateOrderStatus("in_transit")}
             disabled={buttonDisabled}
             className="gap-1"
+            title={!hasLocation ? "يجب تفعيل الموقع الجغرافي أولاً" : ""}
           >
             {isUpdating && updatingStatus === "in_transit" ? (
               <Loader2 className="h-4 w-4 ml-1 animate-spin" />
             ) : (
               <Truck className="h-4 w-4 ml-1" />
             )}
-            {t("status.in_transit")}
+            {t("status.in_transit") || "في الطريق"}
           </Button>
         )}
 
@@ -179,19 +228,20 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
             onClick={() => updateOrderStatus("approaching")}
             disabled={buttonDisabled}
             className="gap-1"
+            title={!hasLocation ? "يجب تفعيل الموقع الجغرافي أولاً" : ""}
           >
             {isUpdating && updatingStatus === "approaching" ? (
               <Loader2 className="h-4 w-4 ml-1 animate-spin" />
             ) : (
               <Clock className="h-4 w-4 ml-1" />
             )}
-            {t("status.approaching")}
+            {t("status.approaching") || "يقترب"}
           </Button>
         )}
 
         {currentStatus === "approaching" && (
           <div className="text-sm text-green-600 bg-green-50 p-2 rounded-md">
-            {t("status.approaching")}
+            {t("status.approaching") || "يقترب من الوجهة"}
           </div>
         )}
       </div>
