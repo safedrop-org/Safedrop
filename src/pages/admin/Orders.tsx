@@ -23,6 +23,57 @@ const OrdersTable = ({ orders, status, onViewOrder }) => {
       ? orders
       : orders.filter((order) => order.status === status);
 
+  // Function to get status display text and styling
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case "available":
+        return {
+          text: "متاح للتوصيل",
+          className: "bg-blue-100 text-blue-800 border-blue-200",
+        };
+      case "completed":
+        return {
+          text: "مكتمل",
+          className: "bg-green-100 text-green-800 border-green-200",
+        };
+      case "picked_up":
+        return {
+          text: "تم الاستلام",
+          className: "bg-purple-100 text-purple-800 border-purple-200",
+        };
+      case "approaching":
+        return {
+          text: "في الطريق",
+          className: "bg-indigo-100 text-indigo-800 border-indigo-200",
+        };
+      case "in_transit":
+        return {
+          text: "قيد التوصيل",
+          className: "bg-orange-100 text-orange-800 border-orange-200",
+        };
+      case "delivered":
+        return {
+          text: "تم التوصيل",
+          className: "bg-green-100 text-green-800 border-green-200",
+        };
+      case "cancelled":
+        return {
+          text: "ملغي",
+          className: "bg-red-100 text-red-800 border-red-200",
+        };
+      case "pending":
+        return {
+          text: "قيد الانتظار",
+          className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+        };
+      default:
+        return {
+          text: status || "غير محدد",
+          className: "bg-gray-100 text-gray-800 border-gray-200",
+        };
+    }
+  };
+
   return (
     <div className={`overflow-x-auto`}>
       <Table>
@@ -42,94 +93,78 @@ const OrdersTable = ({ orders, status, onViewOrder }) => {
         <TableBody>
           {filteredOrders.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="h-24 text-center">
+              <TableCell colSpan={9} className="h-24 text-center">
                 لا توجد طلبات في هذه الفئة
               </TableCell>
             </TableRow>
           ) : (
-            filteredOrders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-medium text-center">
-                  {order.order_id}
-                </TableCell>
-                <TableCell className="font-medium text-center">
-                  {order.order_number.substring(0, 8)}
-                </TableCell>
-                <TableCell className="text-center">
-                  {order.customer
-                    ? `${order.customer.first_name} ${order.customer.last_name}`
-                    : "غير معروف"}
-                </TableCell>
-                <TableCell className="text-center">
-                  {order.driver
-                    ? `${order.driver.first_name} ${order.driver.last_name}`
-                    : "غير معين"}
-                </TableCell>
-                <TableCell className="text-center">
-                  {new Date(order.created_at).toLocaleDateString("ar-EG")}
-                </TableCell>
-                <TableCell className="text-center">
-                  {order.price ? `${order.price} ر.س` : "غير محدد"}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge
-                    variant="outline"
-                    className={
-                      order.status === "completed"
-                        ? "bg-green-100 text-green-800 border-green-200"
-                        : order.status === "approved"
-                        ? "bg-blue-100 text-blue-800 border-blue-200"
-                        : order.status === "pending"
-                        ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                        : order.status === "in_transit"
-                        ? "bg-purple-100 text-purple-800 border-purple-200"
-                        : order.status === "approaching"
-                        ? "bg-indigo-100 text-indigo-800 border-indigo-200"
-                        : "bg-red-100 text-red-800 border-red-200"
-                    }
-                  >
-                    {order.status === "completed"
-                      ? "مكتمل"
-                      : order.status === "approved"
-                      ? "موافق عليه"
-                      : order.status === "pending"
-                      ? "قيد الانتظار"
-                      : order.status === "in_transit"
-                      ? "قيد التوصيل"
-                      : order.status === "approaching"
-                      ? "اقترب"
-                      : "ملغي"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge
-                    variant="outline"
-                    className={
-                      order.payment_status === "paid"
-                        ? "bg-green-100 text-green-800 border-green-200"
+            filteredOrders.map((order) => {
+              const statusDisplay = getStatusDisplay(order.status);
+
+              return (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium text-center">
+                    {order.order_id}
+                  </TableCell>
+                  <TableCell className="font-medium text-center">
+                    {order.order_number
+                      ? order.order_number.substring(0, 8)
+                      : "غير محدد"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {order.customer
+                      ? `${order.customer.first_name} ${order.customer.last_name}`
+                      : "غير معروف"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {order.driver
+                      ? `${order.driver.first_name} ${order.driver.last_name}`
+                      : "غير معين"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {new Date(order.created_at).toLocaleDateString("ar-EG")}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {order.price ? `${order.price} ر.س` : "غير محدد"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge
+                      variant="outline"
+                      className={statusDisplay.className}
+                    >
+                      {statusDisplay.text}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge
+                      variant="outline"
+                      className={
+                        order.payment_status === "paid"
+                          ? "bg-green-100 text-green-800 border-green-200"
+                          : order.payment_status === "pending"
+                          ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                          : "bg-purple-100 text-purple-800 border-purple-200"
+                      }
+                    >
+                      {order.payment_status === "paid"
+                        ? "مدفوع"
                         : order.payment_status === "pending"
-                        ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                        : "bg-purple-100 text-purple-800 border-purple-200"
-                    }
-                  >
-                    {order.payment_status === "paid"
-                      ? "مدفوع"
-                      : order.payment_status === "pending"
-                      ? "غير مدفوع"
-                      : "مسترد"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onViewOrder(order)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
+                        ? "غير مدفوع"
+                        : "مسترد"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onViewOrder(order)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>
@@ -169,6 +204,7 @@ const Orders = () => {
     // Create CSV data
     const headers = [
       "رقم الطلب",
+      "كود الطلب",
       "العميل",
       "السائق",
       "التاريخ",
@@ -178,7 +214,8 @@ const Orders = () => {
     ];
 
     const csvData = orders.map((order) => [
-      order.id,
+      order.order_id || order.id,
+      order.order_number || "غير محدد",
       order.customer
         ? `${order.customer.first_name} ${order.customer.last_name}`
         : "غير معروف",
@@ -217,6 +254,8 @@ const Orders = () => {
   const filteredOrders = orders.filter(
     (order) =>
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.order_number &&
+        order.order_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (order.customer &&
         `${order.customer.first_name} ${order.customer.last_name}`
           .toLowerCase()
@@ -268,34 +307,43 @@ const Orders = () => {
       ) : (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle>جميع الطلبات</CardTitle>
+            <CardTitle>جميع الطلبات ({orders.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="all" className="w-full">
-              <TabsList className="mb-4 grid grid-cols-4 w-full">
+              <TabsList className="mb-4 grid grid-cols-5 w-full">
                 <TabsTrigger
                   value="all"
                   className="flex-1 text-center whitespace-nowrap px-4"
                 >
-                  الكل
+                  الكل ({orders.length})
                 </TabsTrigger>
                 <TabsTrigger
-                  value="pending"
+                  value="available"
                   className="flex-1 text-center whitespace-nowrap px-4"
                 >
-                  في العرض
+                  متاح ({orders.filter((o) => o.status === "available").length})
                 </TabsTrigger>
                 <TabsTrigger
-                  value="in_transit"
+                  value="picked_up"
                   className="flex-1 text-center whitespace-nowrap px-4"
                 >
-                  جاري التوصيل
+                  جاري التوصيل (
+                  {orders.filter((o) => o.status === "picked_up").length})
+                </TabsTrigger>
+                <TabsTrigger
+                  value="approaching"
+                  className="flex-1 text-center whitespace-nowrap px-4"
+                >
+                  في الطريق (
+                  {orders.filter((o) => o.status === "approaching").length})
                 </TabsTrigger>
                 <TabsTrigger
                   value="completed"
                   className="flex-1 text-center whitespace-nowrap px-4"
                 >
-                  مكتمل
+                  مكتمل ({orders.filter((o) => o.status === "completed").length}
+                  )
                 </TabsTrigger>
               </TabsList>
 
@@ -307,18 +355,26 @@ const Orders = () => {
                 />
               </TabsContent>
 
-              <TabsContent value="pending" className="mt-0">
+              <TabsContent value="available" className="mt-0">
                 <OrdersTable
                   orders={filteredOrders}
-                  status="pending"
+                  status="available"
                   onViewOrder={handleViewOrder}
                 />
               </TabsContent>
 
-              <TabsContent value="in_transit" className="mt-0">
+              <TabsContent value="picked_up" className="mt-0">
                 <OrdersTable
                   orders={filteredOrders}
-                  status="in_transit"
+                  status="picked_up"
+                  onViewOrder={handleViewOrder}
+                />
+              </TabsContent>
+
+              <TabsContent value="approaching" className="mt-0">
+                <OrdersTable
+                  orders={filteredOrders}
+                  status="approaching"
                   onViewOrder={handleViewOrder}
                 />
               </TabsContent>
