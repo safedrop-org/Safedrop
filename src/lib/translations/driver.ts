@@ -127,7 +127,7 @@ export const driver: TranslationSection = {
   },
   licenseNumber: {
     ar: "الرقم التسلسلي",
-    en: "License Number",
+    en: " Vehicle Serial Number",
   },
 
   // Vehicle Information
@@ -199,7 +199,7 @@ export const driver: TranslationSection = {
   },
   licenseImage: {
     ar: "صورة رخصة السير",
-    en: "Driver License Image",
+    en: "Vehicle Registration Image",
   },
   view: {
     ar: "عرض",

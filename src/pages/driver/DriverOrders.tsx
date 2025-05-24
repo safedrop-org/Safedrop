@@ -427,74 +427,81 @@ const DriverOrdersContent = () => {
       <DriverSidebar />
 
       <div className="flex-1 flex flex-col overflow-auto">
+        {/* RESPONSIVE NAVBAR - Only changes here */}
         <header className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-bold text-gray-900">
-              {t("manageOrders")}
-            </h1>
-            <div className="flex items-center gap-4">
-              {/* Location Status */}
-              <div className="flex items-center gap-2">
-                <MapPin
-                  className={`h-4 w-4 ${
-                    driverLocation ? "text-green-500" : "text-red-500"
-                  }`}
-                />
-                <span className="text-sm">
-                  {driverLocation ? "الموقع مفعل" : "الموقع غير مفعل"}
-                </span>
-                {!driverLocation && !isRequestingLocation && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={requestLocation}
-                    className="text-xs"
-                  >
-                    <RefreshCw className="h-3 w-3 mr-1" />
-                    تفعيل الموقع
-                  </Button>
-                )}
-                {isRequestingLocation && (
-                  <div className="flex items-center gap-1">
-                    <div className="animate-spin h-3 w-3 border border-gray-400 border-t-transparent rounded-full"></div>
-                    <span className="text-xs">جاري التحديد...</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Availability Toggle */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm">{t("availabilityStatus")}:</span>
-                <div
-                  className={`relative h-6 w-12 cursor-pointer rounded-full transition-colors duration-200 ${
-                    updatingAvailability
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : isAvailable
-                      ? "bg-green-500"
-                      : "bg-gray-200"
-                  }`}
-                  onClick={handleAvailabilityToggle}
-                >
-                  <div
-                    className={`absolute transition-transform duration-200 h-5 w-5 top-0.5 rounded-full bg-white ${
-                      isAvailable ? "right-0.5" : "left-0.5"
+          <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900">
+                {t("manageOrders")}
+              </h1>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                {/* Location Status */}
+                <div className="flex items-center gap-2">
+                  <MapPin
+                    className={`h-4 w-4 ${
+                      driverLocation ? "text-green-500" : "text-red-500"
                     }`}
                   />
-                  {updatingAvailability && (
-                    <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xs sm:text-sm">
+                    {driverLocation
+                      ? t("locationActive")
+                      : t("locationInactive")}
+                  </span>
+                  {!driverLocation && !isRequestingLocation && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={requestLocation}
+                      className="text-xs px-2 py-1"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      {t("enableLocation")}
+                    </Button>
+                  )}
+                  {isRequestingLocation && (
+                    <div className="flex items-center gap-1">
                       <div className="animate-spin h-3 w-3 border border-gray-400 border-t-transparent rounded-full"></div>
+                      <span className="text-xs">{t("locating")}...</span>
                     </div>
                   )}
                 </div>
-                <span
-                  className={`text-sm font-medium ${
-                    isAvailable ? "text-green-600" : "text-gray-500"
-                  }`}
-                >
-                  {isAvailable
-                    ? t("availableForOrders")
-                    : t("notAvailableForOrders")}
-                </span>
+
+                {/* Availability Toggle */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm">
+                    {t("availabilityStatus")}:
+                  </span>
+                  <div
+                    className={`relative h-6 w-12 cursor-pointer rounded-full transition-colors duration-200 ${
+                      updatingAvailability
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : isAvailable
+                        ? "bg-green-500"
+                        : "bg-gray-200"
+                    }`}
+                    onClick={handleAvailabilityToggle}
+                  >
+                    <div
+                      className={`absolute transition-transform duration-200 h-5 w-5 top-0.5 rounded-full bg-white ${
+                        isAvailable ? "right-0.5" : "left-0.5"
+                      }`}
+                    />
+                    {updatingAvailability && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="animate-spin h-3 w-3 border border-gray-400 border-t-transparent rounded-full"></div>
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className={`text-xs sm:text-sm font-medium ${
+                      isAvailable ? "text-green-600" : "text-gray-500"
+                    }`}
+                  >
+                    {isAvailable
+                      ? t("availableForOrders")
+                      : t("notAvailableForOrders")}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -554,15 +561,37 @@ const DriverOrdersContent = () => {
               onValueChange={setActiveTab}
               className="w-full"
             >
-              <TabsList className="w-full grid grid-cols-3 mb-6">
-                <TabsTrigger value="current">
-                  {t("currentOrdersTab")} ({currentOrders.length})
+              {/* RESPONSIVE TABS - Only changes here */}
+              <TabsList className="w-full grid grid-cols-3 mb-6 h-auto">
+                <TabsTrigger
+                  value="current"
+                  className="text-xs sm:text-sm px-1 sm:px-3 py-2"
+                >
+                  <span className="hidden sm:inline">
+                    {t("currentOrdersTab")}
+                  </span>
+                  <span className="sm:hidden">Current</span>
+                  <span className="ml-1">({currentOrders.length})</span>
                 </TabsTrigger>
-                <TabsTrigger value="available">
-                  {t("availableOrdersTab")} ({availableOrders.length})
+                <TabsTrigger
+                  value="available"
+                  className="text-xs sm:text-sm px-1 sm:px-3 py-2"
+                >
+                  <span className="hidden sm:inline">
+                    {t("availableOrdersTab")}
+                  </span>
+                  <span className="sm:hidden">Available</span>
+                  <span className="ml-1">({availableOrders.length})</span>
                 </TabsTrigger>
-                <TabsTrigger value="completed">
-                  {t("completedOrdersTab")} ({completedOrders.length})
+                <TabsTrigger
+                  value="completed"
+                  className="text-xs sm:text-sm px-1 sm:px-3 py-2"
+                >
+                  <span className="hidden sm:inline">
+                    {t("completedOrdersTab")}
+                  </span>
+                  <span className="sm:hidden">Done</span>
+                  <span className="ml-1">({completedOrders.length})</span>
                 </TabsTrigger>
               </TabsList>
 

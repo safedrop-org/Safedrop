@@ -117,16 +117,6 @@ const DriverTermsContent = () => {
                     </p>
                   </div>
                 </section>
-
-                <div
-                  className="bg-safedrop-gold/10 border border-safedrop-gold rounded-lg p-6 mt-8"
-                  dir="rtl"
-                >
-                  <p className="text-safedrop-primary font-bold text-center text-lg">
-                    أوافق على جميع الشروط والأحكام المذكورة أعلاه، وأتحمل كامل
-                    المسؤولية القانونية والإدارية عند الإخلال بأي بند منها.
-                  </p>
-                </div>
               </>
             ) : (
               // English content
@@ -229,14 +219,6 @@ const DriverTermsContent = () => {
                     </p>
                   </div>
                 </section>
-
-                <div className="bg-safedrop-gold/10 border border-safedrop-gold rounded-lg p-6 mt-8">
-                  <p className="text-safedrop-primary font-bold text-center text-lg">
-                    I agree to all the terms and conditions mentioned above and
-                    bear full legal and administrative responsibility for any
-                    violation of these terms.
-                  </p>
-                </div>
               </>
             )}
           </div>

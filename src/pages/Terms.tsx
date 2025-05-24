@@ -156,16 +156,6 @@ const TermsContent = () => {
                     إشعار المستخدمين بذلك عبر التطبيق أو البريد الإلكتروني.
                   </p>
                 </div>
-
-                <div
-                  className="bg-safedrop-gold/10 border border-safedrop-gold rounded-lg p-6 mt-8"
-                  dir="rtl"
-                >
-                  <p className="text-safedrop-primary font-bold text-center text-lg">
-                    باستخدام منصة SafeDrop، فإنك توافق على جميع الشروط والأحكام
-                    المذكورة أعلاه وتتحمل المسؤولية الكاملة عن الالتزام بها.
-                  </p>
-                </div>
               </>
             ) : (
               // English content
@@ -326,14 +316,6 @@ const TermsContent = () => {
                     SafeDrop reserves the right to modify these terms and
                     conditions at any time. Users will be notified through the
                     app or via email.
-                  </p>
-                </div>
-
-                <div className="bg-safedrop-gold/10 border border-safedrop-gold rounded-lg p-6 mt-8">
-                  <p className="text-safedrop-primary font-bold text-center text-lg">
-                    By using SafeDrop platform, you agree to all the terms and
-                    conditions mentioned above and bear full responsibility for
-                    compliance with them.
                   </p>
                 </div>
               </>

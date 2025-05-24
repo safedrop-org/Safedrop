@@ -81,7 +81,7 @@ export const notifications: TranslationSection = {
 
   // Driver Dashboard - Account Status
   accountApproved: {
-    ar: "تم الموافقة على حسابك",
+    ar: "تمت الموافقة على حسابك",
     en: "Your account has been approved",
   },
   accountApprovedDesc: {

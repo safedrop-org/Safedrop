@@ -318,6 +318,10 @@ export const orders: TranslationSection = {
     ar: "الموقع غير مفعل",
     en: "Location Inactive",
   },
+  locating: {
+    ar: "جاري التحديد...",
+    en: "Locating...",
+  },
   locationBlocked: {
     ar: "الموقع محظور",
     en: "Location Blocked",

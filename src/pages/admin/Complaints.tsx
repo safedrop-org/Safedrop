@@ -862,7 +862,7 @@ const Complaints: React.FC = () => {
       <div className="p-3 sm:p-4 lg:p-6">
         {/* Header Section */}
         <div className="mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col lg:items-start justify-between gap-4 mb-6">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
                 {t("complaintsManagementTitle")}

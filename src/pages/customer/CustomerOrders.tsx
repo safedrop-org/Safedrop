@@ -113,7 +113,7 @@ const CustomerOrdersContent = () => {
 
   const getStatusBadge = (status) => {
     const badgeClasses = {
-      base: "px-2 py-1 rounded-full text-xs font-medium",
+      base: "px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap",
       available: "bg-gray-100 text-gray-800",
       picked_up: "bg-blue-100 text-blue-800",
       in_transit: "bg-indigo-100 text-indigo-800",
@@ -215,148 +215,150 @@ const CustomerOrdersContent = () => {
               <h3 className="text-xl font-semibold mb-4">
                 {t("Active Orders")}
               </h3>
-              <div className="overflow-x-auto">
-                {activeOrders.length > 0 ? (
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("Order Code")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("Order ID")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("orderDate")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("from")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("to")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("Driver")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("Status")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("Actions")}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {activeOrders.map((order) => (
-                        <React.Fragment key={order.id}>
-                          <tr>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {order.order_id}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {order.order_number ||
-                                order.order_number.slice(0, 8)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {formatDate(order.created_at)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {order.pickup_location?.address ||
-                                (language === "ar"
-                                  ? "غير محدد"
-                                  : "Not specified")}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {order.dropoff_location?.address ||
-                                (language === "ar"
-                                  ? "غير محدد"
-                                  : "Not specified")}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {order.driver
-                                ? `${order.driver.first_name} ${order.driver.last_name}`
-                                : language === "ar"
-                                ? "لم يتم التعيين بعد"
-                                : "Not assigned yet"}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {getStatusBadge(order.status)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                              {order.status === "approaching" && (
-                                <Button
-                                  onClick={() => handleCompleteOrder(order.id)}
-                                  variant="default"
-                                  size="sm"
-                                  className="gap-1"
+
+              {/* Responsive Table Container */}
+              <div className="w-full overflow-x-auto">
+                <div className="min-w-max">
+                  {activeOrders.length > 0 ? (
+                    <table className="w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50 sticky top-0 z-10">
+                        <tr>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]`}
+                          >
+                            {t("Order Code")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]`}
+                          >
+                            {t("Order ID")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[140px]`}
+                          >
+                            {t("orderDate")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[150px]`}
+                          >
+                            {t("from")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[150px]`}
+                          >
+                            {t("to")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]`}
+                          >
+                            {t("Driver")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[100px]`}
+                          >
+                            {t("Status")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]`}
+                          >
+                            {t("Actions")}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {activeOrders.map((order) => (
+                          <React.Fragment key={order.id}>
+                            <tr className="hover:bg-gray-50">
+                              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {order.order_id}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {order.order_number ||
+                                  order.order_number?.slice(0, 8)}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {formatDate(order.created_at)}
+                              </td>
+                              <td className="px-4 py-4 text-sm text-gray-500 max-w-[200px] truncate">
+                                <div
+                                  className="truncate"
+                                  title={order.pickup_location?.address}
                                 >
-                                  <CheckCircle className="h-4 w-4" />
-                                  {t("Order Received")}
-                                </Button>
-                              )}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td colSpan={7}>
-                              <StaticMap
-                                pickup_location={order.pickup_location.address}
-                                dropoff_location={
-                                  order.dropoff_location.address
-                                }
-                                driver_location={order.driver_location}
-                              />
-                            </td>
-                          </tr>
-                        </React.Fragment>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className="text-center py-10 text-gray-500">
-                    <Clock className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                    <p>{t("noCurrentOrders")}</p>
-                  </div>
-                )}
+                                  {order.pickup_location?.address ||
+                                    (language === "ar"
+                                      ? "غير محدد"
+                                      : "Not specified")}
+                                </div>
+                              </td>
+                              <td className="px-4 py-4 text-sm text-gray-500 max-w-[200px] truncate">
+                                <div
+                                  className="truncate"
+                                  title={order.dropoff_location?.address}
+                                >
+                                  {order.dropoff_location?.address ||
+                                    (language === "ar"
+                                      ? "غير محدد"
+                                      : "Not specified")}
+                                </div>
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {order.driver
+                                  ? `${order.driver.first_name} ${order.driver.last_name}`
+                                  : language === "ar"
+                                  ? "لم يتم التعيين بعد"
+                                  : "Not assigned yet"}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {getStatusBadge(order.status)}
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm">
+                                {order.status === "approaching" && (
+                                  <Button
+                                    onClick={() =>
+                                      handleCompleteOrder(order.id)
+                                    }
+                                    variant="default"
+                                    size="sm"
+                                    className="gap-1 whitespace-nowrap"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                    {t("Order Received")}
+                                  </Button>
+                                )}
+                              </td>
+                            </tr>
+                            <tr>
+                              <td colSpan={8} className="px-4 py-4">
+                                <StaticMap
+                                  pickup_location={
+                                    order.pickup_location?.address
+                                  }
+                                  dropoff_location={
+                                    order.dropoff_location?.address
+                                  }
+                                  driver_location={order.driver_location}
+                                />
+                              </td>
+                            </tr>
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="text-center py-10 text-gray-500">
+                      <Clock className="mx-auto h-10 w-10 text-gray-400 mb-2" />
+                      <p>{t("noCurrentOrders")}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </TabsContent>
 
@@ -367,118 +369,122 @@ const CustomerOrdersContent = () => {
               <h3 className="text-xl font-semibold mb-4">
                 {t("Order History")}
               </h3>
-              <div className="overflow-x-auto">
-                {historyOrders.length > 0 ? (
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("Order Code")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("Order ID")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("orderDate")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("from")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("to")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("Driver")}
-                        </th>
-                        <th
-                          scope="col"
-                          className={`px-6 py-3 text-${
-                            language === "ar" ? "left" : "right"
-                          } text-xs font-medium text-gray-500 uppercase tracking-wider`}
-                        >
-                          {t("Status")}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {historyOrders.map((order) => (
-                        <tr key={order.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {order.order_id}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {order.order_number ||
-                              order.order_number.slice(0, 8)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatDate(order.created_at)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.pickup_location?.address ||
-                              (language === "ar"
-                                ? "غير محدد"
-                                : "Not specified")}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.dropoff_location?.address ||
-                              (language === "ar"
-                                ? "غير محدد"
-                                : "Not specified")}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {order.driver
-                              ? `${order.driver.first_name} ${order.driver.last_name}`
-                              : language === "ar"
-                              ? "غير متوفر"
-                              : "Not available"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {getStatusBadge(order.status)}
-                          </td>
+
+              {/* Responsive Table Container */}
+              <div className="w-full overflow-x-auto">
+                <div className="min-w-max">
+                  {historyOrders.length > 0 ? (
+                    <table className="w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50 sticky top-0 z-10">
+                        <tr>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]`}
+                          >
+                            {t("Order Code")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]`}
+                          >
+                            {t("Order ID")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[140px]`}
+                          >
+                            {t("orderDate")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-${
+                              language === "ar" ? "left" : "left"
+                            } text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[150px]`}
+                          >
+                            {t("from")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-${
+                              language === "ar" ? "left" : "left"
+                            } text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[150px]`}
+                          >
+                            {t("to")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]`}
+                          >
+                            {t("Driver")}
+                          </th>
+                          <th
+                            scope="col"
+                            className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[100px]`}
+                          >
+                            {t("Status")}
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className="text-center py-10 text-gray-500">
-                    <Clock className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                    <p>
-                      {language === "ar"
-                        ? "لا يوجد سجل للطلبات السابقة"
-                        : "No order history available"}
-                    </p>
-                  </div>
-                )}
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {historyOrders.map((order) => (
+                          <tr key={order.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {order.order_id}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {order.order_number ||
+                                order.order_number?.slice(0, 8)}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {formatDate(order.created_at)}
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-500 max-w-[200px] truncate">
+                              <div
+                                className="truncate"
+                                title={order.pickup_location?.address}
+                              >
+                                {order.pickup_location?.address ||
+                                  (language === "ar"
+                                    ? "غير محدد"
+                                    : "Not specified")}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-500 max-w-[200px] truncate">
+                              <div
+                                className="truncate"
+                                title={order.dropoff_location?.address}
+                              >
+                                {order.dropoff_location?.address ||
+                                  (language === "ar"
+                                    ? "غير محدد"
+                                    : "Not specified")}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {order.driver
+                                ? `${order.driver.first_name} ${order.driver.last_name}`
+                                : language === "ar"
+                                ? "غير متوفر"
+                                : "Not available"}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {getStatusBadge(order.status)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="text-center py-10 text-gray-500">
+                      <Clock className="mx-auto h-10 w-10 text-gray-400 mb-2" />
+                      <p>
+                        {language === "ar"
+                          ? "لا يوجد سجل للطلبات السابقة"
+                          : "No order history available"}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </TabsContent>
           </Tabs>
@@ -495,6 +501,8 @@ function StaticMap({ pickup_location, dropoff_location, driver_location }) {
     : "";
 
   useEffect(() => {
+    if (!pickup_location || !dropoff_location) return;
+
     fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(
       pickup_location
     )},SA
@@ -512,9 +520,11 @@ function StaticMap({ pickup_location, dropoff_location, driver_location }) {
         }
       })
       .catch((error) => console.log("error", error));
-  }, []);
+  }, [pickup_location, dropoff_location, marker]);
 
-  return <img className="mx-auto" src={mapUrl} alt="map image" />;
+  return mapUrl ? (
+    <img className="mx-auto max-w-full h-auto" src={mapUrl} alt="map image" />
+  ) : null;
 }
 
 const CustomerOrders = () => {
