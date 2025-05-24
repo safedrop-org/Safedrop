@@ -136,7 +136,7 @@ const DriverTermsContent = () => {
                     Driver Terms & Conditions – SafeDrop Platform
                   </h2>
                   <p className="text-gray-700 text-lg">
-                    By registering on the SafeDrop platform, you acknowledge and
+                    By registering on SafeDrop platform, you acknowledge and
                     agree to the following:
                   </p>
                 </div>

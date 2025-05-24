@@ -512,17 +512,35 @@ const AdminDashboardContent = () => {
         const { data, error } = await supabase
           .from("system_settings")
           .select("*");
+
         if (error) {
           console.error("Error fetching system settings:", error);
           return null;
         }
+
         const settings: Record<string, string> = {};
-        ((data as SystemSetting[]) || []).forEach((item) => {
-          settings[item.key] = item.value;
+        ((data as any[]) || []).forEach((item) => {
+          const key = item.setting_key;
+          let value = item.setting_value;
+
+          if (key && value !== null && value !== undefined) {
+            // Handle different data types in setting_value
+            if (typeof value === "object") {
+              // If it's stored as JSON, extract the value
+              value = typeof value === "string" ? value : JSON.stringify(value);
+            } else if (typeof value === "number") {
+              value = value.toString();
+            }
+            settings[key] = value;
+          }
         });
-        if (settings.commission_rate) {
-          setSelectedCommissionRate(parseInt(settings.commission_rate));
+
+        // Set commission rate from driver_commission_rate (convert 0.15 to 15)
+        if (settings.driver_commission_rate) {
+          const rate = parseFloat(settings.driver_commission_rate);
+          setSelectedCommissionRate(Math.round(rate * 100)); // Convert 0.15 to 15
         }
+
         if (settings.system_language) {
           setSystemLanguage(settings.system_language);
         }
@@ -532,6 +550,7 @@ const AdminDashboardContent = () => {
         if (settings.terms_of_service) {
           setTermsOfService(settings.terms_of_service);
         }
+
         return settings;
       } catch (error) {
         console.error("Error fetching system settings:", error);
@@ -539,6 +558,7 @@ const AdminDashboardContent = () => {
       }
     },
   });
+
   const { data: financialData, isLoading: isLoadingFinancial } = useQuery({
     queryKey: ["financial-data", dateRange],
     queryFn: async () => {
@@ -588,26 +608,81 @@ const AdminDashboardContent = () => {
   };
   const handleUpdateCommissionRate = async () => {
     try {
-      const { error } = await supabase.from("system_settings").upsert({
-        key: "commission_rate",
-        value: selectedCommissionRate.toString(),
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
+      // Convert percentage to decimal (20% = 0.20)
+      const rateAsDecimal = selectedCommissionRate / 100;
+
+      // Check if driver_commission_rate exists
+      const { data: existingData, error: selectError } = await supabase
+        .from("system_settings")
+        .select("*")
+        .eq("setting_key", "driver_commission_rate")
+        .single();
+
+      if (existingData) {
+        // Update existing record
+        const { error } = await supabase
+          .from("system_settings")
+          .update({
+            setting_value: rateAsDecimal,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("setting_key", "driver_commission_rate");
+
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { error } = await supabase.from("system_settings").insert({
+          setting_key: "driver_commission_rate",
+          setting_value: rateAsDecimal,
+          description: `Driver commission rate (${selectedCommissionRate}%)`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+        if (error) throw error;
+      }
+
       toast.success(`تم تحديث نسبة العمولة إلى ${selectedCommissionRate}%`);
     } catch (error) {
       console.error("Error updating commission rate:", error);
       toast.error("حدث خطأ أثناء تحديث نسبة العمولة");
     }
   };
+
+  // Updated system language update function
   const handleUpdateSystemLanguage = async (language: string) => {
     try {
-      const { error } = await supabase.from("system_settings").upsert({
-        key: "system_language",
-        value: language,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
+      // Check if system_language exists
+      const { data: existingData, error: selectError } = await supabase
+        .from("system_settings")
+        .select("*")
+        .eq("setting_key", "system_language")
+        .single();
+
+      if (existingData) {
+        // Update existing record
+        const { error } = await supabase
+          .from("system_settings")
+          .update({
+            setting_value: language,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("setting_key", "system_language");
+
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { error } = await supabase.from("system_settings").insert({
+          setting_key: "system_language",
+          setting_value: language,
+          description: "Default system language",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+        if (error) throw error;
+      }
+
       setSystemLanguage(language);
       toast.success(
         `تم تحديث لغة النظام إلى ${
@@ -619,28 +694,76 @@ const AdminDashboardContent = () => {
       toast.error("حدث خطأ أثناء تحديث لغة النظام");
     }
   };
+
+  // Updated privacy policy update function
   const handleUpdatePrivacyPolicy = async () => {
     try {
-      const { error } = await supabase.from("system_settings").upsert({
-        key: "privacy_policy",
-        value: privacyPolicy,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
+      const { data: existingData, error: selectError } = await supabase
+        .from("system_settings")
+        .select("*")
+        .eq("setting_key", "privacy_policy")
+        .single();
+
+      if (existingData) {
+        const { error } = await supabase
+          .from("system_settings")
+          .update({
+            setting_value: privacyPolicy,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("setting_key", "privacy_policy");
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("system_settings").insert({
+          setting_key: "privacy_policy",
+          setting_value: privacyPolicy,
+          description: "Privacy policy content",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+        if (error) throw error;
+      }
+
       toast.success("تم تحديث سياسة الخصوصية بنجاح");
     } catch (error) {
       console.error("Error updating privacy policy:", error);
       toast.error("حدث خطأ أثناء تحديث سياسة الخصوصية");
     }
   };
+
+  // Updated terms of service update function
   const handleUpdateTermsOfService = async () => {
     try {
-      const { error } = await supabase.from("system_settings").upsert({
-        key: "terms_of_service",
-        value: termsOfService,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
+      const { data: existingData, error: selectError } = await supabase
+        .from("system_settings")
+        .select("*")
+        .eq("setting_key", "terms_of_service")
+        .single();
+
+      if (existingData) {
+        const { error } = await supabase
+          .from("system_settings")
+          .update({
+            setting_value: termsOfService,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("setting_key", "terms_of_service");
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("system_settings").insert({
+          setting_key: "terms_of_service",
+          setting_value: termsOfService,
+          description: "Terms of service content",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+        if (error) throw error;
+      }
+
       toast.success("تم تحديث شروط الاستخدام بنجاح");
     } catch (error) {
       console.error("Error updating terms of service:", error);

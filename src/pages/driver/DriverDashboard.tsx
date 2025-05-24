@@ -179,7 +179,7 @@ const DriverDashboardContent = () => {
           .eq("driver_id", user.id)
           .eq("read", false)
           .order("created_at", { ascending: false })
-          .limit(5); // Only get latest 5 unread notifications for dashboard
+          .limit(99); // Only get latest 5 unread notifications for dashboard
 
         if (error) {
           console.error("Error fetching notifications:", error);

@@ -65,14 +65,14 @@ const TermsContent = () => {
                     2. دور المنصة
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
-                    <li>SafeDrop تعمل كـ وسيط تقني بين العميل والسائق.</li>
                     <li>
-                      لا تقدم خدمات النقل بنفسها ولا تتحمل مسؤولية محتوى أو
-                      سلامة الشحنات.
+                      SafeDrop تعمل كوسيط تقني فقط ولا تقدم خدمات التوصيل
+                      بنفسها.
                     </li>
+                    <li>لا تتحمل المنصة مسؤولية سلامة أو محتوى الشحنات.</li>
                     <li>
-                      تقدم المنصة نظام ضمان لحجز المبلغ حتى تأكيد الاستلام، وليس
-                      تأمينًا ماليًا.
+                      تقدم المنصة نظام ضمان حجز قيمة الطلب حتى تأكيد الاستلام،
+                      ولا يُعد ذلك تأمينًا ماليًا.
                     </li>
                   </ul>
                 </div>
@@ -83,9 +83,12 @@ const TermsContent = () => {
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>تخضع بيانات السائقين للمراجعة والموافقة.</li>
-                    <li>يُمنع تقديم الخدمات دون موافقة المنصة.</li>
                     <li>
-                      يحق للمنصة تعليق أو رفض حساب السائق في حال وجود مخالفات.
+                      لا يُسمح للسائقين بتقديم خدماتهم دون موافقة رسمية من
+                      المنصة.
+                    </li>
+                    <li>
+                      يحق للمنصة تعليق أو إنهاء حساب السائق في حال وجود مخالفات.
                     </li>
                   </ul>
                 </div>
@@ -95,12 +98,11 @@ const TermsContent = () => {
                     4. استخدام المنصة
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
-                    <li>التسجيل بمعلومات صحيحة إلزامي لجميع المستخدمين.</li>
+                    <li>يجب التسجيل بمعلومات صحيحة ودقيقة.</li>
                     <li>
-                      يُمنع استخدام المنصة في أنشطة غير قانونية أو لنقل مواد
-                      محظورة.
+                      يُمنع استخدام المنصة لأي أنشطة مخالفة للقانون أو لنقل مواد
+                      ممنوعة.
                     </li>
-                    <li>لا يمكن تقديم طلب بدون تسجيل دخول.</li>
                   </ul>
                 </div>
 
@@ -110,12 +112,13 @@ const TermsContent = () => {
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      المنصة غير مسؤولة عن تلف أو ضياع الشحنة بعد استلامها.
+                      SafeDrop غير مسؤولة عن أي ضرر أو ضياع للشحنة بعد استلامها
+                      من العميل.
                     </li>
-                    <li>العميل مسؤول عن تغليف الشحنة جيدًا.</li>
+                    <li>العميل مسؤول عن تغليف الشحنة بطريقة مناسبة.</li>
                     <li>
-                      في حال النزاع، تتدخل المنصة كميسر دون التزام قانوني
-                      بالتعويض.
+                      في حال النزاع، تتدخل المنصة كطرف ميسر فقط دون التزام
+                      قانوني بالتعويض.
                     </li>
                   </ul>
                 </div>
@@ -125,9 +128,12 @@ const TermsContent = () => {
                     6. المدفوعات والعمولة
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
-                    <li>يتم حجز قيمة الطلب حتى تأكيد الاستلام.</li>
-                    <li>يتم خصم عمولة 15% لصالح المنصة.</li>
-                    <li>يتم تحويل المبلغ للسائق بعد تأكيد العميل للاستلام.</li>
+                    <li>يتم حجز قيمة الطلب حتى تأكيد الاستلام من العميل.</li>
+                    <li>تخصم المنصة عمولة بنسبة 20% من قيمة الطلب.</li>
+                    <li>
+                      يُحوَّل المبلغ المتبقي للسائق بعد تأكيد العميل استلام
+                      الطلب.
+                    </li>
                   </ul>
                 </div>
 
@@ -136,8 +142,8 @@ const TermsContent = () => {
                     7. الشروط الخاصة
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
-                    <li>لا يُسمح بإعادة تسجيل السائقين المرفوضين نهائيًا.</li>
-                    <li>المنصة تحتفظ بحق إيقاف الحسابات المخالفة.</li>
+                    <li>لا يُسمح للسائقين المرفوضين نهائيًا بإعادة التسجيل.</li>
+                    <li>تحتفظ المنصة بحق إيقاف الحسابات التي تخرق الشروط.</li>
                   </ul>
                 </div>
 
@@ -146,7 +152,8 @@ const TermsContent = () => {
                     8. التعديلات
                   </h2>
                   <p className="text-gray-700 leading-relaxed">
-                    للمنصة الحق في تعديل الشروط في أي وقت مع إشعار المستخدمين.
+                    تحتفظ SafeDrop بحق تعديل الشروط والأحكام في أي وقت، ويتم
+                    إشعار المستخدمين بذلك عبر التطبيق أو البريد الإلكتروني.
                   </p>
                 </div>
 
@@ -172,30 +179,30 @@ const TermsContent = () => {
                       <li className="flex gap-2">
                         <span className="font-semibold">Platform:</span>
                         <span>
-                          Refers to "SafeDrop", an electronic platform
-                          connecting users who want to send packages with
-                          licensed and independent drivers.
+                          Refers to "SafeDrop," a digital platform that connects
+                          users who wish to send shipments with licensed and
+                          independent drivers.
                         </span>
                       </li>
                       <li className="flex gap-2">
                         <span className="font-semibold">Customer:</span>
                         <span>
-                          Any user requesting delivery service through the
+                          Any user who requests delivery service through the
                           platform.
                         </span>
                       </li>
                       <li className="flex gap-2">
                         <span className="font-semibold">Driver:</span>
                         <span>
-                          Any person registered and approved by the platform
-                          management to provide delivery service.
+                          Any individual registered and approved by the
+                          platform's management to provide delivery services.
                         </span>
                       </li>
                       <li className="flex gap-2">
-                        <span className="font-semibold">Package:</span>
+                        <span className="font-semibold">Shipment:</span>
                         <span>
-                          Any item or parcel requested for delivery by the
-                          customer through the platform.
+                          Any item or parcel requested by the customer for
+                          delivery through the platform.
                         </span>
                       </li>
                     </ul>
@@ -204,20 +211,21 @@ const TermsContent = () => {
 
                 <div className="border-l-4 border-safedrop-gold pl-6">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    2. Platform Role
+                    2. Role of the Platform
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      SafeDrop operates as a technical intermediary between the
-                      customer and driver.
+                      SafeDrop operates solely as a technology intermediary and
+                      does not provide delivery services itself.
                     </li>
                     <li>
-                      Does not provide transport services itself and is not
-                      responsible for package content or safety.
+                      The platform is not responsible for the safety or contents
+                      of shipments.
                     </li>
                     <li>
-                      Provides a guarantee system to hold payment until delivery
-                      confirmation, not financial insurance.
+                      SafeDrop provides a system that holds the payment until
+                      the delivery is confirmed, which does not constitute
+                      financial insurance.
                     </li>
                   </ul>
                 </div>
@@ -227,53 +235,51 @@ const TermsContent = () => {
                     3. Driver Verification
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
+                    <li>Driver data is subject to review and approval.</li>
                     <li>
-                      Driver information is subject to review and approval.
+                      Drivers are not permitted to provide services without
+                      official approval from the platform.
                     </li>
                     <li>
-                      Providing services without platform approval is
-                      prohibited.
-                    </li>
-                    <li>
-                      The platform reserves the right to suspend or reject a
-                      driver's account in case of violations.
+                      The platform reserves the right to suspend or terminate
+                      driver accounts in the case of violations.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-l-4 border-safedrop-gold pl-6">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    4. Platform Usage
+                    4. Use of the Platform
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      Registration with accurate information is mandatory for
-                      all users.
+                      Users must register with accurate and truthful
+                      information.
                     </li>
                     <li>
-                      Using the platform for illegal activities or transporting
-                      prohibited materials is forbidden.
+                      It is prohibited to use the platform for illegal
+                      activities or to transport prohibited materials.
                     </li>
-                    <li>Orders cannot be placed without logging in.</li>
                   </ul>
                 </div>
 
                 <div className="border-l-4 border-safedrop-gold pl-6">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    5. Responsibility
+                    5. Liability
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      The platform is not responsible for package damage or loss
-                      after pickup.
+                      SafeDrop is not liable for any damage or loss of shipment
+                      once it is picked up from the customer.
                     </li>
                     <li>
-                      The customer is responsible for properly packaging the
-                      shipment.
+                      Customers are responsible for proper packaging of their
+                      shipments.
                     </li>
                     <li>
-                      In case of dispute, the platform intervenes as a
-                      facilitator without legal obligation for compensation.
+                      In case of disputes, the platform may intervene as a
+                      facilitator but is not legally obligated to provide
+                      compensation.
                     </li>
                   </ul>
                 </div>
@@ -283,46 +289,51 @@ const TermsContent = () => {
                     6. Payments and Commission
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
-                    <li>Order payment is held until delivery confirmation.</li>
-                    <li>A 15% commission is deducted for the platform.</li>
                     <li>
-                      Payment is transferred to the driver after customer
-                      confirmation of receipt.
+                      The payment is held until the customer confirms receipt.
+                    </li>
+                    <li>
+                      The platform deducts a 20% commission from the order
+                      value.
+                    </li>
+                    <li>
+                      The remaining amount is transferred to the driver after
+                      confirmation of receipt by the customer.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-l-4 border-safedrop-gold pl-6">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    7. Special Conditions
+                    7. Special Terms
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      Permanently rejected drivers are not allowed to
-                      re-register.
+                      Drivers who are permanently rejected may not re-register.
                     </li>
                     <li>
                       The platform reserves the right to suspend accounts that
-                      violate terms.
+                      violate the terms.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-l-4 border-safedrop-gold pl-6">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    8. Amendments
+                    8. Modifications
                   </h2>
                   <p className="text-gray-700 leading-relaxed">
-                    The platform has the right to modify the terms at any time
-                    with notification to users.
+                    SafeDrop reserves the right to modify these terms and
+                    conditions at any time. Users will be notified through the
+                    app or via email.
                   </p>
                 </div>
 
                 <div className="bg-safedrop-gold/10 border border-safedrop-gold rounded-lg p-6 mt-8">
                   <p className="text-safedrop-primary font-bold text-center text-lg">
-                    By using the SafeDrop platform, you agree to all the terms
-                    and conditions mentioned above and bear full responsibility
-                    for compliance with them.
+                    By using SafeDrop platform, you agree to all the terms and
+                    conditions mentioned above and bear full responsibility for
+                    compliance with them.
                   </p>
                 </div>
               </>
