@@ -87,9 +87,11 @@ const AdminSidebar = () => {
   const SidebarContent = () => (
     <>
       <div className="p-4 flex items-center gap-3 flex-col">
-        <div className=" rounded-full bg-white flex items-center justify-center">
-          <ShieldIcon className="text-safedrop-primary h-20 w-20" />
-        </div>
+        <img
+          alt="SafeDrop Logo"
+          className="h-20"
+          src="/lovable-uploads/23d24828-2c22-46a3-a28c-04dc362e92cd.png"
+        />
         <div>
           <h2 className="text-xl font-bold">
             {language === "ar" ? "سيف دروب" : "SafeDrop"}

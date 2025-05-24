@@ -37,7 +37,7 @@ const RejectionDialogContent = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md text-right">
+      <DialogContent className="max-w-md text-left">
         <DialogHeader>
           <DialogTitle className="text-center">
             {t("rejectDriverRequest")}
@@ -53,7 +53,7 @@ const RejectionDialogContent = ({
             value={rejectionReason}
             onChange={(e) => onReasonChange(e.target.value)}
             rows={4}
-            className="text-right"
+            className="text-left"
           />
         </div>
 

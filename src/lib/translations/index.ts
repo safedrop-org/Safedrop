@@ -1,4 +1,3 @@
-
 import { Translations } from "./types";
 import { siteCommon } from "./site-common";
 import { ctaSection } from "./cta-section";
@@ -17,6 +16,7 @@ import { settings } from "./settings";
 import { notifications } from "./notifications";
 import { driver } from "./driver";
 import { pages } from "./pages";
+import { complaints } from "./complaints";
 
 // Combine all translation sections
 export const translations: Translations = {
@@ -35,6 +35,7 @@ export const translations: Translations = {
   ...feedback,
   ...settings,
   ...notifications,
+  ...complaints,
   ...driver,
   ...pages,
 };

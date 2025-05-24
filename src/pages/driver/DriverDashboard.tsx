@@ -23,14 +23,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-
-type Notification = {
-  id: number;
-  type: "order" | "payment";
-  message: string;
-  date: string;
-  isRead: boolean;
-};
+import ComplaintFormModal from "./ComplaintFormModal";
 
 const DriverDashboardContent = () => {
   const navigate = useNavigate();
@@ -39,7 +32,6 @@ const DriverDashboardContent = () => {
   const { user, session } = useAuth();
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const {
     data: driverData,
@@ -77,14 +69,13 @@ const DriverDashboardContent = () => {
     enabled: !!user?.id,
   });
 
-  // Enhanced query for financial statistics with retries and proper error handling
+  // Enhanced query for financial statistics
   const { data: financialStats, isLoading: isLoadingFinancial } = useQuery({
     queryKey: ["driver-financial-stats", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
 
       try {
-        // Count completed orders
         const { count: completedOrders, error: ordersError } = await supabase
           .from("orders")
           .select("*", { count: "exact", head: true })
@@ -96,9 +87,6 @@ const DriverDashboardContent = () => {
           throw ordersError;
         }
 
-        console.log("Completed orders count:", completedOrders);
-
-        // Get financial transactions
         const { data: transactions, error: transactionsError } = await supabase
           .from("financial_transactions")
           .select("amount, transaction_type, status")
@@ -110,9 +98,6 @@ const DriverDashboardContent = () => {
           throw transactionsError;
         }
 
-        console.log("Financial transactions:", transactions);
-
-        // Calculate earnings
         const totalEarnings = transactions
           .filter((t) => t.transaction_type === "driver_payout")
           .reduce((sum, t) => sum + (t.amount || 0), 0);
@@ -129,7 +114,6 @@ const DriverDashboardContent = () => {
         };
       } catch (error) {
         console.error("Error calculating financial stats:", error);
-        // Return default values if there's an error
         return {
           completedOrders: 0,
           totalEarnings: 0,
@@ -142,14 +126,13 @@ const DriverDashboardContent = () => {
     retry: 2,
   });
 
-  // FIXED RATING QUERY - Now fetches from driver_ratings table
+  // Rating query
   const { data: ratingData } = useQuery({
     queryKey: ["driver-rating", user?.id],
     queryFn: async () => {
       if (!user?.id) return 0;
 
       try {
-        // Get all ratings for this driver from driver_ratings table
         const { data: ratings, error: ratingsError } = await supabase
           .from("driver_ratings")
           .select("rating")
@@ -160,11 +143,7 @@ const DriverDashboardContent = () => {
           throw ratingsError;
         }
 
-        console.log("Driver ratings from ratings table:", ratings);
-
-        // Calculate average rating if ratings exist
         if (ratings && ratings.length > 0) {
-          // Ensure we're working with numbers
           const validRatings = ratings.filter(
             (r) => r.rating != null && !isNaN(r.rating)
           );
@@ -174,15 +153,10 @@ const DriverDashboardContent = () => {
               0
             );
             const avgRating = totalRating / validRatings.length;
-            console.log(
-              `Calculated average rating: ${avgRating} from ${validRatings.length} ratings`
-            );
             return avgRating;
           }
         }
 
-        // Return 0 if no ratings found
-        console.log("No valid ratings found for driver");
         return 0;
       } catch (error) {
         console.error("Error calculating driver rating:", error);
@@ -192,58 +166,34 @@ const DriverDashboardContent = () => {
     enabled: !!user?.id,
   });
 
-  // Direct query to get completed orders count as a backup
-  const { data: ordersCountData } = useQuery({
-    queryKey: ["driver-orders-count", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return 0;
-
-      try {
-        const { count, error } = await supabase
-          .from("orders")
-          .select("*", { count: "exact", head: true })
-          .eq("driver_id", user.id)
-          .eq("status", "completed");
-
-        if (error) {
-          console.error("Error fetching orders count:", error);
-          throw error;
-        }
-
-        console.log("Orders count direct query:", count);
-        return count || 0;
-      } catch (error) {
-        console.error("Error counting completed orders:", error);
-        return 0;
-      }
-    },
-    enabled: !!user?.id,
-  });
-
-  const { data: notificationsData } = useQuery({
+  // Updated notifications query - fetching from driver_notifications table
+  const { data: notificationsData, refetch: refetchNotifications } = useQuery({
     queryKey: ["driver-notifications", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
 
-      const notifications: Notification[] = [];
+      try {
+        const { data, error } = await supabase
+          .from("driver_notifications")
+          .select("*")
+          .eq("driver_id", user.id)
+          .eq("read", false)
+          .order("created_at", { ascending: false })
+          .limit(5); // Only get latest 5 unread notifications for dashboard
 
-      // Add payment notification if there's available balance
-      if (financialStats?.availableBalance > 0) {
-        notifications.push({
-          id: 3,
-          type: "payment",
-          message: `تم إيداع مبلغ ${financialStats.availableBalance} ريال في حسابك البنكي`,
-          date: new Date().toISOString().split("T")[0],
-          isRead: false,
-        });
+        if (error) {
+          console.error("Error fetching notifications:", error);
+          return [];
+        }
+
+        return data || [];
+      } catch (error) {
+        console.error("Error in notifications query:", error);
+        return [];
       }
-
-      // You can add other non-document notifications here
-      // Example: Order notifications, system updates, etc.
-
-      return notifications;
     },
-    enabled: !!user?.id && !!financialStats,
+    enabled: !!user?.id,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   // Add currency formatter helper
@@ -259,8 +209,8 @@ const DriverDashboardContent = () => {
       const driverAuth = localStorage.getItem("driverAuth");
       if (!driverAuth || driverAuth !== "true") {
         toast({
-          title: "غير مصرح بالدخول",
-          description: "يرجى تسجيل الدخول أولاً",
+          title: t("unauthorizedAccess"),
+          description: t("pleaseLoginFirst"),
           variant: "destructive",
         });
         navigate("/login");
@@ -274,8 +224,8 @@ const DriverDashboardContent = () => {
 
         if (!session) {
           toast({
-            title: "غير مصرح بالدخول",
-            description: "يرجى تسجيل الدخول أولاً",
+            title: t("unauthorizedAccess"),
+            description: t("pleaseLoginFirst"),
             variant: "destructive",
           });
           localStorage.removeItem("driverAuth");
@@ -287,28 +237,22 @@ const DriverDashboardContent = () => {
       } catch (error) {
         console.error("Error in driver dashboard init", error);
         toast({
-          title: "خطأ في النظام",
-          description: "حدث خطأ عند جلب بيانات الحساب",
+          title: t("systemErrorOccurred"),
+          description: t("errorFetchingAccountData"),
           variant: "destructive",
         });
         navigate("/login");
       }
     };
     checkAuthAndData();
-  }, [navigate, toast]);
-
-  useEffect(() => {
-    if (notificationsData?.length) {
-      setNotifications(notificationsData);
-    }
-  }, [notificationsData]);
+  }, [navigate, toast, t]);
 
   const renderAccountStatusBanner = () => {
     if (!driverData) return null;
 
     if (driverData.status === "approved") {
       return (
-        <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+        <div className="bg-green-50 ltr:border-l-4 rtl:border-r-4 border-green-500 p-4 mb-6">
           <div className="flex items-start gap-3">
             <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
             <div>
@@ -387,6 +331,26 @@ const DriverDashboardContent = () => {
     return null;
   };
 
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case "order":
+        return <Package className="h-5 w-5 text-blue-600" />;
+      case "rating":
+        return <Star className="h-5 w-5 text-yellow-600" />;
+      case "earning":
+        return <DollarSign className="h-5 w-5 text-green-600" />;
+      case "complaint":
+      case "complaint_confirmation":
+        return <MessageSquare className="h-5 w-5 text-orange-600" />;
+      case "complaint_resolved":
+        return <CheckCircle className="h-5 w-5 text-green-600" />;
+      case "system":
+        return <Bell className="h-5 w-5 text-purple-600" />;
+      default:
+        return <Bell className="h-5 w-5 text-gray-600" />;
+    }
+  };
+
   if (isLoadingDriver || !isAuthenticated) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
@@ -413,12 +377,9 @@ const DriverDashboardContent = () => {
     );
   }
 
-  // Get the completed orders count either from financialStats or direct query
-  const completedOrdersCount =
-    financialStats?.completedOrders || ordersCountData || 0;
-
-  // Format the rating to show one decimal place
+  const completedOrdersCount = financialStats?.completedOrders || 0;
   const formattedRating = (ratingData || 0).toFixed(1);
+  const unreadNotificationsCount = notificationsData?.length || 0;
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -467,7 +428,6 @@ const DriverDashboardContent = () => {
                       <p className="text-sm font-medium text-gray-500">
                         {t("rating")}
                       </p>
-                      {/* UPDATED RATING DISPLAY */}
                       <div
                         className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => navigate("/driver/ratings")}
@@ -532,66 +492,46 @@ const DriverDashboardContent = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("notifications")}</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>{t("notifications")}</CardTitle>
+                    {unreadNotificationsCount > 0 && (
+                      <Badge variant="destructive" className="bg-red-500">
+                        {unreadNotificationsCount} {t("newNotifications")}
+                      </Badge>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  {notifications.length === 0 ? (
+                  {!notificationsData || notificationsData.length === 0 ? (
                     <div className="text-center p-6">
                       <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500">{t("noNotifications")}</p>
+                      <p className="text-gray-500">{t("noNewNotifications")}</p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      {notifications.map((notification) => (
+                    <div className="space-y-3">
+                      {notificationsData.slice(0, 3).map((notification) => (
                         <div
                           key={notification.id}
-                          className={`flex items-start p-3 rounded-lg ${
-                            notification.isRead ? "bg-white" : "bg-blue-50"
-                          }`}
+                          className="flex items-start p-3 rounded-lg bg-blue-50 border border-blue-200"
                         >
-                          <div
-                            className={`p-2 rounded-full ${
-                              notification.type === "order"
-                                ? "bg-blue-100 text-blue-600"
-                                : "bg-green-100 text-green-600"
-                            }`}
-                          >
-                            {notification.type === "order" && (
-                              <Bell className="h-5 w-5" />
-                            )}
-                            {notification.type === "payment" && (
-                              <svg
-                                className="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
+                          <div className="bg-white p-2 rounded-full shadow-sm mr-3 rtl:ml-3">
+                            {getNotificationIcon(
+                              notification.notification_type
                             )}
                           </div>
-                          <div className="ml-3 flex-1">
-                            <p
-                              className={`text-sm ${
-                                notification.isRead
-                                  ? "font-normal"
-                                  : "font-medium"
-                              }`}
-                            >
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-gray-900 mb-1">
+                              {notification.title}
+                            </p>
+                            <p className="text-sm text-gray-600 line-clamp-2">
                               {notification.message}
                             </p>
-                            <p className="text-xs text-gray-500">
-                              {notification.date}
+                            <p className="text-xs text-gray-500 mt-1">
+                              {new Date(
+                                notification.created_at
+                              ).toLocaleDateString("ar-SA")}
                             </p>
                           </div>
-                          {!notification.isRead && (
-                            <Badge className="bg-blue-500">جديد</Badge>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -676,7 +616,7 @@ const DriverDashboardContent = () => {
               </Card>
             </div>
 
-            {/* Support card */}
+            {/* Support card with Complaint Form */}
             <Card>
               <CardHeader>
                 <CardTitle>{t("supportAndHelp")}</CardTitle>
@@ -705,13 +645,13 @@ const DriverDashboardContent = () => {
                   <p className="text-sm text-gray-500 mb-2">
                     {t("havingProblem")}
                   </p>
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={() => navigate("/driver/support/report-issue")}
-                  >
-                    {t("reportIssue")}
-                  </Button>
+                  <ComplaintFormModal
+                    trigger={
+                      <Button variant="secondary" className="w-full">
+                        {t("reportIssue")}
+                      </Button>
+                    }
+                  />
                 </div>
               </CardContent>
             </Card>
