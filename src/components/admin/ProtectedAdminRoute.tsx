@@ -1,5 +1,5 @@
-import React, { ReactNode, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { ReactNode, useEffect, useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth/AuthContext";
 import { useLanguage } from "@/components/ui/language-context";
@@ -14,215 +14,219 @@ interface ProtectedAdminRouteProps {
 const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const {
-    user,
-    userType,
-    session,
-    loading: authLoading,
-    isInitialized,
-  } = useAuth();
-  const [authCheckComplete, setAuthCheckComplete] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const location = useLocation();
+  const { user, userType, session, loading: authLoading } = useAuth();
+  const [authStatus, setAuthStatus] = useState<
+    "checking" | "authorized" | "unauthorized"
+  >("checking");
+  const checkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasRunInitialCheck = useRef(false);
 
   useEffect(() => {
     const checkAdminAuth = async () => {
-      console.log("=== ADMIN AUTH CHECK ===");
-      console.log("Auth loading:", authLoading);
-      console.log("Is initialized:", isInitialized);
-      console.log("User:", !!user);
-      console.log("Session:", !!session);
-      console.log("UserType:", userType);
-
-      // Get current user from either source
       const currentUser = user || session?.user;
 
-      // IMMEDIATE SUCCESS CASES:
-
-      // Case 1: If we have user and userType is admin, authorize immediately
-      if (currentUser && userType === "admin") {
-        console.log("✅ Admin verified via userType - IMMEDIATE SUCCESS");
-
+      if (userType === "admin") {
+        console.log("✅ IMMEDIATE SUCCESS: Admin verified via userType");
         localStorage.setItem("adminAuth", "true");
         Cookies.set("adminAuth", "true", {
           secure: window.location.protocol === "https:",
           sameSite: "Strict",
           expires: 7,
         });
-
-        setIsAuthorized(true);
-        setAuthCheckComplete(true);
+        setAuthStatus("authorized");
         return;
       }
 
-      // Case 2: If we have admin storage/cookies and a valid user, authorize
       if (currentUser) {
         const hasAdminStorage = localStorage.getItem("adminAuth") === "true";
         const hasAdminCookie = Cookies.get("adminAuth") === "true";
 
         if (hasAdminStorage || hasAdminCookie) {
           console.log(
-            "✅ Admin verified via persistent storage - IMMEDIATE SUCCESS"
+            "✅ IMMEDIATE SUCCESS: Admin verified via persistent storage"
           );
-          setIsAuthorized(true);
-          setAuthCheckComplete(true);
+          setAuthStatus("authorized");
           return;
         }
       }
 
-      // Case 3: Check user metadata
       if (currentUser?.user_metadata?.user_type === "admin") {
-        console.log("✅ Admin verified via user metadata - IMMEDIATE SUCCESS");
-
+        console.log("✅ IMMEDIATE SUCCESS: Admin verified via user metadata");
         localStorage.setItem("adminAuth", "true");
         Cookies.set("adminAuth", "true", {
           secure: window.location.protocol === "https:",
           sameSite: "Strict",
           expires: 7,
         });
-
-        setIsAuthorized(true);
-        setAuthCheckComplete(true);
+        setAuthStatus("authorized");
         return;
       }
 
-      // WAIT FOR AUTH TO COMPLETE:
+      if (currentUser && !authLoading) {
+        console.log(
+          "🔍 User found but no immediate admin verification - checking database..."
+        );
 
-      // If auth is still loading, wait
-      if (authLoading) {
-        console.log("Still waiting for auth to load...");
-        return;
-      }
-
-      // If no user found after auth is complete
-      if (!currentUser) {
-        console.log("❌ No user found after auth complete");
-        // Clear any stale auth data
-        localStorage.removeItem("adminAuth");
-        Cookies.remove("adminAuth");
-
-        toast.error(t("adminAuthRequired") || "Admin authentication required");
-        navigate("/login?redirect=admin", { replace: true });
-        setAuthCheckComplete(true);
-        setIsAuthorized(false);
-        return;
-      }
-
-      // DATABASE CHECKS (with proper error handling):
-
-      console.log(
-        "🔍 Performing database verification for user:",
-        currentUser.email
-      );
-
-      let isAdmin = false;
-
-      // Method 1: Check profiles table (most reliable)
-      if (!isAdmin) {
         try {
-          const { data: profileData, error } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from("profiles")
             .select("user_type")
             .eq("id", currentUser.id)
             .maybeSingle();
 
-          if (!error && profileData?.user_type === "admin") {
+          if (!profileError && profileData?.user_type === "admin") {
             console.log("✅ Admin verified via profiles table");
-            isAdmin = true;
-          } else if (error) {
-            console.warn("⚠️ Profiles table check failed:", error.message);
+            localStorage.setItem("adminAuth", "true");
+            Cookies.set("adminAuth", "true", {
+              secure: window.location.protocol === "https:",
+              sameSite: "Strict",
+              expires: 7,
+            });
+            setAuthStatus("authorized");
+            return;
           }
-        } catch (error) {
-          console.warn("⚠️ Profiles table error:", error);
-        }
-      }
 
-      // Method 2: Check user_roles table
-      if (!isAdmin) {
-        try {
-          const { data: roleData, error } = await supabase
+          // Check user_roles table as fallback
+          const { data: roleData, error: roleError } = await supabase
             .from("user_roles")
             .select("role")
             .eq("user_id", currentUser.id)
             .eq("role", "admin")
             .maybeSingle();
 
-          if (!error && roleData) {
+          if (!roleError && roleData) {
             console.log("✅ Admin verified via user_roles table");
-            isAdmin = true;
-          } else if (error) {
-            console.warn("⚠️ User roles table check failed:", error.message);
+            localStorage.setItem("adminAuth", "true");
+            Cookies.set("adminAuth", "true", {
+              secure: window.location.protocol === "https:",
+              sameSite: "Strict",
+              expires: 7,
+            });
+            setAuthStatus("authorized");
+            return;
           }
+
+          // Email whitelist as final check
+          if (currentUser.email) {
+            const adminEmails = ["admin@safedrop.com", "support@safedrop.com"];
+
+            if (adminEmails.includes(currentUser.email.toLowerCase())) {
+              console.log("✅ Admin verified via email whitelist");
+              localStorage.setItem("adminAuth", "true");
+              Cookies.set("adminAuth", "true", {
+                secure: window.location.protocol === "https:",
+                sameSite: "Strict",
+                expires: 7,
+              });
+              setAuthStatus("authorized");
+              return;
+            }
+          }
+
+          // If we get here, user exists but is not admin
+          console.log("❌ User exists but is not admin");
+          setAuthStatus("unauthorized");
+          return;
         } catch (error) {
-          console.warn("⚠️ User roles table error:", error);
+          console.warn("Database check failed:", error);
         }
       }
 
-      // Method 3: Email whitelist fallback (add your admin emails here)
-      if (!isAdmin && currentUser.email) {
-        const adminEmails = [
-          "admin@safedrop.com",
-          "support@safedrop.com",
-          // Add more admin emails here if needed
-        ];
-
-        if (adminEmails.includes(currentUser.email.toLowerCase())) {
-          console.log("✅ Admin verified via email whitelist");
-          isAdmin = true;
+      // TIMEOUT MECHANISM - Don't wait forever
+      // If we're still here and auth is not loading, we need to make a decision
+      if (!authLoading) {
+        if (!currentUser) {
+          console.log("❌ No user found and auth not loading - unauthorized");
+          setAuthStatus("unauthorized");
+          return;
         }
       }
 
-      // FINAL DECISION:
+      // If auth is still loading, wait a bit more but with a timeout
+      if (authLoading && !hasRunInitialCheck.current) {
+        console.log("🔄 Auth still loading - setting timeout...");
+        hasRunInitialCheck.current = true;
 
-      if (!isAdmin) {
-        console.log("❌ User is not an admin after all checks");
-        toast.error(t("adminAuthRequired") || "Admin access required");
-        navigate("/login?redirect=admin", { replace: true });
-        setAuthCheckComplete(true);
-        setIsAuthorized(false);
+        // Set a reasonable timeout to prevent infinite waiting
+        if (checkTimeoutRef.current) {
+          clearTimeout(checkTimeoutRef.current);
+        }
+
+        checkTimeoutRef.current = setTimeout(() => {
+          console.log("⏰ Timeout reached - making final decision");
+          const finalUser = user || session?.user;
+
+          if (
+            userType === "admin" ||
+            localStorage.getItem("adminAuth") === "true"
+          ) {
+            console.log(
+              "✅ Timeout decision: Authorized via userType or storage"
+            );
+            setAuthStatus("authorized");
+          } else if (finalUser) {
+            console.log(
+              "🔍 Timeout decision: Have user but need to verify admin status"
+            );
+            // We have a user but need to check if they're admin
+            checkAdminAuth();
+          } else {
+            console.log("❌ Timeout decision: No user - unauthorized");
+            setAuthStatus("unauthorized");
+          }
+        }, 3000); // 3 second timeout
+
         return;
       }
-
-      console.log("✅ Admin authentication successful via database!");
-
-      // Set admin auth flags for future use
-      localStorage.setItem("adminAuth", "true");
-      Cookies.set("adminAuth", "true", {
-        secure: window.location.protocol === "https:",
-        sameSite: "Strict",
-        expires: 7,
-      });
-
-      setIsAuthorized(true);
-      setAuthCheckComplete(true);
     };
 
-    // Only run the check if we haven't completed it yet
-    if (!authCheckComplete) {
-      checkAdminAuth();
-    }
-  }, [
-    user,
-    userType,
-    session,
-    authLoading,
-    isInitialized,
-    navigate,
-    t,
-    authCheckComplete,
-  ]);
+    // Always run the check, but with protection against infinite loops
+    checkAdminAuth();
 
-  // Show loading state
-  if (!authCheckComplete) {
+    // Cleanup timeout on unmount
+    return () => {
+      if (checkTimeoutRef.current) {
+        clearTimeout(checkTimeoutRef.current);
+      }
+    };
+  }, [user, userType, session, authLoading, location.pathname]);
+
+  // Handle unauthorized state with redirect
+  useEffect(() => {
+    if (authStatus === "unauthorized") {
+      console.log("🔀 Redirecting unauthorized user to login");
+
+      // Clear any stale admin data
+      localStorage.removeItem("adminAuth");
+      Cookies.remove("adminAuth");
+
+      // Only show toast and redirect if we're not already on login page
+      if (!location.pathname.includes("/login")) {
+        toast.error(
+          t("adminAuthRequired") ||
+            "يجب تسجيل الدخول كمسؤول للوصول إلى لوحة التحكم"
+        );
+        navigate("/login?redirect=admin", { replace: true });
+      }
+    }
+  }, [authStatus, location.pathname, navigate, t]);
+
+  // Show loading state while checking
+  if (authStatus === "checking") {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="flex flex-col items-center space-y-4 p-8">
           <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
           <div className="text-center">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              تهيئة نظام المصادقة...
+              تحميل لوحة التحكم...
             </h2>
             <p className="text-sm text-gray-600">
-              {t("loading") || "جاري التحميل..."}
+              التحقق من صلاحيات المسؤول...
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              {authLoading ? "تحميل بيانات المصادقة..." : "تأكيد الصلاحيات..."}
             </p>
           </div>
         </div>
@@ -230,8 +234,8 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
     );
   }
 
-  // Show unauthorized state
-  if (!isAuthorized) {
+  // Show unauthorized state (brief before redirect)
+  if (authStatus === "unauthorized") {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
@@ -255,7 +259,7 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
               غير مصرح بالوصول
             </h2>
             <p className="text-gray-600 mb-6">
-              يجب أن تكون مسؤولاً للوصول إلى هذه الصفحة
+              ليس لديك صلاحية الوصول إلى لوحة تحكم المسؤول
             </p>
           </div>
 
@@ -279,7 +283,7 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   }
 
   // Success! Render the protected content
-  console.log("🎉 Rendering admin content!");
+  console.log("🎉 Rendering admin content successfully!");
   return <div className="w-full">{children}</div>;
 };
 

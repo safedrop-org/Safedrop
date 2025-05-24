@@ -1,5 +1,3 @@
-// Complete Admin Complaints Component with Full Translation Support
-
 import React, { useState } from "react";
 import {
   Table,
@@ -17,13 +15,13 @@ import {
   Search,
   Download,
   Eye,
-  ExternalLink,
   User,
   Mail,
   Calendar,
   FileText,
   Hash,
   AlertTriangle,
+  ExternalLink,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,37 +38,388 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useComplaints, useUpdateComplaintStatus } from "@/hooks/useComplaints";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/ui/language-context";
 
-interface ComplaintType {
-  id: string;
-  complaint_number: number;
-  user_id: string;
-  issue_type: string;
-  description: string;
-  order_number?: string;
-  status: "pending" | "resolved";
-  created_at: string;
-  attachment_url?: string;
-  profiles?: {
-    first_name: string;
-    last_name: string;
-    email?: string;
-    user_type?: string;
+// Mobile Card Component
+const MobileComplaintCard = ({ complaint, onViewComplaint }) => {
+  const { t, language } = useLanguage();
+
+  const getIssueTypeDisplay = (type) => {
+    const types = {
+      login: {
+        text: t("issueTypeLogin"),
+        className: "bg-blue-100 text-blue-800 border-blue-200",
+      },
+      order: {
+        text: t("issueTypeOrder"),
+        className: "bg-purple-100 text-purple-800 border-purple-200",
+      },
+      payment: {
+        text: t("issueTypePayment"),
+        className: "bg-green-100 text-green-800 border-green-200",
+      },
+      driver: {
+        text: t("issueTypeDriver"),
+        className: "bg-orange-100 text-orange-800 border-orange-200",
+      },
+      other: {
+        text: t("issueTypeOther"),
+        className: "bg-gray-100 text-gray-800 border-gray-200",
+      },
+    };
+    return (
+      types[type] || {
+        text: type || t("notSpecified"),
+        className: "bg-gray-100 text-gray-800 border-gray-200",
+      }
+    );
   };
-}
 
-interface ComplaintDetailsModalProps {
-  complaint: ComplaintType | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onStatusUpdate?: () => void;
-}
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case "resolved":
+        return {
+          text: t("statusResolved"),
+          className: "bg-green-100 text-green-800 border-green-200",
+        };
+      case "pending":
+        return {
+          text: t("statusPending"),
+          className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+        };
+      default:
+        return {
+          text: status || t("notSpecified"),
+          className: "bg-gray-100 text-gray-800 border-gray-200",
+        };
+    }
+  };
 
-const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return t("invalidDate");
+      return date.toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    } catch (error) {
+      return t("invalidDate");
+    }
+  };
+
+  const issueTypeDisplay = getIssueTypeDisplay(complaint.issue_type);
+  const statusDisplay = getStatusDisplay(complaint.status);
+
+  return (
+    <Card className="w-full">
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex justify-between items-start">
+            <div className="flex items-center gap-2">
+              <Hash className="h-4 w-4 text-gray-500" />
+              <span className="font-bold text-lg">
+                #{complaint.complaint_number}
+              </span>
+            </div>
+            <Badge
+              variant="outline"
+              className={`text-xs ${statusDisplay.className}`}
+            >
+              {statusDisplay.text}
+            </Badge>
+          </div>
+
+          {/* User Info */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm">
+              <User className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-600">{t("user")}:</span>
+              <span className="font-medium">
+                {complaint.profiles
+                  ? `${complaint.profiles.first_name} ${complaint.profiles.last_name}`
+                  : t("notAvailable")}
+              </span>
+            </div>
+
+            <div className="flex items-start gap-2 text-sm">
+              <Mail className="h-4 w-4 text-gray-500 mt-0.5" />
+              <span className="text-gray-600">{t("email")}:</span>
+              <span className="font-medium break-all text-left">
+                {complaint.profiles?.email || t("notAvailable")}
+              </span>
+            </div>
+          </div>
+
+          {/* Complaint Details */}
+          <div className="space-y-2 pt-2 border-t">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-600">{t("issueType")}:</span>
+              <Badge
+                variant="outline"
+                className={`text-xs whitespace-nowrap ${issueTypeDisplay.className}`}
+              >
+                {issueTypeDisplay.text}
+              </Badge>
+            </div>
+
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">{t("orderNumber")}:</span>
+              <span className="font-medium">
+                {complaint.order_number || t("notSpecified")}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-600">{t("date")}:</span>
+              <span className="font-medium">
+                {formatDate(complaint.created_at)}
+              </span>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="pt-2 border-t">
+            <div className="flex items-start gap-2 mb-2">
+              <FileText className="h-4 w-4 text-gray-500 mt-0.5" />
+              <span className="text-gray-600 text-sm">
+                {t("problemDescription")}:
+              </span>
+            </div>
+            <p className="text-sm leading-relaxed text-gray-800 bg-gray-50 p-3 rounded-lg">
+              {complaint.description}
+            </p>
+          </div>
+
+          {/* Action Button */}
+          <div className="pt-3 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewComplaint(complaint)}
+              className="w-full gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              {t("viewFullDetails")}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Responsive Table Component
+const ResponsiveComplaintsTable = ({
+  complaints,
+  status = "all",
+  onViewComplaint,
+}) => {
+  const { t, language } = useLanguage();
+
+  const filteredComplaints =
+    status === "all"
+      ? complaints
+      : complaints.filter((complaint) => complaint.status === status);
+
+  const getIssueTypeDisplay = (type) => {
+    const types = {
+      login: {
+        text: t("issueTypeLogin"),
+        className: "bg-blue-100 text-blue-800 border-blue-200",
+      },
+      order: {
+        text: t("issueTypeOrder"),
+        className: "bg-purple-100 text-purple-800 border-purple-200",
+      },
+      payment: {
+        text: t("issueTypePayment"),
+        className: "bg-green-100 text-green-800 border-green-200",
+      },
+      driver: {
+        text: t("issueTypeDriver"),
+        className: "bg-orange-100 text-orange-800 border-orange-200",
+      },
+      other: {
+        text: t("issueTypeOther"),
+        className: "bg-gray-100 text-gray-800 border-gray-200",
+      },
+    };
+    return (
+      types[type] || {
+        text: type || t("notSpecified"),
+        className: "bg-gray-100 text-gray-800 border-gray-200",
+      }
+    );
+  };
+
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case "resolved":
+        return {
+          text: t("statusResolved"),
+          className: "bg-green-100 text-green-800 border-green-200",
+        };
+      case "pending":
+        return {
+          text: t("statusPending"),
+          className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+        };
+      default:
+        return {
+          text: status || t("notSpecified"),
+          className: "bg-gray-100 text-gray-800 border-gray-200",
+        };
+    }
+  };
+
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return t("invalidDate");
+      return date.toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    } catch (error) {
+      return t("invalidDate");
+    }
+  };
+
+  if (filteredComplaints.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-gray-400 mb-2">
+          <FileText className="h-12 w-12 mx-auto" />
+        </div>
+        <p className="text-gray-500 text-lg">{t("noComplaintsInCategory")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Desktop Table */}
+      <div className="hidden lg:block">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("complaintNumber")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("user")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("email")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("issueTypeHeader")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("date")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("status")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("actions")}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredComplaints.map((complaint) => {
+                const issueTypeDisplay = getIssueTypeDisplay(
+                  complaint.issue_type
+                );
+                const statusDisplay = getStatusDisplay(complaint.status);
+                return (
+                  <TableRow key={complaint.id} className="hover:bg-gray-50">
+                    <TableCell className="font-semibold text-center">
+                      #{complaint.complaint_number}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div
+                        className="max-w-[140px] truncate"
+                        title={
+                          complaint.profiles
+                            ? `${complaint.profiles.first_name} ${complaint.profiles.last_name}`
+                            : t("notAvailable")
+                        }
+                      >
+                        {complaint.profiles
+                          ? `${complaint.profiles.first_name} ${complaint.profiles.last_name}`
+                          : t("notAvailable")}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div
+                        className="max-w-[180px] truncate"
+                        title={complaint.profiles?.email || t("notAvailable")}
+                      >
+                        {complaint.profiles?.email || t("notAvailable")}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        variant="outline"
+                        className={`text-xs whitespace-nowrap ${issueTypeDisplay.className}`}
+                      >
+                        {issueTypeDisplay.text}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap text-sm">
+                      {formatDate(complaint.created_at)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        variant="outline"
+                        className={`whitespace-nowrap text-xs ${statusDisplay.className}`}
+                      >
+                        {statusDisplay.text}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewComplaint(complaint)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="block lg:hidden space-y-4">
+        {filteredComplaints.map((complaint) => (
+          <MobileComplaintCard
+            key={complaint.id}
+            complaint={complaint}
+            onViewComplaint={onViewComplaint}
+          />
+        ))}
+      </div>
+    </>
+  );
+};
+
+// Complaint Details Modal
+const ComplaintDetailsModal = ({
   complaint,
   isOpen,
   onClose,
@@ -78,10 +427,9 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
 }) => {
   const { t, language } = useLanguage();
   const [response, setResponse] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const queryClient = useQueryClient();
+  const updateComplaintStatus = useUpdateComplaintStatus();
 
-  const getIssueTypeLabel = (type: string) => {
+  const getIssueTypeLabel = (type) => {
     const types = {
       login: t("issueTypeLogin"),
       order: t("issueTypeOrder"),
@@ -89,10 +437,10 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
       driver: t("issueTypeDriver"),
       other: t("issueTypeOther"),
     };
-    return types[type as keyof typeof types] || type;
+    return types[type] || type;
   };
 
-  const getIssueTypeBadgeStyle = (type: string) => {
+  const getIssueTypeBadgeStyle = (type) => {
     const styles = {
       login: "bg-blue-100 text-blue-800 border-blue-200",
       order: "bg-purple-100 text-purple-800 border-purple-200",
@@ -100,67 +448,24 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
       driver: "bg-orange-100 text-orange-800 border-orange-200",
       other: "bg-gray-100 text-gray-800 border-gray-200",
     };
-    return (
-      styles[type as keyof typeof styles] ||
-      "bg-gray-100 text-gray-800 border-gray-200"
-    );
+    return styles[type] || "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   const markAsResolved = async () => {
     if (!complaint) return;
 
-    setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from("complaints")
-        .update({
-          status: "resolved",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("complaint_number", complaint.complaint_number);
-
-      if (error) throw error;
-
-      if (response.trim()) {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        await supabase.from("complaint_responses").insert({
-          complaint_number: complaint.complaint_number,
-          admin_id: user?.id,
-          response: response.trim(),
-          created_at: new Date().toISOString(),
-        });
-      }
-
-      const notificationMessage = response.trim()
-        ? t("complaintResolvedWithResponse")
-            .replace("{complaintNumber}", complaint.complaint_number.toString())
-            .replace("{issueType}", getIssueTypeLabel(complaint.issue_type))
-            .replace("{response}", response.trim())
-        : t("complaintResolvedWithoutResponse")
-            .replace("{complaintNumber}", complaint.complaint_number.toString())
-            .replace("{issueType}", getIssueTypeLabel(complaint.issue_type));
-
-      await supabase.from("driver_notifications").insert({
-        driver_id: complaint.user_id,
-        title: t("complaintResolvedTitle"),
-        message: notificationMessage,
-        notification_type: "complaint_resolved",
-        read: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+      await updateComplaintStatus.mutateAsync({
+        complaintNumber: complaint.complaint_number,
+        status: "resolved",
+        adminResponse: response.trim() || undefined,
       });
 
-      toast.success(t("complaintStatusUpdated"));
-      queryClient.invalidateQueries({ queryKey: ["complaints"] });
-      onStatusUpdate?.();
+      onStatusUpdate();
       onClose();
+      setResponse("");
     } catch (error) {
-      console.error("Error updating complaint:", error);
-      toast.error(t("errorUpdatingComplaint"));
-    } finally {
-      setIsLoading(false);
+      // Error is handled by the mutation
     }
   };
 
@@ -315,10 +620,12 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <Button
                   onClick={markAsResolved}
-                  disabled={isLoading}
+                  disabled={updateComplaintStatus.isPending}
                   className="bg-green-600 hover:bg-green-700 text-sm"
                 >
-                  {isLoading ? t("updatingComplaint") : t("markAsResolved")}
+                  {updateComplaintStatus.isPending
+                    ? t("updatingComplaint")
+                    : t("markAsResolved")}
                 </Button>
                 <Button variant="outline" onClick={onClose} className="text-sm">
                   {t("cancel")}
@@ -332,400 +639,34 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
   );
 };
 
-// Mobile Card Component
-const MobileComplaintCard: React.FC<{
-  complaint: ComplaintType;
-  onViewComplaint: (complaint: ComplaintType) => void;
-}> = ({ complaint, onViewComplaint }) => {
-  const { t, language } = useLanguage();
-  const getIssueTypeLabel = (type: string) => {
-    const types = {
-      login: t("issueTypeLogin"),
-      order: t("issueTypeOrder"),
-      payment: t("issueTypePayment"),
-      driver: t("issueTypeDriver"),
-      other: t("issueTypeOther"),
-    };
-    return types[type as keyof typeof types] || type;
-  };
-
-  const getIssueTypeBadgeStyle = (type: string) => {
-    const styles = {
-      login: "bg-blue-100 text-blue-800 border-blue-200",
-      order: "bg-purple-100 text-purple-800 border-purple-200",
-      payment: "bg-green-100 text-green-800 border-green-200",
-      driver: "bg-orange-100 text-orange-800 border-orange-200",
-      other: "bg-gray-100 text-gray-800 border-gray-200",
-    };
-    return (
-      styles[type as keyof typeof styles] ||
-      "bg-gray-100 text-gray-800 border-gray-200"
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return t("invalidDate");
-      return date.toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch (error) {
-      return t("invalidDate");
-    }
-  };
-
-  const getUserName = (profiles: any) => {
-    if (!profiles) return t("notAvailable");
-    const firstName = profiles.first_name || "";
-    const lastName = profiles.last_name || "";
-    const fullName = `${firstName} ${lastName}`.trim();
-    return fullName || t("notAvailable");
-  };
-
-  return (
-    <Card className="w-full">
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          {/* Header */}
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-2">
-              <Hash className="h-4 w-4 text-gray-500" />
-              <span className="font-bold text-lg">
-                #{complaint.complaint_number}
-              </span>
-            </div>
-            <Badge
-              variant="outline"
-              className={`text-xs ${
-                complaint.status === "resolved"
-                  ? "bg-green-100 text-green-800 border-green-200"
-                  : "bg-yellow-100 text-yellow-800 border-yellow-200"
-              }`}
-            >
-              {complaint.status === "resolved"
-                ? t("statusResolved")
-                : t("statusPending")}
-            </Badge>
-          </div>
-
-          {/* User Info */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-              <User className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">{t("user")}:</span>
-              <span className="font-medium">
-                {getUserName(complaint.profiles)}
-              </span>
-            </div>
-
-            <div className="flex items-start gap-2 text-sm">
-              <Mail className="h-4 w-4 text-gray-500 mt-0.5" />
-              <span className="text-gray-600">{t("email")}:</span>
-              <span className="font-medium break-all text-left">
-                {complaint.profiles?.email || t("notAvailable")}
-              </span>
-            </div>
-          </div>
-
-          {/* Complaint Details */}
-          <div className="space-y-2 pt-2 border-t">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">{t("issueType")}:</span>
-              <Badge
-                variant="outline"
-                className={`text-xs sm:text-sm whitespace-nowrap ${getIssueTypeBadgeStyle(
-                  complaint.issue_type
-                )}`}
-              >
-                {getIssueTypeLabel(complaint.issue_type)}
-              </Badge>
-            </div>
-
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t("orderNumber")}:</span>
-              <span className="font-medium">
-                {complaint.order_number || t("notSpecified")}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">{t("date")}:</span>
-              <span className="font-medium">
-                {formatDate(complaint.created_at)}
-              </span>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="pt-2 border-t">
-            <div className="flex items-start gap-2 mb-2">
-              <FileText className="h-4 w-4 text-gray-500 mt-0.5" />
-              <span className="text-gray-600 text-sm">
-                {t("problemDescription")}:
-              </span>
-            </div>
-            <p className="text-sm leading-relaxed text-gray-800 bg-gray-50 p-3 rounded-lg">
-              {complaint.description}
-            </p>
-          </div>
-
-          {/* Action Button */}
-          <div className="pt-3 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewComplaint(complaint)}
-              className="w-full gap-2"
-            >
-              <Eye className="h-4 w-4" />
-              {t("viewFullDetails")}
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-interface ComplaintsTableProps {
-  complaints: ComplaintType[];
-  status?: "all" | "pending" | "resolved";
-  onViewComplaint: (complaint: ComplaintType) => void;
-}
-
-const ResponsiveComplaintsTable: React.FC<ComplaintsTableProps> = ({
-  complaints,
-  status = "all",
-  onViewComplaint,
-}) => {
-  const { t, language } = useLanguage();
-
-  const filteredComplaints =
-    status === "all"
-      ? complaints
-      : complaints.filter((complaint) => complaint.status === status);
-
-  const getIssueTypeLabel = (type: string) => {
-    const types = {
-      login: t("issueTypeLogin"),
-      order: t("issueTypeOrder"),
-      payment: t("issueTypePayment"),
-      driver: t("issueTypeDriver"),
-      other: t("issueTypeOther"),
-    };
-    return types[type as keyof typeof types] || type;
-  };
-
-  const getIssueTypeBadgeStyle = (type: string) => {
-    const styles = {
-      login: "bg-blue-100 text-blue-800 border-blue-200",
-      order: "bg-purple-100 text-purple-800 border-purple-200",
-      payment: "bg-green-100 text-green-800 border-green-200",
-      driver: "bg-orange-100 text-orange-800 border-orange-200",
-      other: "bg-gray-100 text-gray-800 border-gray-200",
-    };
-    return (
-      styles[type as keyof typeof styles] ||
-      "bg-gray-100 text-gray-800 border-gray-200"
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return t("invalidDate");
-      return date.toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch (error) {
-      return t("invalidDate");
-    }
-  };
-
-  const getUserName = (profiles: any) => {
-    if (!profiles) return t("notAvailable");
-    const firstName = profiles.first_name || "";
-    const lastName = profiles.last_name || "";
-    const fullName = `${firstName} ${lastName}`.trim();
-    return fullName || t("notAvailable");
-  };
-
-  if (filteredComplaints.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="text-gray-400 mb-2">
-          <FileText className="h-12 w-12 mx-auto" />
-        </div>
-        <p className="text-gray-500 text-lg">{t("noComplaintsInCategory")}</p>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {/* Desktop Table */}
-      <div className="hidden lg:block">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("complaintNumber")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("user")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("email")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("issueTypeHeader")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("date")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("status")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("actions")}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredComplaints.map((complaint) => (
-                <TableRow key={complaint.id} className="hover:bg-gray-50">
-                  <TableCell className="font-semibold text-center">
-                    #{complaint.complaint_number}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <div
-                      className="max-w-[140px] truncate"
-                      title={getUserName(complaint.profiles)}
-                    >
-                      {getUserName(complaint.profiles)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <div
-                      className="max-w-[180px] truncate"
-                      title={complaint.profiles?.email || t("notAvailable")}
-                    >
-                      {complaint.profiles?.email || t("notAvailable")}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Badge
-                      variant="outline"
-                      className={`text-xs whitespace-nowrap ${getIssueTypeBadgeStyle(
-                        complaint.issue_type
-                      )}`}
-                    >
-                      {getIssueTypeLabel(complaint.issue_type)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center whitespace-nowrap text-sm">
-                    {formatDate(complaint.created_at)}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Badge
-                      variant="outline"
-                      className={`whitespace-nowrap text-xs ${
-                        complaint.status === "resolved"
-                          ? "bg-green-100 text-green-800 border-green-200"
-                          : "bg-yellow-100 text-yellow-800 border-yellow-200"
-                      }`}
-                    >
-                      {complaint.status === "resolved"
-                        ? t("statusResolved")
-                        : t("statusPending")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onViewComplaint(complaint)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* Mobile Cards */}
-      <div className="block lg:hidden space-y-4">
-        {filteredComplaints.map((complaint) => (
-          <MobileComplaintCard
-            key={complaint.id}
-            complaint={complaint}
-            onViewComplaint={onViewComplaint}
-          />
-        ))}
-      </div>
-    </>
-  );
-};
-
 // Main Complaints Component
-const Complaints: React.FC = () => {
+const Complaints = () => {
   const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterIssueType, setFilterIssueType] = useState("all");
-  const [selectedComplaint, setSelectedComplaint] =
-    useState<ComplaintType | null>(null);
+  const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-
   const {
-    data: complaintsData = [],
+    data: complaints = [],
     isLoading,
     error,
     refetch,
-  } = useQuery({
-    queryKey: ["complaints"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("complaints")
-        .select(
-          `
-          *,
-          profiles (
-            first_name,
-            last_name,
-            email,
-            user_type
-          )
-        `
-        )
-        .order("complaint_number", { ascending: false });
+  } = useComplaints(true);
 
-      if (error) {
-        console.error("Error fetching complaints:", error);
-        throw error;
-      }
+  React.useEffect(() => {
+    if (error) {
+      toast.error(t("errorLoadingComplaints"));
+    }
+  }, [error, t]);
 
-      return (data || []) as ComplaintType[];
-    },
-  });
-
-  const handleViewComplaint = (complaint: ComplaintType) => {
+  const handleViewComplaint = (complaint) => {
     setSelectedComplaint(complaint);
     setIsDetailsOpen(true);
   };
 
-  const handleStatusUpdate = () => {
+  const handleComplaintStatusUpdate = () => {
     refetch();
+    toast.success(t("complaintStatusUpdated"));
   };
 
   const handleCloseDetails = () => {
@@ -745,23 +686,19 @@ const Complaints: React.FC = () => {
       t("status"),
     ];
 
-    const csvData = complaintsData.map((complaint) => [
-      complaint.complaint_number?.toString() || "",
+    const csvData = complaints.map((complaint) => [
+      complaint.complaint_number || complaint.id,
       complaint.profiles
-        ? `${complaint.profiles.first_name || ""} ${
-            complaint.profiles.last_name || ""
-          }`.trim()
+        ? `${complaint.profiles.first_name} ${complaint.profiles.last_name}`
         : t("notAvailable"),
       complaint.profiles?.email || t("notAvailable"),
-      complaint.issue_type || "",
-      complaint.description || "",
+      complaint.issue_type,
+      complaint.description,
       complaint.order_number || t("notSpecified"),
       new Date(complaint.created_at).toLocaleDateString(
         language === "ar" ? "ar-SA" : "en-US"
       ),
-      complaint.status === "resolved"
-        ? t("statusResolved")
-        : t("statusPending"),
+      complaint.status,
     ]);
 
     let csvContent = headers.join(",") + "\n";
@@ -785,27 +722,26 @@ const Complaints: React.FC = () => {
     toast.success(t("exportSuccess"));
   };
 
-  const filteredComplaints = complaintsData.filter((complaint) => {
-    const userName = complaint.profiles
-      ? `${complaint.profiles.first_name || ""} ${
-          complaint.profiles.last_name || ""
-        }`.trim()
-      : "";
-
-    const matchesSearch =
-      complaint.complaint_number?.toString().includes(searchTerm) ||
-      userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.profiles?.email
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      complaint.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.order_number?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesIssueType =
-      filterIssueType === "all" || complaint.issue_type === filterIssueType;
-
-    return matchesSearch && matchesIssueType;
-  });
+  const filteredComplaints = complaints.filter(
+    (complaint) =>
+      (complaint.complaint_number?.toString().includes(searchTerm) ||
+        (complaint.profiles &&
+          `${complaint.profiles.first_name} ${complaint.profiles.last_name}`
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())) ||
+        (complaint.profiles?.email &&
+          complaint.profiles.email
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())) ||
+        complaint.description
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (complaint.order_number &&
+          complaint.order_number
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()))) &&
+      (filterIssueType === "all" || complaint.issue_type === filterIssueType)
+  );
 
   if (error) {
     return (
@@ -891,7 +827,7 @@ const Complaints: React.FC = () => {
                 variant="outline"
                 className="gap-2 whitespace-nowrap"
                 onClick={handleExportComplaints}
-                disabled={complaintsData.length === 0}
+                disabled={complaints.length === 0}
               >
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">
@@ -908,7 +844,7 @@ const Complaints: React.FC = () => {
               <CardContent className="p-3 sm:p-4">
                 <div className="text-center">
                   <div className="text-lg sm:text-2xl font-bold text-gray-900">
-                    {complaintsData.length}
+                    {complaints.length}
                   </div>
                   <div className="text-xs sm:text-sm text-gray-600">
                     {t("totalComplaints")}
@@ -921,10 +857,7 @@ const Complaints: React.FC = () => {
               <CardContent className="p-3 sm:p-4">
                 <div className="text-center">
                   <div className="text-lg sm:text-2xl font-bold text-yellow-600">
-                    {
-                      complaintsData.filter((c) => c.status === "pending")
-                        .length
-                    }
+                    {complaints.filter((c) => c.status === "pending").length}
                   </div>
                   <div className="text-xs sm:text-sm text-gray-600">
                     {t("pendingReview")}
@@ -937,10 +870,7 @@ const Complaints: React.FC = () => {
               <CardContent className="p-3 sm:p-4">
                 <div className="text-center">
                   <div className="text-lg sm:text-2xl font-bold text-green-600">
-                    {
-                      complaintsData.filter((c) => c.status === "resolved")
-                        .length
-                    }
+                    {complaints.filter((c) => c.status === "resolved").length}
                   </div>
                   <div className="text-xs sm:text-sm text-gray-600">
                     {t("resolved")}
@@ -953,11 +883,11 @@ const Complaints: React.FC = () => {
               <CardContent className="p-3 sm:p-4">
                 <div className="text-center">
                   <div className="text-lg sm:text-2xl font-bold text-blue-600">
-                    {complaintsData.length > 0
+                    {complaints.length > 0
                       ? Math.round(
-                          (complaintsData.filter((c) => c.status === "resolved")
+                          (complaints.filter((c) => c.status === "resolved")
                             .length /
-                            complaintsData.length) *
+                            complaints.length) *
                             100
                         )
                       : 0}
@@ -988,8 +918,9 @@ const Complaints: React.FC = () => {
             <CardHeader className="pb-2">
               <CardTitle className="text-lg sm:text-xl">
                 {t("searchResultsCount")
-                  .replace("{count}", filteredComplaints.length.toString())
-                  .replace("{total}", complaintsData.length.toString())}
+                  ?.replace("{count}", filteredComplaints.length.toString())
+                  ?.replace("{total}", complaints.length.toString()) ||
+                  `Results (${filteredComplaints.length} of ${complaints.length})`}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-2 sm:p-4 lg:p-6">
@@ -1000,9 +931,9 @@ const Complaints: React.FC = () => {
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
                     <span className="hidden sm:inline">
-                      {t("allComplaints")}
+                      {t("allComplaints") || "All"}
                     </span>
-                    <span className="sm:hidden">{t("all")}</span>
+                    <span className="sm:hidden">{t("all") || "All"}</span>
                     <span className="mr-1">({filteredComplaints.length})</span>
                   </TabsTrigger>
                   <TabsTrigger
@@ -1010,9 +941,11 @@ const Complaints: React.FC = () => {
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
                     <span className="hidden sm:inline">
-                      {t("pendingReview")}
+                      {t("pendingReview") || "Pending"}
                     </span>
-                    <span className="sm:hidden">{t("pending")}</span>
+                    <span className="sm:hidden">
+                      {t("pending") || "Pending"}
+                    </span>
                     <span className="mr-1">
                       (
                       {
@@ -1026,8 +959,12 @@ const Complaints: React.FC = () => {
                     value="resolved"
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
-                    <span className="hidden sm:inline">{t("resolved")}</span>
-                    <span className="sm:hidden">{t("resolvedTab")}</span>
+                    <span className="hidden sm:inline">
+                      {t("resolved") || "Resolved"}
+                    </span>
+                    <span className="sm:hidden">
+                      {t("resolvedTab") || "Resolved"}
+                    </span>
                     <span className="mr-1">
                       (
                       {
@@ -1043,6 +980,7 @@ const Complaints: React.FC = () => {
                 <TabsContent value="all" className="mt-0">
                   <ResponsiveComplaintsTable
                     complaints={filteredComplaints}
+                    status="all"
                     onViewComplaint={handleViewComplaint}
                   />
                 </TabsContent>
@@ -1068,12 +1006,14 @@ const Complaints: React.FC = () => {
         )}
 
         {/* Complaint Details Modal */}
-        <ComplaintDetailsModal
-          complaint={selectedComplaint}
-          isOpen={isDetailsOpen}
-          onClose={handleCloseDetails}
-          onStatusUpdate={handleStatusUpdate}
-        />
+        {selectedComplaint && (
+          <ComplaintDetailsModal
+            complaint={selectedComplaint}
+            isOpen={isDetailsOpen}
+            onClose={handleCloseDetails}
+            onStatusUpdate={handleComplaintStatusUpdate}
+          />
+        )}
       </div>
     </div>
   );
