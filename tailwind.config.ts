@@ -107,7 +107,7 @@ export default {
     function ({ addUtilities }) {
       const newUtilities = {
         ".reverse-text": {
-          direction: "rtl",
+          direction: "ltr",
         },
       };
       addUtilities(newUtilities);
