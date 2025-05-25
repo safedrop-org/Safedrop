@@ -1,31 +1,24 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthContext";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/components/ui/language-context";
 
 const DriverLogout = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { t } = useLanguage();
+
   useEffect(() => {
     const performLogout = async () => {
       try {
         await signOut();
-
-        // Remove all auth flags
-        localStorage.removeItem("adminAuth");
-        localStorage.removeItem("adminEmail");
-        localStorage.removeItem("customerAuth");
-        localStorage.removeItem("driverAuth");
-
         toast.success(t("logoutSuccess"));
       } catch (error) {
-        console.error("Error during logout:", error);
         toast.error(t("logoutError"));
       } finally {
-        // Always redirect to login after attempt, with logout parameter
-        navigate("/login?logout=true", { replace: true });
+        // Always redirect to login after attempt, regardless of result
+        navigate("/login");
       }
     };
 

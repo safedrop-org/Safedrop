@@ -570,8 +570,12 @@ const DriverOrdersContent = () => {
                   <span className="hidden sm:inline">
                     {t("currentOrdersTab")}
                   </span>
-                  <span className="sm:hidden">Current</span>
-                  <span className="ml-1">({currentOrders.length})</span>
+                  <span className="sm:hidden">
+                    {t("currentOrdersTabShort")}
+                  </span>
+                  <span className="ml-1 rtl:mr-1">
+                    ({currentOrders.length})
+                  </span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="available"
@@ -580,8 +584,12 @@ const DriverOrdersContent = () => {
                   <span className="hidden sm:inline">
                     {t("availableOrdersTab")}
                   </span>
-                  <span className="sm:hidden">Available</span>
-                  <span className="ml-1">({availableOrders.length})</span>
+                  <span className="sm:hidden">
+                    {t("availableOrdersTabShort")}
+                  </span>
+                  <span className="ml-1 rtl:mr-1">
+                    ({availableOrders.length})
+                  </span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="completed"
@@ -590,8 +598,12 @@ const DriverOrdersContent = () => {
                   <span className="hidden sm:inline">
                     {t("completedOrdersTab")}
                   </span>
-                  <span className="sm:hidden">Done</span>
-                  <span className="ml-1">({completedOrders.length})</span>
+                  <span className="sm:hidden">
+                    {t("completedOrdersTabShort")}
+                  </span>
+                  <span className="ml-1 rtl:mr-1">
+                    ({completedOrders.length})
+                  </span>
                 </TabsTrigger>
               </TabsList>
 

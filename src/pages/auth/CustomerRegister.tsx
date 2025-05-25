@@ -34,9 +34,7 @@ const CustomerRegisterContent = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [registrationError, setRegistrationError] = useState<string | null>(
-    null
-  );
+  const [registrationError, setRegistrationError] = useState(null);
 
   const customerRegisterSchema = z.object({
     firstName: z.string().min(2, { message: t("requiredFirstName") }),
@@ -59,54 +57,22 @@ const CustomerRegisterContent = () => {
     },
   });
 
-  // Email checking function
+  // Fixed email checking function using the database function
   const checkEmailExists = async (email) => {
     try {
-      // Check in profiles table
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("email", email.toLowerCase())
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("check_email_exists", {
+        email_to_check: email.toLowerCase(),
+      });
 
-      if (profileError && profileError.code !== "PGRST116") {
-        console.error("Error checking email in profiles:", profileError);
-        return false; // Continue on error
+      if (error) {
+        console.error("Error checking email:", error);
+        return false; // Allow registration on error
       }
 
-      // If found in profiles, email exists
-      if (profileData) {
-        return true;
-      }
-
-      // Also check auth.users by attempting a password reset (this will tell us if email exists)
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        email.toLowerCase(),
-        {
-          redirectTo: "https://never-redirect.com", // Dummy redirect
-        }
-      );
-
-      // If no error, email exists in auth
-      // If error contains "email not found" or similar, email doesn't exist
-      if (!resetError) {
-        return true; // Email exists in auth
-      }
-
-      // Check specific error messages that indicate email doesn't exist
-      if (
-        resetError.message.includes("not found") ||
-        resetError.message.includes("does not exist") ||
-        resetError.message.includes("invalid email")
-      ) {
-        return false; // Email doesn't exist
-      }
-
-      // For other errors, assume email might exist (be safe)
-      return false;
+      return data; // Returns boolean: true if email exists, false if available
     } catch (error) {
       console.error("Error in email check:", error);
-      return false; // Allow registration to continue on error
+      return false;
     }
   };
 
@@ -146,7 +112,26 @@ const CustomerRegisterContent = () => {
         }
       );
 
-      if (signUpError) throw signUpError;
+      // Handle signup errors
+      if (signUpError) {
+        // Check for duplicate email errors (backup check)
+        if (
+          signUpError.message.includes("User already registered") ||
+          signUpError.message.includes("already been registered") ||
+          signUpError.message.includes("duplicate") ||
+          signUpError.message.includes("already exists") ||
+          signUpError.message.includes("already taken")
+        ) {
+          setRegistrationError(
+            "هذا البريد الإلكتروني مسجل بالفعل. يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول."
+          );
+          toast.error("هذا البريد الإلكتروني مسجل بالفعل");
+          setIsLoading(false);
+          return;
+        }
+        throw signUpError;
+      }
+
       if (!authData.user) throw new Error(t("userCreationFailed"));
 
       // Step 3: Store user details in cookie for auth callback
@@ -169,7 +154,10 @@ const CustomerRegisterContent = () => {
       setRegistrationComplete(true);
       toast.success(t("registrationSuccess"));
     } catch (error: any) {
+      console.error("Registration error:", error);
+
       const errorMsg =
+        error.message?.includes("User already registered") ||
         error.message?.includes("duplicate key") ||
         error.message?.includes("already registered")
           ? "هذا البريد الإلكتروني مسجل بالفعل"

@@ -28,6 +28,7 @@ import {
   Calendar,
   Upload,
   ExternalLink,
+  AlertCircle,
 } from "lucide-react";
 import Cookies from "js-cookie";
 
@@ -36,6 +37,7 @@ const DriverRegisterContent = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [registrationError, setRegistrationError] = useState(null);
   const [waitTime, setWaitTime] = useState(0);
   const [idImagePreview, setIdImagePreview] = useState("");
   const [licenseImagePreview, setLicenseImagePreview] = useState("");
@@ -128,59 +130,30 @@ const DriverRegisterContent = () => {
     },
   });
 
-  // Email checking function
+  // Fixed email checking function using the database function
   const checkEmailExists = async (email) => {
     try {
-      // Check in profiles table
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("email", email.toLowerCase())
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("check_email_exists", {
+        email_to_check: email.toLowerCase(),
+      });
 
-      if (profileError && profileError.code !== "PGRST116") {
-        console.error("Error checking email in profiles:", profileError);
-        return false; // Continue on error
+      if (error) {
+        console.error("Error checking email:", error);
+        return false; // Allow registration on error
       }
 
-      // If found in profiles, email exists
-      if (profileData) {
-        return true;
-      }
-
-      // Also check auth.users by attempting a password reset (this will tell us if email exists)
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        email.toLowerCase(),
-        {
-          redirectTo: "https://never-redirect.com", // Dummy redirect
-        }
-      );
-
-      // If no error, email exists in auth
-      // If error contains "email not found" or similar, email doesn't exist
-      if (!resetError) {
-        return true; // Email exists in auth
-      }
-
-      // Check specific error messages that indicate email doesn't exist
-      if (
-        resetError.message.includes("not found") ||
-        resetError.message.includes("does not exist") ||
-        resetError.message.includes("invalid email")
-      ) {
-        return false; // Email doesn't exist
-      }
-
-      // For other errors, assume email might exist (be safe)
-      return false;
+      return data; // Returns boolean: true if email exists, false if available
     } catch (error) {
       console.error("Error in email check:", error);
-      return false; // Allow registration to continue on error
+      return false;
     }
   };
 
   const handleRateLimitError = () => {
     setWaitTime(60);
+    setRegistrationError(
+      "تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار دقيقة واحدة قبل المحاولة مرة أخرى"
+    );
     toast.error(
       "تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار دقيقة واحدة قبل المحاولة مرة أخرى"
     );
@@ -360,6 +333,7 @@ const DriverRegisterContent = () => {
     }
 
     setIsLoading(true);
+    setRegistrationError(null);
     setDebugInfo(null);
 
     try {
@@ -367,10 +341,15 @@ const DriverRegisterContent = () => {
       const emailExists = await checkEmailExists(data.email);
 
       if (emailExists) {
-        toast.error(
+        setRegistrationError(
           language === "ar"
             ? "هذا البريد الإلكتروني مسجل بالفعل. يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول."
             : "This email is already registered. Please use a different email or login."
+        );
+        toast.error(
+          language === "ar"
+            ? "هذا البريد الإلكتروني مسجل بالفعل"
+            : "This email is already registered"
         );
         setIsLoading(false);
         return;
@@ -394,6 +373,7 @@ const DriverRegisterContent = () => {
         }
       );
 
+      // Handle signup errors
       if (signUpError) {
         if (
           signUpError.message.includes("rate limit") ||
@@ -402,11 +382,25 @@ const DriverRegisterContent = () => {
             .includes("email rate limit exceeded")
         ) {
           handleRateLimitError();
-        } else if (signUpError.message.includes("already registered")) {
+        } else if (
+          signUpError.message.includes("User already registered") ||
+          signUpError.message.includes("already been registered") ||
+          signUpError.message.includes("duplicate") ||
+          signUpError.message.includes("already exists") ||
+          signUpError.message.includes("already taken")
+        ) {
+          setRegistrationError(
+            language === "ar"
+              ? "هذا البريد الإلكتروني مسجل بالفعل. يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول."
+              : "This email is already registered. Please use a different email or login."
+          );
           toast.error(
             "البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول"
           );
         } else {
+          setRegistrationError(
+            "خطأ أثناء إنشاء الحساب: " + signUpError.message
+          );
           toast.error("خطأ أثناء إنشاء الحساب: " + signUpError.message);
         }
         setIsLoading(false);
@@ -414,6 +408,7 @@ const DriverRegisterContent = () => {
       }
 
       if (!authData.user) {
+        setRegistrationError("فشل إنشاء الحساب، يرجى المحاولة مرة أخرى");
         toast.error("فشل إنشاء الحساب، يرجى المحاولة مرة أخرى");
         setIsLoading(false);
         return;
@@ -459,6 +454,9 @@ const DriverRegisterContent = () => {
       toast.success(t("registrationSuccess"));
     } catch (error) {
       console.error("Unexpected error during registration:", error);
+      setRegistrationError(
+        "حدث خطأ غير متوقع أثناء التسجيل، يرجى المحاولة مرة أخرى"
+      );
       toast.error("حدث خطأ غير متوقع أثناء التسجيل، يرجى المحاولة مرة أخرى");
       setDebugInfo({
         stage: "unexpected_error",
@@ -526,6 +524,15 @@ const DriverRegisterContent = () => {
             <p className="text-amber-700 mt-1">
               {t("timeRemaining")}: {waitTime} {t("seconds")}
             </p>
+          </div>
+        )}
+
+        {registrationError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+            <div className="flex gap-2 items-center justify-center">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <p className="text-red-700">{registrationError}</p>
+            </div>
           </div>
         )}
 

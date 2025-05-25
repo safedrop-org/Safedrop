@@ -249,31 +249,70 @@ export function useAuth() {
     try {
       console.log("Starting sign out process...");
 
-      // Sign out from Supabase first
-      const { error } = await supabase.auth.signOut();
+      // FIRST: Clear storage immediately to prevent race conditions
+      const allCookies = Object.keys(Cookies.get());
+      allCookies.forEach((cookieName) => {
+        Cookies.remove(cookieName, { path: "/" });
+        Cookies.remove(cookieName);
+      });
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // SECOND: Sign out from Supabase
+      const { error } = await supabase.auth.signOut({
+        scope: "global", // This ensures signout from all sessions
+      });
 
       if (error) {
         console.warn("Error during Supabase sign out:", error);
       }
 
-      // Clear client-side auth data
+      // THIRD: Clear auth data using your existing function
       clearAuthData();
+
+      // FOURTH: Force clear storage again (double check)
+      const remainingCookies = Object.keys(Cookies.get());
+      remainingCookies.forEach((cookieName) => {
+        Cookies.remove(cookieName, { path: "/" });
+        Cookies.remove(cookieName);
+      });
+      localStorage.clear();
+      sessionStorage.clear();
 
       // Reset state
       setUser(null);
       setSession(null);
       setUserType(null);
 
+      // FIFTH: Force navigation to login page
+      setTimeout(() => {
+        window.location.href = "/auth/login"; // Force navigation
+      }, 100);
+
       console.log("Sign out completed");
       return { success: true, warning: error?.message };
     } catch (error) {
       console.error("Error signing out:", error);
 
-      // Clear auth data and reset state anyway
+      // Emergency cleanup
       clearAuthData();
+
+      const allCookies = Object.keys(Cookies.get());
+      allCookies.forEach((cookieName) => {
+        Cookies.remove(cookieName, { path: "/" });
+        Cookies.remove(cookieName);
+      });
+      localStorage.clear();
+      sessionStorage.clear();
+
       setUser(null);
       setSession(null);
       setUserType(null);
+
+      // Force navigation even on error
+      setTimeout(() => {
+        window.location.href = "/auth/login";
+      }, 100);
 
       return { success: false, error };
     }

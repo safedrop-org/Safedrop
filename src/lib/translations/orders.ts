@@ -260,6 +260,18 @@ export const orders: TranslationSection = {
     ar: "الطلبات المكتملة",
     en: "Completed Orders",
   },
+  currentOrdersTabShort: {
+    ar: "الحالية",
+    en: "Current",
+  },
+  availableOrdersTabShort: {
+    ar: "متاحة",
+    en: "Available",
+  },
+  completedOrdersTabShort: {
+    ar: "مكتملة",
+    en: "Completed",
+  },
   browseAvailableOrders: {
     ar: "تصفح الطلبات المتاحة",
     en: "Browse Available Orders",

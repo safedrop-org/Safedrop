@@ -12,10 +12,9 @@ const Logout = () => {
     const performLogout = async () => {
       try {
         await signOut();
-        toast.success("تم تسجيل الخروج بنجاح");
+        toast.success(t("logoutSuccess"));
       } catch (error) {
-        console.error("Error during logout:", error);
-        toast.error("حدث خطأ أثناء تسجيل الخروج");
+        toast.error(t("logoutError"));
       } finally {
         // Always redirect to login after attempt, regardless of result
         navigate("/login");
