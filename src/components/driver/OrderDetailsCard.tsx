@@ -347,16 +347,36 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 
         <div className="grid grid-cols-3 gap-4 mt-4 text-center">
           <div className="bg-gray-50 rounded p-2">
-            <p className="text-sm text-gray-500">{t("distance")}</p>
-            <p className="font-medium">
+            <p
+              className={`text-sm text-gray-500 ${
+                language === "ar" ? "reverse-text" : ""
+              }`}
+            >
+              {t("distance")}
+            </p>
+            <p
+              className={`font-medium ${
+                language === "ar" ? "reverse-text" : ""
+              }`}
+            >
               {order.estimated_distance
                 ? `${order.estimated_distance} km`
                 : distance}
             </p>
           </div>
           <div className="bg-gray-50 rounded p-2">
-            <p className="text-sm text-gray-500">{t("estimatedTime")}</p>
-            <p className="font-medium">
+            <p
+              className={`text-sm text-gray-500 ${
+                language === "ar" ? "reverse-text" : ""
+              }`}
+            >
+              {t("estimatedTime")}
+            </p>
+            <p
+              className={`font-medium ${
+                language === "ar" ? "reverse-text" : ""
+              }`}
+            >
               {order.estimated_duration
                 ? `${order.estimated_duration} min`
                 : duration}
