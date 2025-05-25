@@ -47,13 +47,11 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   // Fetch customer data if not already present
   useEffect(() => {
     const fetchCustomerData = async () => {
-      // If customer data is already present, use it
       if (order.customer) {
         setCustomerData(order.customer);
         return;
       }
 
-      // If no customer_id, skip
       if (!order.customer_id) {
         console.log("No customer_id in order:", order.id);
         return;
@@ -61,8 +59,6 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 
       setLoadingCustomer(true);
       try {
-        console.log("Fetching customer data for:", order.customer_id);
-
         const { data: customer, error } = await supabase
           .from("profiles")
           .select("id, first_name, last_name, phone, email")
@@ -75,7 +71,6 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
         }
 
         if (customer) {
-          console.log("Customer data fetched:", customer);
           setCustomerData(customer);
         } else {
           console.log("No customer found for ID:", order.customer_id);
@@ -93,7 +88,6 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      // Use Arabic locale for Arabic language, English locale for English
       const locale = language === "ar" ? "ar-EG" : "en-US";
       return date.toLocaleString(locale, {
         year: "numeric",
@@ -190,7 +184,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 
     setIsUpdating(true);
     try {
-      console.log("Setting order status to completed");
+
 
       const { data, error } = await supabase
         .from("orders")
@@ -351,36 +345,16 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 
         <div className="grid grid-cols-3 gap-4 mt-4 text-center">
           <div className="bg-gray-50 rounded p-2">
-            <p
-              className={`text-sm text-gray-500 ${
-                language === "ar" ? "reverse-text" : ""
-              }`}
-            >
-              {t("distance")}
-            </p>
-            <p
-              className={`font-medium ${
-                language === "ar" ? "reverse-text" : ""
-              }`}
-            >
+            <p className="text-sm text-gray-500">{t("distance")}</p>
+            <p className="font-medium">
               {order.estimated_distance
                 ? `${order.estimated_distance} km`
                 : distance}
             </p>
           </div>
           <div className="bg-gray-50 rounded p-2">
-            <p
-              className={`text-sm text-gray-500 ${
-                language === "ar" ? "reverse-text" : ""
-              }`}
-            >
-              {t("estimatedTime")}
-            </p>
-            <p
-              className={`font-medium ${
-                language === "ar" ? "reverse-text" : ""
-              }`}
-            >
+            <p className="text-sm text-gray-500">{t("estimatedTime")}</p>
+            <p className="font-medium">
               {order.estimated_duration
                 ? `${order.estimated_duration} min`
                 : duration}

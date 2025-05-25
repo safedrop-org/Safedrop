@@ -72,7 +72,6 @@ export function useDriverRatings() {
           };
         });
 
-        console.log("Fetched ratings with details:", ratingsWithDetails);
         return ratingsWithDetails;
       } catch (error) {
         console.error("Error in useDriverRatings hook:", error);

@@ -80,11 +80,9 @@ const ProtectedCustomerRoute = ({ children }) => {
   }
 
   if (!isLoggedIn) {
-    console.log("Not logged in, redirecting to login");
     return <Navigate to="/login" />;
   }
 
-  console.log("User type in protected customer route:", userType);
   if (userType !== "customer") {
     if (userType === "driver") {
       return <Navigate to="/driver/dashboard" />;
@@ -127,13 +125,10 @@ const ProtectedDriverRoute = ({ children }) => {
               .maybeSingle();
 
             if (!error && data) {
-              console.log("Driver status found:", data.status);
               setDriverStatus(data.status);
             } else {
               console.error("Error or no data for driver status:", error);
             }
-          } else {
-            console.log("User is not a driver");
           }
         } catch (err) {
           console.error("Exception checking driver status:", err);
@@ -154,7 +149,6 @@ const ProtectedDriverRoute = ({ children }) => {
   }
 
   if (!isLoggedIn) {
-    console.log("Not logged in, redirecting to login");
     return <Navigate to="/login" />;
   }
 
@@ -162,12 +156,6 @@ const ProtectedDriverRoute = ({ children }) => {
   const hasDriverData = driverStatus !== null;
   const effectiveUserType = hasDriverData ? "driver" : userType;
 
-  console.log(
-    "User type in protected driver route:",
-    effectiveUserType,
-    "Driver status:",
-    driverStatus
-  );
   if (effectiveUserType !== "driver" && !hasDriverData) {
     if (userType === "customer") {
       return <Navigate to="/customer/dashboard" />;
@@ -182,9 +170,6 @@ const ProtectedDriverRoute = ({ children }) => {
   if (driverStatus === "pending" || driverStatus === "rejected") {
     const currentPath = window.location.pathname;
     if (currentPath !== "/driver/pending-approval") {
-      console.log(
-        "Driver pending/rejected, redirecting to pending approval page"
-      );
       return <Navigate to="/driver/pending-approval" />;
     }
   }

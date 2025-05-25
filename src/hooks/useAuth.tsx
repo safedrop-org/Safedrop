@@ -3,11 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 
-// Cookie settings object for reuse
 const COOKIE_OPTIONS = {
   secure: window.location.protocol === "https:",
   sameSite: "Strict",
-  expires: 30, // 30 days
+  expires: 30,
 } as const;
 
 export function useAuth() {
@@ -18,9 +17,7 @@ export function useAuth() {
   const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
 
-  // Clear all auth data (cookies, localStorage, etc) - but be more selective
   const clearAuthData = useCallback((preserveVerificationData = false) => {
-    // Only clear auth-related cookies, not verification data
     const authCookieKeys = Object.keys(Cookies.get()).filter(
       (key) =>
         key.includes("Auth") ||
@@ -32,7 +29,6 @@ export function useAuth() {
       Cookies.remove(cookieName, { path: "/" });
     });
 
-    // Clear localStorage items related to auth (but preserve driver files during verification)
     if (!preserveVerificationData) {
       for (const key of Object.keys(localStorage)) {
         if (
@@ -45,14 +41,12 @@ export function useAuth() {
       }
     }
 
-    // Clear Supabase tokens from localStorage
     if (window.localStorage) {
       Object.keys(localStorage)
         .filter((key) => key.startsWith("sb-"))
         .forEach((key) => localStorage.removeItem(key));
     }
 
-    // Clear sessionStorage
     try {
       sessionStorage.clear();
     } catch (error) {
@@ -60,9 +54,7 @@ export function useAuth() {
     }
   }, []);
 
-  // Set auth cookie based on user type
   const setAuthCookieByType = useCallback((type, email) => {
-    // Only remove conflicting auth cookies, not all cookies
     const existingAuthCookies = Object.keys(Cookies.get()).filter(
       (key) => key.includes("Auth") && key !== `${type}Auth`
     );
@@ -71,19 +63,16 @@ export function useAuth() {
       Cookies.remove(key, { path: "/" });
     });
 
-    // Set new cookie
     Cookies.set(`${type}Auth`, "true", COOKIE_OPTIONS);
     if (email && type === "admin") {
       Cookies.set("adminEmail", email, COOKIE_OPTIONS);
     }
   }, []);
 
-  // Handle user type detection
   const handleUserType = useCallback(
     async (userData) => {
       if (!userData) return null;
 
-      // Try metadata first (faster)
       if (userData.user_metadata?.user_type) {
         const type = userData.user_metadata.user_type;
         setUserType(type);
@@ -91,7 +80,6 @@ export function useAuth() {
         return type;
       }
 
-      // If not in metadata, try profiles table
       try {
         const { data } = await supabase
           .from("profiles")
@@ -108,7 +96,6 @@ export function useAuth() {
         console.error("Error fetching user type:", error);
       }
 
-      // Fallback: check for admin role in user_roles table
       try {
         const { data } = await supabase
           .from("user_roles")
@@ -126,32 +113,25 @@ export function useAuth() {
         console.error("Error checking admin role:", error);
       }
 
-      // Default to customer if no type found
       setUserType("customer");
       return "customer";
     },
     [setAuthCookieByType]
   );
 
-  // Set up auth state listener
   useEffect(() => {
     let mounted = true;
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log("Auth state changed:", event, "Session:", !!newSession);
-
       if (!mounted) return;
 
-      // Handle sign-out event
       if (event === "SIGNED_OUT") {
-        console.log("Processing sign out");
         setUser(null);
         setSession(null);
         setUserType(null);
 
-        // Only clear auth data if we're not in the middle of verification
         const isVerificationFlow =
           window.location.pathname.includes("/auth/callback");
         if (!isVerificationFlow) {
@@ -162,14 +142,11 @@ export function useAuth() {
         return;
       }
 
-      // Handle successful sign in or token refresh
       if (
         event === "SIGNED_IN" ||
         event === "TOKEN_REFRESHED" ||
         event === "INITIAL_SESSION"
       ) {
-        console.log("Processing sign in/token refresh/initial session");
-
         setSession(newSession);
         setUser(newSession?.user || null);
 
@@ -181,14 +158,12 @@ export function useAuth() {
 
         setLoading(false);
 
-        // Mark as initialized after first session check
         if (!isInitialized) {
           setIsInitialized(true);
         }
         return;
       }
 
-      // Handle other events
       setSession(newSession);
       setUser(newSession?.user || null);
 
@@ -201,15 +176,11 @@ export function useAuth() {
       setLoading(false);
     });
 
-    // Fetch initial session
     const getInitialSession = async () => {
       try {
-        console.log("Fetching initial session...");
         const {
           data: { session: initialSession },
         } = await supabase.auth.getSession();
-
-        console.log("Initial session:", !!initialSession);
 
         if (!mounted) return;
 
@@ -244,12 +215,8 @@ export function useAuth() {
     };
   }, [handleUserType, clearAuthData, isInitialized]);
 
-  // Sign out function
   const signOut = useCallback(async () => {
     try {
-      console.log("Starting sign out process...");
-
-      // FIRST: Clear storage immediately to prevent race conditions
       const allCookies = Object.keys(Cookies.get());
       allCookies.forEach((cookieName) => {
         Cookies.remove(cookieName, { path: "/" });
@@ -258,19 +225,16 @@ export function useAuth() {
       localStorage.clear();
       sessionStorage.clear();
 
-      // SECOND: Sign out from Supabase
       const { error } = await supabase.auth.signOut({
-        scope: "global", // This ensures signout from all sessions
+        scope: "global",
       });
 
       if (error) {
         console.warn("Error during Supabase sign out:", error);
       }
 
-      // THIRD: Clear auth data using your existing function
       clearAuthData();
 
-      // FOURTH: Force clear storage again (double check)
       const remainingCookies = Object.keys(Cookies.get());
       remainingCookies.forEach((cookieName) => {
         Cookies.remove(cookieName, { path: "/" });
@@ -279,22 +243,17 @@ export function useAuth() {
       localStorage.clear();
       sessionStorage.clear();
 
-      // Reset state
       setUser(null);
       setSession(null);
       setUserType(null);
 
-      // FIFTH: Force navigation to login page
       setTimeout(() => {
-        window.location.href = "/auth/login"; // Force navigation
+        window.location.href = "/auth/login";
       }, 100);
 
-      console.log("Sign out completed");
       return { success: true, warning: error?.message };
     } catch (error) {
       console.error("Error signing out:", error);
-
-      // Emergency cleanup
       clearAuthData();
 
       const allCookies = Object.keys(Cookies.get());
@@ -309,7 +268,6 @@ export function useAuth() {
       setSession(null);
       setUserType(null);
 
-      // Force navigation even on error
       setTimeout(() => {
         window.location.href = "/auth/login";
       }, 100);
@@ -318,7 +276,6 @@ export function useAuth() {
     }
   }, [clearAuthData]);
 
-  // Check driver status using the server function
   const checkDriverStatus = useCallback(async (userId) => {
     try {
       const { data, error } = await supabase.rpc("get_driver_status_v3", {
@@ -345,7 +302,6 @@ export function useAuth() {
     }
   }, []);
 
-  // Check user profile
   const checkUserProfile = useCallback(async (userId) => {
     try {
       const { data, error } = await supabase
@@ -362,7 +318,6 @@ export function useAuth() {
     }
   }, []);
 
-  // Computed value for authentication status
   const isAuthenticated = !!(session || user);
 
   return {
@@ -377,7 +332,6 @@ export function useAuth() {
     isAuthenticated,
     isInitialized,
 
-    // Added helper methods
     setAuthCookieByType,
     handleUserType,
   };

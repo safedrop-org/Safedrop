@@ -18,25 +18,20 @@ const AuthCallbackContent = () => {
   const [userType, setUserType] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  // File upload handling for driver document images
   const processDriverFiles = async (userId) => {
     try {
       const fileDataKey = `driverFiles_${userId}`;
       const fileDataStr = localStorage.getItem(fileDataKey);
 
       if (!fileDataStr) {
-        console.log("No file data found in localStorage");
         return null;
       }
 
-      console.log("Found file data in localStorage, processing...");
       const fileData = JSON.parse(fileDataStr);
       const uploadResults = {};
 
       for (const fileType of ["id_image", "license_image"]) {
         if (fileData[fileType]) {
-          console.log(`Processing ${fileType}...`);
-
           const dataURLParts = fileData[fileType].dataUrl.split(",");
           const mime = dataURLParts[0].match(/:(.*?);/)[1];
           const bstr = atob(dataURLParts[1]);
@@ -57,8 +52,6 @@ const AuthCallbackContent = () => {
             fileType === "id_image" ? "id-cards" : "licenses"
           }/${fileName}`;
 
-          console.log(`Uploading ${fileType} to ${filePath}...`);
-
           const { error: uploadError } = await supabase.storage
             .from("driver-documents")
             .upload(filePath, file, {
@@ -74,7 +67,6 @@ const AuthCallbackContent = () => {
               .getPublicUrl(filePath);
 
             uploadResults[fileType] = publicUrl;
-            console.log(`Successfully uploaded ${fileType}, URL: ${publicUrl}`);
           } else {
             console.error(`Error uploading ${fileType}:`, uploadError);
           }
@@ -82,7 +74,6 @@ const AuthCallbackContent = () => {
       }
 
       localStorage.removeItem(fileDataKey);
-      console.log("Removed file data from localStorage");
 
       return Object.keys(uploadResults).length > 0 ? uploadResults : null;
     } catch (error) {
@@ -94,8 +85,6 @@ const AuthCallbackContent = () => {
   // Create driver record with all related data
   const createDriverRecord = async (userId, driverData, fileUrls) => {
     try {
-      console.log("Creating driver record using the function");
-
       const { data: result, error: functionError } = await supabase.rpc(
         "create_driver_with_related_records",
         {
@@ -111,8 +100,6 @@ const AuthCallbackContent = () => {
       if (functionError) {
         console.error("Error creating driver with function:", functionError);
 
-        // Fallback to direct insertion
-        console.log("Falling back to direct driver record insertion");
         const directDriverData = {
           id: userId,
           national_id: driverData.national_id || "",
@@ -180,8 +167,6 @@ const AuthCallbackContent = () => {
 
   const verifyEmail = useCallback(async () => {
     try {
-      console.log("Starting email verification process...");
-
       const queryParams = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
 
@@ -190,18 +175,9 @@ const AuthCallbackContent = () => {
       const accessToken = hashParams.get("access_token");
       const refreshToken = hashParams.get("refresh_token");
 
-      console.log("URL params:", {
-        token: !!tokenInQuery,
-        type: typeInQuery,
-        accessToken: !!accessToken,
-        refreshToken: !!refreshToken,
-      });
-
       let verificationResult = null;
 
-      // Handle different verification scenarios
       if (tokenInQuery && typeInQuery) {
-        console.log("Attempting OTP verification...");
         verificationResult = await supabase.auth.verifyOtp({
           token_hash: tokenInQuery,
           type: typeInQuery === "signup" ? "signup" : "recovery",
@@ -212,7 +188,6 @@ const AuthCallbackContent = () => {
           throw new Error(t("invalidToken") || "Invalid verification token");
         }
       } else if (accessToken && refreshToken) {
-        console.log("Attempting session setup...");
         verificationResult = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -224,7 +199,6 @@ const AuthCallbackContent = () => {
         }
       }
 
-      // Get the session after verification
       const {
         data: { session },
         error: sessionError,
@@ -235,11 +209,7 @@ const AuthCallbackContent = () => {
         throw new Error(t("sessionExpired") || "Session expired");
       }
 
-      // Handle case where verification succeeded but no active session
       if (!session) {
-        console.log("No session found after verification");
-
-        // Check for pending email in various places
         let pendingEmail = queryParams.get("email") || hashParams.get("email");
 
         if (!pendingEmail) {
@@ -254,9 +224,7 @@ const AuthCallbackContent = () => {
           }
         }
 
-        // If we have verification tokens and an email, it's likely successful
         if (pendingEmail && (tokenInQuery || accessToken)) {
-          console.log("Email verification successful, redirecting to login");
           Cookies.remove("pendingUserDetails", { path: "/" });
 
           setSuccess(true);
@@ -289,8 +257,6 @@ const AuthCallbackContent = () => {
       if (userError || !user) {
         throw new Error(t("userNotFound") || "User not found");
       }
-
-      console.log("User verified successfully:", user.email);
 
       // Get pending user details from cookies
       let pendingUserDetails = null;
@@ -348,9 +314,7 @@ const AuthCallbackContent = () => {
             console.error("Profile creation error:", profileError);
           } else {
             userTypeValue = userMetadata.user_type;
-            console.log("Profile created successfully");
 
-            // Create driver record if needed
             if (userTypeValue === "driver" && pendingUserDetails) {
               const fileUrls = await processDriverFiles(user.id);
               const driverData = {
@@ -366,7 +330,7 @@ const AuthCallbackContent = () => {
         }
       } else {
         userTypeValue = profileData.user_type;
-        // Update email_verified status
+
         try {
           await supabase
             .from("profiles")

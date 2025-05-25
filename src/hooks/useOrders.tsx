@@ -2,10 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-/**
- * Hook to fetch orders with optimized data loading
- * @param isAdmin - Whether the current user is an admin
- */
 export function useOrders(isAdmin = false) {
   const { user } = useAuth();
 
@@ -17,7 +13,6 @@ export function useOrders(isAdmin = false) {
       let orders = [];
 
       if (isAdmin) {
-        // Admin: Fetch all orders
         const { data: allOrders, error } = await supabase
           .from("orders")
           .select("*")
@@ -26,7 +21,6 @@ export function useOrders(isAdmin = false) {
         if (error) throw error;
         orders = allOrders || [];
       } else {
-        // Check if user is a driver
         const { data: userRoles, error: rolesError } = await supabase
           .from("user_roles")
           .select("role")
@@ -41,7 +35,6 @@ export function useOrders(isAdmin = false) {
         const isCustomer = userRoles?.some((role) => role.role === "customer");
 
         if (isDriver) {
-          // Driver: Check if approved first
           const { data: driverData, error: driverError } = await supabase
             .from("drivers")
             .select("status")
@@ -57,10 +50,8 @@ export function useOrders(isAdmin = false) {
             return [];
           }
 
-          // Fetch available orders and driver's assigned orders
           const [availableOrdersResult, assignedOrdersResult] =
             await Promise.all([
-              // Available orders (not assigned to any driver)
               supabase
                 .from("orders")
                 .select("*")
@@ -68,7 +59,6 @@ export function useOrders(isAdmin = false) {
                 .eq("status", "available")
                 .order("created_at", { ascending: false }),
 
-              // Driver's assigned orders
               supabase
                 .from("orders")
                 .select("*")
@@ -96,8 +86,6 @@ export function useOrders(isAdmin = false) {
             ...(assignedOrdersResult.data || []),
           ];
         } else if (isCustomer || userRoles?.length === 0) {
-          // Customer: Fetch their orders with driver information
-          // Also allow users with no roles (for backwards compatibility)
           const { data: customerOrders, error } = await supabase
             .from("orders")
             .select("*")
@@ -107,7 +95,6 @@ export function useOrders(isAdmin = false) {
           if (error) throw error;
           orders = customerOrders || [];
         } else {
-          // Unknown user type
           return [];
         }
       }
@@ -116,7 +103,6 @@ export function useOrders(isAdmin = false) {
         return [];
       }
 
-      // Extract unique customer IDs and driver IDs
       const customerIds = orders
         .map((order) => order.customer_id)
         .filter(Boolean)
@@ -127,12 +113,8 @@ export function useOrders(isAdmin = false) {
         .filter(Boolean)
         .filter((id, index, arr) => arr.indexOf(id) === index);
 
-      console.log("Fetching profiles for:", { customerIds, driverIds });
-
-      // Fetch customer and driver profiles in parallel
       const fetchProfiles = async () => {
         const results = await Promise.allSettled([
-          // Fetch customers
           customerIds.length > 0
             ? supabase
                 .from("profiles")
@@ -140,7 +122,6 @@ export function useOrders(isAdmin = false) {
                 .in("id", customerIds)
             : Promise.resolve({ data: [] }),
 
-          // Fetch drivers
           driverIds.length > 0
             ? supabase
                 .from("profiles")
@@ -171,12 +152,6 @@ export function useOrders(isAdmin = false) {
         console.error("Error fetching drivers:", driverResult.error);
       }
 
-      console.log("Profile fetch results:", {
-        customers: customerResult.data || [],
-        drivers: driverResult.data || [],
-      });
-
-      // Create lookup maps
       const customerMap = (customerResult.data || []).reduce(
         (acc, customer) => {
           acc[customer.id] = customer;
@@ -190,24 +165,9 @@ export function useOrders(isAdmin = false) {
         return acc;
       }, {});
 
-      console.log("Created lookup maps:", {
-        customerMapSize: Object.keys(customerMap).length,
-        driverMapSize: Object.keys(driverMap).length,
-        customerMap,
-        driverMap,
-      });
-
-      // Enrich orders with customer and driver data
       const enrichedOrders = orders.map((order) => {
         const customer = customerMap[order.customer_id] || null;
         const driver = driverMap[order.driver_id] || null;
-
-        console.log(`Order ${order.id}:`, {
-          customer_id: order.customer_id,
-          driver_id: order.driver_id,
-          customer: customer,
-          driver: driver,
-        });
 
         return {
           ...order,
@@ -217,7 +177,6 @@ export function useOrders(isAdmin = false) {
         };
       });
 
-      console.log("Final enriched orders:", enrichedOrders);
       return enrichedOrders;
     },
     enabled: !!user,

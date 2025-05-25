@@ -31,7 +31,6 @@ const ResetPasswordContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Process the URL and handle the session at component mount
   useEffect(() => {
     const handleResetLink = async () => {
       try {
@@ -40,21 +39,13 @@ const ResetPasswordContent = () => {
         const token = queryParams.get("token");
         const type = queryParams.get("type");
 
-        console.log("Reset link parameters:", { token: !!token, type });
-
-        // Check if we have a token parameter
         if (!token) {
-          console.log("Missing token parameter");
           toast.error(t("invalidResetLink") || "Invalid reset link");
           setTimeout(() => {
             navigate("/forgot-password");
           }, 2000);
           return;
         }
-
-        // We have a token, but we won't verify it yet (will do that during password update)
-        // This allows us to show the form even if the token might be expired
-        console.log("Token parameter detected");
       } catch (error) {
         console.error("Error processing reset link:", error);
         toast.error(

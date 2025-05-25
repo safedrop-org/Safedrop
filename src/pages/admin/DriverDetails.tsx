@@ -135,14 +135,12 @@ const DriverDetailsContent = () => {
 
   const checkAdminAccess = async () => {
     try {
-      // Check multiple sources for admin authentication
       const adminAuthLS = localStorage.getItem("adminAuth") === "true";
       const adminAuthCookie = Cookies.get("adminAuth") === "true";
 
-      console.log("Admin auth check:", { adminAuthLS, adminAuthCookie });
+
 
       if (!adminAuthLS && !adminAuthCookie) {
-        // Try to verify admin status from database
         const {
           data: { user },
         } = await supabase.auth.getUser();
@@ -156,7 +154,6 @@ const DriverDetailsContent = () => {
             .maybeSingle();
 
           if (roleData) {
-            // User is admin, set the flags
             localStorage.setItem("adminAuth", "true");
             Cookies.set("adminAuth", "true");
             return true;
@@ -185,7 +182,6 @@ const DriverDetailsContent = () => {
       const hasAccess = await checkAdminAccess();
       if (!hasAccess) return;
 
-      console.log("Fetching driver details for ID:", id);
 
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
@@ -198,7 +194,6 @@ const DriverDetailsContent = () => {
         throw profileError;
       }
 
-      console.log("Profile data fetched:", profileData);
 
       const { data: driverData, error: driverError } = await supabase
         .from("drivers")
@@ -211,7 +206,6 @@ const DriverDetailsContent = () => {
         throw driverError;
       }
 
-      console.log("Driver data fetched:", driverData);
 
       let userEmail = profileData?.email || null;
 
@@ -223,7 +217,6 @@ const DriverDetailsContent = () => {
             .eq("id", id)
             .single();
           userEmail = userData?.email;
-          console.log("Email fetched separately:", userEmail);
         } catch (e) {
           console.error("Could not fetch user email:", e);
         }
@@ -235,7 +228,6 @@ const DriverDetailsContent = () => {
         email: userEmail || profileData?.email,
       };
 
-      console.log("Combined driver data:", combinedData);
       setDriver(combinedData);
     } catch (error) {
       console.error("Error fetching driver details:", error);
@@ -261,14 +253,12 @@ const DriverDetailsContent = () => {
         throw new Error(t("noAdminPermission"));
       }
 
-      console.log("Attempting to update driver status to:", status);
 
       const updateData = {
         status: status,
         rejection_reason: rejectionReason || null,
       };
 
-      console.log("Update data:", updateData);
 
       // Check if driver record exists first
       const { data: existingDriver, error: checkError } = await supabase
@@ -286,7 +276,6 @@ const DriverDetailsContent = () => {
 
       // If driver record exists, update it, otherwise create it
       if (existingDriver) {
-        console.log("Driver record exists, updating...");
         const { data, error } = await supabase
           .from("drivers")
           .update(updateData)
@@ -299,7 +288,6 @@ const DriverDetailsContent = () => {
         }
         result = data;
       } else {
-        console.log("Driver record doesn't exist, creating...");
         const fullData = {
           id: driver.id,
           status: status,
@@ -320,8 +308,6 @@ const DriverDetailsContent = () => {
         }
         result = upsertData;
       }
-
-      console.log("Driver status update successful:", result);
       return result;
     } catch (error: any) {
       console.error("Driver status update failed:", error);

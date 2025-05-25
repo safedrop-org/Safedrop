@@ -29,28 +29,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userType, setUserType] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("Auth Provider initialized");
-
-    // 检查管理员登录状态
     const checkAdminAuth = () => {
       const isAdminLoggedIn = localStorage.getItem("adminAuth") === "true";
       if (isAdminLoggedIn) {
-        console.log("Admin is logged in via localStorage");
         setUserType("admin");
-        // No need to set user/session for admin auth
       }
       return isAdminLoggedIn;
     };
 
-    // 1. First: Set up the auth state listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log("Auth state changed:", event, newSession?.user?.id);
       setSession(newSession);
       setUser(newSession?.user || null);
 
-      // Check admin auth first
       const isAdminLoggedIn = checkAdminAuth();
       if (isAdminLoggedIn) {
         setLoading(false);
@@ -58,8 +50,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (newSession?.user) {
-        console.log("Getting user type for:", newSession.user.id);
-        // Fetch user type after confirming we have a logged-in user
         setTimeout(async () => {
           try {
             const { data } = await supabase
@@ -68,9 +58,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .eq("id", newSession.user.id)
               .single();
 
-            console.log("User type from profile:", data?.user_type);
-
-            // Store authentication flags in localStorage based on user type
             if (data?.user_type === "customer") {
               localStorage.setItem("customerAuth", "true");
             } else if (data?.user_type === "driver") {
@@ -90,10 +77,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    // 2. Then: Fetch the current session after setting up the listener
     const initializeAuth = async () => {
       try {
-        // Check admin auth first
         const isAdminLoggedIn = checkAdminAuth();
         if (isAdminLoggedIn) {
           setLoading(false);
@@ -103,23 +88,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const {
           data: { session: currentSession },
         } = await supabase.auth.getSession();
-        console.log("Initial session fetched:", currentSession?.user?.id);
 
         setSession(currentSession);
         setUser(currentSession?.user || null);
 
         if (currentSession?.user) {
-          console.log("Getting initial user type for:", currentSession.user.id);
-          // Fetch user type
           const { data } = await supabase
             .from("profiles")
             .select("user_type")
             .eq("id", currentSession.user.id)
             .single();
 
-          console.log("Initial user type from profile:", data?.user_type);
-
-          // Set localStorage flags based on user type
           if (data?.user_type === "customer") {
             localStorage.setItem("customerAuth", "true");
           } else if (data?.user_type === "driver") {
@@ -137,16 +116,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     initializeAuth();
 
-    // Clean up subscription when component unmounts
     return () => {
-      console.log("Cleaning up auth subscription");
       subscription.unsubscribe();
     };
   }, []);
 
   // Sign out function
   const signOut = async () => {
-    console.log("Signing out user");
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -212,11 +188,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [userType]);
 
-  console.log("Auth context state:", {
-    user: user?.id,
-    userType,
-    isLoggedIn: !!session || userType === "admin",
-  });
 
   return (
     <AuthContext.Provider

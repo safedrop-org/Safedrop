@@ -87,10 +87,6 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
     setUpdatingStatus(newStatus);
 
     try {
-      console.log(`Updating order ${orderId} status to ${newStatus}`, {
-        driverLocation,
-      });
-
       const orderUpdate: any = {
         status: newStatus,
         driver_location: driverLocation,
@@ -118,8 +114,6 @@ const OrderStatusUpdater: React.FC<OrderStatusUpdaterProps> = ({
           t("status.order_update_failed") || "فشل تحديث حالة الطلب"
         );
       }
-
-      console.log("Order status updated successfully:", data);
 
       let statusMessage = "";
       switch (newStatus) {

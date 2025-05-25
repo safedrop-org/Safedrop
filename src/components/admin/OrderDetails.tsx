@@ -35,8 +35,6 @@ export function OrderDetails({
         throw new Error("معرف الطلب غير صالح");
       }
 
-      console.log("Updating order status", { orderId: order.id, newStatus });
-
       // First, check if the order exists
       const { data: existingOrder, error: checkError } = await supabase
         .from("orders")
@@ -67,7 +65,6 @@ export function OrderDetails({
         throw error;
       }
 
-      console.log("Order status updated successfully:", data);
       toast.success("تم تحديث حالة الطلب بنجاح");
       onStatusUpdate(); // تحديث قائمة الطلبات
       onClose(); // إغلاق النافذة

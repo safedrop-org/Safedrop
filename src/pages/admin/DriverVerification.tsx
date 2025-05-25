@@ -47,8 +47,6 @@ const DriverVerification = () => {
   const [currentTab, setCurrentTab] = useState("pending");
   const navigate = useNavigate();
 
-  console.log(statusCategories);
-
   const fetchDriverStatusCategories = async () => {
     try {
       const { data, error } = await supabase
@@ -65,7 +63,6 @@ const DriverVerification = () => {
   const fetchDrivers = async () => {
     setLoading(true);
     try {
-      console.log("Fetching drivers...");
       const { data: roleMappings, error: roleError } = await supabase
         .from("user_roles")
         .select("user_id")
@@ -76,7 +73,6 @@ const DriverVerification = () => {
       const driverRoleIds = roleMappings
         ? roleMappings.map((r) => r.user_id)
         : [];
-      console.log("Found users with driver role:", driverRoleIds.length);
       let profilesQuery = supabase
         .from("profiles")
         .select("id, first_name, last_name, phone, user_type, email");
@@ -89,7 +85,6 @@ const DriverVerification = () => {
       }
       const { data: profilesData, error: profilesError } = await profilesQuery;
       if (profilesError) throw profilesError;
-      console.log("Profiles data fetched:", profilesData?.length || 0);
       if (!profilesData || profilesData.length === 0) {
         setDrivers([]);
         setLoading(false);
@@ -101,7 +96,6 @@ const DriverVerification = () => {
         .select("id, status")
         .in("id", driverIds);
       if (driversError) throw driversError;
-      console.log("Driver status data fetched:", driversData?.length || 0);
       const driverStatusMap = {};
       if (driversData) {
         driversData.forEach((driver) => {
@@ -114,7 +108,6 @@ const DriverVerification = () => {
           status: driverStatusMap[profile.id] ?? "pending",
         };
       });
-      console.log("Combined driver data:", driversCombined.length);
       setDrivers(driversCombined);
     } catch (error) {
       console.error("Error fetching drivers:", error);
@@ -131,7 +124,6 @@ const DriverVerification = () => {
 
   useEffect(() => {
     const handleFocus = () => {
-      console.log("Window focused - refreshing driver data");
       fetchDrivers();
     };
     window.addEventListener("focus", handleFocus);

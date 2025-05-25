@@ -27,7 +27,6 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       const currentUser = user || session?.user;
 
       if (userType === "admin") {
-        console.log("✅ IMMEDIATE SUCCESS: Admin verified via userType");
         localStorage.setItem("adminAuth", "true");
         Cookies.set("adminAuth", "true", {
           secure: window.location.protocol === "https:",
@@ -43,16 +42,12 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         const hasAdminCookie = Cookies.get("adminAuth") === "true";
 
         if (hasAdminStorage || hasAdminCookie) {
-          console.log(
-            "✅ IMMEDIATE SUCCESS: Admin verified via persistent storage"
-          );
           setAuthStatus("authorized");
           return;
         }
       }
 
       if (currentUser?.user_metadata?.user_type === "admin") {
-        console.log("✅ IMMEDIATE SUCCESS: Admin verified via user metadata");
         localStorage.setItem("adminAuth", "true");
         Cookies.set("adminAuth", "true", {
           secure: window.location.protocol === "https:",
@@ -64,10 +59,6 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
       }
 
       if (currentUser && !authLoading) {
-        console.log(
-          "🔍 User found but no immediate admin verification - checking database..."
-        );
-
         try {
           const { data: profileData, error: profileError } = await supabase
             .from("profiles")
@@ -76,7 +67,6 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
             .maybeSingle();
 
           if (!profileError && profileData?.user_type === "admin") {
-            console.log("✅ Admin verified via profiles table");
             localStorage.setItem("adminAuth", "true");
             Cookies.set("adminAuth", "true", {
               secure: window.location.protocol === "https:",
@@ -87,7 +77,6 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
             return;
           }
 
-          // Check user_roles table as fallback
           const { data: roleData, error: roleError } = await supabase
             .from("user_roles")
             .select("role")
@@ -96,7 +85,6 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
             .maybeSingle();
 
           if (!roleError && roleData) {
-            console.log("✅ Admin verified via user_roles table");
             localStorage.setItem("adminAuth", "true");
             Cookies.set("adminAuth", "true", {
               secure: window.location.protocol === "https:",
@@ -107,12 +95,10 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
             return;
           }
 
-          // Email whitelist as final check
           if (currentUser.email) {
             const adminEmails = ["admin@safedrop.com", "support@safedrop.com"];
 
             if (adminEmails.includes(currentUser.email.toLowerCase())) {
-              console.log("✅ Admin verified via email whitelist");
               localStorage.setItem("adminAuth", "true");
               Cookies.set("adminAuth", "true", {
                 secure: window.location.protocol === "https:",
@@ -123,9 +109,6 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
               return;
             }
           }
-
-          // If we get here, user exists but is not admin
-          console.log("❌ User exists but is not admin");
           setAuthStatus("unauthorized");
           return;
         } catch (error) {
@@ -133,55 +116,38 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         }
       }
 
-      // TIMEOUT MECHANISM - Don't wait forever
-      // If we're still here and auth is not loading, we need to make a decision
       if (!authLoading) {
         if (!currentUser) {
-          console.log("❌ No user found and auth not loading - unauthorized");
           setAuthStatus("unauthorized");
           return;
         }
       }
-
-      // If auth is still loading, wait a bit more but with a timeout
       if (authLoading && !hasRunInitialCheck.current) {
-        console.log("🔄 Auth still loading - setting timeout...");
         hasRunInitialCheck.current = true;
 
-        // Set a reasonable timeout to prevent infinite waiting
         if (checkTimeoutRef.current) {
           clearTimeout(checkTimeoutRef.current);
         }
 
         checkTimeoutRef.current = setTimeout(() => {
-          console.log("⏰ Timeout reached - making final decision");
           const finalUser = user || session?.user;
 
           if (
             userType === "admin" ||
             localStorage.getItem("adminAuth") === "true"
           ) {
-            console.log(
-              "✅ Timeout decision: Authorized via userType or storage"
-            );
             setAuthStatus("authorized");
           } else if (finalUser) {
-            console.log(
-              "🔍 Timeout decision: Have user but need to verify admin status"
-            );
-            // We have a user but need to check if they're admin
             checkAdminAuth();
           } else {
-            console.log("❌ Timeout decision: No user - unauthorized");
             setAuthStatus("unauthorized");
           }
-        }, 3000); // 3 second timeout
+        }, 3000);
 
         return;
       }
     };
 
-    // Always run the check, but with protection against infinite loops
     checkAdminAuth();
 
     // Cleanup timeout on unmount
@@ -195,8 +161,6 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   // Handle unauthorized state with redirect
   useEffect(() => {
     if (authStatus === "unauthorized") {
-      console.log("🔀 Redirecting unauthorized user to login");
-
       // Clear any stale admin data
       localStorage.removeItem("adminAuth");
       Cookies.remove("adminAuth");
@@ -282,8 +246,6 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
     );
   }
 
-  // Success! Render the protected content
-  console.log("🎉 Rendering admin content successfully!");
   return <div className="w-full">{children}</div>;
 };
 

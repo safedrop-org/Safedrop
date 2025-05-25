@@ -232,26 +232,15 @@ const DriverOrdersContent = () => {
     }
   };
 
-  // Handle availability toggle
   const handleAvailabilityToggle = () => {
     if (updatingAvailability) return;
     const newAvailability = !isAvailable;
     updateDriverAvailability(newAvailability);
   };
 
-  useEffect(() => {
-    if (orders && orders.length > 0) {
-      console.log("Orders loaded:", orders.length, "orders");
-      console.log("Orders data:", orders);
-    } else {
-      console.log("No orders found or orders array is empty");
-    }
-  }, [orders]);
-
-  // Filter orders more safely
   const availableOrders = Array.isArray(orders)
     ? orders.filter(
-        (order) => !order.driver_id && order.status === "available" && order.id // Ensure order has an ID
+        (order) => !order.driver_id && order.status === "available" && order.id
       )
     : [];
 
@@ -260,7 +249,7 @@ const DriverOrdersContent = () => {
         (order) =>
           order.driver_id === user?.id &&
           ["picked_up", "in_transit", "approaching"].includes(order.status) &&
-          order.id // Ensure order has an ID
+          order.id
       )
     : [];
 
@@ -269,16 +258,9 @@ const DriverOrdersContent = () => {
         (order) =>
           order.driver_id === user?.id &&
           order.status === "completed" &&
-          order.id // Ensure order has an ID
+          order.id
       )
     : [];
-
-  console.log("Filtered orders:", {
-    available: availableOrders.length,
-    current: currentOrders.length,
-    completed: completedOrders.length,
-    total: orders?.length || 0,
-  });
 
   useEffect(() => {
     if (currentOrders.length > 0) {
@@ -289,7 +271,6 @@ const DriverOrdersContent = () => {
 
   const handleAcceptOrder = async (id: string) => {
     if (isProcessing) {
-      console.log("Already processing, skipping...");
       return;
     }
 
@@ -303,9 +284,6 @@ const DriverOrdersContent = () => {
     setIsProcessing(true);
 
     try {
-      console.log("Accepting order:", id, "with driver:", user.id);
-
-      // Check if order is still available
       const { data: orderCheck, error: checkError } = await supabase
         .from("orders")
         .select("id, status, driver_id")
@@ -337,7 +315,6 @@ const DriverOrdersContent = () => {
         return;
       }
 
-      // Update order with driver assignment
       const { data: updateData, error: updateError } = await supabase
         .from("orders")
         .update({
@@ -354,8 +331,6 @@ const DriverOrdersContent = () => {
         return;
       }
 
-      console.log("Order update response:", updateData);
-
       if (!updateData || updateData.length === 0) {
         console.error("No data returned from update operation");
         toast.error(
@@ -371,11 +346,9 @@ const DriverOrdersContent = () => {
       );
       setLastAcceptedOrderId(id);
 
-      // Refresh orders data
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       await refetch();
 
-      // Switch to current orders tab
       setActiveTab("current");
     } catch (err) {
       console.error("Error accepting order:", err);
@@ -385,7 +358,6 @@ const DriverOrdersContent = () => {
     }
   };
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="flex h-screen bg-gray-50">
@@ -402,7 +374,6 @@ const DriverOrdersContent = () => {
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <div className="flex h-screen bg-gray-50">
@@ -427,7 +398,6 @@ const DriverOrdersContent = () => {
       <DriverSidebar />
 
       <div className="flex-1 flex flex-col overflow-auto">
-        {/* RESPONSIVE NAVBAR - Only changes here */}
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-2 sm:py-4">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
@@ -435,7 +405,6 @@ const DriverOrdersContent = () => {
                 {t("manageOrders")}
               </h1>
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                {/* Location Status */}
                 <div className="flex items-center gap-2">
                   <MapPin
                     className={`h-4 w-4 ${
@@ -561,7 +530,6 @@ const DriverOrdersContent = () => {
               onValueChange={setActiveTab}
               className="w-full"
             >
-              {/* RESPONSIVE TABS - Only changes here */}
               <TabsList className="w-full grid grid-cols-3 mb-6 h-auto">
                 <TabsTrigger
                   value="current"

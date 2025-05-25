@@ -36,7 +36,6 @@ const AdminLoginContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Memoized cookie functions
   const setAuthCookie = useCallback((name, value) => {
     Cookies.set(name, value, COOKIE_OPTIONS);
   }, []);
@@ -46,23 +45,18 @@ const AdminLoginContent = () => {
     Cookies.remove("adminEmail");
   }, []);
 
-  // Check for logout parameter and clear admin cookies if present
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const forceLogout = queryParams.get("logout") === "true";
 
     if (forceLogout) {
-      console.log("Force logout detected in admin login, clearing admin auth");
       clearAuthCookies();
-      // Remove the logout parameter
       navigate("/admin", { replace: true });
       return;
     }
 
-    // Check if admin is already logged in using cookies
     const isAdminLoggedIn = Cookies.get("adminAuth") === "true";
     if (isAdminLoggedIn) {
-      console.log("Admin already logged in, redirecting to dashboard");
       navigate("/admin/dashboard", { replace: true });
     }
   }, [navigate, location, clearAuthCookies]);
@@ -81,15 +75,11 @@ const AdminLoginContent = () => {
 
     try {
       if (password === ADMIN_PASSWORD) {
-        console.log("Admin password verified");
-
-        // Store admin authentication info in cookies instead of localStorage
         setAuthCookie("adminAuth", "true");
         setAuthCookie("adminEmail", import.meta.env.VITE_ADMIN_EMAIL);
 
         const email = import.meta.env.VITE_ADMIN_EMAIL;
 
-        // Check if user exists in database
         const { data: existingUser } = await supabase
           .from("profiles")
           .select("id")
@@ -97,8 +87,6 @@ const AdminLoginContent = () => {
           .maybeSingle();
 
         if (!existingUser) {
-          console.log("Creating admin profile...");
-          // Create admin profile in database
           const { error: profileError } = await supabase
             .from("profiles")
             .insert({
@@ -112,16 +100,10 @@ const AdminLoginContent = () => {
 
           if (profileError) {
             console.error("Error creating admin profile:", profileError);
-          } else {
-            console.log("Admin profile created successfully");
           }
-        } else {
-          console.log("Admin profile already exists");
         }
 
-        // Check for admin role and add if not exists
         try {
-          console.log("Checking admin role...");
           const { data: existingRole } = await supabase
             .from("user_roles")
             .select("id")
@@ -130,7 +112,6 @@ const AdminLoginContent = () => {
             .maybeSingle();
 
           if (!existingRole) {
-            console.log("Creating admin role...");
             const { error: roleError } = await supabase
               .from("user_roles")
               .insert({
@@ -140,11 +121,7 @@ const AdminLoginContent = () => {
 
             if (roleError) {
               console.error("Error assigning admin role:", roleError);
-            } else {
-              console.log("Admin role created successfully");
             }
-          } else {
-            console.log("Admin role already exists");
           }
         } catch (roleError) {
           console.error("Error checking/creating admin role:", roleError);
@@ -152,7 +129,6 @@ const AdminLoginContent = () => {
 
         toast.success(t("loginSuccess"));
 
-        // Use direct navigation for more reliable redirect
         navigate("/admin/dashboard", { replace: true });
       } else {
         throw new Error(t("invalidCredentials"));

@@ -213,7 +213,6 @@ const ComplaintFormModal = ({ trigger }) => {
         }));
 
         await supabase.from("driver_notifications").insert(adminNotifications);
-        console.log(`Created notifications for ${admins.length} admins`);
       } else {
         console.warn("No admin users found for notifications");
       }
@@ -256,8 +255,6 @@ const ComplaintFormModal = ({ trigger }) => {
         updated_at: new Date().toISOString(),
       };
 
-      console.log("Submitting complaint:", complaintData);
-
       const { data: complaint, error: complaintError } = await supabase
         .from("complaints")
         .insert(complaintData)
@@ -269,7 +266,6 @@ const ComplaintFormModal = ({ trigger }) => {
         throw complaintError;
       }
 
-      console.log("Complaint created successfully:", complaint);
 
       // Get user profile for notifications
       const { data: userProfile } = await supabase
