@@ -115,11 +115,15 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
     const origin = `${driverLocation.lat},${driverLocation.lng}`;
     const destination = order.pickup_location.address;
 
-    fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(
-      origin
-    )}
-    &destination=${encodeURIComponent(destination)},SA
-    &mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`)
+    const languageParam = language === "ar" ? "ar" : "en";
+
+    fetch(
+      `/google-api/maps/api/directions/json?origin=${encodeURIComponent(
+        origin
+      )}&destination=${encodeURIComponent(
+        destination
+      )},SA&mode=driving&language=${languageParam}&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`
+    )
       .then((res) => res.json())
       .then((res) => {
         if (res.status === "OK") {
@@ -128,7 +132,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
         }
       })
       .catch((error) => console.log("error", error));
-  }, [driverLocation]);
+  }, [driverLocation, language]);
 
   const getStatusLabel = (status: string) => {
     return t(`status.${status}`);
