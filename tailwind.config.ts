@@ -108,7 +108,6 @@ export default {
       const newUtilities = {
         ".reverse-text": {
           direction: "rtl",
-          "unicode-bidi": "bidi-override",
         },
       };
       addUtilities(newUtilities);
