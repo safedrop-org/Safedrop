@@ -634,7 +634,7 @@ const DriverDashboardContent = () => {
                   <Button
                     variant="outline"
                     className="h-auto py-4 flex items-center justify-center gap-2"
-                    onClick={() => navigate("/faq")}
+                    onClick={() => navigate("/driver/support")}
                   >
                     <HelpCircle className="h-5 w-5" />
                     <span>{t("faq")}</span>

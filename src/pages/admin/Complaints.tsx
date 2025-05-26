@@ -1,4 +1,4 @@
-// Complete Admin Complaints Component with Full Translation Support - FIXED
+// Enhanced Admin Complaints Component with Driver/Customer Notification Handling
 
 import React, { useState } from "react";
 import {
@@ -24,6 +24,8 @@ import {
   FileText,
   Hash,
   AlertTriangle,
+  Car,
+  ShoppingCart,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -87,6 +89,7 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
       order: t("issueTypeOrder"),
       payment: t("issueTypePayment"),
       driver: t("issueTypeDriver"),
+      customer: t("issueTypeCustomer"),
       other: t("issueTypeOther"),
     };
     return types[type as keyof typeof types] || type;
@@ -98,6 +101,7 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
       order: "bg-purple-100 text-purple-800 border-purple-200",
       payment: "bg-green-100 text-green-800 border-green-200",
       driver: "bg-orange-100 text-orange-800 border-orange-200",
+      customer: "bg-teal-100 text-teal-800 border-teal-200",
       other: "bg-gray-100 text-gray-800 border-gray-200",
     };
     return (
@@ -106,36 +110,119 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
     );
   };
 
+  const getUserTypeBadge = (userType: string) => {
+    if (userType === "driver") {
+      return (
+        <Badge className="bg-blue-100 text-blue-800 border-blue-200 gap-1">
+          <Car className="h-3 w-3" />
+          {t("driver")}
+        </Badge>
+      );
+    } else if (userType === "customer") {
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-200 gap-1">
+          <ShoppingCart className="h-3 w-3" />
+          {t("customer")}
+        </Badge>
+      );
+    }
+    return (
+      <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+        {userType || t("notSpecified")}
+      </Badge>
+    );
+  };
+
+  const sendNotificationBasedOnUserType = async (
+    userId: string,
+    userType: string,
+    title: string,
+    message: string,
+    notificationType: string
+  ) => {
+    try {
+      const notificationData = {
+        title,
+        message,
+        notification_type: notificationType,
+        read: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      if (userType === "driver") {
+        // Send to driver_notifications table
+        await supabase.from("driver_notifications").insert({
+          ...notificationData,
+          driver_id: userId,
+        });
+      } else if (userType === "customer") {
+        // Send to customer_notifications table
+        await supabase.from("customer_notifications").insert({
+          ...notificationData,
+          customer_id: userId,
+        });
+      } else {
+        // Fallback: try both tables
+        console.warn(
+          `Unknown user type: ${userType}, trying both notification tables`
+        );
+
+        // Try driver table first
+        try {
+          await supabase.from("driver_notifications").insert({
+            ...notificationData,
+            driver_id: userId,
+          });
+        } catch (driverError) {
+          console.log(
+            "Failed to insert into driver_notifications, trying customer_notifications"
+          );
+
+          // If driver fails, try customer
+          await supabase.from("customer_notifications").insert({
+            ...notificationData,
+            customer_id: userId,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+      throw error;
+    }
+  };
+
   const markAsResolved = async () => {
     if (!complaint) return;
 
     setIsLoading(true);
     try {
-      // Update complaint status using the correct ID field
+      // Update complaint status
       const { error } = await supabase
         .from("complaints")
         .update({
           status: "resolved",
           updated_at: new Date().toISOString(),
         })
-        .eq("id", complaint.id); // Use 'id' instead of 'complaint_number'
+        .eq("id", complaint.id);
 
       if (error) throw error;
 
-      // Insert response if provided - using complaint_id instead of complaint_number
+      // Insert response if provided
       if (response.trim()) {
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
         await supabase.from("complaint_responses").insert({
-          complaint_id: complaint.id, // Use complaint.id instead of complaint.complaint_number
+          complaint_id: complaint.id,
           admin_id: user?.id,
           response: response.trim(),
           created_at: new Date().toISOString(),
         });
       }
 
+      // Create notification message
       const notificationMessage = response.trim()
         ? t("complaintResolvedWithResponse")
             .replace("{complaintNumber}", complaint.complaint_number.toString())
@@ -145,15 +232,16 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
             .replace("{complaintNumber}", complaint.complaint_number.toString())
             .replace("{issueType}", getIssueTypeLabel(complaint.issue_type));
 
-      await supabase.from("driver_notifications").insert({
-        driver_id: complaint.user_id,
-        title: t("complaintResolvedTitle"),
-        message: notificationMessage,
-        notification_type: "complaint_resolved",
-        read: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
+      // Send notification based on user type
+      const userType = complaint.profiles?.user_type || "customer"; // Default to customer if not specified
+
+      await sendNotificationBasedOnUserType(
+        complaint.user_id,
+        userType,
+        t("complaintResolvedTitle"),
+        notificationMessage,
+        "complaint_resolved"
+      );
 
       toast.success(t("complaintStatusUpdated"));
       queryClient.invalidateQueries({ queryKey: ["complaints"] });
@@ -185,13 +273,16 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
               <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">
                 {t("userName")}
               </p>
-              <p className="font-medium text-sm sm:text-base">
-                {complaint.profiles
-                  ? `${complaint.profiles.first_name || ""} ${
-                      complaint.profiles.last_name || ""
-                    }`.trim()
-                  : t("notAvailable")}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-medium text-sm sm:text-base">
+                  {complaint.profiles
+                    ? `${complaint.profiles.first_name || ""} ${
+                        complaint.profiles.last_name || ""
+                      }`.trim()
+                    : t("notAvailable")}
+                </p>
+                {getUserTypeBadge(complaint.profiles?.user_type || "")}
+              </div>
             </div>
             <div>
               <p className="text-xs sm:text-sm font-medium text-gray-500 mb-1">
@@ -312,6 +403,16 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   {t("responseNotificationNote")}
+                  {complaint.profiles?.user_type && (
+                    <span className="font-medium">
+                      {" "}
+                      (
+                      {complaint.profiles.user_type === "driver"
+                        ? t("driverNotification")
+                        : t("customerNotification")}
+                      )
+                    </span>
+                  )}
                 </p>
               </div>
 
@@ -335,18 +436,20 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
   );
 };
 
-// Mobile Card Component
+// Mobile Card Component with enhanced user type display
 const MobileComplaintCard: React.FC<{
   complaint: ComplaintType;
   onViewComplaint: (complaint: ComplaintType) => void;
 }> = ({ complaint, onViewComplaint }) => {
   const { t, language } = useLanguage();
+
   const getIssueTypeLabel = (type: string) => {
     const types = {
       login: t("issueTypeLogin"),
       order: t("issueTypeOrder"),
       payment: t("issueTypePayment"),
       driver: t("issueTypeDriver"),
+      customer: t("issueTypeCustomer"),
       other: t("issueTypeOther"),
     };
     return types[type as keyof typeof types] || type;
@@ -358,11 +461,35 @@ const MobileComplaintCard: React.FC<{
       order: "bg-purple-100 text-purple-800 border-purple-200",
       payment: "bg-green-100 text-green-800 border-green-200",
       driver: "bg-orange-100 text-orange-800 border-orange-200",
+      customer: "bg-teal-100 text-teal-800 border-teal-200",
       other: "bg-gray-100 text-gray-800 border-gray-200",
     };
     return (
       styles[type as keyof typeof styles] ||
       "bg-gray-100 text-gray-800 border-gray-200"
+    );
+  };
+
+  const getUserTypeBadge = (userType: string) => {
+    if (userType === "driver") {
+      return (
+        <Badge className="bg-blue-100 text-blue-800 border-blue-200 gap-1 text-xs">
+          <Car className="h-3 w-3" />
+          {t("driver")}
+        </Badge>
+      );
+    } else if (userType === "customer") {
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-200 gap-1 text-xs">
+          <ShoppingCart className="h-3 w-3" />
+          {t("customer")}
+        </Badge>
+      );
+    }
+    return (
+      <Badge className="bg-gray-100 text-gray-800 border-gray-200 text-xs">
+        {userType || t("notSpecified")}
+      </Badge>
     );
   };
 
@@ -416,12 +543,15 @@ const MobileComplaintCard: React.FC<{
 
           {/* User Info */}
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-              <User className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">{t("user")}:</span>
-              <span className="font-medium">
-                {getUserName(complaint.profiles)}
-              </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm">
+                <User className="h-4 w-4 text-gray-500" />
+                <span className="text-gray-600">{t("user")}:</span>
+                <span className="font-medium">
+                  {getUserName(complaint.profiles)}
+                </span>
+              </div>
+              {getUserTypeBadge(complaint.profiles?.user_type || "")}
             </div>
 
             <div className="flex items-start gap-2 text-sm">
@@ -518,6 +648,7 @@ const ResponsiveComplaintsTable: React.FC<ComplaintsTableProps> = ({
       order: t("issueTypeOrder"),
       payment: t("issueTypePayment"),
       driver: t("issueTypeDriver"),
+      customer: t("issueTypeCustomer"),
       other: t("issueTypeOther"),
     };
     return types[type as keyof typeof types] || type;
@@ -529,11 +660,35 @@ const ResponsiveComplaintsTable: React.FC<ComplaintsTableProps> = ({
       order: "bg-purple-100 text-purple-800 border-purple-200",
       payment: "bg-green-100 text-green-800 border-green-200",
       driver: "bg-orange-100 text-orange-800 border-orange-200",
+      customer: "bg-teal-100 text-teal-800 border-teal-200",
       other: "bg-gray-100 text-gray-800 border-gray-200",
     };
     return (
       styles[type as keyof typeof styles] ||
       "bg-gray-100 text-gray-800 border-gray-200"
+    );
+  };
+
+  const getUserTypeBadge = (userType: string) => {
+    if (userType === "driver") {
+      return (
+        <Badge className="bg-blue-100 text-blue-800 border-blue-200 gap-1 text-xs">
+          <Car className="h-3 w-3" />
+          {t("driver")}
+        </Badge>
+      );
+    } else if (userType === "customer") {
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-200 gap-1 text-xs">
+          <ShoppingCart className="h-3 w-3" />
+          {t("customer")}
+        </Badge>
+      );
+    }
+    return (
+      <Badge className="bg-gray-100 text-gray-800 border-gray-200 text-xs">
+        {userType || t("notSpecified")}
+      </Badge>
     );
   };
 
@@ -585,6 +740,9 @@ const ResponsiveComplaintsTable: React.FC<ComplaintsTableProps> = ({
                   {t("user")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("userType")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
                   {t("email")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
@@ -614,6 +772,9 @@ const ResponsiveComplaintsTable: React.FC<ComplaintsTableProps> = ({
                     >
                       {getUserName(complaint.profiles)}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {getUserTypeBadge(complaint.profiles?.user_type || "")}
                   </TableCell>
                   <TableCell className="text-center">
                     <div
@@ -681,7 +842,7 @@ const ResponsiveComplaintsTable: React.FC<ComplaintsTableProps> = ({
   );
 };
 
-// Main Complaints Component - FIXED WITH AUTO-RELOAD
+// Main Complaints Component - Enhanced with customer support
 const Complaints: React.FC = () => {
   const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
@@ -724,12 +885,12 @@ const Complaints: React.FC = () => {
     cacheTime: 0, // Don't cache the data
   });
 
-  // Add useEffect to refetch on mount (like in orders component)
+  // Add useEffect to refetch on mount
   React.useEffect(() => {
     refetch();
   }, [refetch]);
 
-  // Add error handling like in orders
+  // Add error handling
   React.useEffect(() => {
     if (error) {
       console.error("Error fetching complaints:", error);
@@ -756,6 +917,7 @@ const Complaints: React.FC = () => {
     const headers = [
       t("complaintNumber"),
       t("userName"),
+      t("userType"),
       t("email"),
       t("issueType"),
       t("problemDescription"),
@@ -771,6 +933,7 @@ const Complaints: React.FC = () => {
             complaint.profiles.last_name || ""
           }`.trim()
         : t("notAvailable"),
+      complaint.profiles?.user_type || t("notSpecified"),
       complaint.profiles?.email || t("notAvailable"),
       complaint.issue_type || "",
       complaint.description || "",
@@ -901,6 +1064,9 @@ const Complaints: React.FC = () => {
                     {t("issueTypePayment")}
                   </SelectItem>
                   <SelectItem value="driver">{t("issueTypeDriver")}</SelectItem>
+                  <SelectItem value="customer">
+                    {t("issueTypeCustomer")}
+                  </SelectItem>
                   <SelectItem value="other">{t("issueTypeOther")}</SelectItem>
                 </SelectContent>
               </Select>

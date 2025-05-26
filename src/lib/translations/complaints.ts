@@ -34,6 +34,10 @@ export const complaints: TranslationSection = {
     ar: "السائق",
     en: "Driver",
   },
+  issueTypeCustomer: {
+    ar: "العميل",
+    en: "Customer",
+  },
   issueTypeOther: {
     ar: "أخرى",
     en: "Other",
@@ -145,6 +149,40 @@ export const complaints: TranslationSection = {
   requiredField: {
     ar: "*",
     en: "*",
+  },
+
+  // User Types
+  driver: {
+    ar: "سائق",
+    en: "Driver",
+  },
+  customer: {
+    ar: "عميل",
+    en: "Customer",
+  },
+  userType: {
+    ar: "نوع المستخدم",
+    en: "User Type",
+  },
+
+  // Notification type indicators
+  driverNotification: {
+    ar: "إشعار السائق",
+    en: "Driver Notification",
+  },
+  customerNotification: {
+    ar: "إشعار العميل",
+    en: "Customer Notification",
+  },
+
+  // General terms
+  notSpecified: {
+    ar: "غير محدد",
+    en: "Not Specified",
+  },
+  notAvailable: {
+    ar: "غير متوفر",
+    en: "Not Available",
   },
 
   // Admin Complaints Management - Page Title and Header

@@ -10,6 +10,7 @@ import {
   LogOut,
   ShieldQuestion,
   Menu,
+  Bell,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,11 @@ const CustomerSidebar = () => {
       path: "/customer/support",
       icon: <MessageSquare className="h-5 w-5" />,
       label: t("Technical Support"),
+    },
+    {
+      path: "/customer/notifications",
+      icon: <Bell className="h-5 w-5" />,
+      label: t("notifications"),
     },
     {
       path: "/customer/feedback",

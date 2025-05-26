@@ -25,6 +25,58 @@ export const supportTranslations: TranslationSection = {
     ar: "الدعم الفني",
     en: "Support",
   },
+
+  // Driver FAQ Questions and Answers
+  startAcceptingOrdersQuestion: {
+    ar: "كيف أبدأ في استقبال الطلبات؟",
+    en: "How do I start accepting orders?",
+  },
+  startAcceptingOrdersAnswer: {
+    ar: "بعد تفعيل حسابك ورفع المستندات المطلوبة، يمكنك تصفح الطلبات المتاحة في لوحة التحكم واختيار ما يناسبك منها.",
+    en: "Once your account is activated and the required documents are submitted, you can browse available orders in the dashboard and choose the ones that suit you.",
+  },
+  accountActivationRequirementsQuestion: {
+    ar: "ما الشروط المطلوبة لتفعيل الحساب؟",
+    en: "What are the requirements to activate my account?",
+  },
+  accountActivationRequirementsAnswer: {
+    ar: "• صورة الهوية الوطنية\n• رخصة قيادة سارية\n• استمارة المركبة\n• صورة شخصية واضحة\n• اجتياز التحقق الأمني (إن وُجد)",
+    en: "• A valid national ID\n• A valid driver's license\n• Vehicle registration\n• A clear personal photo\n• Passing security verification (if applicable)",
+  },
+  earningsTransferQuestion: {
+    ar: "متى يتم تحويل أرباحي؟",
+    en: "When will my earnings be transferred?",
+  },
+  earningsTransferAnswer: {
+    ar: "يتم تحويل الأرباح أسبوعيًا أو شهريًا إلى الحساب البنكي المسجل، وذلك بعد خصم عمولة المنصة.",
+    en: "Earnings are transferred weekly or monthly to your registered bank account, after deducting the platform's commission.",
+  },
+  accountSuspensionQuestion: {
+    ar: "ما الحالات التي تؤدي إلى إيقاف الحساب؟",
+    en: "What can lead to account suspension?",
+  },
+  accountSuspensionAnswer: {
+    ar: "• التأخر في تنفيذ الطلبات\n• التعامل غير اللائق مع العملاء\n• تكرار البلاغات\n• تقديم معلومات غير صحيحة",
+    en: "• Delays in completing orders\n• Inappropriate behavior with customers\n• Repeated complaints\n• Providing false or inaccurate information",
+  },
+  ignoreOrderQuestion: {
+    ar: "هل يمكنني تجاهل الطلب أو عدم قبوله؟",
+    en: "Can I ignore or reject an order?",
+  },
+  ignoreOrderAnswer: {
+    ar: "نعم، الطلبات لا تُفرض عليك. يمكنك ببساطة تجاهل الطلب إذا لم يناسبك، ولكن يُفضل اختيار الطلبات التي تستطيع تنفيذها بموثوقية للحفاظ على تقييمك.",
+    en: "Yes, orders are not assigned to you automatically. You can simply ignore an order if it doesn't suit you. However, it's recommended to accept orders you can complete reliably to maintain a good rating.",
+  },
+  cantFindCustomerQuestion: {
+    ar: "ماذا أفعل إذا لم أتمكن من العثور على العميل؟",
+    en: "What should I do if I can't find the customer?",
+  },
+  cantFindCustomerAnswer: {
+    ar: 'جرّب التواصل معه عبر الهاتف أو الوسيلة المتاحة. إذا لم يرد، استخدم خيار "إبلاغ عن مشكلة" من داخل الطلب.',
+    en: 'Try contacting the customer via phone or the available communication method. If there is no response, use the "Report a Problem" option within the order.',
+  },
+
+  // Legacy FAQ (keeping for backward compatibility)
   withdrawEarningsQuestion: {
     ar: "كيف أسحب أرباحي؟",
     en: "How do I withdraw my earnings?",
@@ -49,6 +101,7 @@ export const supportTranslations: TranslationSection = {
     ar: "في حالة مواجهة أي مشكلة، يرجى التواصل مع فريق الدعم الفني عبر البريد الإلكتروني أو رقم الهاتف المتوفر في صفحة الدعم. سيساعدك فريقنا في حل المشكلة في أقرب وقت ممكن.",
     en: "If you encounter any issues, please contact our technical support team via email or phone number available on the support page. Our team will help you resolve the issue as soon as possible.",
   },
+
   // Support Page
   callUs: {
     ar: "اتصل بنا",
@@ -70,6 +123,8 @@ export const supportTranslations: TranslationSection = {
     ar: "الأسئلة الشائعة",
     en: "Frequently Asked Questions",
   },
+
+  // Customer FAQ
   trackOrder: {
     ar: "كيف أتابع حالة طلبي؟",
     en: "How do I track my order?",

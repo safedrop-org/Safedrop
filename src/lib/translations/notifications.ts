@@ -61,6 +61,12 @@ export const notifications: TranslationSection = {
     en: "Notifications will appear here when they arrive",
   },
 
+  // Customer Notifications Page - New keys
+  customerNotificationsPageTitle: {
+    ar: "الإشعارات",
+    en: "Notifications",
+  },
+
   // Driver Dashboard - Authentication and Loading
   loading: {
     ar: "جاري التحميل",
@@ -129,6 +135,34 @@ export const notifications: TranslationSection = {
   driverDashboardTitle: {
     ar: "لوحة تحكم السائق",
     en: "Driver Dashboard",
+  },
+
+  // Customer Dashboard - Main Content
+  customerDashboardTitle: {
+    ar: "لوحة تحكم العميل",
+    en: "Customer Dashboard",
+  },
+
+  // Dashboard sections
+  overview: {
+    ar: "نظرة عامة",
+    en: "Overview",
+  },
+  newOrder: {
+    ar: "طلب جديد",
+    en: "New Order",
+  },
+  totalOrders: {
+    ar: "إجمالي الطلبات",
+    en: "Total Orders",
+  },
+  inProgress: {
+    ar: "قيد التنفيذ",
+    en: "In Progress",
+  },
+  completed: {
+    ar: "مكتمل",
+    en: "Completed",
   },
 
   // Driver Dashboard - Statistics Cards
@@ -207,6 +241,50 @@ export const notifications: TranslationSection = {
     en: "Report Issue",
   },
 
+  // Customer specific sections
+  recentOrders: {
+    ar: "الطلبات الأخيرة",
+    en: "Recent Orders",
+  },
+  viewAllOrders: {
+    ar: "عرض جميع الطلبات",
+    en: "View All Orders",
+  },
+  orderNumber: {
+    ar: "رقم الطلب",
+    en: "Order Number",
+  },
+  noOrdersYet: {
+    ar: "لا توجد طلبات بعد",
+    en: "No orders yet",
+  },
+  createFirstOrder: {
+    ar: "أنشئ طلبك الأول وابدأ رحلة التوصيل الآمن",
+    en: "Create your first order and start your safe delivery journey",
+  },
+  createOrder: {
+    ar: "إنشاء طلب",
+    en: "Create Order",
+  },
+
+  // Order statuses
+  pending: {
+    ar: "معلق",
+    en: "Pending",
+  },
+  assigned: {
+    ar: "مُسند",
+    en: "Assigned",
+  },
+  in_transit: {
+    ar: "في الطريق",
+    en: "In Transit",
+  },
+  cancelled: {
+    ar: "ملغي",
+    en: "Cancelled",
+  },
+
   // Additional hardcoded strings from the component
   unauthorizedAccess: {
     ar: "غير مصرح بالدخول",
@@ -223,5 +301,11 @@ export const notifications: TranslationSection = {
   errorFetchingAccountData: {
     ar: "حدث خطأ عند جلب بيانات الحساب",
     en: "Error occurred while fetching account data",
+  },
+
+  // Error messages
+  errorLoadingData: {
+    ar: "خطأ في تحميل البيانات",
+    en: "Error loading data",
   },
 };

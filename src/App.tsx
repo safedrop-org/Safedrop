@@ -66,6 +66,7 @@ import { useAuth } from "@/components/auth/AuthContext";
 import ProtectedAdminRoute from "@/components/admin/ProtectedAdminRoute";
 import { supabase } from "@/integrations/supabase/client";
 import DriverTerms from "./pages/DriverTerms";
+import CustomerNotifications from "./pages/customer/CustomerNotifications";
 
 // Protected Routes for Customer
 const ProtectedCustomerRoute = ({ children }) => {
@@ -315,6 +316,7 @@ const AppContent = () => {
           <Route path="billing" element={<CustomerBilling />} />
           <Route path="profile" element={<CustomerProfile />} />
           <Route path="support" element={<CustomerSupport />} />
+          <Route path="notifications" element={<CustomerNotifications />} />
           <Route path="feedback" element={<CustomerFeedback />} />
           <Route path="settings" element={<CustomerSettings />} />
           <Route

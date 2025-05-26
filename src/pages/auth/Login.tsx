@@ -127,6 +127,23 @@ const LoginContent = () => {
     Cookies.remove("driverAuth");
   };
 
+  // Check if user has admin role from user_roles table
+  const checkAdminRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .single();
+
+      return !error && data?.role === "admin";
+    } catch (error) {
+      console.log("No admin role found for user:", userId);
+      return false;
+    }
+  };
+
   // Check login status
   const checkLoginStatus = useCallback(async () => {
     try {
@@ -154,15 +171,6 @@ const LoginContent = () => {
         return;
       }
 
-      // Admin special handling
-      if (
-        session.user.email?.toLowerCase() === import.meta.env.VITE_ADMIN_EMAIL
-      ) {
-        setAuthCookie("admin", "true", session.user.email);
-        window.location.href = "/admin/dashboard";
-        return;
-      }
-
       // Check email verification
       if (!session.user.email_confirmed_at) {
         navigate("/login", {
@@ -172,7 +180,16 @@ const LoginContent = () => {
         return;
       }
 
-      // Get user type from metadata or profile
+      // Check if user has admin role first
+      const isAdmin = await checkAdminRole(session.user.id);
+
+      if (isAdmin) {
+        setAuthCookie("admin", "true", session.user.email);
+        window.location.href = "/admin/dashboard";
+        return;
+      }
+
+      // Get user type from metadata or profile for non-admin users
       const userTypeValue = await getUserType(session.user);
 
       if (!userTypeValue) {
@@ -202,9 +219,15 @@ const LoginContent = () => {
           data?.status === "approved"
             ? "/driver/dashboard"
             : "/driver/pending-approval";
-      } else if (userTypeValue === "admin") {
-        setAuthCookie("admin", "true", session.user.email);
-        window.location.href = "/admin/dashboard";
+      } else {
+        // If not admin and no valid user type, sign out
+        await supabase.auth.signOut();
+        clearAuthCookies();
+        setStatusMessage({
+          text: t("unknownUserType"),
+          type: "error",
+        });
+        setIsCheckingSession(false);
       }
     } catch (error) {
       clearAuthCookies();
@@ -258,26 +281,6 @@ const LoginContent = () => {
     return null;
   };
 
-  // Check driver status and redirect accordingly
-  const checkDriverStatusAndRedirect = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("drivers")
-        .select("status")
-        .eq("id", userId)
-        .maybeSingle();
-
-      navigate(
-        data?.status === "approved"
-          ? "/driver/dashboard"
-          : "/driver/pending-approval",
-        { replace: true }
-      );
-    } catch (err) {
-      navigate("/driver/pending-approval", { replace: true });
-    }
-  };
-
   // Check login status on mount
   useEffect(() => {
     checkLoginStatus();
@@ -301,36 +304,7 @@ const LoginContent = () => {
     }
 
     try {
-      // Admin login special handling
-      if (email.toLowerCase() === import.meta.env.VITE_ADMIN_EMAIL) {
-        if (password !== import.meta.env.VITE_ADMIN_PASSWORD) {
-          setStatusMessage({
-            text: t("invalidCredentials"),
-            type: "error",
-          });
-          setIsLoading(false);
-          return;
-        }
-
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-
-        // Set cookie first
-        setAuthCookie("admin", "true", email);
-
-        // Use immediate window location change for admin to prevent race conditions
-        toast.success(t("loginAsAdmin"));
-        setTimeout(() => {
-          window.location.href = "/admin/dashboard";
-        }, 100);
-        return;
-      }
-
-      // Regular user login
+      // Regular authentication for all users (including admin)
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -379,7 +353,19 @@ const LoginContent = () => {
         return;
       }
 
-      // Get user type
+      // First check if user has admin role
+      const isAdmin = await checkAdminRole(data.user.id);
+
+      if (isAdmin) {
+        setAuthCookie("admin", "true", email);
+        toast.success(t("loginAsAdmin"));
+        setTimeout(() => {
+          window.location.href = "/admin/dashboard";
+        }, 100);
+        return;
+      }
+
+      // If not admin, get user type for regular users
       const userTypeValue = await getUserType(data.user);
 
       if (!userTypeValue) {
@@ -393,13 +379,8 @@ const LoginContent = () => {
 
       toast.success(t("loginSuccess"));
 
-      // Set cookies before redirection
-      if (userTypeValue === "admin") {
-        setAuthCookie("admin", "true", email);
-        setTimeout(() => {
-          window.location.href = "/admin/dashboard";
-        }, 100);
-      } else if (userTypeValue === "customer") {
+      // Set cookies before redirection for non-admin users
+      if (userTypeValue === "customer") {
         setAuthCookie("customer");
         setTimeout(() => {
           window.location.href = "/customer/dashboard";

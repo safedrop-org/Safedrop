@@ -331,7 +331,6 @@ export function useAuth() {
     userType,
     isAuthenticated,
     isInitialized,
-
     setAuthCookieByType,
     handleUserType,
   };

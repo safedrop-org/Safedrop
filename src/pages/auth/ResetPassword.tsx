@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/card";
 import { LockIcon, ArrowLeftIcon, Loader2, ShieldIcon } from "lucide-react";
 import { toast } from "sonner";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 const ResetPasswordContent = () => {
@@ -29,7 +29,6 @@ const ResetPasswordContent = () => {
   const [isComplete, setIsComplete] = useState(false);
   const [isProcessing, setIsProcessing] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const handleResetLink = async () => {
