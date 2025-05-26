@@ -27,6 +27,56 @@ export function OrderDetails({
 }: OrderDetailsProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "available":
+        return {
+          text: "متاح للتوصيل",
+          className: "bg-blue-100 text-blue-800 border-blue-200",
+        };
+      case "completed":
+        return {
+          text: "مكتمل",
+          className: "bg-green-100 text-green-800 border-green-200",
+        };
+      case "picked_up":
+        return {
+          text: "تم الاستلام",
+          className: "bg-purple-100 text-purple-800 border-purple-200",
+        };
+      case "approaching":
+        return {
+          text: "في الطريق",
+          className: "bg-indigo-100 text-indigo-800 border-indigo-200",
+        };
+      case "in_transit":
+        return {
+          text: "قيد التوصيل",
+          className: "bg-orange-100 text-orange-800 border-orange-200",
+        };
+      case "delivered":
+        return {
+          text: "تم التوصيل",
+          className: "bg-green-100 text-green-800 border-green-200",
+        };
+      case "cancelled":
+        return {
+          text: "ملغي",
+          className: "bg-red-100 text-red-800 border-red-200",
+        };
+      case "pending":
+        return {
+          text: "قيد الانتظار",
+          className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+        };
+      default:
+        return {
+          text: status || "غير محدد",
+          className: "bg-gray-100 text-gray-800 border-gray-200",
+        };
+    }
+  };
+
   const handleStatusChange = async (newStatus: "approved" | "rejected") => {
     setIsUpdating(true);
     try {
@@ -143,27 +193,9 @@ export function OrderDetails({
             <div className="space-y-2">
               <Badge
                 variant="outline"
-                className={
-                  order.status === "completed"
-                    ? "bg-green-100 text-green-800 border-green-200"
-                    : order.status === "approved"
-                    ? "bg-blue-100 text-blue-800 border-blue-200"
-                    : order.status === "pending"
-                    ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                    : order.status === "rejected"
-                    ? "bg-red-100 text-red-800 border-red-200"
-                    : "bg-gray-100 text-gray-800 border-gray-200"
-                }
+                className={getStatusDisplay(order.status).className}
               >
-                {order.status === "completed"
-                  ? "مكتمل"
-                  : order.status === "approved"
-                  ? "موافق عليه"
-                  : order.status === "pending"
-                  ? "قيد الانتظار"
-                  : order.status === "rejected"
-                  ? "مرفوض"
-                  : order.status}
+                {getStatusDisplay(order.status).text}
               </Badge>
 
               {order.status === "pending" && (

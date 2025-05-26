@@ -35,7 +35,7 @@ import CustomerComplaintFormModal from "./CustomerComplaintFormModal";
 
 const CustomerDashboardContent = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -108,9 +108,9 @@ const CustomerDashboardContent = () => {
           .from("orders")
           .select("*")
           .eq("customer_id", user.id)
-          .in("status", ["pending", "assigned", "in_transit"])
+          .in("status", ["available", "picked_up", "in_transit", "approaching"])
           .order("created_at", { ascending: false })
-          .limit(99);
+          .limit(5);
 
         if (activeError) throw activeError;
         setActiveOrders(active || []);
@@ -122,7 +122,7 @@ const CustomerDashboardContent = () => {
           .eq("customer_id", user.id)
           .in("status", ["completed", "cancelled"])
           .order("created_at", { ascending: false })
-          .limit(99);
+          .limit(5);
 
         if (historyError) throw historyError;
         setHistoryOrders(history || []);
@@ -281,9 +281,13 @@ const CustomerDashboardContent = () => {
                               {notification.message}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {new Date(
-                                notification.created_at
-                              ).toLocaleDateString("ar-SA")}
+                              {language === "ar"
+                                ? new Date(
+                                    notification.created_at
+                                  ).toLocaleDateString("ar-SA")
+                                : new Date(
+                                    notification.created_at
+                                  ).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
@@ -364,9 +368,7 @@ const CustomerDashboardContent = () => {
                         <div
                           key={order.id}
                           className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                          onClick={() =>
-                            navigate(`/customer/orders/${order.id}`)
-                          }
+                          onClick={() => navigate(`/customer/orders`)}
                         >
                           <div className="flex items-center gap-3">
                             <div className="p-2 bg-blue-100 rounded-full">
@@ -374,16 +376,20 @@ const CustomerDashboardContent = () => {
                             </div>
                             <div>
                               <p className="font-medium">
-                                {t("orderNumber")}: #{order.id.slice(0, 8)}
+                                {t("orderNumberTitle")}: #{order.order_number}
                               </p>
                               <p className="text-sm text-gray-500">
-                                {new Date(
-                                  order.created_at
-                                ).toLocaleDateString()}
+                                {language === "ar"
+                                  ? new Date(
+                                      order.created_at
+                                    ).toLocaleDateString("ar-SA")
+                                  : new Date(
+                                      order.created_at
+                                    ).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             <Badge
                               variant={
                                 order.status === "completed"
@@ -395,7 +401,7 @@ const CustomerDashboardContent = () => {
                             >
                               {t(order.status)}
                             </Badge>
-                            <Eye className="h-4 w-4 text-gray-400" />
+                            <Eye className="h-5 w-5 text-gray-400" />
                           </div>
                         </div>
                       ))}

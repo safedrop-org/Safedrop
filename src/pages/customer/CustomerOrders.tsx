@@ -102,7 +102,7 @@ const CustomerOrdersContent = () => {
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat(language === "ar" ? "ar-EG" : "en-US", {
+    return new Intl.DateTimeFormat(language === "ar" ? "ar-SA" : "en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",

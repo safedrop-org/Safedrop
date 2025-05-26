@@ -88,7 +88,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      const locale = language === "ar" ? "ar-EG" : "en-US";
+      const locale = language === "ar" ? "ar-SA" : "en-US";
       return date.toLocaleString(locale, {
         year: "numeric",
         month: "short",
@@ -184,8 +184,6 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
 
     setIsUpdating(true);
     try {
-
-
       const { data, error } = await supabase
         .from("orders")
         .update({
