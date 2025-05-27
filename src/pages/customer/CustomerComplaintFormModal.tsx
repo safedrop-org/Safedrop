@@ -35,7 +35,7 @@ import { useLanguage } from "@/components/ui/language-context";
 
 const CustomerComplaintFormModal = ({ trigger }) => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -151,7 +151,6 @@ const CustomerComplaintFormModal = ({ trigger }) => {
 
   const createNotifications = async (complaintData: any, userName: string) => {
     try {
-      // Create customer confirmation notification
       await supabase.from("customer_notifications").insert({
         customer_id: user.id,
         title: t("complaintConfirmationTitle"),
@@ -165,13 +164,11 @@ const CustomerComplaintFormModal = ({ trigger }) => {
         updated_at: new Date().toISOString(),
       });
 
-      // Get admin users and create notifications for them
       let { data: admins, error: adminError } = await supabase
         .from("profiles")
         .select("id")
         .eq("role", "admin");
 
-      // If no admins found with role, try user_type
       if (!admins || admins.length === 0) {
         const { data: adminsByType } = await supabase
           .from("profiles")
@@ -183,7 +180,6 @@ const CustomerComplaintFormModal = ({ trigger }) => {
         }
       }
 
-      // If still no admins, try email patterns
       if (!admins || admins.length === 0) {
         const { data: adminsByEmail } = await supabase
           .from("profiles")
@@ -195,7 +191,6 @@ const CustomerComplaintFormModal = ({ trigger }) => {
         }
       }
 
-      // Create admin notifications in customer_notifications table
       if (admins && admins.length > 0) {
         const adminNotifications = admins.map((admin) => ({
           customer_id: admin.id,
@@ -220,7 +215,46 @@ const CustomerComplaintFormModal = ({ trigger }) => {
       }
     } catch (error) {
       console.error("Error creating notifications:", error);
-      // Don't fail the whole process if notifications fail
+    }
+  };
+
+  const sendEmailNotification = async (complaintData) => {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, first_name, last_name")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile) {
+        console.log("No profile found for user");
+        return;
+      }
+
+      console.log("Attempting to send email to:", profile.email);
+
+      const currentLanguage = language;
+
+      const { data: emailResult, error: emailError } =
+        await supabase.functions.invoke("send-complaint-confirmation", {
+          body: {
+            to: profile.email,
+            language: currentLanguage,
+            complaintData: {
+              ...complaintData,
+              userName: `${profile.first_name} ${profile.last_name}`,
+              userEmail: profile.email,
+            },
+          },
+        });
+
+      if (emailError) {
+        console.error("Error sending email:", emailError);
+      } else {
+        console.log("Email sent successfully:", emailResult);
+      }
+    } catch (error) {
+      console.error("Error in sendEmailNotification:", error);
     }
   };
 
@@ -235,7 +269,6 @@ const CustomerComplaintFormModal = ({ trigger }) => {
     try {
       let attachmentUrl = null;
 
-      // Upload file if exists
       if (uploadedFile) {
         setUploadProgress(0);
         attachmentUrl = await handleFileUpload(uploadedFile);
@@ -245,7 +278,6 @@ const CustomerComplaintFormModal = ({ trigger }) => {
         }
       }
 
-      // Create complaint record
       const complaintData = {
         user_id: user.id,
         issue_type: data.issue_type,
@@ -263,12 +295,13 @@ const CustomerComplaintFormModal = ({ trigger }) => {
         .select()
         .single();
 
+      sendEmailNotification(complaint);
+
       if (complaintError) {
         console.error("Error creating complaint:", complaintError);
         throw complaintError;
       }
 
-      // Get user profile for notifications
       const { data: userProfile } = await supabase
         .from("profiles")
         .select("first_name, last_name")
@@ -279,13 +312,10 @@ const CustomerComplaintFormModal = ({ trigger }) => {
         ? `${userProfile.first_name} ${userProfile.last_name}`
         : t("defaultUserName");
 
-      // Create notifications
       await createNotifications(complaintData, userName);
 
       toast.success(t("complaintSubmittedSuccess"));
 
-      // Reset form and close modal
-      form.reset();
       setUploadedFile(null);
       setUploadProgress(0);
       setIsOpen(false);

@@ -76,6 +76,41 @@ const CustomerRegisterContent = () => {
     }
   };
 
+  const sendAdminNotification = async (userData, userType = "customer") => {
+    try {
+      console.log(
+        `Sending admin notification for new ${userType}:`,
+        userData.email
+      );
+
+      const currentLanguage = "ar";
+
+      const { data: emailResult, error: emailError } =
+        await supabase.functions.invoke("send-admin-notification", {
+          body: {
+            userData: {
+              first_name: userData.first_name,
+              last_name: userData.last_name,
+              email: userData.email,
+              phone: userData.phone,
+              user_type: userData.user_type,
+              created_at: new Date().toISOString(),
+            },
+            userType: userType,
+            language: currentLanguage,
+          },
+        });
+
+      if (emailError) {
+        console.error("Error sending admin notification:", emailError);
+      } else {
+        console.log("Admin notification sent successfully:", emailResult);
+      }
+    } catch (error) {
+      console.error("Error in sendAdminNotification:", error);
+    }
+  };
+
   const onSubmit = async (data: CustomerFormValues) => {
     if (isLoading) return;
 
@@ -83,7 +118,6 @@ const CustomerRegisterContent = () => {
     setRegistrationError(null);
 
     try {
-      // Step 1: Check if email already exists
       const emailExists = await checkEmailExists(data.email);
 
       if (emailExists) {
@@ -95,7 +129,6 @@ const CustomerRegisterContent = () => {
         return;
       }
 
-      // Step 2: Register the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp(
         {
           email: data.email,
@@ -112,9 +145,7 @@ const CustomerRegisterContent = () => {
         }
       );
 
-      // Handle signup errors
       if (signUpError) {
-        // Check for duplicate email errors (backup check)
         if (
           signUpError.message.includes("User already registered") ||
           signUpError.message.includes("already been registered") ||
@@ -134,7 +165,6 @@ const CustomerRegisterContent = () => {
 
       if (!authData.user) throw new Error(t("userCreationFailed"));
 
-      // Step 3: Store user details in cookie for auth callback
       const pendingUserDetails = {
         id: authData.user.id,
         first_name: data.firstName,
@@ -144,12 +174,13 @@ const CustomerRegisterContent = () => {
         user_type: "customer",
       };
 
-      // Store in cookie with 1 hour expiry
       Cookies.set("pendingUserDetails", JSON.stringify(pendingUserDetails), {
         expires: 1 / 24,
         secure: true,
         sameSite: "strict",
       });
+
+      await sendAdminNotification(pendingUserDetails, "customer");
 
       setRegistrationComplete(true);
       toast.success(t("registrationSuccess"));

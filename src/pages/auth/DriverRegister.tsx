@@ -317,6 +317,41 @@ const DriverRegisterContent = () => {
     window.open("/driver-terms", "_blank");
   };
 
+  const sendAdminNotification = async (userData, userType = "customer") => {
+    try {
+      console.log(
+        `Sending admin notification for new ${userType}:`,
+        userData.email
+      );
+
+      const currentLanguage = "ar";
+
+      const { data: emailResult, error: emailError } =
+        await supabase.functions.invoke("send-admin-notification", {
+          body: {
+            userData: {
+              first_name: userData.first_name,
+              last_name: userData.last_name,
+              email: userData.email,
+              phone: userData.phone,
+              user_type: userData.user_type,
+              created_at: new Date().toISOString(),
+            },
+            userType: userType,
+            language: currentLanguage,
+          },
+        });
+
+      if (emailError) {
+        console.error("Error sending admin notification:", emailError);
+      } else {
+        console.log("Admin notification sent successfully:", emailResult);
+      }
+    } catch (error) {
+      console.error("Error in sendAdminNotification:", error);
+    }
+  };
+
   const onSubmit = async (data: DriverFormValues) => {
     if (waitTime > 0) {
       toast.error(`يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى`);
@@ -337,7 +372,6 @@ const DriverRegisterContent = () => {
     setDebugInfo(null);
 
     try {
-      // Step 1: Check if email already exists
       const emailExists = await checkEmailExists(data.email);
 
       if (emailExists) {
@@ -355,7 +389,6 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      // Step 2: Register the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp(
         {
           email: data.email,
@@ -373,7 +406,6 @@ const DriverRegisterContent = () => {
         }
       );
 
-      // Handle signup errors
       if (signUpError) {
         if (
           signUpError.message.includes("rate limit") ||
@@ -414,10 +446,8 @@ const DriverRegisterContent = () => {
         return;
       }
 
-      // Step 3: Upload files directly to storage
       const imageUrls = await uploadFilesToSupabase(authData.user.id);
 
-      // Step 4: Create driver record in the database
       const driverCreated = await createDriverRecord(
         authData.user.id,
         data,
@@ -425,11 +455,9 @@ const DriverRegisterContent = () => {
       );
 
       if (!driverCreated) {
-        // Store files in localStorage as backup for the auth callback to process
         storeFileData(authData.user.id, idImageFile, licenseImageFile);
       }
 
-      // Step 5: Store user's pending details in a cookie for auth callback
       const pendingUserDetails = {
         first_name: data.firstName,
         last_name: data.lastName,
@@ -442,14 +470,21 @@ const DriverRegisterContent = () => {
         vehicle_info: data.vehicleInfo,
       };
 
-      // Store in cookie with 1 hour expiry
       Cookies.set("pendingUserDetails", JSON.stringify(pendingUserDetails), {
-        expires: 1 / 24, // 1 hour
+        expires: 1 / 24,
         secure: true,
         sameSite: "strict",
       });
 
-      // Success - show confirmation screen
+      const notificationData = {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        phone: data.phone,
+        email: data.email,
+        user_type: "driver",
+      };
+      await sendAdminNotification(notificationData, "driver");
+
       setRegistrationComplete(true);
       toast.success(t("registrationSuccess"));
     } catch (error) {

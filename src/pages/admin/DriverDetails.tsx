@@ -138,8 +138,6 @@ const DriverDetailsContent = () => {
       const adminAuthLS = localStorage.getItem("adminAuth") === "true";
       const adminAuthCookie = Cookies.get("adminAuth") === "true";
 
-
-
       if (!adminAuthLS && !adminAuthCookie) {
         const {
           data: { user },
@@ -182,7 +180,6 @@ const DriverDetailsContent = () => {
       const hasAccess = await checkAdminAccess();
       if (!hasAccess) return;
 
-
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -194,7 +191,6 @@ const DriverDetailsContent = () => {
         throw profileError;
       }
 
-
       const { data: driverData, error: driverError } = await supabase
         .from("drivers")
         .select("*")
@@ -205,7 +201,6 @@ const DriverDetailsContent = () => {
         console.error("Driver error:", driverError);
         throw driverError;
       }
-
 
       let userEmail = profileData?.email || null;
 
@@ -253,12 +248,10 @@ const DriverDetailsContent = () => {
         throw new Error(t("noAdminPermission"));
       }
 
-
       const updateData = {
         status: status,
         rejection_reason: rejectionReason || null,
       };
-
 
       // Check if driver record exists first
       const { data: existingDriver, error: checkError } = await supabase
@@ -315,6 +308,53 @@ const DriverDetailsContent = () => {
     }
   };
 
+  const sendDriverStatusEmail = async (
+    driverData,
+    status,
+    rejectionReason = null
+  ) => {
+    try {
+      if (!driverData.email) {
+        console.log("No email found for driver");
+        return;
+      }
+
+      console.log(`Attempting to send ${status} email to:`, driverData.email);
+
+      const currentLanguage = language;
+
+      const emailDriverData = {
+        driverName: `${driverData.first_name || ""} ${
+          driverData.last_name || ""
+        }`.trim(),
+        first_name: driverData.first_name,
+        last_name: driverData.last_name,
+        national_id: driverData.national_id,
+        license_number: driverData.license_number,
+        id: driverData.id,
+      };
+
+      const { data: emailResult, error: emailError } =
+        await supabase.functions.invoke("send-driver-status-email", {
+          body: {
+            to: driverData.email,
+            driverData: emailDriverData,
+            status: status,
+            rejectionReason: rejectionReason,
+            language: currentLanguage,
+          },
+        });
+
+      if (emailError) {
+        console.error("Error sending driver status email:", emailError);
+      } else {
+        console.log("Driver status email sent successfully:", emailResult);
+      }
+    } catch (error) {
+      console.error("Error in sendDriverStatusEmail:", error);
+    }
+  };
+
   const approveDriver = async () => {
     if (!driver?.id) {
       toast.error(t("invalidDriverId"));
@@ -326,13 +366,14 @@ const DriverDetailsContent = () => {
       const result = await saveDriverStatus("approved");
 
       if (result) {
+        await sendDriverStatusEmail(driver, "approved");
+
         toast.success(t("driverApprovedSuccess"));
 
         setDriver((prev) =>
           prev ? { ...prev, status: "approved", rejection_reason: null } : null
         );
 
-        // Slight delay before navigating away
         setTimeout(() => navigate("/admin/driver-verification"), 1500);
       } else {
         throw new Error(t("statusUpdateError"));
@@ -361,6 +402,8 @@ const DriverDetailsContent = () => {
       const result = await saveDriverStatus("rejected", rejectionReason);
 
       if (result) {
+        await sendDriverStatusEmail(driver, "rejected", rejectionReason.trim());
+
         toast.success(t("driverRejectedSuccess"));
 
         setShowRejectDialog(false);
@@ -370,7 +413,6 @@ const DriverDetailsContent = () => {
             : null
         );
 
-        // Slight delay before navigating away
         setTimeout(() => navigate("/admin/driver-verification"), 1500);
       } else {
         throw new Error(t("statusUpdateError"));

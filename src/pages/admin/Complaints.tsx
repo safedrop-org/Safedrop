@@ -192,12 +192,63 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
     }
   };
 
+  const sendAdminEmailNotification = async (
+    complaintData,
+    adminResponse,
+    userId
+  ) => {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, first_name, last_name, user_type")
+        .eq("id", userId)
+        .single();
+
+      if (!profile) {
+        console.log("No profile found for user");
+        return;
+      }
+
+      if (!profile.email) {
+        console.log("No email found for user profile");
+        return;
+      }
+
+      console.log("Attempting to send admin response email to:", profile.email);
+
+      const currentLanguage = language;
+      const userType = profile.user_type || "customer";
+
+      const { data: emailResult, error: emailError } =
+        await supabase.functions.invoke("send-admin-response", {
+          body: {
+            to: profile.email,
+            language: currentLanguage,
+            userType: userType,
+            complaintData: {
+              ...complaintData,
+              userName: `${profile.first_name} ${profile.last_name}`.trim(),
+              userEmail: profile.email,
+            },
+            adminResponse: adminResponse,
+          },
+        });
+
+      if (emailError) {
+        console.error("Error sending admin response email:", emailError);
+      } else {
+        console.log("Admin response email sent successfully:", emailResult);
+      }
+    } catch (error) {
+      console.error("Error in sendAdminEmailNotification:", error);
+    }
+  };
+
   const markAsResolved = async () => {
     if (!complaint) return;
 
     setIsLoading(true);
     try {
-      // Update complaint status
       const { error } = await supabase
         .from("complaints")
         .update({
@@ -208,7 +259,6 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
 
       if (error) throw error;
 
-      // Insert response if provided
       if (response.trim()) {
         const {
           data: { user },
@@ -222,7 +272,19 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
         });
       }
 
-      // Create notification message
+      await sendAdminEmailNotification(
+        {
+          id: complaint.id,
+          complaint_number: complaint.complaint_number,
+          issue_type: complaint.issue_type,
+          description: complaint.description,
+          order_number: complaint.order_number,
+          created_at: complaint.created_at,
+        },
+        response.trim() || null,
+        complaint.user_id
+      );
+
       const notificationMessage = response.trim()
         ? t("complaintResolvedWithResponse")
             .replace("{complaintNumber}", complaint.complaint_number.toString())
@@ -232,8 +294,7 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
             .replace("{complaintNumber}", complaint.complaint_number.toString())
             .replace("{issueType}", getIssueTypeLabel(complaint.issue_type));
 
-      // Send notification based on user type
-      const userType = complaint.profiles?.user_type || "customer"; // Default to customer if not specified
+      const userType = complaint.profiles?.user_type || "customer";
 
       await sendNotificationBasedOnUserType(
         complaint.user_id,

@@ -35,7 +35,7 @@ import { useLanguage } from "@/components/ui/language-context";
 
 const ComplaintFormModal = ({ trigger }) => {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -222,6 +222,50 @@ const ComplaintFormModal = ({ trigger }) => {
     }
   };
 
+  const sendEmailNotification = async (complaintData) => {
+    try {
+      // Get user profile for email
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, first_name, last_name")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile) {
+        console.log("No profile found for user");
+        return;
+      }
+
+      console.log("Attempting to send email to:", profile.email);
+
+      const currentLanguage = language;
+
+      // Try to send email (this might fail if function doesn't exist)
+      const { data: emailResult, error: emailError } =
+        await supabase.functions.invoke("send-complaint-confirmation", {
+          body: {
+            to: profile.email,
+            language: currentLanguage,
+            complaintData: {
+              ...complaintData,
+              userName: `${profile.first_name} ${profile.last_name}`,
+              userEmail: profile.email,
+            },
+          },
+        });
+
+      if (emailError) {
+        console.error("Error sending email:", emailError);
+        // Don't fail the complaint submission if email fails
+      } else {
+        console.log("Email sent successfully:", emailResult);
+      }
+    } catch (error) {
+      console.error("Error in sendEmailNotification:", error);
+      // Don't fail the complaint submission if email fails
+    }
+  };
+
   const onSubmit = async (data: ComplaintFormValues) => {
     if (!user?.id) {
       toast.error(t("loginRequired"));
@@ -261,11 +305,12 @@ const ComplaintFormModal = ({ trigger }) => {
         .select()
         .single();
 
+      sendEmailNotification(complaint);
+
       if (complaintError) {
         console.error("Error creating complaint:", complaintError);
         throw complaintError;
       }
-
 
       // Get user profile for notifications
       const { data: userProfile } = await supabase
