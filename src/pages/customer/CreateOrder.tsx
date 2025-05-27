@@ -401,6 +401,7 @@ const CalculateOrderCost = ({
   const [distance, setDistance] = useState("-");
   const [duration, setDuration] = useState("-");
   const [isCalculating, setIsCalculating] = useState(false);
+  const languageParam = language === "ar" ? "ar" : "en";
 
   // Get currency format based on current language
   const currencyDisplay = currencyFormat[language];
@@ -429,7 +430,7 @@ const CalculateOrderCost = ({
           pickupLocation
         )},SA&destination=${encodeURIComponent(
           dropoffLocation
-        )},SA&mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`
+        )},SA&mode=driving&language=${languageParam}&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`
       );
 
       const data = await res.json();
