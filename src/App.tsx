@@ -67,6 +67,7 @@ import ProtectedAdminRoute from "@/components/admin/ProtectedAdminRoute";
 import { supabase } from "@/integrations/supabase/client";
 import DriverTerms from "./pages/DriverTerms";
 import CustomerNotifications from "./pages/customer/CustomerNotifications";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 // Protected Routes for Customer
 const ProtectedCustomerRoute = ({ children }) => {
@@ -380,6 +381,14 @@ const AppContent = () => {
           element={
             <ProtectedAdminRoute>
               <ComplaintsWithSidebar />
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedAdminRoute>
+              <AdminSettings />
             </ProtectedAdminRoute>
           }
         />

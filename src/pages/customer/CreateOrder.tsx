@@ -447,10 +447,9 @@ const CalculateOrderCost = ({
       setDistance(data.routes[0].legs[0].distance.text);
       setDuration(data.routes[0].legs[0].duration.text);
 
-      const distanceInMeters = data.routes[0].legs[0].distance.value; // in meters
+      const distanceInMeters = data.routes[0].legs[0].distance.value;
       const fare = calculateCost(distanceInMeters);
 
-      // Capture the calculated fare for validation during order submission
       if (onCostCalculated) {
         onCostCalculated(fare);
       }

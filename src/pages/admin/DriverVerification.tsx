@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   LanguageProvider,
   useLanguage,
@@ -14,11 +15,21 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Eye, Search, RefreshCw } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+import {
+  Eye,
+  Search,
+  RefreshCw,
+  User,
+  Phone,
+  Mail,
+  Shield,
+  AlertTriangle,
+  Download,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Driver {
   id: string;
@@ -36,6 +47,393 @@ interface DriverStatusCategory {
   color: string;
 }
 
+// Mobile Card Component
+const MobileDriverCard: React.FC<{
+  driver: Driver;
+  statusCategories: DriverStatusCategory[];
+  language: string;
+  onViewDriver: (driverId: string) => void;
+}> = ({ driver, statusCategories, language, onViewDriver }) => {
+  const statusCategory = statusCategories.find(
+    (cat) => cat.name === driver.status
+  );
+
+  const getStatusBadgeStyle = (status: string) => {
+    const category = statusCategories.find((cat) => cat.name === status);
+    const color = category ? category.color : "#6c757d";
+    return {
+      backgroundColor: color,
+      color: "#ffffff",
+      border: "none",
+    };
+  };
+
+  return (
+    <Card className="w-full">
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex justify-between items-start">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-gray-500" />
+              <span className="font-bold text-lg">
+                {driver.first_name} {driver.last_name}
+              </span>
+            </div>
+            <Badge
+              style={getStatusBadgeStyle(driver.status || "pending")}
+              className="text-white border-0 text-xs"
+            >
+              {language === "ar"
+                ? statusCategory?.display_name_ar || driver.status
+                : statusCategory?.name || driver.status}
+            </Badge>
+          </div>
+
+          {/* Driver Details */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm">
+              <Mail className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-600">البريد الإلكتروني:</span>
+              <span className="font-medium">{driver.email || "غير محدد"}</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm">
+              <Phone className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-600">الهاتف:</span>
+              <span className="font-medium">{driver.phone}</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm">
+              <Shield className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-600">نوع المستخدم:</span>
+              <span className="font-medium">{driver.user_type}</span>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <div className="pt-3 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewDriver(driver.id)}
+              className="w-full gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              عرض تفاصيل السائق الكاملة
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Responsive Table Component
+interface DriversTableProps {
+  drivers: Driver[];
+  statusCategories: DriverStatusCategory[];
+  language: string;
+  status?: "all" | "pending" | "approved" | "rejected";
+  onViewDriver: (driverId: string) => void;
+}
+
+const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
+  drivers,
+  statusCategories,
+  language,
+  status = "all",
+  onViewDriver,
+}) => {
+  const filteredDrivers =
+    status === "all"
+      ? drivers
+      : drivers.filter((driver) => driver.status === status);
+
+  const getStatusBadgeStyle = (status: string) => {
+    const category = statusCategories.find((cat) => cat.name === status);
+    const color = category ? category.color : "#6c757d";
+    return {
+      backgroundColor: color,
+      color: "#ffffff",
+      border: "none",
+    };
+  };
+
+  if (filteredDrivers.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-gray-400 mb-2">
+          <User className="h-12 w-12 mx-auto" />
+        </div>
+        <p className="text-gray-500 text-lg">لا يوجد سائقون في هذه الفئة</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Desktop Table - Large screens */}
+      <div className="hidden xl:block">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-center whitespace-nowrap min-w-[140px] font-bold">
+                  الاسم الأول
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap min-w-[140px] font-bold">
+                  اسم العائلة
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap min-w-[200px] font-bold">
+                  البريد الإلكتروني
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
+                  الهاتف
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
+                  نوع المستخدم
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
+                  الحالة
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap min-w-[100px] font-bold">
+                  الإجراءات
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredDrivers.map((driver) => {
+                const statusCategory = statusCategories.find(
+                  (cat) => cat.name === driver.status
+                );
+                return (
+                  <TableRow key={driver.id} className="hover:bg-gray-50">
+                    <TableCell className="text-center">
+                      <div
+                        className="max-w-[140px] truncate"
+                        title={driver.first_name}
+                      >
+                        {driver.first_name}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div
+                        className="max-w-[140px] truncate"
+                        title={driver.last_name}
+                      >
+                        {driver.last_name}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div
+                        className="max-w-[200px] truncate"
+                        title={driver.email || "غير محدد"}
+                      >
+                        {driver.email || "غير محدد"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {driver.phone}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {driver.user_type}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        style={getStatusBadgeStyle(driver.status || "pending")}
+                        className="text-white border-0 whitespace-nowrap text-xs"
+                      >
+                        {language === "ar"
+                          ? statusCategory?.display_name_ar || driver.status
+                          : statusCategory?.name || driver.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewDriver(driver.id)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Tablet Table - Medium to Large screens */}
+      <div className="hidden lg:block xl:hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  الاسم
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  البريد الإلكتروني
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  الهاتف
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  الحالة
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  الإجراءات
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredDrivers.map((driver) => {
+                const statusCategory = statusCategories.find(
+                  (cat) => cat.name === driver.status
+                );
+                return (
+                  <TableRow key={driver.id} className="hover:bg-gray-50">
+                    <TableCell className="text-center">
+                      <div
+                        className="max-w-[120px] truncate"
+                        title={`${driver.first_name} ${driver.last_name}`}
+                      >
+                        {driver.first_name} {driver.last_name}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div
+                        className="max-w-[150px] truncate"
+                        title={driver.email || "غير محدد"}
+                      >
+                        {driver.email || "غير محدد"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {driver.phone}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        style={getStatusBadgeStyle(driver.status || "pending")}
+                        className="text-white border-0 whitespace-nowrap text-xs"
+                      >
+                        {language === "ar"
+                          ? statusCategory?.display_name_ar || driver.status
+                          : statusCategory?.name || driver.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewDriver(driver.id)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Compact Table - Small to Medium screens */}
+      <div className="hidden md:block lg:hidden">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  الاسم
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  الحالة
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  الهاتف
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  عرض
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredDrivers.map((driver) => {
+                const statusCategory = statusCategories.find(
+                  (cat) => cat.name === driver.status
+                );
+                return (
+                  <TableRow key={driver.id} className="hover:bg-gray-50">
+                    <TableCell className="text-center">
+                      <div
+                        className="max-w-[100px] truncate text-xs"
+                        title={`${driver.first_name} ${driver.last_name}`}
+                      >
+                        {driver.first_name} {driver.last_name}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        style={getStatusBadgeStyle(driver.status || "pending")}
+                        className="text-white border-0 text-xs"
+                      >
+                        {(language === "ar"
+                          ? statusCategory?.display_name_ar || driver.status
+                          : statusCategory?.name || driver.status
+                        )?.length > 8
+                          ? (language === "ar"
+                              ? statusCategory?.display_name_ar || driver.status
+                              : statusCategory?.name || driver.status
+                            )?.substring(0, 8) + "..."
+                          : language === "ar"
+                          ? statusCategory?.display_name_ar || driver.status
+                          : statusCategory?.name || driver.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center text-xs">
+                      {driver.phone}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewDriver(driver.id)}
+                        className="text-blue-600 hover:text-blue-800 p-1"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* Mobile Cards - Small screens */}
+      <div className="block md:hidden space-y-4">
+        {filteredDrivers.map((driver) => (
+          <MobileDriverCard
+            key={driver.id}
+            driver={driver}
+            statusCategories={statusCategories}
+            language={language}
+            onViewDriver={onViewDriver}
+          />
+        ))}
+      </div>
+    </>
+  );
+};
+
 const DriverVerification = () => {
   const { t, language } = useLanguage();
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -45,6 +443,7 @@ const DriverVerification = () => {
   const [loading, setLoading] = useState(false);
   const [searchEmail, setSearchEmail] = useState("");
   const [currentTab, setCurrentTab] = useState("pending");
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const fetchDriverStatusCategories = async () => {
@@ -62,6 +461,7 @@ const DriverVerification = () => {
 
   const fetchDrivers = async () => {
     setLoading(true);
+    setError(null);
     try {
       const { data: roleMappings, error: roleError } = await supabase
         .from("user_roles")
@@ -111,6 +511,7 @@ const DriverVerification = () => {
       setDrivers(driversCombined);
     } catch (error) {
       console.error("Error fetching drivers:", error);
+      setError("خطأ في جلب بيانات السائقين");
       toast.error("خطأ في جلب بيانات السائقين");
     } finally {
       setLoading(false);
@@ -123,21 +524,21 @@ const DriverVerification = () => {
   }, []);
 
   useEffect(() => {
-    const handleFocus = () => {
-      fetchDrivers();
-    };
-    window.addEventListener("focus", handleFocus);
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, []);
+    if (error) {
+      console.error("Error with drivers:", error);
+    }
+  }, [error]);
 
   const filteredDrivers = drivers.filter((driver) => {
     const matchesStatus = currentTab === "all" || driver.status === currentTab;
     const matchesSearch =
       !searchEmail ||
       (driver.email &&
-        driver.email.toLowerCase().includes(searchEmail.toLowerCase()));
+        driver.email.toLowerCase().includes(searchEmail.toLowerCase())) ||
+      `${driver.first_name} ${driver.last_name}`
+        .toLowerCase()
+        .includes(searchEmail.toLowerCase()) ||
+      driver.phone.includes(searchEmail);
     return matchesStatus && matchesSearch;
   });
 
@@ -145,127 +546,292 @@ const DriverVerification = () => {
     navigate(`/admin/driver-details/${driverId}`);
   };
 
-  const getStatusBadgeColor = (status: string) => {
-    const category = statusCategories.find((cat) => cat.name === status);
-    return category ? category.color : "#6c757d";
+  const handleExportDrivers = () => {
+    const headers = [
+      "الاسم الأول",
+      "اسم العائلة",
+      "البريد الإلكتروني",
+      "الهاتف",
+      "نوع المستخدم",
+      "الحالة",
+    ];
+
+    const csvData = drivers.map((driver) => [
+      driver.first_name,
+      driver.last_name,
+      driver.email || "غير محدد",
+      driver.phone,
+      driver.user_type,
+      driver.status || "pending",
+    ]);
+
+    let csvContent = headers.join(",") + "\n";
+    csvData.forEach((row) => {
+      csvContent += row.map((field) => `"${field}"`).join(",") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `drivers-${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success("تم تصدير السائقين بنجاح");
   };
 
-  const getStatusBadgeStyle = (status: string) => {
-    const color = getStatusBadgeColor(status);
-    return {
-      backgroundColor: color,
-      color: "#ffffff",
-      border: "none",
-    };
-  };
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="p-4 sm:p-6">
+          <Card className="border-red-200">
+            <CardContent className="p-6">
+              <div className="text-center space-y-4">
+                <div className="text-red-500">
+                  <AlertTriangle className="h-12 w-12 mx-auto" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-red-800 mb-2">
+                    حدث خطأ في تحميل البيانات
+                  </h3>
+                  <p className="text-red-600 mb-4">
+                    حدث خطأ أثناء تحميل السائقين. يرجى المحاولة مرة أخرى لاحقاً.
+                  </p>
+                  <Button
+                    onClick={() => fetchDrivers()}
+                    variant="outline"
+                    className="text-red-700 border-red-300 hover:bg-red-50"
+                  >
+                    إعادة المحاولة
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 flex flex-col min-h-svh">
-      <div className="flex justify-between mb-6">
-        <h1 className="text-2xl font-bold">إدارة السائقين</h1>
-        <Button
-          variant="outline"
-          onClick={fetchDrivers}
-          disabled={loading}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-          تحديث البيانات
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-3 sm:p-4 lg:p-6">
+        {/* Header Section */}
+        <div className="mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
+                إدارة السائقين
+              </h1>
+              <p className="text-sm sm:text-base text-gray-600">
+                إدارة ومتابعة جميع السائقين المسجلين
+              </p>
+            </div>
 
-      <div className="mb-6">
-        <div className="relative w-full max-w-sm mb-4">
-          <Search
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={20}
-          />
-          <Input
-            type="text"
-            placeholder="البحث بالبريد الإلكتروني..."
-            value={searchEmail}
-            onChange={(e) => setSearchEmail(e.target.value)}
-            className="pr-10 w-full"
-          />
+            {/* Controls */}
+            <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
+              {/* Search */}
+              <div className="relative flex-1 lg:w-80">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="البحث بالاسم، البريد الإلكتروني، أو الهاتف..."
+                  className="pr-10"
+                  value={searchEmail}
+                  onChange={(e) => setSearchEmail(e.target.value)}
+                />
+              </div>
+
+              {/* Export Button */}
+              <Button
+                variant="outline"
+                className="gap-2 whitespace-nowrap"
+                onClick={handleExportDrivers}
+                disabled={drivers.length === 0}
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">تصدير السائقين</span>
+                <span className="sm:hidden">تصدير</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6">
+            <Card>
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-center">
+                  <div className="text-lg sm:text-2xl font-bold text-gray-900">
+                    {drivers.length}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    إجمالي السائقين
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-center">
+                  <div className="text-lg sm:text-2xl font-bold text-yellow-600">
+                    {drivers.filter((d) => d.status === "pending").length}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    في الانتظار
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-center">
+                  <div className="text-lg sm:text-2xl font-bold text-green-600">
+                    {drivers.filter((d) => d.status === "approved").length}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600">مقبول</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-center">
+                  <div className="text-lg sm:text-2xl font-bold text-red-600">
+                    {drivers.filter((d) => d.status === "rejected").length}
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600">مرفوض</div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        <Tabs value={currentTab} onValueChange={setCurrentTab}>
-          <TabsList className="flex mb-4 justify-start">
-            <TabsTrigger value="pending">في الانتظار</TabsTrigger>
-            <TabsTrigger value="approved">مقبول</TabsTrigger>
-            <TabsTrigger value="rejected">مرفوض</TabsTrigger>
-            <TabsTrigger value="all">الكل</TabsTrigger>
-          </TabsList>
+        {/* Loading State */}
+        {loading ? (
+          <Card>
+            <CardContent className="p-12">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <p className="text-gray-500">جاري تحميل السائقين...</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          /* Main Content */
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg sm:text-xl">
+                نتائج البحث ({filteredDrivers.length} من {drivers.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-2 sm:p-4 lg:p-6">
+              <Tabs value={currentTab} onValueChange={setCurrentTab}>
+                <TabsList className="mb-6 grid grid-cols-2 sm:grid-cols-4 w-full max-w-none lg:max-w-3xl">
+                  <TabsTrigger
+                    value="pending"
+                    className="text-xs sm:text-sm px-2 sm:px-4"
+                  >
+                    <span className="hidden sm:inline">في الانتظار</span>
+                    <span className="sm:hidden">انتظار</span>
+                    <span className="mr-1">
+                      (
+                      {
+                        filteredDrivers.filter((d) => d.status === "pending")
+                          .length
+                      }
+                      )
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="approved"
+                    className="text-xs sm:text-sm px-2 sm:px-4"
+                  >
+                    <span className="hidden sm:inline">مقبول</span>
+                    <span className="sm:hidden">مقبول</span>
+                    <span className="mr-1">
+                      (
+                      {
+                        filteredDrivers.filter((d) => d.status === "approved")
+                          .length
+                      }
+                      )
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="rejected"
+                    className="text-xs sm:text-sm px-2 sm:px-4"
+                  >
+                    <span className="hidden sm:inline">مرفوض</span>
+                    <span className="sm:hidden">مرفوض</span>
+                    <span className="mr-1">
+                      (
+                      {
+                        filteredDrivers.filter((d) => d.status === "rejected")
+                          .length
+                      }
+                      )
+                    </span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="all"
+                    className="text-xs sm:text-sm px-2 sm:px-4"
+                  >
+                    <span className="hidden sm:inline">جميع السائقين</span>
+                    <span className="sm:hidden">الكل</span>
+                    <span className="mr-1">({filteredDrivers.length})</span>
+                  </TabsTrigger>
+                </TabsList>
 
-          <TabsContent value={currentTab}>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">الاسم الأول</TableHead>
-                  <TableHead className="text-right">اسم العائلة</TableHead>
-                  <TableHead className="text-right">
-                    البريد الإلكتروني
-                  </TableHead>
-                  <TableHead className="text-right">الهاتف</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-center">إجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDrivers.map((driver) => {
-                  const statusCategory = statusCategories.find(
-                    (cat) => cat.name === driver.status
-                  );
-                  return (
-                    <TableRow key={driver.id}>
-                      <TableCell className="text-right">
-                        {driver.first_name}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {driver.last_name}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {driver.email || "-"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {driver.phone}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Badge
-                          style={getStatusBadgeStyle(
-                            driver.status || "pending"
-                          )}
-                          className="text-white border-0"
-                        >
-                          {language === "ar"
-                            ? statusCategory?.display_name_ar || driver.status
-                            : statusCategory?.name || driver.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => navigateToDriverDetails(driver.id)}
-                        >
-                          <Eye size={16} className="ml-1" /> عرض التفاصيل
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                <TabsContent value="pending" className="mt-0">
+                  <ResponsiveDriversTable
+                    drivers={filteredDrivers}
+                    statusCategories={statusCategories}
+                    language={language}
+                    status="pending"
+                    onViewDriver={navigateToDriverDetails}
+                  />
+                </TabsContent>
 
-                {filteredDrivers.length === 0 && !loading && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center">
-                      لا يوجد سائقون للعرض
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TabsContent>
-        </Tabs>
+                <TabsContent value="approved" className="mt-0">
+                  <ResponsiveDriversTable
+                    drivers={filteredDrivers}
+                    statusCategories={statusCategories}
+                    language={language}
+                    status="approved"
+                    onViewDriver={navigateToDriverDetails}
+                  />
+                </TabsContent>
+
+                <TabsContent value="rejected" className="mt-0">
+                  <ResponsiveDriversTable
+                    drivers={filteredDrivers}
+                    statusCategories={statusCategories}
+                    language={language}
+                    status="rejected"
+                    onViewDriver={navigateToDriverDetails}
+                  />
+                </TabsContent>
+
+                <TabsContent value="all" className="mt-0">
+                  <ResponsiveDriversTable
+                    drivers={filteredDrivers}
+                    statusCategories={statusCategories}
+                    language={language}
+                    status="all"
+                    onViewDriver={navigateToDriverDetails}
+                  />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
