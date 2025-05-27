@@ -32,6 +32,7 @@ const CreateOrderContent = () => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
+  const languageParam = language === "ar" ? "ar" : "en";
   const [formData, setFormData] = useState({
     pickupLocation: {
       address: "",
@@ -125,7 +126,7 @@ const CreateOrderContent = () => {
           formData.pickupLocation.address
         )},SA&destination=${encodeURIComponent(
           formData.dropoffLocation.address
-        )},SA&mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`
+        )},SA&mode=driving&language=${languageParam}&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`
       );
       const data = await res.json();
 
