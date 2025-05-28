@@ -139,12 +139,8 @@ const ProtectedDriverRoute = ({ children }) => {
     checkDriverStatus();
   }, [isLoggedIn, userType, user]);
 
-  if (loading || statusLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        جاري التحميل...
-      </div>
-    );
+  if (loading) {
+    return null;
   }
 
   if (!isLoggedIn) {

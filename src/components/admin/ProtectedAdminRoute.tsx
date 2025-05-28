@@ -6,6 +6,7 @@ import { useLanguage } from "@/components/ui/language-context";
 import { Loader2 } from "lucide-react";
 import Cookies from "js-cookie";
 import { supabase } from "@/integrations/supabase/client";
+import AdminSidebar from "@/components/admin/AdminSidebar";
 
 interface ProtectedAdminRouteProps {
   children: ReactNode;
@@ -19,8 +20,17 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   const [authStatus, setAuthStatus] = useState<
     "checking" | "authorized" | "unauthorized"
   >("checking");
+  const [minimumLoadingTime, setMinimumLoadingTime] = useState(true);
   const checkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasRunInitialCheck = useRef(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinimumLoadingTime(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const checkAdminAuth = async () => {
@@ -31,9 +41,11 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         Cookies.set("adminAuth", "true", {
           secure: window.location.protocol === "https:",
           sameSite: "Strict",
-          expires: 7,
+          expires: 30,
         });
-        setAuthStatus("authorized");
+        if (!minimumLoadingTime) {
+          setAuthStatus("authorized");
+        }
         return;
       }
 
@@ -42,7 +54,9 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         const hasAdminCookie = Cookies.get("adminAuth") === "true";
 
         if (hasAdminStorage || hasAdminCookie) {
-          setAuthStatus("authorized");
+          if (!minimumLoadingTime) {
+            setAuthStatus("authorized");
+          }
           return;
         }
       }
@@ -52,9 +66,11 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
         Cookies.set("adminAuth", "true", {
           secure: window.location.protocol === "https:",
           sameSite: "Strict",
-          expires: 7,
+          expires: 30,
         });
-        setAuthStatus("authorized");
+        if (!minimumLoadingTime) {
+          setAuthStatus("authorized");
+        }
         return;
       }
 
@@ -71,9 +87,11 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
             Cookies.set("adminAuth", "true", {
               secure: window.location.protocol === "https:",
               sameSite: "Strict",
-              expires: 7,
+              expires: 30,
             });
-            setAuthStatus("authorized");
+            if (!minimumLoadingTime) {
+              setAuthStatus("authorized");
+            }
             return;
           }
 
@@ -89,9 +107,11 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
             Cookies.set("adminAuth", "true", {
               secure: window.location.protocol === "https:",
               sameSite: "Strict",
-              expires: 7,
+              expires: 30,
             });
-            setAuthStatus("authorized");
+            if (!minimumLoadingTime) {
+              setAuthStatus("authorized");
+            }
             return;
           }
 
@@ -103,13 +123,18 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
               Cookies.set("adminAuth", "true", {
                 secure: window.location.protocol === "https:",
                 sameSite: "Strict",
-                expires: 7,
+                expires: 30,
               });
-              setAuthStatus("authorized");
+              if (!minimumLoadingTime) {
+                setAuthStatus("authorized");
+              }
               return;
             }
           }
-          setAuthStatus("unauthorized");
+
+          if (!minimumLoadingTime) {
+            setAuthStatus("unauthorized");
+          }
           return;
         } catch (error) {
           console.warn("Database check failed:", error);
@@ -118,10 +143,13 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
 
       if (!authLoading) {
         if (!currentUser) {
-          setAuthStatus("unauthorized");
+          if (!minimumLoadingTime) {
+            setAuthStatus("unauthorized");
+          }
           return;
         }
       }
+
       if (authLoading && !hasRunInitialCheck.current) {
         hasRunInitialCheck.current = true;
 
@@ -136,11 +164,15 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
             userType === "admin" ||
             localStorage.getItem("adminAuth") === "true"
           ) {
-            setAuthStatus("authorized");
+            if (!minimumLoadingTime) {
+              setAuthStatus("authorized");
+            }
           } else if (finalUser) {
             checkAdminAuth();
           } else {
-            setAuthStatus("unauthorized");
+            if (!minimumLoadingTime) {
+              setAuthStatus("unauthorized");
+            }
           }
         }, 3000);
 
@@ -150,22 +182,40 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
 
     checkAdminAuth();
 
-    // Cleanup timeout on unmount
     return () => {
       if (checkTimeoutRef.current) {
         clearTimeout(checkTimeoutRef.current);
       }
     };
-  }, [user, userType, session, authLoading, location.pathname]);
+  }, [
+    user,
+    userType,
+    session,
+    authLoading,
+    location.pathname,
+    minimumLoadingTime,
+  ]);
 
-  // Handle unauthorized state with redirect
+  useEffect(() => {
+    if (!minimumLoadingTime && authStatus === "checking") {
+      const currentUser = user || session?.user;
+
+      if (
+        userType === "admin" ||
+        localStorage.getItem("adminAuth") === "true"
+      ) {
+        setAuthStatus("authorized");
+      } else if (!currentUser && !authLoading) {
+        setAuthStatus("unauthorized");
+      }
+    }
+  }, [minimumLoadingTime, authStatus, user, session, userType, authLoading]);
+
   useEffect(() => {
     if (authStatus === "unauthorized") {
-      // Clear any stale admin data
       localStorage.removeItem("adminAuth");
       Cookies.remove("adminAuth");
 
-      // Only show toast and redirect if we're not already on login page
       if (!location.pathname.includes("/login")) {
         toast.error(
           t("adminAuthRequired") ||
@@ -176,23 +226,13 @@ const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
     }
   }, [authStatus, location.pathname, navigate, t]);
 
-  // Show loading state while checking
-  if (authStatus === "checking") {
+  // Simple loading screen matching the customer dashboard style
+  if (authStatus === "checking" || minimumLoadingTime) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="flex flex-col items-center space-y-4 p-8">
-          <Loader2 className="h-12 w-12 text-blue-600 animate-spin" />
-          <div className="text-center">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              تحميل لوحة التحكم...
-            </h2>
-            <p className="text-sm text-gray-600">
-              التحقق من صلاحيات المسؤول...
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              {authLoading ? "تحميل بيانات المصادقة..." : "تأكيد الصلاحيات..."}
-            </p>
-          </div>
+      <div className="flex h-screen bg-gray-50">
+        <AdminSidebar />
+        <div className="flex-1 flex justify-center items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-safedrop-primary"></div>
         </div>
       </div>
     );

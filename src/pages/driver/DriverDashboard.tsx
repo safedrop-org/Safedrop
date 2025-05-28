@@ -353,10 +353,10 @@ const DriverDashboardContent = () => {
 
   if (isLoadingDriver || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-safedrop-primary mx-auto"></div>
-          <h2 className="text-2xl font-bold">{t("loading")}</h2>
+      <div className="flex h-screen bg-gray-50">
+        <DriverSidebar />
+        <div className="flex-1 flex justify-center items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-safedrop-primary"></div>
         </div>
       </div>
     );
