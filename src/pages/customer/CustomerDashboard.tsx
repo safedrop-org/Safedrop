@@ -376,7 +376,7 @@ const CustomerDashboardContent = () => {
                             </div>
                             <div>
                               <p className="font-medium">
-                                {t("orderNumberTitle")}: #{order.order_number}
+                                {t("orderNumberTitle")}: {order.order_number}
                               </p>
                               <p className="text-sm text-gray-500">
                                 {language === "ar"

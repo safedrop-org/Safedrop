@@ -64,7 +64,7 @@ const MobileCustomerCard: React.FC<{
             <div className="flex items-center gap-2 text-sm">
               <Mail className="h-4 w-4 text-gray-500" />
               <span className="text-gray-600">{t("emailLabel")}:</span>
-              <span className="font-medium">
+              <span className="font-medium truncate reverse-text">
                 {customer.email || t("notSpecified")}
               </span>
             </div>
@@ -202,7 +202,7 @@ const ResponsiveCustomersTable: React.FC<CustomersTableProps> = ({
             <TableBody>
               {customers.map((customer) => (
                 <TableRow key={customer.id} className="hover:bg-gray-50">
-                  <TableCell className="text-start">
+                  <TableCell className="text-center">
                     <div
                       className="max-w-[120px] truncate"
                       title={`${customer.first_name} ${customer.last_name}`}
@@ -210,7 +210,7 @@ const ResponsiveCustomersTable: React.FC<CustomersTableProps> = ({
                       {customer.first_name} {customer.last_name}
                     </div>
                   </TableCell>
-                  <TableCell className="text-start">
+                  <TableCell className="text-center">
                     <div
                       className="max-w-[150px] truncate"
                       title={customer.email || t("notSpecified")}
@@ -218,10 +218,10 @@ const ResponsiveCustomersTable: React.FC<CustomersTableProps> = ({
                       {customer.email || t("notSpecified")}
                     </div>
                   </TableCell>
-                  <TableCell className="text-start">
+                  <TableCell className="text-center">
                     {customer.phone || t("notSpecified")}
                   </TableCell>
-                  <TableCell className="text-start whitespace-nowrap text-sm">
+                  <TableCell className="text-center whitespace-nowrap text-sm">
                     {formatDate(customer.created_at)}
                   </TableCell>
                 </TableRow>

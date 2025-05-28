@@ -160,7 +160,7 @@ const DriverRatingsContent = () => {
                               {rating.customer?.last_name || t("customer")}
                             </p>
                             <p className="text-sm text-gray-600">
-                              {t("order")} #{rating.order_number}
+                              {t("order")} {rating.order_number}
                             </p>
                           </div>
                           <span className="text-sm text-gray-500">

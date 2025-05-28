@@ -113,14 +113,14 @@ const MyOrdersContent = () => {
             ) : orders && orders.length > 0 ? (
               orders.map((order: any) => (
                 <Card
-                  key={order.id}
+                  key={order.order_id}
                   className="p-4 cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => setSelectedOrder(order)}
                 >
                   <div className="flex justify-between items-center">
                     <div>
                       <h2 className="text-lg font-semibold">
-                        {t("order")} #{order.id.substring(0, 8)}
+                        {t("order")} {order.order_number}
                       </h2>
                       <p className="text-gray-500">
                         {t("orderDate")}: {formatDate(order.created_at)}

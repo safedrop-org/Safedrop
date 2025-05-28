@@ -321,7 +321,7 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
       <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl font-bold text-left">
-            {t("complaintDetails")} #{complaint.complaint_number}
+            {t("complaintDetails")} {complaint.complaint_number}
           </DialogTitle>
         </DialogHeader>
 
@@ -583,7 +583,7 @@ const MobileComplaintCard: React.FC<{
             <div className="flex items-center gap-2">
               <Hash className="h-4 w-4 text-gray-500" />
               <span className="font-bold text-lg">
-                #{complaint.complaint_number}
+                {complaint.complaint_number}
               </span>
             </div>
             <Badge
@@ -822,7 +822,7 @@ const ResponsiveComplaintsTable: React.FC<ComplaintsTableProps> = ({
               {filteredComplaints.map((complaint) => (
                 <TableRow key={complaint.id} className="hover:bg-gray-50">
                   <TableCell className="font-semibold text-center">
-                    #{complaint.complaint_number}
+                    {complaint.complaint_number}
                   </TableCell>
                   <TableCell className="text-center">
                     <div

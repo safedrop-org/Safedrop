@@ -815,7 +815,7 @@ const AdminDashboardContent = () => {
                               <TableBody>
                                 {orders.map((order: Order) => (
                                   <TableRow
-                                    key={order.id}
+                                    key={order.order_id}
                                     className="hover:bg-gray-50"
                                   >
                                     <TableCell className="font-semibold text-center">
@@ -876,6 +876,9 @@ const AdminDashboardContent = () => {
                                     {t("orderId")}
                                   </TableHead>
                                   <TableHead className="text-center whitespace-nowrap font-bold">
+                                    {t("orderNumber")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap font-bold">
                                     {t("status")}
                                   </TableHead>
                                   <TableHead className="text-center whitespace-nowrap font-bold">
@@ -889,11 +892,14 @@ const AdminDashboardContent = () => {
                               <TableBody>
                                 {orders.map((order: Order) => (
                                   <TableRow
-                                    key={order.id}
+                                    key={order.order_id}
                                     className="hover:bg-gray-50"
                                   >
                                     <TableCell className="font-semibold text-center">
-                                      #{order.id.slice(-8)}
+                                      {order.order_id}
+                                    </TableCell>
+                                    <TableCell className="font-semibold text-center">
+                                      {order.order_number}
                                     </TableCell>
                                     <TableCell className="text-center">
                                       {getStatusBadge(order.status)}
@@ -923,6 +929,9 @@ const AdminDashboardContent = () => {
                                     {t("orderId")}
                                   </TableHead>
                                   <TableHead className="text-center whitespace-nowrap font-bold">
+                                    {t("orderNumber")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap font-bold">
                                     {t("status")}
                                   </TableHead>
                                   <TableHead className="text-center whitespace-nowrap font-bold">
@@ -933,11 +942,14 @@ const AdminDashboardContent = () => {
                               <TableBody>
                                 {orders.map((order: Order) => (
                                   <TableRow
-                                    key={order.id}
+                                    key={order.order_id}
                                     className="hover:bg-gray-50"
                                   >
                                     <TableCell className="font-semibold text-center">
-                                      #{order.id.slice(-8)}
+                                      {order.order_id}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {order.order_number}
                                     </TableCell>
                                     <TableCell className="text-center">
                                       {getStatusBadge(order.status)}
@@ -957,7 +969,7 @@ const AdminDashboardContent = () => {
                         {/* Mobile Cards - Small screens */}
                         <div className="block md:hidden space-y-4">
                           {orders.map((order: Order) => (
-                            <Card key={order.id} className="w-full">
+                            <Card key={order.order_id} className="w-full">
                               <CardContent className="p-4">
                                 <div className="space-y-3">
                                   {/* Header */}
@@ -965,7 +977,7 @@ const AdminDashboardContent = () => {
                                     <div className="flex items-center gap-2">
                                       <Hash className="h-4 w-4 text-gray-500" />
                                       <span className="font-bold text-lg">
-                                        #{order.id.slice(-8)}
+                                        {order.order_number}
                                       </span>
                                     </div>
                                     {getStatusBadge(order.status)}

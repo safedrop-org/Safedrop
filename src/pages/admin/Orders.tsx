@@ -111,7 +111,7 @@ const MobileOrderCard: React.FC<{
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
               <Hash className="h-4 w-4 text-gray-500" />
-              <span className="font-bold text-lg">#{order.order_id}</span>
+              <span className="font-bold text-lg">{order.order_id}</span>
             </div>
             <Badge
               variant="outline"
@@ -358,7 +358,7 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                 return (
                   <TableRow key={order.id} className="hover:bg-gray-50">
                     <TableCell className="font-semibold text-center">
-                      #{order.order_id}
+                      {order.order_id}
                     </TableCell>
                     <TableCell className="font-medium text-center">
                       <div
@@ -483,7 +483,7 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                 return (
                   <TableRow key={order.id} className="hover:bg-gray-50">
                     <TableCell className="font-semibold text-center">
-                      #{order.order_id}
+                      {order.order_id}
                     </TableCell>
                     <TableCell className="text-center">
                       <div
@@ -573,7 +573,7 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                 return (
                   <TableRow key={order.id} className="hover:bg-gray-50">
                     <TableCell className="font-semibold text-center">
-                      #{order.order_id}
+                      {order.order_id}
                     </TableCell>
                     <TableCell className="text-center">
                       <div
