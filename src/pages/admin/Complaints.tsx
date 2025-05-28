@@ -303,8 +303,6 @@ const ComplaintDetailsModal: React.FC<ComplaintDetailsModalProps> = ({
         notificationMessage,
         "complaint_resolved"
       );
-
-      toast.success(t("complaintStatusUpdated"));
       queryClient.invalidateQueries({ queryKey: ["complaints"] });
       onStatusUpdate?.();
       onClose();
@@ -555,17 +553,17 @@ const MobileComplaintCard: React.FC<{
   };
 
   const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return t("invalidDate");
-      return date.toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString(
+      language === "ar" ? "ar-SA" : "en-US",
+      {
         year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch (error) {
-      return t("invalidDate");
-    }
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }
+    );
   };
 
   const getUserName = (profiles: any) => {
@@ -1249,7 +1247,9 @@ const Complaints: React.FC = () => {
                       {t("allComplaints")}
                     </span>
                     <span className="sm:hidden">{t("all")}</span>
-                    <span className="mr-1">({filteredComplaints.length})</span>
+                    <span className="ml-1 rtl:mr-1">
+                      ({filteredComplaints.length})
+                    </span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="pending"
@@ -1259,7 +1259,7 @@ const Complaints: React.FC = () => {
                       {t("pendingReview")}
                     </span>
                     <span className="sm:hidden">{t("pending")}</span>
-                    <span className="mr-1">
+                    <span className="ml-1 rtl:mr-1">
                       (
                       {
                         filteredComplaints.filter((c) => c.status === "pending")
@@ -1274,7 +1274,7 @@ const Complaints: React.FC = () => {
                   >
                     <span className="hidden sm:inline">{t("resolved")}</span>
                     <span className="sm:hidden">{t("resolvedTab")}</span>
-                    <span className="mr-1">
+                    <span className="ml-1 rtl:mr-1">
                       (
                       {
                         filteredComplaints.filter(

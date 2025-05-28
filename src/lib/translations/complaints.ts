@@ -46,10 +46,6 @@ export const complaints: TranslationSection = {
     ar: "رقم الطلب",
     en: "Order Number",
   },
-  orderNumber: {
-    ar: "رقم الطلب (اختياري)",
-    en: "Order Number (Optional)",
-  },
   enterOrderNumber: {
     ar: "أدخل رقم الطلب إن وُجد",
     en: "Enter order number if available",

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Info } from "lucide-react";
+import { useLanguage } from "@/components/ui/language-context";
 
 interface OrderDetailsProps {
   order: any;
@@ -25,53 +26,54 @@ export function OrderDetails({
   onClose,
   onStatusUpdate,
 }: OrderDetailsProps) {
+  const { t, language } = useLanguage();
   const [isUpdating, setIsUpdating] = useState(false);
 
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case "available":
         return {
-          text: "متاح للتوصيل",
+          text: t("available"),
           className: "bg-blue-100 text-blue-800 border-blue-200",
         };
       case "completed":
         return {
-          text: "مكتمل",
+          text: t("completed"),
           className: "bg-green-100 text-green-800 border-green-200",
         };
       case "picked_up":
         return {
-          text: "تم الاستلام",
+          text: t("pickedUp"),
           className: "bg-purple-100 text-purple-800 border-purple-200",
         };
       case "approaching":
         return {
-          text: "في الطريق",
+          text: t("approaching"),
           className: "bg-indigo-100 text-indigo-800 border-indigo-200",
         };
       case "in_transit":
         return {
-          text: "قيد التوصيل",
+          text: t("inTransit"),
           className: "bg-orange-100 text-orange-800 border-orange-200",
         };
       case "delivered":
         return {
-          text: "تم التوصيل",
+          text: t("delivered"),
           className: "bg-green-100 text-green-800 border-green-200",
         };
       case "cancelled":
         return {
-          text: "ملغي",
+          text: t("cancelled"),
           className: "bg-red-100 text-red-800 border-red-200",
         };
       case "pending":
         return {
-          text: "قيد الانتظار",
+          text: t("pending"),
           className: "bg-yellow-100 text-yellow-800 border-yellow-200",
         };
       default:
         return {
-          text: status || "غير محدد",
+          text: status || t("notSpecified"),
           className: "bg-gray-100 text-gray-800 border-gray-200",
         };
     }
@@ -82,7 +84,7 @@ export function OrderDetails({
     try {
       // Check if order is valid and has an ID
       if (!order?.id) {
-        throw new Error("معرف الطلب غير صالح");
+        throw new Error(t("invalidOrderId"));
       }
 
       // First, check if the order exists
@@ -98,7 +100,7 @@ export function OrderDetails({
       }
 
       if (!existingOrder) {
-        throw new Error("الطلب غير موجود");
+        throw new Error(t("orderNotFound"));
       }
 
       const { data, error } = await supabase
@@ -115,21 +117,22 @@ export function OrderDetails({
         throw error;
       }
 
-      toast.success("تم تحديث حالة الطلب بنجاح");
-      onStatusUpdate(); // تحديث قائمة الطلبات
-      onClose(); // إغلاق النافذة
+      toast.success(t("orderUpdatedSuccessfully"));
+      onStatusUpdate(); // Update orders list
+      onClose(); // Close dialog
     } catch (error: any) {
       console.error("Error updating order status:", error);
-      toast.error(`حدث خطأ أثناء تحديث حالة الطلب: ${error.message || ""}`);
+      toast.error(`${t("errorUpdatingOrder")}: ${error.message || ""}`);
     } finally {
       setIsUpdating(false);
     }
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return "غير متوفر";
+    if (!dateString) return t("notAvailable");
 
-    return new Date(dateString).toLocaleString("ar-SA", {
+    const locale = language === "ar" ? "ar-SA" : "en-US";
+    return new Date(dateString).toLocaleString(locale, {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -138,58 +141,63 @@ export function OrderDetails({
     });
   };
 
-  // تحقق من وجود بيانات الطلب
+  // Check if order data exists
   const isOrderValid = Boolean(order && order.id);
 
   if (!isOrderValid) return null;
 
-  // استخراج بيانات المواقع بشكل آمن
+  // Safely extract location data
   const pickupAddress =
     order?.pickup_location?.formatted_address ||
     order?.pickup_location?.address ||
-    "غير محدد";
+    t("notSpecified");
   const pickupDetails =
-    order?.pickup_location?.additional_details || "لا توجد تفاصيل إضافية";
+    order?.pickup_location?.additional_details || t("noAdditionalDetails");
   const dropoffAddress =
     order?.dropoff_location?.formatted_address ||
     order?.dropoff_location?.address ||
-    "غير محدد";
+    t("notSpecified");
   const dropoffDetails =
-    order?.dropoff_location?.additional_details || "لا توجد تفاصيل إضافية";
+    order?.dropoff_location?.additional_details || t("noAdditionalDetails");
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl text-left">
-            تفاصيل الطلب #{order.order_number?.substring(0, 8) || "غير معروف"}
+            {t("orderDetailsTitle")} #
+            {order.order_number?.substring(0, 8) || t("unknown")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Customer Information */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">معلومات العميل</h3>
+            <h3 className="font-semibold text-lg">
+              {t("customerInformation")}
+            </h3>
             {order.customer ? (
               <div className="space-y-2">
                 <p className="text-gray-700">
-                  الاسم: {order.customer.first_name} {order.customer.last_name}
+                  {t("customerName")}: {order.customer.first_name}{" "}
+                  {order.customer.last_name}
                 </p>
                 <p className="text-gray-700">
-                  الهاتف: {order.customer.phone || "غير متوفر"}
+                  {t("customerPhone")}:{" "}
+                  {order.customer.phone || t("notAvailable")}
                 </p>
               </div>
             ) : (
               <div className="flex items-center text-amber-600 bg-amber-50 p-2 rounded-md">
                 <Info className="h-4 w-4 mr-2" />
-                <span>معلومات العميل غير متوفرة</span>
+                <span>{t("customerInfoNotAvailable")}</span>
               </div>
             )}
           </div>
 
           {/* Order Status */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">حالة الطلب</h3>
+            <h3 className="font-semibold text-lg">{t("orderStatus")}</h3>
             <div className="space-y-2">
               <Badge
                 variant="outline"
@@ -206,14 +214,14 @@ export function OrderDetails({
                     variant="default"
                     className="bg-green-600 hover:bg-green-700"
                   >
-                    {isUpdating ? "جاري المعالجة..." : "قبول الطلب"}
+                    {isUpdating ? t("processing") : t("acceptOrder")}
                   </Button>
                   <Button
                     onClick={() => handleStatusChange("rejected")}
                     disabled={isUpdating}
                     variant="destructive"
                   >
-                    {isUpdating ? "جاري المعالجة..." : "رفض الطلب"}
+                    {isUpdating ? t("processing") : t("rejectOrder")}
                   </Button>
                 </div>
               )}
@@ -222,58 +230,70 @@ export function OrderDetails({
 
           {/* Pickup Details */}
           <div className="space-y-4 col-span-2">
-            <h3 className="font-semibold text-lg">معلومات الاستلام</h3>
+            <h3 className="font-semibold text-lg">{t("pickupInformation")}</h3>
             <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
-              <p className="font-medium">العنوان:</p>
+              <p className="font-medium">{t("address")}:</p>
               <p className="text-gray-600">{pickupAddress}</p>
-              <p className="font-medium mt-2">تفاصيل إضافية:</p>
+              <p className="font-medium mt-2">{t("additionalDetails")}:</p>
               <p className="text-gray-600">{pickupDetails}</p>
             </div>
           </div>
 
           {/* Delivery Details */}
           <div className="space-y-4 col-span-2">
-            <h3 className="font-semibold text-lg">معلومات التوصيل</h3>
+            <h3 className="font-semibold text-lg">
+              {t("deliveryInformation")}
+            </h3>
             <div className="space-y-2 bg-gray-50 p-4 rounded-lg">
-              <p className="font-medium">العنوان:</p>
+              <p className="font-medium">{t("address")}:</p>
               <p className="text-gray-600">{dropoffAddress}</p>
-              <p className="font-medium mt-2">تفاصيل إضافية:</p>
+              <p className="font-medium mt-2">{t("additionalDetails")}:</p>
               <p className="text-gray-600">{dropoffDetails}</p>
             </div>
           </div>
 
           {/* Package Details */}
           <div className="col-span-2">
-            <h3 className="font-semibold text-lg mb-2">تفاصيل الشحنة</h3>
+            <h3 className="font-semibold text-lg mb-2">
+              {t("packageDetails")}
+            </h3>
             <p className="text-gray-600">
-              {order.package_details || "لا توجد تفاصيل"}
+              {order.package_details || t("noPackageDetails")}
             </p>
           </div>
 
           {/* Driver Notes */}
           <div className="col-span-2">
-            <h3 className="font-semibold text-lg mb-2">ملاحظات للسائق</h3>
-            <p className="text-gray-600">{order.notes || "لا توجد ملاحظات"}</p>
+            <h3 className="font-semibold text-lg mb-2">{t("driverNotes")}</h3>
+            <p className="text-gray-600">{order.notes || t("noNotes")}</p>
           </div>
 
           {/* Payment Information */}
           <div className="col-span-2">
-            <h3 className="font-semibold text-lg mb-2">معلومات الدفع</h3>
+            <h3 className="font-semibold text-lg mb-2">
+              {t("paymentInformation")}
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-gray-50 p-3 rounded-md">
-                <p className="text-sm text-gray-500 mb-1">المبلغ:</p>
+                <p className="text-sm text-gray-500 mb-1">{t("amount")}:</p>
                 <p className="font-medium">
-                  {order.price ? `${order.price} ر.س` : "غير محدد"}
+                  {order.price
+                    ? `${order.price} ${t("currency")}`
+                    : t("notSpecified")}
                 </p>
               </div>
               <div className="bg-gray-50 p-3 rounded-md">
-                <p className="text-sm text-gray-500 mb-1">طريقة الدفع:</p>
+                <p className="text-sm text-gray-500 mb-1">
+                  {t("paymentMethod")}:
+                </p>
                 <p className="font-medium">
-                  {order.payment_method || "غير محدد"}
+                  {order.payment_method || t("notSpecified")}
                 </p>
               </div>
               <div className="bg-gray-50 p-3 rounded-md">
-                <p className="text-sm text-gray-500 mb-1">حالة الدفع:</p>
+                <p className="text-sm text-gray-500 mb-1">
+                  {t("paymentStatus")}:
+                </p>
                 <Badge
                   variant="outline"
                   className={
@@ -285,9 +305,9 @@ export function OrderDetails({
                   }
                 >
                   {order.payment_status === "paid"
-                    ? "مدفوع"
+                    ? t("paid")
                     : order.payment_status === "pending"
-                    ? "غير مدفوع"
+                    ? t("unpaid")
                     : order.payment_status}
                 </Badge>
               </div>
@@ -297,7 +317,7 @@ export function OrderDetails({
 
         <DialogFooter className="mt-6">
           <Button variant="outline" onClick={onClose} disabled={isUpdating}>
-            إغلاق
+            {t("close")}
           </Button>
         </DialogFooter>
       </DialogContent>

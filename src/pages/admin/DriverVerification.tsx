@@ -53,7 +53,8 @@ const MobileDriverCard: React.FC<{
   statusCategories: DriverStatusCategory[];
   language: string;
   onViewDriver: (driverId: string) => void;
-}> = ({ driver, statusCategories, language, onViewDriver }) => {
+  t: (key: string) => string;
+}> = ({ driver, statusCategories, language, onViewDriver, t }) => {
   const statusCategory = statusCategories.find(
     (cat) => cat.name === driver.status
   );
@@ -94,19 +95,21 @@ const MobileDriverCard: React.FC<{
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm">
               <Mail className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">البريد الإلكتروني:</span>
-              <span className="font-medium">{driver.email || "غير محدد"}</span>
+              <span className="text-gray-600">{t("emailLabel")}:</span>
+              <span className="font-medium">
+                {driver.email || t("notSpecified")}
+              </span>
             </div>
 
             <div className="flex items-center gap-2 text-sm">
               <Phone className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">الهاتف:</span>
+              <span className="text-gray-600">{t("phoneLabel")}:</span>
               <span className="font-medium">{driver.phone}</span>
             </div>
 
             <div className="flex items-center gap-2 text-sm">
               <Shield className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">نوع المستخدم:</span>
+              <span className="text-gray-600">{t("userTypeLabel")}:</span>
               <span className="font-medium">{driver.user_type}</span>
             </div>
           </div>
@@ -120,7 +123,7 @@ const MobileDriverCard: React.FC<{
               className="w-full gap-2"
             >
               <Eye className="h-4 w-4" />
-              عرض تفاصيل السائق الكاملة
+              {t("viewFullDriverDetails")}
             </Button>
           </div>
         </div>
@@ -136,6 +139,7 @@ interface DriversTableProps {
   language: string;
   status?: "all" | "pending" | "approved" | "rejected";
   onViewDriver: (driverId: string) => void;
+  t: (key: string) => string;
 }
 
 const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
@@ -144,6 +148,7 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
   language,
   status = "all",
   onViewDriver,
+  t,
 }) => {
   const filteredDrivers =
     status === "all"
@@ -166,7 +171,7 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
         <div className="text-gray-400 mb-2">
           <User className="h-12 w-12 mx-auto" />
         </div>
-        <p className="text-gray-500 text-lg">لا يوجد سائقون في هذه الفئة</p>
+        <p className="text-gray-500 text-lg">{t("noDriversInCategory")}</p>
       </div>
     );
   }
@@ -180,25 +185,25 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center whitespace-nowrap min-w-[140px] font-bold">
-                  الاسم الأول
+                  {t("firstName")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[140px] font-bold">
-                  اسم العائلة
+                  {t("lastName")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[200px] font-bold">
-                  البريد الإلكتروني
+                  {t("email")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
-                  الهاتف
+                  {t("phone")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
-                  نوع المستخدم
+                  {t("userType")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
-                  الحالة
+                  {t("status")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[100px] font-bold">
-                  الإجراءات
+                  {t("Actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -228,9 +233,9 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
                     <TableCell className="text-center">
                       <div
                         className="max-w-[200px] truncate"
-                        title={driver.email || "غير محدد"}
+                        title={driver.email || t("notSpecified")}
                       >
-                        {driver.email || "غير محدد"}
+                        {driver.email || t("notSpecified")}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -274,19 +279,19 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الاسم
+                  {t("driverName")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  البريد الإلكتروني
+                  {t("email")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الهاتف
+                  {t("phone")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الحالة
+                  {t("status")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الإجراءات
+                  {t("Actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -308,9 +313,9 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
                     <TableCell className="text-center">
                       <div
                         className="max-w-[150px] truncate"
-                        title={driver.email || "غير محدد"}
+                        title={driver.email || t("notSpecified")}
                       >
-                        {driver.email || "غير محدد"}
+                        {driver.email || t("notSpecified")}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -351,16 +356,16 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الاسم
+                  {t("driverName")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الحالة
+                  {t("status")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الهاتف
+                  {t("phone")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  عرض
+                  {t("Actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -427,6 +432,7 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
             statusCategories={statusCategories}
             language={language}
             onViewDriver={onViewDriver}
+            t={t}
           />
         ))}
       </div>
@@ -455,7 +461,7 @@ const DriverVerification = () => {
       setStatusCategories(data || []);
     } catch (error) {
       console.error("Error fetching driver status categories:", error);
-      toast.error("حدث خطأ أثناء جلب فئات حالة السائقين");
+      toast.error(t("errorFetchingStatusCategories"));
     }
   };
 
@@ -511,8 +517,8 @@ const DriverVerification = () => {
       setDrivers(driversCombined);
     } catch (error) {
       console.error("Error fetching drivers:", error);
-      setError("خطأ في جلب بيانات السائقين");
-      toast.error("خطأ في جلب بيانات السائقين");
+      setError(t("errorFetchingDrivers"));
+      toast.error(t("errorFetchingDrivers"));
     } finally {
       setLoading(false);
     }
@@ -548,18 +554,18 @@ const DriverVerification = () => {
 
   const handleExportDrivers = () => {
     const headers = [
-      "الاسم الأول",
-      "اسم العائلة",
-      "البريد الإلكتروني",
-      "الهاتف",
-      "نوع المستخدم",
-      "الحالة",
+      t("firstName"),
+      t("lastName"),
+      t("email"),
+      t("phone"),
+      t("userType"),
+      t("status"),
     ];
 
     const csvData = drivers.map((driver) => [
       driver.first_name,
       driver.last_name,
-      driver.email || "غير محدد",
+      driver.email || t("notSpecified"),
       driver.phone,
       driver.user_type,
       driver.status || "pending",
@@ -583,7 +589,7 @@ const DriverVerification = () => {
     link.click();
     document.body.removeChild(link);
 
-    toast.success("تم تصدير السائقين بنجاح");
+    toast.success(t("driversExportedSuccessfully"));
   };
 
   if (error) {
@@ -598,17 +604,17 @@ const DriverVerification = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-red-800 mb-2">
-                    حدث خطأ في تحميل البيانات
+                    {t("errorLoadingData")}
                   </h3>
                   <p className="text-red-600 mb-4">
-                    حدث خطأ أثناء تحميل السائقين. يرجى المحاولة مرة أخرى لاحقاً.
+                    {t("errorLoadingDriversMessage")}
                   </p>
                   <Button
                     onClick={() => fetchDrivers()}
                     variant="outline"
                     className="text-red-700 border-red-300 hover:bg-red-50"
                   >
-                    إعادة المحاولة
+                    {t("retryAction")}
                   </Button>
                 </div>
               </div>
@@ -627,10 +633,10 @@ const DriverVerification = () => {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                إدارة السائقين
+                {t("driversManagement")}
               </h1>
               <p className="text-sm sm:text-base text-gray-600">
-                إدارة ومتابعة جميع السائقين المسجلين
+                {t("driversManagementDescription")}
               </p>
             </div>
 
@@ -640,7 +646,7 @@ const DriverVerification = () => {
               <div className="relative flex-1 lg:w-80">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="البحث بالاسم، البريد الإلكتروني، أو الهاتف..."
+                  placeholder={t("searchDriverPlaceholder")}
                   className="pr-10"
                   value={searchEmail}
                   onChange={(e) => setSearchEmail(e.target.value)}
@@ -655,8 +661,8 @@ const DriverVerification = () => {
                 disabled={drivers.length === 0}
               >
                 <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">تصدير السائقين</span>
-                <span className="sm:hidden">تصدير</span>
+                <span className="hidden sm:inline">{t("exportDrivers")}</span>
+                <span className="sm:hidden">{t("export")}</span>
               </Button>
             </div>
           </div>
@@ -670,7 +676,7 @@ const DriverVerification = () => {
                     {drivers.length}
                   </div>
                   <div className="text-xs sm:text-sm text-gray-600">
-                    إجمالي السائقين
+                    {t("totalDrivers")}
                   </div>
                 </div>
               </CardContent>
@@ -683,7 +689,7 @@ const DriverVerification = () => {
                     {drivers.filter((d) => d.status === "pending").length}
                   </div>
                   <div className="text-xs sm:text-sm text-gray-600">
-                    في الانتظار
+                    {t("pendingDrivers")}
                   </div>
                 </div>
               </CardContent>
@@ -695,7 +701,9 @@ const DriverVerification = () => {
                   <div className="text-lg sm:text-2xl font-bold text-green-600">
                     {drivers.filter((d) => d.status === "approved").length}
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-600">مقبول</div>
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    {t("approvedDrivers")}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -706,7 +714,9 @@ const DriverVerification = () => {
                   <div className="text-lg sm:text-2xl font-bold text-red-600">
                     {drivers.filter((d) => d.status === "rejected").length}
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-600">مرفوض</div>
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    {t("rejectedDrivers")}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -719,7 +729,7 @@ const DriverVerification = () => {
             <CardContent className="p-12">
               <div className="flex flex-col items-center justify-center space-y-4">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                <p className="text-gray-500">جاري تحميل السائقين...</p>
+                <p className="text-gray-500">{t("loadingDriversText")}</p>
               </div>
             </CardContent>
           </Card>
@@ -728,7 +738,8 @@ const DriverVerification = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg sm:text-xl">
-                نتائج البحث ({filteredDrivers.length} من {drivers.length})
+                {t("searchResults")} ({filteredDrivers.length} {t("of")}{" "}
+                {drivers.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="p-2 sm:p-4 lg:p-6">
@@ -738,8 +749,10 @@ const DriverVerification = () => {
                     value="pending"
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
-                    <span className="hidden sm:inline">في الانتظار</span>
-                    <span className="sm:hidden">انتظار</span>
+                    <span className="hidden sm:inline">
+                      {t("pendingDrivers")}
+                    </span>
+                    <span className="sm:hidden">{t("pending")}</span>
                     <span className="mr-1">
                       (
                       {
@@ -753,9 +766,11 @@ const DriverVerification = () => {
                     value="approved"
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
-                    <span className="hidden sm:inline">مقبول</span>
-                    <span className="sm:hidden">مقبول</span>
-                    <span className="mr-1">
+                    <span className="hidden sm:inline">
+                      {t("approvedDrivers")}
+                    </span>
+                    <span className="sm:hidden">{t("approved")}</span>
+                    <span className="ml-1 rtl:mr-1">
                       (
                       {
                         filteredDrivers.filter((d) => d.status === "approved")
@@ -768,9 +783,11 @@ const DriverVerification = () => {
                     value="rejected"
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
-                    <span className="hidden sm:inline">مرفوض</span>
-                    <span className="sm:hidden">مرفوض</span>
-                    <span className="mr-1">
+                    <span className="hidden sm:inline">
+                      {t("rejectedDrivers")}
+                    </span>
+                    <span className="sm:hidden">{t("rejected")}</span>
+                    <span className="ml-1 rtl:mr-1">
                       (
                       {
                         filteredDrivers.filter((d) => d.status === "rejected")
@@ -783,9 +800,11 @@ const DriverVerification = () => {
                     value="all"
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
-                    <span className="hidden sm:inline">جميع السائقين</span>
-                    <span className="sm:hidden">الكل</span>
-                    <span className="mr-1">({filteredDrivers.length})</span>
+                    <span className="hidden sm:inline">{t("allDrivers")}</span>
+                    <span className="sm:hidden">{t("all")}</span>
+                    <span className="ml-1 rtl:mr-1">
+                      ({filteredDrivers.length})
+                    </span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -796,6 +815,7 @@ const DriverVerification = () => {
                     language={language}
                     status="pending"
                     onViewDriver={navigateToDriverDetails}
+                    t={t}
                   />
                 </TabsContent>
 
@@ -806,6 +826,7 @@ const DriverVerification = () => {
                     language={language}
                     status="approved"
                     onViewDriver={navigateToDriverDetails}
+                    t={t}
                   />
                 </TabsContent>
 
@@ -816,6 +837,7 @@ const DriverVerification = () => {
                     language={language}
                     status="rejected"
                     onViewDriver={navigateToDriverDetails}
+                    t={t}
                   />
                 </TabsContent>
 
@@ -826,6 +848,7 @@ const DriverVerification = () => {
                     language={language}
                     status="all"
                     onViewDriver={navigateToDriverDetails}
+                    t={t}
                   />
                 </TabsContent>
               </Tabs>

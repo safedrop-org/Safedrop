@@ -54,6 +54,7 @@ export const orders: TranslationSection = {
     ar: "تم الاستلام",
     en: "Picked Up",
   },
+
   inTransit: {
     ar: "في الطريق",
     en: "In Transit",
@@ -69,6 +70,18 @@ export const orders: TranslationSection = {
   cancelled: {
     ar: "ملغي",
     en: "Cancelled",
+  },
+  pending: {
+    ar: "قيد الانتظار",
+    en: "Pending",
+  },
+  delivered: {
+    ar: "تم التوصيل",
+    en: "Delivered",
+  },
+  unknown: {
+    ar: "غير محدد",
+    en: "Unknown",
   },
   noCurrentOrders: {
     ar: "لا توجد طلبات حالية",
@@ -369,18 +382,9 @@ export const orders: TranslationSection = {
     en: "Choose 'Allow' for location access",
   },
 
-  // Order Details Card
-  orderId: {
-    ar: "طلب #",
-    en: "Order #",
-  },
   customerInfo: {
     ar: "معلومات العميل:",
     en: "Customer Information:",
-  },
-  unknown: {
-    ar: "غير معروف",
-    en: "Unknown",
   },
   orderTime: {
     ar: "وقت الطلب:",
@@ -551,5 +555,227 @@ export const orders: TranslationSection = {
   "status.location_error": {
     ar: "خطأ في الموقع الجغرافي",
     en: "Location error",
+  },
+
+  // MISSING KEYS FROM ORDERS PAGE - NEWLY ADDED
+  ordersManagement: {
+    ar: "إدارة الطلبات",
+    en: "Orders Management",
+  },
+  ordersManagementDescription: {
+    ar: "إدارة ومتابعة جميع طلبات التوصيل",
+    en: "Manage and track all delivery orders",
+  },
+  searchOrder: {
+    ar: "بحث عن طلب...",
+    en: "Search for order...",
+  },
+  exportOrders: {
+    ar: "تصدير الطلبات",
+    en: "Export Orders",
+  },
+  export: {
+    ar: "تصدير",
+    en: "Export",
+  },
+  ordersExportedSuccessfully: {
+    ar: "تم تصدير الطلبات بنجاح",
+    en: "Orders exported successfully",
+  },
+  totalOrders: {
+    ar: "إجمالي الطلبات",
+    en: "Total Orders",
+  },
+  availableForDelivery: {
+    ar: "متاح للتوصيل",
+    en: "Available for Delivery",
+  },
+  inDelivery: {
+    ar: "قيد التوصيل",
+    en: "In Delivery",
+  },
+  searchResults: {
+    ar: "نتائج البحث",
+    en: "Search Results",
+  },
+  of: {
+    ar: "من",
+    en: "of",
+  },
+  allOrders: {
+    ar: "جميع الطلبات",
+    en: "All Orders",
+  },
+  all: {
+    ar: "الكل",
+    en: "All",
+  },
+  inProgress: {
+    ar: "جاري التوصيل",
+    en: "In Progress",
+  },
+  enRoute: {
+    ar: "طريق",
+    en: "En Route",
+  },
+  done: {
+    ar: "تم",
+    en: "Done",
+  },
+  loadingOrdersText: {
+    ar: "جاري تحميل الطلبات...",
+    en: "Loading orders...",
+  },
+  errorLoadingData: {
+    ar: "حدث خطأ في تحميل البيانات",
+    en: "Error loading data",
+  },
+  errorLoadingOrdersMessage: {
+    ar: "حدث خطأ أثناء تحميل الطلبات. يرجى المحاولة مرة أخرى لاحقاً.",
+    en: "An error occurred while loading orders. Please try again later.",
+  },
+  retryAction: {
+    ar: "إعادة المحاولة",
+    en: "Retry",
+  },
+  orderUpdatedSuccessfully: {
+    ar: "تم تحديث الطلب بنجاح",
+    en: "Order updated successfully",
+  },
+  noOrdersInCategory: {
+    ar: "لا توجد طلبات في هذه الفئة",
+    en: "No orders in this category",
+  },
+  orderCode: {
+    ar: "كود الطلب:",
+    en: "Order Code:",
+  },
+  customer: {
+    ar: "العميل:",
+    en: "Customer:",
+  },
+  driver: {
+    ar: "السائق:",
+    en: "Driver:",
+  },
+  date: {
+    ar: "التاريخ:",
+    en: "Date:",
+  },
+  priceLabel: {
+    ar: "السعر:",
+    en: "Price:",
+  },
+  paymentStatus: {
+    ar: "حالة الدفع:",
+    en: "Payment Status:",
+  },
+  viewFullOrderDetails: {
+    ar: "عرض تفاصيل الطلب الكاملة",
+    en: "View Full Order Details",
+  },
+  invalidDate: {
+    ar: "تاريخ غير صحيح",
+    en: "Invalid Date",
+  },
+  notAssigned: {
+    ar: "غير معين",
+    en: "Not Assigned",
+  },
+  paid: {
+    ar: "مدفوع",
+    en: "Paid",
+  },
+  unpaid: {
+    ar: "غير مدفوع",
+    en: "Unpaid",
+  },
+  refunded: {
+    ar: "مسترد",
+    en: "Refunded",
+  },
+  failed: {
+    ar: "فشل",
+    en: "Failed",
+  },
+  orderDetailsTitle: {
+    ar: "تفاصيل الطلب",
+    en: "Order Details",
+  },
+  customerInformation: {
+    ar: "معلومات العميل",
+    en: "Customer Information",
+  },
+  customerName: {
+    ar: "الاسم",
+    en: "Name",
+  },
+  customerPhone: {
+    ar: "الهاتف",
+    en: "Phone",
+  },
+  orderStatus: {
+    ar: "حالة الطلب",
+    en: "Order Status",
+  },
+  pickupInformation: {
+    ar: "معلومات الاستلام",
+    en: "Pickup Information",
+  },
+  deliveryInformation: {
+    ar: "معلومات التوصيل",
+    en: "Delivery Information",
+  },
+  address: {
+    ar: "العنوان",
+    en: "Address",
+  },
+  paymentInformation: {
+    ar: "معلومات الدفع",
+    en: "Payment Information",
+  },
+  paymentMethod: {
+    ar: "طريقة الدفع",
+    en: "Payment Method",
+  },
+  acceptOrder: {
+    ar: "قبول الطلب",
+    en: "Accept Order",
+  },
+  rejectOrder: {
+    ar: "رفض الطلب",
+    en: "Reject Order",
+  },
+  processing: {
+    ar: "جاري المعالجة...",
+    en: "Processing...",
+  },
+  close: {
+    ar: "إغلاق",
+    en: "Close",
+  },
+  invalidOrderId: {
+    ar: "معرف الطلب غير صالح",
+    en: "Invalid order ID",
+  },
+  notAvailable: {
+    ar: "غير متوفر",
+    en: "Not Available",
+  },
+  noAdditionalDetails: {
+    ar: "لا توجد تفاصيل إضافية",
+    en: "No additional details",
+  },
+  customerInfoNotAvailable: {
+    ar: "معلومات العميل غير متوفرة",
+    en: "Customer information not available",
+  },
+  noPackageDetails: {
+    ar: "لا توجد تفاصيل",
+    en: "No details",
+  },
+  noNotes: {
+    ar: "لا توجد ملاحظات",
+    en: "No notes",
   },
 };

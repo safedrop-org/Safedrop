@@ -28,74 +28,77 @@ import { Input } from "@/components/ui/input";
 import { useOrders } from "@/hooks/useOrders";
 import { OrderDetails } from "@/components/admin/OrderDetails";
 import { toast } from "sonner";
+import { useLanguage } from "@/components/ui/language-context";
 
 // Mobile Card Component
 const MobileOrderCard: React.FC<{
   order: any;
   onViewOrder: (order: any) => void;
-}> = ({ order, onViewOrder }) => {
+  t: (key: string) => string;
+}> = ({ order, onViewOrder, t }) => {
+  const { language } = useLanguage();
   const getStatusDisplay = (status: string) => {
     switch (status) {
       case "available":
         return {
-          text: "متاح للتوصيل",
+          text: t("available"),
           className: "bg-blue-100 text-blue-800 border-blue-200",
         };
       case "completed":
         return {
-          text: "مكتمل",
+          text: t("completed"),
           className: "bg-green-100 text-green-800 border-green-200",
         };
       case "picked_up":
         return {
-          text: "تم الاستلام",
+          text: t("pickedUp"),
           className: "bg-purple-100 text-purple-800 border-purple-200",
         };
       case "approaching":
         return {
-          text: "في الطريق",
+          text: t("approaching"),
           className: "bg-indigo-100 text-indigo-800 border-indigo-200",
         };
       case "in_transit":
         return {
-          text: "قيد التوصيل",
+          text: t("inTransit"),
           className: "bg-orange-100 text-orange-800 border-orange-200",
         };
       case "delivered":
         return {
-          text: "تم التوصيل",
+          text: t("delivered"),
           className: "bg-green-100 text-green-800 border-green-200",
         };
       case "cancelled":
         return {
-          text: "ملغي",
+          text: t("cancelled"),
           className: "bg-red-100 text-red-800 border-red-200",
         };
       case "pending":
         return {
-          text: "قيد الانتظار",
+          text: t("pending"),
           className: "bg-yellow-100 text-yellow-800 border-yellow-200",
         };
       default:
         return {
-          text: status || "غير محدد",
+          text: status || t("unknown"),
           className: "bg-gray-100 text-gray-800 border-gray-200",
         };
     }
   };
 
   const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "تاريخ غير صحيح";
-      return date.toLocaleDateString("ar-SA", {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString(
+      language === "ar" ? "ar-SA" : "en-US",
+      {
         year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch (error) {
-      return "تاريخ غير صحيح";
-    }
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }
+    );
   };
 
   const statusDisplay = getStatusDisplay(order.status);
@@ -121,11 +124,11 @@ const MobileOrderCard: React.FC<{
           {/* Order Code */}
           <div className="flex items-center gap-2 text-sm">
             <Package className="h-4 w-4 text-gray-500" />
-            <span className="text-gray-600">كود الطلب:</span>
+            <span className="text-gray-600">{t("orderCode")}</span>
             <span className="font-medium">
               {order.order_number
                 ? order.order_number.substring(0, 8)
-                : "غير محدد"}
+                : t("notSpecified")}
             </span>
           </div>
 
@@ -133,21 +136,21 @@ const MobileOrderCard: React.FC<{
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm">
               <User className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">العميل:</span>
+              <span className="text-gray-600">{t("customer")}</span>
               <span className="font-medium">
                 {order.customer
                   ? `${order.customer.first_name} ${order.customer.last_name}`
-                  : "غير معروف"}
+                  : t("unknown")}
               </span>
             </div>
 
             <div className="flex items-center gap-2 text-sm">
               <Truck className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">السائق:</span>
+              <span className="text-gray-600">{t("driver")}</span>
               <span className="font-medium">
                 {order.driver
                   ? `${order.driver.first_name} ${order.driver.last_name}`
-                  : "غير معين"}
+                  : t("notAssigned")}
               </span>
             </div>
           </div>
@@ -156,7 +159,7 @@ const MobileOrderCard: React.FC<{
           <div className="space-y-2 pt-2 border-t">
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">التاريخ:</span>
+              <span className="text-gray-600">{t("date")}</span>
               <span className="font-medium">
                 {formatDate(order.created_at)}
               </span>
@@ -164,9 +167,11 @@ const MobileOrderCard: React.FC<{
 
             <div className="flex items-center gap-2 text-sm">
               <DollarSign className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">السعر:</span>
+              <span className="text-gray-600">{t("priceLabel")}</span>
               <span className="font-medium">
-                {order.price ? `${order.price} ر.س` : "غير محدد"}
+                {order.price
+                  ? `${order.price} ${t("currency")}`
+                  : t("notSpecified")}
               </span>
             </div>
           </div>
@@ -175,7 +180,9 @@ const MobileOrderCard: React.FC<{
           <div className="pt-2 border-t">
             <div className="flex items-center gap-2 mb-2">
               <CreditCard className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600 text-sm">حالة الدفع:</span>
+              <span className="text-gray-600 text-sm">
+                {t("paymentStatus")}
+              </span>
             </div>
             <Badge
               variant="outline"
@@ -188,10 +195,10 @@ const MobileOrderCard: React.FC<{
               }`}
             >
               {order.payment_status === "paid"
-                ? "مدفوع"
+                ? t("paid")
                 : order.payment_status === "pending"
-                ? "غير مدفوع"
-                : "مسترد"}
+                ? t("unpaid")
+                : t("refunded")}
             </Badge>
           </div>
 
@@ -204,7 +211,7 @@ const MobileOrderCard: React.FC<{
               className="w-full gap-2"
             >
               <Eye className="h-4 w-4" />
-              عرض تفاصيل الطلب الكاملة
+              {t("viewFullOrderDetails")}
             </Button>
           </div>
         </div>
@@ -218,13 +225,16 @@ interface OrdersTableProps {
   orders: any[];
   status?: "all" | "available" | "picked_up" | "approaching" | "completed";
   onViewOrder: (order: any) => void;
+  t: (key: string) => string;
 }
 
 const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
   orders,
   status = "all",
   onViewOrder,
+  t,
 }) => {
+  const { language } = useLanguage();
   const filteredOrders =
     status === "all"
       ? orders
@@ -234,64 +244,64 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
     switch (status) {
       case "available":
         return {
-          text: "متاح للتوصيل",
+          text: t("available"),
           className: "bg-blue-100 text-blue-800 border-blue-200",
         };
       case "completed":
         return {
-          text: "مكتمل",
+          text: t("completed"),
           className: "bg-green-100 text-green-800 border-green-200",
         };
       case "picked_up":
         return {
-          text: "تم الاستلام",
+          text: t("pickedUp"),
           className: "bg-purple-100 text-purple-800 border-purple-200",
         };
       case "approaching":
         return {
-          text: "في الطريق",
+          text: t("approaching"),
           className: "bg-indigo-100 text-indigo-800 border-indigo-200",
         };
       case "in_transit":
         return {
-          text: "قيد التوصيل",
+          text: t("inTransit"),
           className: "bg-orange-100 text-orange-800 border-orange-200",
         };
       case "delivered":
         return {
-          text: "تم التوصيل",
+          text: t("delivered"),
           className: "bg-green-100 text-green-800 border-green-200",
         };
       case "cancelled":
         return {
-          text: "ملغي",
+          text: t("cancelled"),
           className: "bg-red-100 text-red-800 border-red-200",
         };
       case "pending":
         return {
-          text: "قيد الانتظار",
+          text: t("pending"),
           className: "bg-yellow-100 text-yellow-800 border-yellow-200",
         };
       default:
         return {
-          text: status || "غير محدد",
+          text: status || t("unknown"),
           className: "bg-gray-100 text-gray-800 border-gray-200",
         };
     }
   };
 
   const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "تاريخ غير صحيح";
-      return date.toLocaleDateString("ar-SA", {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString(
+      language === "ar" ? "ar-SA" : "en-US",
+      {
         year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch (error) {
-      return "تاريخ غير صحيح";
-    }
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }
+    );
   };
 
   if (filteredOrders.length === 0) {
@@ -300,7 +310,7 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
         <div className="text-gray-400 mb-2">
           <Package className="h-12 w-12 mx-auto" />
         </div>
-        <p className="text-gray-500 text-lg">لا توجد طلبات في هذه الفئة</p>
+        <p className="text-gray-500 text-lg">{t("noOrdersInCategory")}</p>
       </div>
     );
   }
@@ -314,31 +324,31 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center whitespace-nowrap min-w-[100px] font-bold">
-                  رقم الطلب
+                  {t("Order ID")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
-                  كود الطلب
+                  {t("Order Code")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[140px] font-bold">
-                  العميل
+                  {t("Driver")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[140px] font-bold">
-                  السائق
+                  {t("Driver")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[100px] font-bold">
-                  التاريخ
+                  {t("orderDate")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[100px] font-bold">
-                  السعر
+                  {t("price")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
-                  الحالة
+                  {t("Status")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
-                  حالة الدفع
+                  {t("paymentStatus")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap min-w-[100px] font-bold">
-                  الإجراءات
+                  {t("Actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -353,11 +363,12 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                     <TableCell className="font-medium text-center">
                       <div
                         className="max-w-[120px] truncate"
-                        title={order.order_number || "غير محدد"}
+                        title={order.order_number || t("notSpecified")}
                       >
+                        #
                         {order.order_number
-                          ? order.order_number.substring(0, 8)
-                          : "غير محدد"}
+                          ? order.order_number
+                          : t("notSpecified")}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -366,12 +377,12 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                         title={
                           order.customer
                             ? `${order.customer.first_name} ${order.customer.last_name}`
-                            : "غير معروف"
+                            : t("unknown")
                         }
                       >
                         {order.customer
                           ? `${order.customer.first_name} ${order.customer.last_name}`
-                          : "غير معروف"}
+                          : t("unknown")}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -380,19 +391,21 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                         title={
                           order.driver
                             ? `${order.driver.first_name} ${order.driver.last_name}`
-                            : "غير معين"
+                            : t("notAssigned")
                         }
                       >
                         {order.driver
                           ? `${order.driver.first_name} ${order.driver.last_name}`
-                          : "غير معين"}
+                          : t("notAssigned")}
                       </div>
                     </TableCell>
                     <TableCell className="text-center whitespace-nowrap text-sm">
                       {formatDate(order.created_at)}
                     </TableCell>
                     <TableCell className="text-center">
-                      {order.price ? `${order.price} ر.س` : "غير محدد"}
+                      {order.price
+                        ? `${order.price} ${t("currency")}`
+                        : t("notSpecified")}
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge
@@ -414,10 +427,10 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                         }`}
                       >
                         {order.payment_status === "paid"
-                          ? "مدفوع"
+                          ? t("paid")
                           : order.payment_status === "pending"
-                          ? "غير مدفوع"
-                          : "مسترد"}
+                          ? t("unpaid")
+                          : t("refunded")}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
@@ -445,22 +458,22 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  رقم الطلب
+                  {t("Order ID")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  العميل
+                  {t("Driver")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  السائق
+                  {t("Driver")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  السعر
+                  {t("price")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الحالة
+                  {t("Status")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الإجراءات
+                  {t("Actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -478,12 +491,12 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                         title={
                           order.customer
                             ? `${order.customer.first_name} ${order.customer.last_name}`
-                            : "غير معروف"
+                            : t("unknown")
                         }
                       >
                         {order.customer
                           ? `${order.customer.first_name} ${order.customer.last_name}`
-                          : "غير معروف"}
+                          : t("unknown")}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -492,16 +505,18 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                         title={
                           order.driver
                             ? `${order.driver.first_name} ${order.driver.last_name}`
-                            : "غير معين"
+                            : t("notAssigned")
                         }
                       >
                         {order.driver
                           ? `${order.driver.first_name} ${order.driver.last_name}`
-                          : "غير معين"}
+                          : t("notAssigned")}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      {order.price ? `${order.price} ر.س` : "غير محدد"}
+                      {order.price
+                        ? `${order.price} ${t("currency")}`
+                        : t("notSpecified")}
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge
@@ -536,19 +551,19 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الطلب
+                  {t("order")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  العميل
+                  {t("Driver")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  الحالة
+                  {t("Status")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  السعر
+                  {t("price")}
                 </TableHead>
                 <TableHead className="text-center whitespace-nowrap font-bold">
-                  عرض
+                  {t("Actions")}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -566,12 +581,12 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                         title={
                           order.customer
                             ? `${order.customer.first_name} ${order.customer.last_name}`
-                            : "غير معروف"
+                            : t("unknown")
                         }
                       >
                         {order.customer
                           ? `${order.customer.first_name} ${order.customer.last_name}`
-                          : "غير معروف"}
+                          : t("unknown")}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -585,7 +600,9 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center text-xs">
-                      {order.price ? `${order.price} ر.س` : "غير محدد"}
+                      {order.price
+                        ? `${order.price} ${t("currency")}`
+                        : t("notSpecified")}
                     </TableCell>
                     <TableCell className="text-center">
                       <Button
@@ -612,6 +629,7 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
             key={order.id}
             order={order}
             onViewOrder={onViewOrder}
+            t={t}
           />
         ))}
       </div>
@@ -621,6 +639,7 @@ const ResponsiveOrdersTable: React.FC<OrdersTableProps> = ({
 
 // Main Orders Component
 const Orders: React.FC = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -629,9 +648,9 @@ const Orders: React.FC = () => {
   React.useEffect(() => {
     if (error) {
       console.error("Error fetching orders:", error);
-      toast.error("حدث خطأ أثناء تحميل الطلبات");
+      toast.error(t("errorLoadingOrders"));
     }
-  }, [error]);
+  }, [error, t]);
 
   const handleViewOrder = (order: any) => {
     setSelectedOrder(order);
@@ -640,7 +659,7 @@ const Orders: React.FC = () => {
 
   const handleOrderStatusUpdate = () => {
     refetch();
-    toast.success("تم تحديث الطلب بنجاح");
+    toast.success(t("orderUpdatedSuccessfully"));
   };
 
   const handleCloseDetails = () => {
@@ -650,27 +669,27 @@ const Orders: React.FC = () => {
 
   const handleExportOrders = () => {
     const headers = [
-      "رقم الطلب",
-      "كود الطلب",
-      "العميل",
-      "السائق",
-      "التاريخ",
-      "السعر",
-      "الحالة",
-      "حالة الدفع",
+      t("Order ID"),
+      t("Order Code"),
+      t("Driver"),
+      t("Driver"),
+      t("orderDate"),
+      t("price"),
+      t("Status"),
+      t("paymentStatus"),
     ];
 
     const csvData = orders.map((order) => [
       order.order_id || order.id,
-      order.order_number || "غير محدد",
+      order.order_number || t("notSpecified"),
       order.customer
         ? `${order.customer.first_name} ${order.customer.last_name}`
-        : "غير معروف",
+        : t("unknown"),
       order.driver
         ? `${order.driver.first_name} ${order.driver.last_name}`
-        : "غير معين",
+        : t("notAssigned"),
       new Date(order.created_at).toLocaleDateString("ar-SA"),
-      order.price ? `${order.price} ر.س` : "غير محدد",
+      order.price ? `${order.price} ${t("currency")}` : t("notSpecified"),
       order.status,
       order.payment_status,
     ]);
@@ -693,7 +712,7 @@ const Orders: React.FC = () => {
     link.click();
     document.body.removeChild(link);
 
-    toast.success("تم تصدير الطلبات بنجاح");
+    toast.success(t("ordersExportedSuccessfully"));
   };
 
   const filteredOrders = orders.filter(
@@ -722,17 +741,17 @@ const Orders: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-red-800 mb-2">
-                  حدث خطأ في تحميل البيانات
+                  {t("errorLoadingData")}
                 </h3>
                 <p className="text-red-600 mb-4">
-                  حدث خطأ أثناء تحميل الطلبات. يرجى المحاولة مرة أخرى لاحقاً.
+                  {t("errorLoadingOrdersMessage")}
                 </p>
                 <Button
                   onClick={() => refetch()}
                   variant="outline"
                   className="text-red-700 border-red-300 hover:bg-red-50"
                 >
-                  إعادة المحاولة
+                  {t("retryAction")}
                 </Button>
               </div>
             </div>
@@ -750,10 +769,10 @@ const Orders: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
             <div>
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
-                إدارة الطلبات
+                {t("ordersManagement")}
               </h1>
               <p className="text-sm sm:text-base text-gray-600">
-                إدارة ومتابعة جميع طلبات التوصيل
+                {t("ordersManagementDescription")}
               </p>
             </div>
 
@@ -763,7 +782,7 @@ const Orders: React.FC = () => {
               <div className="relative flex-1 lg:w-80">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="بحث عن طلب..."
+                  placeholder={t("searchOrder")}
                   className="pr-10 text-left"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -778,8 +797,8 @@ const Orders: React.FC = () => {
                 disabled={orders.length === 0}
               >
                 <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">تصدير الطلبات</span>
-                <span className="sm:hidden">تصدير</span>
+                <span className="hidden sm:inline">{t("exportOrders")}</span>
+                <span className="sm:hidden">{t("export")}</span>
               </Button>
             </div>
           </div>
@@ -793,7 +812,7 @@ const Orders: React.FC = () => {
                     {orders.length}
                   </div>
                   <div className="text-xs sm:text-sm text-gray-600">
-                    إجمالي الطلبات
+                    {t("totalOrders")}
                   </div>
                 </div>
               </CardContent>
@@ -806,7 +825,7 @@ const Orders: React.FC = () => {
                     {orders.filter((o) => o.status === "available").length}
                   </div>
                   <div className="text-xs sm:text-sm text-gray-600">
-                    متاح للتوصيل
+                    {t("availableForDelivery")}
                   </div>
                 </div>
               </CardContent>
@@ -825,7 +844,7 @@ const Orders: React.FC = () => {
                     }
                   </div>
                   <div className="text-xs sm:text-sm text-gray-600">
-                    قيد التوصيل
+                    {t("inDelivery")}
                   </div>
                 </div>
               </CardContent>
@@ -837,7 +856,9 @@ const Orders: React.FC = () => {
                   <div className="text-lg sm:text-2xl font-bold text-green-600">
                     {orders.filter((o) => o.status === "completed").length}
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-600">مكتمل</div>
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    {t("completed")}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -850,7 +871,7 @@ const Orders: React.FC = () => {
             <CardContent className="p-12">
               <div className="flex flex-col items-center justify-center space-y-4">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                <p className="text-gray-500">جاري تحميل الطلبات...</p>
+                <p className="text-gray-500">{t("loadingOrdersText")}</p>
               </div>
             </CardContent>
           </Card>
@@ -859,7 +880,8 @@ const Orders: React.FC = () => {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg sm:text-xl">
-                نتائج البحث ({filteredOrders.length} من {orders.length})
+                {t("searchResults")} ({filteredOrders.length} {t("of")}{" "}
+                {orders.length})
               </CardTitle>
             </CardHeader>
             <CardContent className="p-2 sm:p-4 lg:p-6">
@@ -869,17 +891,19 @@ const Orders: React.FC = () => {
                     value="all"
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
-                    <span className="hidden sm:inline">جميع الطلبات</span>
-                    <span className="sm:hidden">الكل</span>
-                    <span className="mr-1">({filteredOrders.length})</span>
+                    <span className="hidden sm:inline">{t("allOrders")}</span>
+                    <span className="sm:hidden">{t("all")}</span>
+                    <span className="ml-1 rtl:mr-1">
+                      ({filteredOrders.length})
+                    </span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="available"
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
-                    <span className="hidden sm:inline">متاح</span>
-                    <span className="sm:hidden">متاح</span>
-                    <span className="mr-1">
+                    <span className="hidden sm:inline">{t("available")}</span>
+                    <span className="sm:hidden">{t("available")}</span>
+                    <span className="ml-1 rtl:mr-1">
                       (
                       {
                         filteredOrders.filter((o) => o.status === "available")
@@ -892,9 +916,9 @@ const Orders: React.FC = () => {
                     value="picked_up"
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
-                    <span className="hidden sm:inline">جاري التوصيل</span>
-                    <span className="sm:hidden">جاري</span>
-                    <span className="mr-1">
+                    <span className="hidden sm:inline">{t("inProgress")}</span>
+                    <span className="sm:hidden">{t("inProgress")}</span>
+                    <span className="ml-1 rtl:mr-1">
                       (
                       {
                         filteredOrders.filter((o) => o.status === "picked_up")
@@ -907,9 +931,9 @@ const Orders: React.FC = () => {
                     value="approaching"
                     className="text-xs sm:text-sm px-2 sm:px-4 hidden sm:flex"
                   >
-                    <span className="hidden lg:inline">في الطريق</span>
-                    <span className="lg:hidden">طريق</span>
-                    <span className="mr-1">
+                    <span className="hidden lg:inline">{t("approaching")}</span>
+                    <span className="lg:hidden">{t("enRoute")}</span>
+                    <span className="ml-1 rtl:mr-1">
                       (
                       {
                         filteredOrders.filter((o) => o.status === "approaching")
@@ -922,9 +946,9 @@ const Orders: React.FC = () => {
                     value="completed"
                     className="text-xs sm:text-sm px-2 sm:px-4"
                   >
-                    <span className="hidden sm:inline">مكتمل</span>
-                    <span className="sm:hidden">تم</span>
-                    <span className="mr-1">
+                    <span className="hidden sm:inline">{t("completed")}</span>
+                    <span className="sm:hidden">{t("done")}</span>
+                    <span className="ml-1 rtl:mr-1">
                       (
                       {
                         filteredOrders.filter((o) => o.status === "completed")
@@ -940,6 +964,7 @@ const Orders: React.FC = () => {
                     orders={filteredOrders}
                     status="all"
                     onViewOrder={handleViewOrder}
+                    t={t}
                   />
                 </TabsContent>
 
@@ -948,6 +973,7 @@ const Orders: React.FC = () => {
                     orders={filteredOrders}
                     status="available"
                     onViewOrder={handleViewOrder}
+                    t={t}
                   />
                 </TabsContent>
 
@@ -956,6 +982,7 @@ const Orders: React.FC = () => {
                     orders={filteredOrders}
                     status="picked_up"
                     onViewOrder={handleViewOrder}
+                    t={t}
                   />
                 </TabsContent>
 
@@ -964,6 +991,7 @@ const Orders: React.FC = () => {
                     orders={filteredOrders}
                     status="approaching"
                     onViewOrder={handleViewOrder}
+                    t={t}
                   />
                 </TabsContent>
 
@@ -972,6 +1000,7 @@ const Orders: React.FC = () => {
                     orders={filteredOrders}
                     status="completed"
                     onViewOrder={handleViewOrder}
+                    t={t}
                   />
                 </TabsContent>
               </Tabs>

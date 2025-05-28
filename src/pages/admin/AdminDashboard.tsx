@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+
 import {
   Table,
   TableBody,
@@ -33,47 +33,24 @@ import {
 } from "@/components/ui/table";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { supabase } from "@/integrations/supabase/client";
-import { IProfile, IDriver } from "@/integrations/supabase/custom-types";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   UsersIcon,
   TruckIcon,
   PackageIcon,
-  LogOutIcon,
   DollarSign,
   LineChart,
   BarChart2Icon,
   AlertTriangleIcon,
-  BellIcon,
-  UserXIcon,
-  UserCheckIcon,
-  SearchIcon,
-  MoreVerticalIcon,
-  FilterIcon,
-  FileTextIcon,
-  MessageSquareIcon,
-  SettingsIcon,
   Check,
-  Globe,
-  ShieldIcon,
-  UserCogIcon,
-  Eye,
-  Search,
-  Ban,
+  Hash,
+  Calendar,
 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
 
 // Define types
 type DateRange = "today" | "week" | "month" | "year";
-type UserType = "customer" | "driver";
-type UserStatus =
-  | "active"
-  | "suspended"
-  | "banned"
-  | "pending"
-  | "rejected"
-  | "approved";
 
 interface FinancialSummary {
   totalRevenue: number;
@@ -82,116 +59,42 @@ interface FinancialSummary {
   driversPayout: number;
 }
 
-interface Complaint {
-  id: string;
-  userId: string;
-  userName: string;
-  userType: UserType;
-  subject: string;
-  content: string;
-  status: "pending" | "in-progress" | "resolved";
-  createdAt: string;
-}
-
-interface SystemSetting {
-  key: string;
-  value: string;
-  updated_at?: string;
-}
-
-interface VehicleInfo {
-  make: string;
-  model: string;
-  year: string;
-}
-
-interface Profile {
-  id: string;
-  first_name: string;
-  last_name: string;
-  phone: string;
-  email?: string;
-  national_id?: string;
-  status?: UserStatus;
-  user_type?: UserType;
-  created_at?: string;
-}
-
-interface SupabaseDriverResponse {
-  id: string;
-  national_id: string;
-  license_number: string;
-  license_image: string;
-  vehicle_info: VehicleInfo;
-  status: UserStatus;
-  rejection_reason?: string;
-  rating?: number;
-  is_available?: boolean;
-  profile_id: string;
-  profiles: {
-    first_name: string;
-    last_name: string;
-    phone: string;
-    id: string;
-    email?: string;
-    created_at?: string;
-  };
-}
-
-interface SupabaseCustomer {
-  id: string;
-  first_name: string;
-  last_name: string;
-  phone: string;
-  email?: string;
-  status?: UserStatus;
-  national_id?: string;
-  created_at?: string;
-}
-
-interface SupabaseOrder {
-  id: string;
-  customer: SupabaseCustomer;
-  driver: SupabaseDriverResponse;
-  status: string;
-  created_at: string;
-}
-
-interface DriverProfiles {
-  first_name: string;
-  last_name: string;
-  phone: string;
-}
-
-interface Driver {
-  id: string;
-  national_id: string;
-  license_number: string;
-  license_image: string;
-  vehicle_info: VehicleInfo;
-  status: UserStatus;
-  rejection_reason?: string;
-  rating?: number;
-  is_available?: boolean;
-  profile_id: string;
-  profiles?: Profile;
+interface LocationObject {
+  address: string;
+  details?: string;
 }
 
 interface Order {
   id: string;
-  customer?: Profile;
-  driver?: Driver;
+  customer_id: string;
+  driver_id: string | null;
+  pickup_location: LocationObject;
+  dropoff_location: LocationObject;
   status: string;
+  price: number;
+  commission_rate: number;
+  driver_payout: number | null;
   created_at: string;
+  updated_at: string;
+  estimated_distance: number | null;
+  estimated_duration: number | null;
+  actual_pickup_time: string | null;
+  actual_delivery_time: string | null;
+  payment_method: string | null;
+  payment_status: string;
+  notes: string;
+  driver_location: { lat: number; lng: number } | null;
+  package_details: string;
+  order_id: number;
+  order_number: string;
 }
 
 const AdminDashboardContent = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { signOut } = useAuth();
   const [dateRange, setDateRange] = useState<DateRange>("month");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCommissionRate, setSelectedCommissionRate] = useState(15);
+  const [selectedCommissionRate, setSelectedCommissionRate] = useState(20);
   const [systemLanguage, setSystemLanguage] = useState("ar");
   const [privacyPolicy, setPrivacyPolicy] = useState("");
   const [termsOfService, setTermsOfService] = useState("");
@@ -201,11 +104,8 @@ const AdminDashboardContent = () => {
     platformProfit: 0,
     driversPayout: 0,
   });
-  const {
-    data: customersCount = 0,
-    isLoading: isLoadingCustomers,
-    refetch: refetchCustomers,
-  } = useQuery({
+
+  const { data: customersCount = 0, isLoading: isLoadingCustomers } = useQuery({
     queryKey: ["customers-count"],
     queryFn: async () => {
       try {
@@ -227,11 +127,8 @@ const AdminDashboardContent = () => {
       }
     },
   });
-  const {
-    data: driversCount = 0,
-    isLoading: isLoadingDrivers,
-    refetch: refetchDrivers,
-  } = useQuery({
+
+  const { data: driversCount = 0, isLoading: isLoadingDrivers } = useQuery({
     queryKey: ["drivers-count"],
     queryFn: async () => {
       try {
@@ -250,11 +147,8 @@ const AdminDashboardContent = () => {
       }
     },
   });
-  const {
-    data: ordersCount = 0,
-    isLoading: isLoadingOrders,
-    refetch: refetchOrders,
-  } = useQuery({
+
+  const { data: ordersCount = 0, isLoading: isLoadingOrders } = useQuery({
     queryKey: ["orders-count"],
     queryFn: async () => {
       try {
@@ -273,200 +167,20 @@ const AdminDashboardContent = () => {
       }
     },
   });
-  const {
-    data: driverApplications = [],
-    isLoading: isLoadingApplications,
-    refetch: refetchApplications,
-  } = useQuery({
-    queryKey: ["driver-applications"],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("drivers")
-          .select(
-            `
-            id,
-            national_id,
-            license_number,
-            license_image,
-            vehicle_info,
-            status,
-            rejection_reason,
-            profile_id,
-            profiles:profile_id (
-              id,
-              first_name,
-              last_name,
-              phone,
-              email,
-              created_at
-            )
-          `
-          )
-          .eq("status", "pending");
-        if (error) {
-          console.error("Error fetching driver applications:", error);
-          return [];
-        }
-        return data as SupabaseDriverResponse[];
-      } catch (error) {
-        console.error("Error fetching driver applications:", error);
-        return [];
-      }
-    },
-  });
-  const {
-    data: approvedDrivers = [],
-    isLoading: isLoadingApprovedDrivers,
-    refetch: refetchApprovedDrivers,
-  } = useQuery({
-    queryKey: ["approved-drivers"],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("drivers")
-          .select(
-            `
-            id,
-            national_id,
-            license_number,
-            license_image,
-            vehicle_info,
-            status,
-            rejection_reason,
-            rating,
-            is_available,
-            profile_id,
-            profiles:profile_id (
-              id,
-              first_name,
-              last_name,
-              phone,
-              email,
-              created_at
-            )
-          `
-          )
-          .eq("status", "approved");
-        if (error) {
-          console.error("Error fetching approved drivers:", error);
-          return [];
-        }
-        return data || [];
-      } catch (error) {
-        console.error("Error fetching approved drivers:", error);
-        return [];
-      }
-    },
-  });
-  const {
-    data: suspendedDrivers = [],
-    isLoading: isLoadingSuspendedDrivers,
-    refetch: refetchSuspendedDrivers,
-  } = useQuery({
-    queryKey: ["suspended-drivers"],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("drivers")
-          .select(
-            `
-            id,
-            national_id,
-            license_number,
-            license_image,
-            vehicle_info,
-            status,
-            rejection_reason,
-            profile_id,
-            profiles:profile_id (
-              id,
-              first_name,
-              last_name,
-              phone,
-              email,
-              status,
-              created_at
-            )
-          `
-          )
-          .eq("status", "approved")
-          .in("profiles.status", ["suspended", "banned"]);
-        if (error) {
-          console.error("Error fetching suspended drivers:", error);
-          return [];
-        }
-        return data || [];
-      } catch (error) {
-        console.error("Error fetching suspended drivers:", error);
-        return [];
-      }
-    },
-  });
-  const {
-    data: complaints = [],
-    isLoading: isLoadingComplaints,
-    refetch: refetchComplaints,
-  } = useQuery({
-    queryKey: ["complaints"],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("complaints")
-          .select(
-            `
-            *,
-            profiles:user_id (
-              first_name,
-              last_name,
-              user_type
-            )
-          `
-          )
-          .order("created_at", {
-            ascending: false,
-          });
-        if (error) {
-          console.error("Error fetching complaints:", error);
-          return [];
-        }
-        return (data || []).map((item) => ({
-          id: item.id,
-          userId: item.user_id,
-          userName: `${item.profiles?.first_name || ""} ${
-            item.profiles?.last_name || ""
-          }`,
-          userType: (item.profiles?.user_type as UserType) || "customer",
-          subject: item.subject,
-          content: item.content,
-          status: item.status,
-          createdAt: item.created_at,
-        }));
-      } catch (error) {
-        console.error("Error fetching complaints:", error);
-        return [];
-      }
-    },
-  });
-  const {
-    data: orders = [],
-    isLoading: isLoadingOrdersList,
-    refetch: refetchOrdersList,
-  } = useQuery({
+
+  const { data: orders = [], isLoading: isLoadingOrdersList } = useQuery({
     queryKey: ["orders-list"],
     queryFn: async () => {
       try {
         const { data, error } = await supabase
           .from("orders")
           .select(
-            `
-            *,\n            customer:customer_id (\n              first_name,\n              last_name\n            ),\n            driver:driver_id (\n              first_name,\n              last_name\n            )
-          `
+            "id, order_id, order_number, status, created_at, pickup_location, dropoff_location, price"
           )
           .order("created_at", {
             ascending: false,
           })
-          .limit(20);
+          .limit(5);
         if (error) {
           console.error("Error fetching orders:", error);
           return [];
@@ -478,33 +192,7 @@ const AdminDashboardContent = () => {
       }
     },
   });
-  const {
-    data: customersList = [],
-    isLoading: isLoadingCustomersList,
-    refetch: refetchCustomersList,
-  } = useQuery({
-    queryKey: ["customers-list"],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_type", "customer")
-          .order("created_at", {
-            ascending: false,
-          })
-          .limit(20);
-        if (error) {
-          console.error("Error fetching customers list:", error);
-          return [];
-        }
-        return (data || []) as SupabaseCustomer[];
-      } catch (error) {
-        console.error("Error fetching customers list:", error);
-        return [];
-      }
-    },
-  });
+
   const { data: systemSettings, isLoading: isLoadingSettings } = useQuery({
     queryKey: ["system-settings"],
     queryFn: async () => {
@@ -535,10 +223,9 @@ const AdminDashboardContent = () => {
           }
         });
 
-        // Set commission rate from driver_commission_rate (convert 0.15 to 15)
         if (settings.driver_commission_rate) {
           const rate = parseFloat(settings.driver_commission_rate);
-          setSelectedCommissionRate(Math.round(rate * 100)); // Convert 0.15 to 15
+          setSelectedCommissionRate(Math.round(rate * 100));
         }
 
         if (settings.system_language) {
@@ -586,6 +273,7 @@ const AdminDashboardContent = () => {
       }
     },
   });
+
   useEffect(() => {
     if (financialData) {
       setFinancialSummary({
@@ -596,16 +284,18 @@ const AdminDashboardContent = () => {
       });
     }
   }, [financialData]);
+
   const handleLogout = async () => {
     try {
       await signOut();
-      toast.success(t("logoutSuccess") || "تم تسجيل الخروج بنجاح");
+      toast.success(t("logoutSuccess"));
       navigate("/login?logout=true", { replace: true });
     } catch (error) {
       console.error("Error signing out:", error);
-      toast.error(t("logoutError") || "حدث خطأ أثناء تسجيل الخروج");
+      toast.error(t("logoutError"));
     }
   };
+
   const handleUpdateCommissionRate = async () => {
     try {
       // Convert percentage to decimal (20% = 0.20)
@@ -642,10 +332,10 @@ const AdminDashboardContent = () => {
         if (error) throw error;
       }
 
-      toast.success(`تم تحديث نسبة العمولة إلى ${selectedCommissionRate}%`);
+      toast.success(`${t("commissionRateUpdated")} ${selectedCommissionRate}%`);
     } catch (error) {
       console.error("Error updating commission rate:", error);
-      toast.error("حدث خطأ أثناء تحديث نسبة العمولة");
+      toast.error(t("errorUpdatingCommissionRate"));
     }
   };
 
@@ -685,13 +375,13 @@ const AdminDashboardContent = () => {
 
       setSystemLanguage(language);
       toast.success(
-        `تم تحديث لغة النظام إلى ${
-          language === "ar" ? "العربية" : "الإنجليزية"
-        }`
+        language === "ar"
+          ? t("systemLanguageUpdatedToArabic")
+          : t("systemLanguageUpdatedToEnglish")
       );
     } catch (error) {
       console.error("Error updating system language:", error);
-      toast.error("حدث خطأ أثناء تحديث لغة النظام");
+      toast.error(t("errorUpdatingSystemLanguage"));
     }
   };
 
@@ -726,10 +416,10 @@ const AdminDashboardContent = () => {
         if (error) throw error;
       }
 
-      toast.success("تم تحديث سياسة الخصوصية بنجاح");
+      toast.success(t("privacyPolicyUpdated"));
     } catch (error) {
       console.error("Error updating privacy policy:", error);
-      toast.error("حدث خطأ أثناء تحديث سياسة الخصوصية");
+      toast.error(t("errorUpdatingPrivacyPolicy"));
     }
   };
 
@@ -764,183 +454,103 @@ const AdminDashboardContent = () => {
         if (error) throw error;
       }
 
-      toast.success("تم تحديث شروط الاستخدام بنجاح");
+      toast.success(t("termsOfServiceUpdated"));
     } catch (error) {
       console.error("Error updating terms of service:", error);
-      toast.error("حدث خطأ أثناء تحديث شروط الاستخدام");
+      toast.error(t("errorUpdatingTermsOfService"));
     }
   };
-  const handleApproveDriver = async (driverId: string) => {
-    try {
-      const { error } = await supabase
-        .from("drivers")
-        .update({
-          status: "approved",
-        })
-        .eq("id", driverId);
-      if (error) throw error;
-      refetchApplications();
-      refetchApprovedDrivers();
-      refetchDrivers();
-      toast.success("تم قبول السائق بنجاح");
-    } catch (error) {
-      console.error("Error approving driver:", error);
-      toast.error("حدث خطأ أثناء قبول السائق");
-    }
-  };
-  const handleRejectDriver = async (driverId: string) => {
-    try {
-      const { error } = await supabase
-        .from("drivers")
-        .update({
-          status: "rejected",
-          rejection_reason: "تم رفض الطلب من قبل المشرف",
-        })
-        .eq("id", driverId);
-      if (error) throw error;
-      refetchApplications();
-      refetchDrivers();
-      toast.success("تم رفض طلب السائق");
-    } catch (error) {
-      console.error("Error rejecting driver:", error);
-      toast.error("حدث خطأ أثناء رفض السائق");
-    }
-  };
-  const handleDeleteRejectedApplications = async () => {
-    try {
-      const { error } = await supabase
-        .from("drivers")
-        .delete()
-        .eq("status", "rejected");
-      if (error) throw error;
-      refetchApplications();
-      refetchDrivers();
-      toast.success("تم حذف جميع طلبات الإنضمام المرفوضة بنجاح");
-    } catch (error) {
-      console.error("Error deleting rejected applications:", error);
-      toast.error("حدث خطأ أثناء حذف طلبات الإنضمام المرفوضة");
-    }
-  };
-  const handleSuspendUser = async (userId: string, userType: UserType) => {
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          status: "suspended",
-        })
-        .eq("id", userId);
-      if (error) throw error;
-      if (userType === "driver") {
-        refetchApprovedDrivers();
-        refetchSuspendedDrivers();
-      } else {
-        refetchCustomersList();
-      }
-      toast.success(
-        `تم تعليق حساب ${userType === "customer" ? "العميل" : "السائق"} بنجاح`
-      );
-    } catch (error) {
-      console.error("Error suspending user:", error);
-      toast.error("حدث خطأ أثناء تعليق الحساب");
-    }
-  };
-  const handleBanUser = async (userId: string, userType: UserType) => {
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          status: "banned",
-        })
-        .eq("id", userId);
-      if (error) throw error;
-      if (userType === "driver") {
-        refetchApprovedDrivers();
-        refetchSuspendedDrivers();
-      } else {
-        refetchCustomersList();
-      }
-      toast.success(
-        `تم حظر ${userType === "customer" ? "العميل" : "السائق"} بنجاح`
-      );
-    } catch (error) {
-      console.error("Error banning user:", error);
-      toast.error("حدث خطأ أثناء حظر الحساب");
-    }
-  };
-  const handleActivateUser = async (userId: string, userType: UserType) => {
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          status: "active",
-        })
-        .eq("id", userId);
-      if (error) throw error;
-      if (userType === "driver") {
-        refetchApprovedDrivers();
-        refetchSuspendedDrivers();
-      } else {
-        refetchCustomersList();
-      }
-      toast.success(
-        `تم تنشيط حساب ${userType === "customer" ? "العميل" : "السائق"} بنجاح`
-      );
-    } catch (error) {
-      console.error("Error activating user:", error);
-      toast.error("حدث خطأ أثناء تنشيط الحساب");
-    }
-  };
-  const handleResolveComplaint = async (complaintId: string) => {
-    try {
-      const { error } = await supabase
-        .from("complaints")
-        .update({
-          status: "resolved",
-        })
-        .eq("id", complaintId);
-      if (error) throw error;
-      refetchComplaints();
-      toast.success("تم تحديث حالة الشكوى بنجاح");
-    } catch (error) {
-      console.error("Error resolving complaint:", error);
-      toast.error("حدث خطأ أثناء تحديث حالة الشكوى");
-    }
-  };
-  const handleProcessComplaint = async (complaintId: string) => {
-    try {
-      const { error } = await supabase
-        .from("complaints")
-        .update({
-          status: "in-progress",
-        })
-        .eq("id", complaintId);
-      if (error) throw error;
-      refetchComplaints();
-      toast.success("تم تحديث حالة الشكوى إلى قيد المعالجة");
-    } catch (error) {
-      console.error("Error processing complaint:", error);
-      toast.error("حدث خطأ أثناء تحديث حالة الشكوى");
-    }
-  };
-  const handleDeleteCustomer = async (userId: string) => {
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", userId);
-      if (error) throw error;
-      refetchCustomersList();
-      refetchCustomers();
-      toast.success("تم حذف العميل بنجاح");
-    } catch (error) {
-      console.error("Error deleting customer:", error);
-      toast.error("حدث خطأ أثناء حذف العميل");
-    }
-  };
+
   const formatCurrency = (value: number) => {
-    if (value === undefined || value === null) return "0 ر.س";
-    return `${value.toLocaleString()} ر.س`;
+    if (value === undefined || value === null) return `0 ${t("currency")}`;
+    return `${value.toLocaleString()} ${t("currency")}`;
   };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString(
+      language === "ar" ? "ar-SA" : "en-US",
+      {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }
+    );
+  };
+
+  const getStatusBadge = (status: string) => {
+    const getStatusDisplay = (status: string) => {
+      switch (status) {
+        case "available":
+          return {
+            text: t("available"),
+            className: "bg-blue-100 text-blue-800 border-blue-200",
+          };
+        case "completed":
+          return {
+            text: t("completed"),
+            className: "bg-green-100 text-green-800 border-green-200",
+          };
+        case "picked_up":
+          return {
+            text: t("pickedUp"),
+            className: "bg-purple-100 text-purple-800 border-purple-200",
+          };
+        case "approaching":
+          return {
+            text: t("approaching"),
+            className: "bg-indigo-100 text-indigo-800 border-indigo-200",
+          };
+        case "in_transit":
+          return {
+            text: t("inTransit"),
+            className: "bg-orange-100 text-orange-800 border-orange-200",
+          };
+        case "delivered":
+          return {
+            text: t("delivered"),
+            className: "bg-green-100 text-green-800 border-green-200",
+          };
+        case "cancelled":
+          return {
+            text: t("cancelled"),
+            className: "bg-red-100 text-red-800 border-red-200",
+          };
+        case "pending":
+          return {
+            text: t("pending"),
+            className: "bg-yellow-100 text-yellow-800 border-yellow-200",
+          };
+        default:
+          return {
+            text: status || t("unknown"),
+            className: "bg-gray-100 text-gray-800 border-gray-200",
+          };
+      }
+    };
+
+    const statusDisplay = getStatusDisplay(status);
+
+    return (
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium border ${statusDisplay.className}`}
+      >
+        {statusDisplay.text}
+      </span>
+    );
+  };
+
+  // Helper function to safely extract location address
+  const getLocationAddress = (location: any) => {
+    if (!location) return t("notSpecified");
+    if (typeof location === "string") return location;
+    if (typeof location === "object" && location.address)
+      return location.address;
+    return t("notSpecified");
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
@@ -949,7 +559,7 @@ const AdminDashboardContent = () => {
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <h1 className="text-xl font-bold text-gray-900">
-              لوحة تحكم المشرف
+              {t("adminDashboardTitle")}
             </h1>
           </div>
         </header>
@@ -961,9 +571,11 @@ const AdminDashboardContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <UsersIcon className="h-5 w-5 text-safedrop-gold" />
-                    <span>العملاء</span>
+                    <span>{t("customers")}</span>
                   </CardTitle>
-                  <CardDescription>إجمالي عدد العملاء المسجلين</CardDescription>
+                  <CardDescription>
+                    {t("totalCustomersRegistered")}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold">
@@ -980,10 +592,10 @@ const AdminDashboardContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <TruckIcon className="h-5 w-5 text-safedrop-gold" />
-                    <span>السائقون</span>
+                    <span>{t("drivers")}</span>
                   </CardTitle>
                   <CardDescription>
-                    إجمالي عدد السائقين المسجلين
+                    {t("totalDriversRegistered")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1001,9 +613,9 @@ const AdminDashboardContent = () => {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <PackageIcon className="h-5 w-5 text-safedrop-gold" />
-                    <span>الطلبات</span>
+                    <span>{t("orders")}</span>
                   </CardTitle>
-                  <CardDescription>إجمالي عدد الطلبات</CardDescription>
+                  <CardDescription>{t("totalOrders")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold">
@@ -1018,18 +630,21 @@ const AdminDashboardContent = () => {
             </div>
 
             <Tabs defaultValue="financial" className="w-full">
-              <TabsList className="w-full grid grid-cols-5 mb-6">
-                <TabsTrigger value="financial">الملخص المالي</TabsTrigger>
-
-                <TabsTrigger value="orders">الطلبات</TabsTrigger>
-                <TabsTrigger value="settings">الإعدادات</TabsTrigger>
+              <TabsList className="w-full grid grid-cols-3 mb-6">
+                <TabsTrigger value="financial">
+                  {t("financialSummary")}
+                </TabsTrigger>
+                <TabsTrigger value="orders">{t("orders")}</TabsTrigger>
+                <TabsTrigger value="settings">{t("settings")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="financial" className="space-y-4">
                 <Card>
                   <CardHeader>
                     <div className="flex flex-wrap justify-between items-center">
-                      <CardTitle className="text-xl">الملخص المالي</CardTitle>
+                      <CardTitle className="text-xl">
+                        {t("financialSummary")}
+                      </CardTitle>
                       <Select
                         value={dateRange}
                         onValueChange={(value) =>
@@ -1037,13 +652,15 @@ const AdminDashboardContent = () => {
                         }
                       >
                         <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="اختر الفترة" />
+                          <SelectValue placeholder={t("selectPeriod")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="today">اليوم</SelectItem>
-                          <SelectItem value="week">آخر أسبوع</SelectItem>
-                          <SelectItem value="month">آخر شهر</SelectItem>
-                          <SelectItem value="year">آخر سنة</SelectItem>
+                          <SelectItem value="today">{t("today")}</SelectItem>
+                          <SelectItem value="week">{t("lastWeek")}</SelectItem>
+                          <SelectItem value="month">
+                            {t("lastMonth")}
+                          </SelectItem>
+                          <SelectItem value="year">{t("lastYear")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1055,7 +672,7 @@ const AdminDashboardContent = () => {
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-sm text-gray-500">
-                                إجمالي المبالغ المستلمة
+                                {t("totalAmountReceived")}
                               </p>
                               <h3 className="text-2xl font-bold">
                                 {isLoadingFinancial
@@ -1077,7 +694,7 @@ const AdminDashboardContent = () => {
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-sm text-gray-500">
-                                إجمالي العمولات
+                                {t("totalCommissions")}
                               </p>
                               <h3 className="text-2xl font-bold">
                                 {isLoadingFinancial
@@ -1099,7 +716,7 @@ const AdminDashboardContent = () => {
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-sm text-gray-500">
-                                أرباح المنصة
+                                {t("platformProfits")}
                               </p>
                               <h3 className="text-2xl font-bold">
                                 {isLoadingFinancial
@@ -1121,7 +738,7 @@ const AdminDashboardContent = () => {
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-sm text-gray-500">
-                                مستحقات السائقين
+                                {t("driverPayouts")}
                               </p>
                               <h3 className="text-2xl font-bold">
                                 {isLoadingFinancial
@@ -1142,428 +759,309 @@ const AdminDashboardContent = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="drivers" className="space-y-4">
+              <TabsContent value="orders">
                 <Card>
                   <CardHeader>
-                    <div className="flex flex-wrap justify-between items-center">
-                      <CardTitle className="text-xl">إدارة السائقين</CardTitle>
-                      <div className="flex gap-2 items-center">
-                        <div className="relative">
-                          <SearchIcon className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                          <Input
-                            placeholder="بحث عن سائق..."
-                            className="pl-9 pr-4 w-[250px]"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                          />
-                        </div>
-                        {driverApplications &&
-                          driverApplications.some(
-                            (driver: SupabaseDriverResponse) =>
-                              driver.status === "rejected"
-                          ) && (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={handleDeleteRejectedApplications}
-                              className="whitespace-nowrap"
-                            >
-                              حذف الطلبات المرفوضة
-                            </Button>
-                          )}
-                      </div>
-                    </div>
+                    <CardTitle className="text-xl">
+                      {t("orders")} - {t("latest5Orders")}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Tabs defaultValue="applications" dir="rtl">
-                      <TabsList className="mb-4 justify-end">
-                        <TabsTrigger value="applications">
-                          طلبات الانضمام
-                        </TabsTrigger>
-                        <TabsTrigger value="active">
-                          السائقين النشطون
-                        </TabsTrigger>
-                        <TabsTrigger value="suspended">
-                          السائقين المعلقون
-                        </TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="applications">
-                        {isLoadingApplications ? (
-                          <div className="text-center py-8">
-                            جاري تحميل البيانات...
-                          </div>
-                        ) : driverApplications.length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
-                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                            لا توجد طلبات انضمام جديدة
-                          </div>
-                        ) : (
+                    {isLoadingOrdersList ? (
+                      <div className="text-center py-12">
+                        <div className="flex flex-col items-center justify-center space-y-4">
+                          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                          <p className="text-gray-500">{t("loadingData")}</p>
+                        </div>
+                      </div>
+                    ) : orders.length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className="text-gray-400 mb-2">
+                          <PackageIcon className="h-12 w-12 mx-auto" />
+                        </div>
+                        <p className="text-gray-500 text-lg">{t("noOrders")}</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Desktop Table - Large screens */}
+                        <div className="hidden xl:block">
                           <div className="overflow-x-auto">
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>الاسم</TableHead>
-                                  <TableHead>رقم الهوية</TableHead>
-                                  <TableHead>رقم الرخصة</TableHead>
-                                  <TableHead>معلومات السيارة</TableHead>
-                                  <TableHead>الإجراءات</TableHead>
+                                  <TableHead className="text-center whitespace-nowrap min-w-[100px] font-bold">
+                                    {t("orderNumber")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap min-w-[100px] font-bold">
+                                    {t("orderId")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
+                                    {t("status")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap min-w-[140px] font-bold">
+                                    {t("pickupLocation")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap min-w-[140px] font-bold">
+                                    {t("deliveryLocation")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap min-w-[100px] font-bold">
+                                    {t("amount")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap min-w-[120px] font-bold">
+                                    {t("dateCreated")}
+                                  </TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {driverApplications.map(
-                                  (driver: SupabaseDriverResponse) => (
-                                    <TableRow key={driver.id}>
-                                      <TableCell className="font-medium">
-                                        {driver.profiles.first_name}{" "}
-                                        {driver.profiles.last_name}
-                                      </TableCell>
-                                      <TableCell>
-                                        {driver.national_id}
-                                      </TableCell>
-                                      <TableCell>
-                                        {driver.license_number}
-                                      </TableCell>
-                                      <TableCell>
-                                        {driver.vehicle_info.make}{" "}
-                                        {driver.vehicle_info.model} (
-                                        {driver.vehicle_info.year})
-                                      </TableCell>
-                                      <TableCell>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            size="sm"
-                                            onClick={() =>
-                                              handleApproveDriver(driver.id)
-                                            }
-                                            className="bg-green-600 hover:bg-green-700"
-                                          >
-                                            <UserCheckIcon className="h-4 w-4 mr-1" />
-                                            قبول
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            variant="destructive"
-                                            onClick={() =>
-                                              handleRejectDriver(driver.id)
-                                            }
-                                          >
-                                            <UserXIcon className="h-4 w-4 mr-1" />
-                                            رفض
-                                          </Button>
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  )
-                                )}
+                                {orders.map((order: Order) => (
+                                  <TableRow
+                                    key={order.id}
+                                    className="hover:bg-gray-50"
+                                  >
+                                    <TableCell className="font-semibold text-center">
+                                      {order.order_id}
+                                    </TableCell>
+                                    <TableCell className="font-semibold text-center">
+                                      {order.order_number}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {getStatusBadge(order.status)}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      <div
+                                        className="max-w-[140px] truncate"
+                                        title={getLocationAddress(
+                                          order.pickup_location
+                                        )}
+                                      >
+                                        {getLocationAddress(
+                                          order.pickup_location
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      <div
+                                        className="max-w-[140px] truncate"
+                                        title={getLocationAddress(
+                                          order.dropoff_location
+                                        )}
+                                      >
+                                        {getLocationAddress(
+                                          order.dropoff_location
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {order.price
+                                        ? formatCurrency(order.price)
+                                        : t("notSpecified")}
+                                    </TableCell>
+                                    <TableCell className="text-center whitespace-nowrap text-sm">
+                                      {formatDate(order.created_at)}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
                               </TableBody>
                             </Table>
                           </div>
-                        )}
-                      </TabsContent>
+                        </div>
 
-                      <TabsContent value="active">
-                        {isLoadingApprovedDrivers ? (
-                          <div className="text-center py-8">
-                            جاري تحميل البيانات...
-                          </div>
-                        ) : approvedDrivers.length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
-                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                            لا توجد سائقين
-                          </div>
-                        ) : (
+                        {/* Tablet Table - Medium to Large screens */}
+                        <div className="hidden lg:block xl:hidden">
                           <div className="overflow-x-auto">
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>الاسم</TableHead>
-                                  <TableHead>رقم الهوية</TableHead>
-                                  <TableHead>رقم الرخصة</TableHead>
-                                  <TableHead>معلومات السيارة</TableHead>
-                                  <TableHead>الإجراءات</TableHead>
+                                  <TableHead className="text-center whitespace-nowrap font-bold">
+                                    {t("orderId")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap font-bold">
+                                    {t("status")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap font-bold">
+                                    {t("amount")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap font-bold">
+                                    {t("dateCreated")}
+                                  </TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {approvedDrivers.map(
-                                  (driver: SupabaseDriverResponse) => (
-                                    <TableRow key={driver.id}>
-                                      <TableCell className="font-medium">
-                                        {driver.profiles.first_name}{" "}
-                                        {driver.profiles.last_name}
-                                      </TableCell>
-                                      <TableCell>
-                                        {driver.national_id}
-                                      </TableCell>
-                                      <TableCell>
-                                        {driver.license_number}
-                                      </TableCell>
-                                      <TableCell>
-                                        {driver.vehicle_info.make}{" "}
-                                        {driver.vehicle_info.model} (
-                                        {driver.vehicle_info.year})
-                                      </TableCell>
-                                      <TableCell>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            size="sm"
-                                            onClick={() =>
-                                              handleApproveDriver(driver.id)
-                                            }
-                                            className="bg-green-600 hover:bg-green-700"
-                                          >
-                                            <UserCheckIcon className="h-4 w-4 mr-1" />
-                                            قبول
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            variant="destructive"
-                                            onClick={() =>
-                                              handleRejectDriver(driver.id)
-                                            }
-                                          >
-                                            <UserXIcon className="h-4 w-4 mr-1" />
-                                            رفض
-                                          </Button>
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  )
-                                )}
+                                {orders.map((order: Order) => (
+                                  <TableRow
+                                    key={order.id}
+                                    className="hover:bg-gray-50"
+                                  >
+                                    <TableCell className="font-semibold text-center">
+                                      #{order.id.slice(-8)}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {getStatusBadge(order.status)}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {order.price
+                                        ? formatCurrency(order.price)
+                                        : t("notSpecified")}
+                                    </TableCell>
+                                    <TableCell className="text-center whitespace-nowrap text-sm">
+                                      {formatDate(order.created_at)}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
                               </TableBody>
                             </Table>
                           </div>
-                        )}
-                      </TabsContent>
+                        </div>
 
-                      <TabsContent value="suspended">
-                        {isLoadingSuspendedDrivers ? (
-                          <div className="text-center py-8">
-                            جاري تحميل البيانات...
-                          </div>
-                        ) : suspendedDrivers.length === 0 ? (
-                          <div className="text-center py-8 text-gray-500">
-                            <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                            لا يوجد سائقين معلقين
-                          </div>
-                        ) : (
+                        {/* Compact Table - Small to Medium screens */}
+                        <div className="hidden md:block lg:hidden">
                           <div className="overflow-x-auto">
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead>الاسم</TableHead>
-                                  <TableHead>رقم الهوية</TableHead>
-                                  <TableHead>رقم الرخصة</TableHead>
-                                  <TableHead>معلومات السيارة</TableHead>
-                                  <TableHead>الإجراءات</TableHead>
+                                  <TableHead className="text-center whitespace-nowrap font-bold">
+                                    {t("orderId")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap font-bold">
+                                    {t("status")}
+                                  </TableHead>
+                                  <TableHead className="text-center whitespace-nowrap font-bold">
+                                    {t("amount")}
+                                  </TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {suspendedDrivers.map(
-                                  (driver: SupabaseDriverResponse) => (
-                                    <TableRow key={driver.id}>
-                                      <TableCell className="font-medium">
-                                        {driver.profiles.first_name}{" "}
-                                        {driver.profiles.last_name}
-                                      </TableCell>
-                                      <TableCell>
-                                        {driver.national_id}
-                                      </TableCell>
-                                      <TableCell>
-                                        {driver.license_number}
-                                      </TableCell>
-                                      <TableCell>
-                                        {driver.vehicle_info.make}{" "}
-                                        {driver.vehicle_info.model} (
-                                        {driver.vehicle_info.year})
-                                      </TableCell>
-                                      <TableCell>
-                                        <div className="flex gap-2">
-                                          <Button
-                                            size="sm"
-                                            onClick={() =>
-                                              handleApproveDriver(driver.id)
-                                            }
-                                            className="bg-green-600 hover:bg-green-700"
-                                          >
-                                            <UserCheckIcon className="h-4 w-4 mr-1" />
-                                            قبول
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            variant="destructive"
-                                            onClick={() =>
-                                              handleRejectDriver(driver.id)
-                                            }
-                                          >
-                                            <UserXIcon className="h-4 w-4 mr-1" />
-                                            رفض
-                                          </Button>
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  )
-                                )}
+                                {orders.map((order: Order) => (
+                                  <TableRow
+                                    key={order.id}
+                                    className="hover:bg-gray-50"
+                                  >
+                                    <TableCell className="font-semibold text-center">
+                                      #{order.id.slice(-8)}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                      {getStatusBadge(order.status)}
+                                    </TableCell>
+                                    <TableCell className="text-center text-xs">
+                                      {order.price
+                                        ? formatCurrency(order.price)
+                                        : t("notSpecified")}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
                               </TableBody>
                             </Table>
                           </div>
-                        )}
-                      </TabsContent>
-                    </Tabs>
+                        </div>
+
+                        {/* Mobile Cards - Small screens */}
+                        <div className="block md:hidden space-y-4">
+                          {orders.map((order: Order) => (
+                            <Card key={order.id} className="w-full">
+                              <CardContent className="p-4">
+                                <div className="space-y-3">
+                                  {/* Header */}
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-2">
+                                      <Hash className="h-4 w-4 text-gray-500" />
+                                      <span className="font-bold text-lg">
+                                        #{order.id.slice(-8)}
+                                      </span>
+                                    </div>
+                                    {getStatusBadge(order.status)}
+                                  </div>
+
+                                  {/* Location Info */}
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <PackageIcon className="h-4 w-4 text-gray-500" />
+                                      <span className="text-gray-600">
+                                        {t("pickupLocation")}:
+                                      </span>
+                                      <span className="font-medium">
+                                        {getLocationAddress(
+                                          order.pickup_location
+                                        )}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <TruckIcon className="h-4 w-4 text-gray-500" />
+                                      <span className="text-gray-600">
+                                        {t("deliveryLocation")}:
+                                      </span>
+                                      <span className="font-medium">
+                                        {getLocationAddress(
+                                          order.dropoff_location
+                                        )}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Order Details */}
+                                  <div className="space-y-2 pt-2 border-t">
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Calendar className="h-4 w-4 text-gray-500" />
+                                      <span className="text-gray-600">
+                                        {t("dateCreated")}:
+                                      </span>
+                                      <span className="font-medium">
+                                        {formatDate(order.created_at)}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <DollarSign className="h-4 w-4 text-gray-500" />
+                                      <span className="text-gray-600">
+                                        {t("amount")}:
+                                      </span>
+                                      <span className="font-medium">
+                                        {order.price
+                                          ? formatCurrency(order.price)
+                                          : t("notSpecified")}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
-              </TabsContent>
-
-              <TabsContent value="customers">
-                {isLoadingCustomersList ? (
-                  <div className="text-center py-8">جاري تحميل البيانات...</div>
-                ) : customersList.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    لا يوجد عملاء
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>الاسم</TableHead>
-                          <TableHead>رقم الهوية</TableHead>
-                          <TableHead>رقم الهاتف</TableHead>
-                          <TableHead>الإجراءات</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {customersList.map((customer: SupabaseCustomer) => (
-                          <TableRow key={customer.id}>
-                            <TableCell className="font-medium">
-                              {customer.first_name} {customer.last_name}
-                            </TableCell>
-                            <TableCell>{customer.national_id}</TableCell>
-                            <TableCell>{customer.phone}</TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  onClick={() =>
-                                    handleActivateUser(customer.id, "customer")
-                                  }
-                                  className="bg-green-600 hover:bg-green-700"
-                                >
-                                  <Check className="h-4 w-4 mr-1" />
-                                  تنشيط
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() =>
-                                    handleSuspendUser(customer.id, "customer")
-                                  }
-                                >
-                                  <Ban className="h-4 w-4 mr-1" />
-                                  تعليق
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() =>
-                                    handleBanUser(customer.id, "customer")
-                                  }
-                                >
-                                  <ShieldIcon className="h-4 w-4 mr-1" />
-                                  حظر
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="orders">
-                {isLoadingOrdersList ? (
-                  <div className="text-center py-8">جاري تحميل البيانات...</div>
-                ) : orders.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <AlertTriangleIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    لا يوجد طلبات
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>الاسم</TableHead>
-                          <TableHead>رقم الهوية</TableHead>
-                          <TableHead>رقم الهاتف</TableHead>
-                          <TableHead>الإجراءات</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {orders.map((order: SupabaseOrder) => (
-                          <TableRow key={order.id}>
-                            <TableCell className="font-medium">
-                              {order.customer?.first_name}{" "}
-                              {order.customer?.last_name}
-                            </TableCell>
-                            <TableCell>{order.customer?.national_id}</TableCell>
-                            <TableCell>{order.customer?.phone}</TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  onClick={() =>
-                                    handleApproveDriver(order.driver?.id)
-                                  }
-                                  className="bg-green-600 hover:bg-green-700"
-                                >
-                                  <UserCheckIcon className="h-4 w-4 mr-1" />
-                                  قبول
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() =>
-                                    handleRejectDriver(order.driver?.id)
-                                  }
-                                >
-                                  <UserXIcon className="h-4 w-4 mr-1" />
-                                  رفض
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
               </TabsContent>
 
               <TabsContent value="settings">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-xl">إعدادات النظام</CardTitle>
+                    <CardTitle className="text-xl">
+                      {t("systemSettings")}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <Tabs defaultValue="commissions" className="w-full">
                       <TabsList className="mb-6">
-                        <TabsTrigger value="commissions">العمولات</TabsTrigger>
-                        <TabsTrigger value="language">اللغة</TabsTrigger>
-                        <TabsTrigger value="privacy">
-                          سياسة الخصوصية
+                        <TabsTrigger value="commissions">
+                          {t("commissions")}
                         </TabsTrigger>
-                        <TabsTrigger value="terms">شروط الاستخدام</TabsTrigger>
+                        <TabsTrigger value="language">
+                          {t("language")}
+                        </TabsTrigger>
+                        <TabsTrigger value="privacy">
+                          {t("privacyPolicy")}
+                        </TabsTrigger>
+                        <TabsTrigger value="terms">
+                          {t("termsOfService")}
+                        </TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="commissions">
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="commission-rate">
-                              نسبة العمولة (%)
+                              {t("commissionRatePercentage")}
                             </Label>
                             <div className="flex items-center gap-4 mt-1">
                               <Input
@@ -1581,7 +1079,7 @@ const AdminDashboardContent = () => {
                               />
                               <Button onClick={handleUpdateCommissionRate}>
                                 <Check className="h-4 w-4 mr-2" />
-                                حفظ
+                                {t("save")}
                               </Button>
                             </div>
                           </div>
@@ -1591,7 +1089,7 @@ const AdminDashboardContent = () => {
                       <TabsContent value="language">
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <Label>لغة النظام</Label>
+                            <Label>{t("systemLanguage")}</Label>
                             <div className="flex gap-4">
                               <Button
                                 variant={
@@ -1601,7 +1099,7 @@ const AdminDashboardContent = () => {
                                 }
                                 onClick={() => handleUpdateSystemLanguage("ar")}
                               >
-                                العربية
+                                {t("arabic")}
                               </Button>
                               <Button
                                 variant={
@@ -1611,7 +1109,7 @@ const AdminDashboardContent = () => {
                                 }
                                 onClick={() => handleUpdateSystemLanguage("en")}
                               >
-                                English
+                                {t("english")}
                               </Button>
                             </div>
                           </div>
@@ -1622,18 +1120,21 @@ const AdminDashboardContent = () => {
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="privacy-policy">
-                              سياسة الخصوصية
+                              {t("privacyPolicy")}
                             </Label>
                             <Input
                               id="privacy-policy"
                               type="text"
                               value={privacyPolicy}
                               onChange={(e) => setPrivacyPolicy(e.target.value)}
-                              className="w-full"
+                              className="w-full mt-1"
                             />
-                            <Button onClick={handleUpdatePrivacyPolicy}>
+                            <Button
+                              onClick={handleUpdatePrivacyPolicy}
+                              className="mt-2"
+                            >
                               <Check className="h-4 w-4 mr-2" />
-                              حفظ
+                              {t("save")}
                             </Button>
                           </div>
                         </div>
@@ -1643,7 +1144,7 @@ const AdminDashboardContent = () => {
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="terms-of-service">
-                              شروط الاستخدام
+                              {t("termsOfService")}
                             </Label>
                             <Input
                               id="terms-of-service"
@@ -1652,11 +1153,14 @@ const AdminDashboardContent = () => {
                               onChange={(e) =>
                                 setTermsOfService(e.target.value)
                               }
-                              className="w-full"
+                              className="w-full mt-1"
                             />
-                            <Button onClick={handleUpdateTermsOfService}>
+                            <Button
+                              onClick={handleUpdateTermsOfService}
+                              className="mt-2"
+                            >
                               <Check className="h-4 w-4 mr-2" />
-                              حفظ
+                              {t("save")}
                             </Button>
                           </div>
                         </div>
@@ -1672,6 +1176,7 @@ const AdminDashboardContent = () => {
     </div>
   );
 };
+
 const AdminDashboard = () => {
   return (
     <LanguageProvider>
@@ -1679,4 +1184,5 @@ const AdminDashboard = () => {
     </LanguageProvider>
   );
 };
+
 export default AdminDashboard;

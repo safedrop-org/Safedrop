@@ -281,4 +281,130 @@ export const driver: TranslationSection = {
     ar: "خطأ في تحميل الصورة",
     en: "Error downloading image",
   },
+  driversManagement: {
+    ar: "إدارة السائقين",
+    en: "Drivers Management",
+  },
+  driversManagementDescription: {
+    ar: "إدارة ومتابعة جميع السائقين المسجلين",
+    en: "Manage and track all registered drivers",
+  },
+
+  // Search and Export
+  searchDriverPlaceholder: {
+    ar: "البحث بالاسم، البريد الإلكتروني، أو الهاتف...",
+    en: "Search by name, email, or phone...",
+  },
+  exportDrivers: {
+    ar: "تصدير السائقين",
+    en: "Export Drivers",
+  },
+  export: {
+    ar: "تصدير",
+    en: "Export",
+  },
+  driversExportedSuccessfully: {
+    ar: "تم تصدير السائقين بنجاح",
+    en: "Drivers exported successfully",
+  },
+
+  // Stats Cards
+  totalDrivers: {
+    ar: "إجمالي السائقين",
+    en: "Total Drivers",
+  },
+  pendingDrivers: {
+    ar: "في الانتظار",
+    en: "Pending",
+  },
+  approvedDrivers: {
+    ar: "مقبول",
+    en: "Approved",
+  },
+  rejectedDrivers: {
+    ar: "مرفوض",
+    en: "Rejected",
+  },
+
+  // Table Headers
+  driverName: {
+    ar: "الاسم",
+    en: "Name",
+  },
+  userType: {
+    ar: "نوع المستخدم",
+    en: "User Type",
+  },
+  Actions: {
+    ar: "الإجراءات",
+    en: "Actions",
+  },
+
+  // Mobile Card Labels
+  emailLabel: {
+    ar: "البريد الإلكتروني",
+    en: "Email",
+  },
+  phoneLabel: {
+    ar: "الهاتف",
+    en: "Phone",
+  },
+  userTypeLabel: {
+    ar: "نوع المستخدم",
+    en: "User Type",
+  },
+  viewFullDriverDetails: {
+    ar: "عرض تفاصيل السائق الكاملة",
+    en: "View Full Driver Details",
+  },
+
+  // Navigation and Results
+  searchResults: {
+    ar: "نتائج البحث",
+    en: "Search Results",
+  },
+  of: {
+    ar: "من",
+    en: "of",
+  },
+  allDrivers: {
+    ar: "جميع السائقين",
+    en: "All Drivers",
+  },
+  all: {
+    ar: "الكل",
+    en: "All",
+  },
+
+  // Loading and Error States
+  loadingDriversText: {
+    ar: "جاري تحميل السائقين...",
+    en: "Loading drivers...",
+  },
+  errorLoadingData: {
+    ar: "حدث خطأ في تحميل البيانات",
+    en: "Error loading data",
+  },
+  errorLoadingDriversMessage: {
+    ar: "حدث خطأ أثناء تحميل السائقين. يرجى المحاولة مرة أخرى لاحقاً.",
+    en: "An error occurred while loading drivers. Please try again later.",
+  },
+  retryAction: {
+    ar: "إعادة المحاولة",
+    en: "Retry",
+  },
+  errorFetchingStatusCategories: {
+    ar: "حدث خطأ أثناء جلب فئات حالة السائقين",
+    en: "Error fetching driver status categories",
+  },
+  errorFetchingDrivers: {
+    ar: "خطأ في جلب بيانات السائقين",
+    en: "Error fetching drivers data",
+  },
+
+  // Empty States
+  noDriversInCategory: {
+    ar: "لا يوجد سائقون في هذه الفئة",
+    en: "No drivers in this category",
+  },
 };

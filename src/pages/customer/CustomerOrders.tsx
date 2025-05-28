@@ -274,82 +274,79 @@ const CustomerOrdersContent = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {activeOrders.map((order) => (
-                          <React.Fragment key={order.id}>
-                            <tr className="hover:bg-gray-50">
-                              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {order.order_id}
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {order.order_number ||
-                                  order.order_number?.slice(0, 8)}
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {formatDate(order.created_at)}
-                              </td>
-                              <td className="px-4 py-4 text-sm text-gray-500 max-w-[200px] truncate">
-                                <div
-                                  className="truncate"
-                                  title={order.pickup_location?.address}
+                        {activeOrders.map((order) => [
+                          <tr
+                            key={`${order.id}-main`}
+                            className="hover:bg-gray-50"
+                          >
+                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {order.order_id}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {order.order_number ||
+                                order.order_number?.slice(0, 8)}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {formatDate(order.created_at)}
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-500 max-w-[200px] truncate">
+                              <div
+                                className="truncate"
+                                title={order.pickup_location?.address}
+                              >
+                                {order.pickup_location?.address ||
+                                  (language === "ar"
+                                    ? "غير محدد"
+                                    : "Not specified")}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-500 max-w-[200px] truncate">
+                              <div
+                                className="truncate"
+                                title={order.dropoff_location?.address}
+                              >
+                                {order.dropoff_location?.address ||
+                                  (language === "ar"
+                                    ? "غير محدد"
+                                    : "Not specified")}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {order.driver
+                                ? `${order.driver.first_name} ${order.driver.last_name}`
+                                : language === "ar"
+                                ? "لم يتم التعيين بعد"
+                                : "Not assigned yet"}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {getStatusBadge(order.status)}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sm">
+                              {order.status === "approaching" && (
+                                <Button
+                                  onClick={() => handleCompleteOrder(order.id)}
+                                  variant="default"
+                                  size="sm"
+                                  className="gap-1 whitespace-nowrap"
                                 >
-                                  {order.pickup_location?.address ||
-                                    (language === "ar"
-                                      ? "غير محدد"
-                                      : "Not specified")}
-                                </div>
-                              </td>
-                              <td className="px-4 py-4 text-sm text-gray-500 max-w-[200px] truncate">
-                                <div
-                                  className="truncate"
-                                  title={order.dropoff_location?.address}
-                                >
-                                  {order.dropoff_location?.address ||
-                                    (language === "ar"
-                                      ? "غير محدد"
-                                      : "Not specified")}
-                                </div>
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {order.driver
-                                  ? `${order.driver.first_name} ${order.driver.last_name}`
-                                  : language === "ar"
-                                  ? "لم يتم التعيين بعد"
-                                  : "Not assigned yet"}
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {getStatusBadge(order.status)}
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-sm">
-                                {order.status === "approaching" && (
-                                  <Button
-                                    onClick={() =>
-                                      handleCompleteOrder(order.id)
-                                    }
-                                    variant="default"
-                                    size="sm"
-                                    className="gap-1 whitespace-nowrap"
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
-                                    {t("Order Received")}
-                                  </Button>
-                                )}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td colSpan={8} className="px-4 py-4">
-                                <StaticMap
-                                  pickup_location={
-                                    order.pickup_location?.address
-                                  }
-                                  dropoff_location={
-                                    order.dropoff_location?.address
-                                  }
-                                  driver_location={order.driver_location}
-                                />
-                              </td>
-                            </tr>
-                          </React.Fragment>
-                        ))}
+                                  <CheckCircle className="h-4 w-4" />
+                                  {t("Order Received")}
+                                </Button>
+                              )}
+                            </td>
+                          </tr>,
+                          <tr key={`${order.id}-map`}>
+                            <td colSpan={8} className="px-4 py-4">
+                              <StaticMap
+                                pickup_location={order.pickup_location?.address}
+                                dropoff_location={
+                                  order.dropoff_location?.address
+                                }
+                                driver_location={order.driver_location}
+                              />
+                            </td>
+                          </tr>,
+                        ])}
                       </tbody>
                     </table>
                   ) : (
@@ -496,6 +493,10 @@ const CustomerOrdersContent = () => {
 
 function StaticMap({ pickup_location, dropoff_location, driver_location }) {
   const [mapUrl, setMapUrl] = useState("");
+  const [error, setError] = useState(null);
+
+  const GOOGLE_MAPS_API_KEY = "AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w";
+
   const marker = driver_location
     ? `color:red|driver:A|${driver_location.lat},${driver_location.lng}`
     : "";
@@ -503,27 +504,34 @@ function StaticMap({ pickup_location, dropoff_location, driver_location }) {
   useEffect(() => {
     if (!pickup_location || !dropoff_location) return;
 
-    fetch(`/google-api/maps/api/directions/json?origin=${encodeURIComponent(
-      pickup_location
-    )},SA
-    &destination=${encodeURIComponent(dropoff_location)},SA
-    &mode=driving&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`)
-      .then((res) => res.json())
-      .then((res) => {
-        console.log(res);
+    // Create static map URL directly without fetching directions
+    const staticMapUrl =
+      `https://maps.googleapis.com/maps/api/staticmap?` +
+      `size=624x351` +
+      `&markers=color:green|label:A|${encodeURIComponent(pickup_location)}` +
+      `&markers=color:red|label:B|${encodeURIComponent(dropoff_location)}` +
+      (marker ? `&markers=${encodeURIComponent(marker)}` : "") +
+      `&key=${GOOGLE_MAPS_API_KEY}`;
 
-        if (res.status === "OK") {
-          const points = res.routes[0].overview_polyline.points;
-          setMapUrl(
-            `/google-api/maps/api/staticmap?size=624x351&path=enc:${points}&markers=${marker}&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`
-          );
-        }
-      })
-      .catch((error) => console.log("error", error));
+    setMapUrl(staticMapUrl);
   }, [pickup_location, dropoff_location, marker]);
 
+  if (error) {
+    return (
+      <div className="text-red-500 text-center py-4">Failed to load map</div>
+    );
+  }
+
   return mapUrl ? (
-    <img className="mx-auto max-w-full h-auto" src={mapUrl} alt="map image" />
+    <img
+      className="mx-auto max-w-full h-auto rounded-lg shadow-md"
+      src={mapUrl}
+      alt="Route map"
+      onError={(e) => {
+        console.error("Failed to load map image");
+        setError(true);
+      }}
+    />
   ) : null;
 }
 

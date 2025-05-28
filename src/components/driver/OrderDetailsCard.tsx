@@ -86,25 +86,21 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
   }, [order.customer_id, order.customer]);
 
   const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      const locale = language === "ar" ? "ar-SA" : "en-US";
-      return date.toLocaleString(locale, {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString(
+      language === "ar" ? "ar-SA" : "en-US",
+      {
         year: "numeric",
         month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-      });
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return dateString;
-    }
+      }
+    );
   };
 
   useEffect(() => {
     if (!driverLocation) return;
-    if (order.status !== "available") return;
 
     const origin = `${driverLocation.lat},${driverLocation.lng}`;
     const destination = order.pickup_location.address;
@@ -126,7 +122,7 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
         }
       })
       .catch((error) => console.log("error", error));
-  }, [driverLocation, language]);
+  }, [driverLocation, language, order.pickup_location.address]);
 
   const getStatusLabel = (status: string) => {
     return t(`status.${status}`);
@@ -255,10 +251,8 @@ const OrderDetailsCard: React.FC<OrderDetailsCardProps> = ({
       <CardHeader className="bg-gray-50 pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg flex items-center gap-2">
-            <span>
-              {t("orderId")}
-              {order.order_number || order.number.substring(0, 8)}
-            </span>
+            <span>{t("orderId")}</span>
+            {order.order_number || order.number}
           </CardTitle>
           <Badge
             variant="outline"

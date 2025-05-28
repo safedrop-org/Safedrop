@@ -399,7 +399,7 @@ const CustomerDashboardContent = () => {
                                   : "secondary"
                               }
                             >
-                              {t(order.status)}
+                              {t(`status.${order.status}`)}
                             </Badge>
                             <Eye className="h-5 w-5 text-gray-400" />
                           </div>

@@ -17,7 +17,8 @@ import { notifications } from "./notifications";
 import { driver } from "./driver";
 import { pages } from "./pages";
 import { complaints } from "./complaints";
-
+import { customers } from "./customers";
+import { finance } from "./finance";
 // Combine all translation sections
 export const translations: Translations = {
   ...siteCommon,
@@ -37,5 +38,7 @@ export const translations: Translations = {
   ...notifications,
   ...complaints,
   ...driver,
+  ...customers,
+  ...finance,
   ...pages,
 };
