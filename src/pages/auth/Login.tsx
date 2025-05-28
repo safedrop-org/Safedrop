@@ -144,7 +144,7 @@ const LoginContent = () => {
     }
   };
 
-  // Check login status
+  // Check login status - FIXED: Only run on login page, not when already logged in
   const checkLoginStatus = useCallback(async () => {
     try {
       // Check for logout param
@@ -155,6 +155,17 @@ const LoginContent = () => {
         await supabase.auth.signOut();
         clearAuthCookies();
         navigate("/login", { replace: true });
+        setIsCheckingSession(false);
+        return;
+      }
+
+      // CRITICAL FIX: Don't redirect if user is already authenticated and on protected routes
+      // Only check and redirect when user is actually on the login page
+      const currentPath = window.location.pathname;
+      const isOnLoginPage =
+        currentPath === "/login" || currentPath === "/admin";
+
+      if (!isOnLoginPage) {
         setIsCheckingSession(false);
         return;
       }
@@ -233,7 +244,7 @@ const LoginContent = () => {
       clearAuthCookies();
       setIsCheckingSession(false);
     }
-  }, [navigate, setAuthCookie]);
+  }, [navigate, setAuthCookie, t]);
 
   // Get user type from metadata or profile
   const getUserType = async (user: User) => {
@@ -281,9 +292,17 @@ const LoginContent = () => {
     return null;
   };
 
-  // Check login status on mount
+  // Check login status on mount - FIXED: Only when on login page
   useEffect(() => {
-    checkLoginStatus();
+    const currentPath = window.location.pathname;
+    const shouldCheckStatus =
+      currentPath === "/login" || currentPath === "/admin";
+
+    if (shouldCheckStatus) {
+      checkLoginStatus();
+    } else {
+      setIsCheckingSession(false);
+    }
   }, [checkLoginStatus]);
 
   // Handle login form submission

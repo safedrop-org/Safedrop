@@ -188,7 +188,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [userType]);
 
-
   return (
     <AuthContext.Provider
       value={{
