@@ -70,28 +70,25 @@ import CustomerNotifications from "./pages/customer/CustomerNotifications";
 import AdminSettings from "./pages/admin/AdminSettings";
 
 // Protected Routes for Customer
+
 const ProtectedCustomerRoute = ({ children }) => {
   const { isLoggedIn, userType, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        جاري التحميل...
-      </div>
-    );
+    return null;
   }
 
   if (!isLoggedIn) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   if (userType !== "customer") {
     if (userType === "driver") {
-      return <Navigate to="/driver/dashboard" />;
+      return <Navigate to="/driver/dashboard" replace />;
     } else if (userType === "admin") {
-      return <Navigate to="/admin/dashboard" />;
+      return <Navigate to="/admin/dashboard" replace />;
     } else {
-      return <Navigate to="/login" />;
+      return <Navigate to="/login" replace />;
     }
   }
 

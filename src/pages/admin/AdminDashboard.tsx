@@ -92,7 +92,7 @@ interface Order {
 const AdminDashboardContent = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
-  const { signOut } = useAuth();
+  const { signOut, loading } = useAuth();
   const [dateRange, setDateRange] = useState<DateRange>("month");
   const [selectedCommissionRate, setSelectedCommissionRate] = useState(20);
   const [systemLanguage, setSystemLanguage] = useState("ar");
@@ -550,6 +550,17 @@ const AdminDashboardContent = () => {
       return location.address;
     return t("notSpecified");
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-50">
+        <AdminSidebar />
+        <div className="flex-1 flex justify-center items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-safedrop-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
