@@ -29,21 +29,31 @@ const AdminSidebar = () => {
     return location.pathname === path;
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      localStorage.removeItem("adminAuth");
-      localStorage.removeItem("adminEmail");
-      toast.success(
-        language === "ar" ? "تم تسجيل الخروج بنجاح" : "Logged out successfully"
-      );
-      navigate("/login?logout=true", { replace: true });
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error(
-        language === "ar" ? "حدث خطأ أثناء تسجيل الخروج" : "Error during logout"
-      );
-    }
+  const handleLogout = () => {
+    signOut()
+      .then(() => {
+        try {
+          localStorage.removeItem("adminAuth");
+          localStorage.removeItem("adminEmail");
+        } catch (error) {
+          console.error("Error clearing localStorage:", error);
+        }
+
+        toast.success(
+          language === "ar"
+            ? "تم تسجيل الخروج بنجاح"
+            : "Logged out successfully"
+        );
+        navigate("/login?logout=true", { replace: true });
+      })
+      .catch((error) => {
+        console.error("Error signing out:", error);
+        toast.error(
+          language === "ar"
+            ? "حدث خطأ أثناء تسجيل الخروج"
+            : "Error during logout"
+        );
+      });
   };
 
   const menuItems = [

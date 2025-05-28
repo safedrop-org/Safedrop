@@ -31,8 +31,16 @@ const CustomerSidebar = () => {
   };
 
   const handleLogout = () => {
-    signOut();
-    navigate("/customer/logout");
+    // Convert to Promise chain for IE compatibility
+    signOut()
+      .then(() => {
+        navigate("/customer/logout");
+      })
+      .catch((error) => {
+        console.error("Error signing out:", error);
+        // Still navigate even if signOut fails
+        navigate("/customer/logout");
+      });
   };
 
   const menuItems = [

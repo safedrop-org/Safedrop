@@ -30,8 +30,14 @@ const DriverSidebar = () => {
   };
 
   const handleLogout = () => {
-    signOut();
-    navigate("/driver/logout");
+    signOut()
+      .then(() => {
+        navigate("/driver/logout");
+      })
+      .catch((error) => {
+        console.error("Error signing out:", error);
+        navigate("/driver/logout");
+      });
   };
 
   const menuItems = [

@@ -10,22 +10,22 @@ const DriverLogout = () => {
   const { t } = useLanguage();
 
   useEffect(() => {
-    const performLogout = async () => {
-      try {
-        await signOut();
-        toast.success(t("logoutSuccess"));
-      } catch (error) {
-        toast.error(t("logoutError"));
-      } finally {
-        // Always redirect to login after attempt, regardless of result
-        navigate("/login");
-      }
+    const performLogout = () => {
+      signOut()
+        .then(() => {
+          toast.success(t("logoutSuccess"));
+        })
+        .catch((error) => {
+          toast.error(t("logoutError"));
+        })
+        .finally(() => {
+          navigate("/login");
+        });
     };
 
     performLogout();
   }, [navigate, signOut]);
 
-  // Display a loading indicator while logout is processing
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
