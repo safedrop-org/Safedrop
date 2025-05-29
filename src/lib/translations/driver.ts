@@ -127,9 +127,20 @@ export const driver: TranslationSection = {
   },
   licenseNumber: {
     ar: "الرقم التسلسلي",
-    en: " Vehicle Serial Number",
+    en: "Vehicle Serial Number",
   },
-
+  registrationDate: {
+    ar: "تاريخ التسجيل",
+    en: "Registration Date",
+  },
+  acceptanceDate: {
+    ar: "تاريخ الموافقة",
+    en: "Acceptance Date",
+  },
+  notApplicable: {
+    ar: " لم يوافق عليه",
+    en: "Not Approved",
+  },
   // Vehicle Information
   vehicleType: {
     ar: "نوع السيارة",
