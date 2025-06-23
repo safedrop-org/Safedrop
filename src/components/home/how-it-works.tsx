@@ -1,6 +1,5 @@
-
-import { useLanguage } from '@/components/ui/language-context';
-import { PackagePlus, Truck, CreditCard, CheckCircle } from 'lucide-react';
+import { useLanguage } from "@/components/ui/language-context";
+import { PackagePlus, MessageSquare, Truck, CheckCircle } from "lucide-react";
 
 const HowItWorks = () => {
   const { t, language } = useLanguage();
@@ -10,46 +9,46 @@ const HowItWorks = () => {
       icon: <PackagePlus className="h-10 w-10 text-safedrop-gold" />,
       title: {
         ar: "إنشاء طلب",
-        en: "Create Order"
+        en: "Create a Request",
       },
       description: {
-        ar: "قم بتسجيل طلبك مع تفاصيل الشحنة وموقع الاستلام والتسليم",
-        en: "Register your order with package details and pickup/delivery locations"
-      }
+        ar: "انضم وسجّل تفاصيل الشحنة ومواقع الاستلام والتسليم ليتم نشر الطلب عبر المنصة.",
+        en: "Join and submit shipment details, including pickup and delivery locations, to have your request published on the platform.",
+      },
     },
     {
-      icon: <CreditCard className="h-10 w-10 text-safedrop-gold" />,
+      icon: <MessageSquare className="h-10 w-10 text-safedrop-gold" />,
       title: {
-        ar: "إيداع المبلغ",
-        en: "Deposit Payment"
+        ar: "التواصل والاتفاق",
+        en: "Communicate and Agree",
       },
       description: {
-        ar: "قم بإيداع المبلغ في نظام الضمان المالي للمنصة",
-        en: "Deposit the payment in the platform's escrow system"
-      }
+        ar: "تتيح المنصة للطرفين إمكانية التواصل والتفاهم على تفاصيل الخدمة بشكل مباشر.",
+        en: "The platform enables both parties to communicate directly and agree on the service details.",
+      },
     },
     {
       icon: <Truck className="h-10 w-10 text-safedrop-gold" />,
       title: {
-        ar: "التقاط وتوصيل",
-        en: "Pickup & Delivery"
+        ar: "الالتقاط والتوصيل",
+        en: "Pickup and Delivery",
       },
       description: {
-        ar: "يقوم السائق المعتمد بالتقاط الشحنة وتوصيلها إلى وجهتها",
-        en: "Verified driver picks up the package and delivers it to destination"
-      }
+        ar: "يتم تنفيذ التوصيل من قبل السائق وفق التفاصيل المتفق عليها مع العميل.",
+        en: "The delivery is carried out by the driver according to the terms agreed upon with the customer.",
+      },
     },
     {
       icon: <CheckCircle className="h-10 w-10 text-safedrop-gold" />,
       title: {
-        ar: "تأكيد الاستلام",
-        en: "Confirm Receipt"
+        ar: "تأكيد الاستلام ودفع العمولة",
+        en: "Delivery Confirmation & Commission Payment",
       },
       description: {
-        ar: "يؤكد المستلم وصول الشحنة ويتم تحرير المبلغ للسائق",
-        en: "Recipient confirms delivery and payment is released to driver"
-      }
-    }
+        ar: "بعد تأكيد المستلم، يقوم السائق بسداد عمولة استخدام المنصة حسب السياسات المعتمدة.",
+        en: "After the recipient confirms delivery, the driver proceeds to pay the platform usage commission as per the approved policies.",
+      },
+    },
   ];
 
   return (
@@ -57,23 +56,25 @@ const HowItWorks = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-safedrop-primary mb-4">
-            {language === 'ar' ? 'كيف تعمل منصة سيف دروب؟' : 'How Does SafeDrop Work?'}
+            {language === "ar"
+              ? "كيف تعمل منصة سيف دروب؟"
+              : "How Does SafeDrop Work?"}
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            {language === 'ar' 
-              ? 'أربع خطوات بسيطة لضمان توصيل سريع وآمن للمقتنيات الثمينة'
-              : 'Four simple steps for secure and guaranteed delivery of valuable shipments'}
+            {language === "ar"
+              ? "أربع خطوات بسيطة تتيح ربط العملاء بالسائقين المستقلين لإنجاز طلبات التوصيل بطريقة آمنة وسريعة"
+              : "Four simple steps that connect customers with independent drivers to complete delivery requests in a safe and fast manner."}
           </p>
         </div>
 
         <div className="relative">
           {/* Connection Line */}
           <div className="hidden md:block absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
             {steps.map((step, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="flex flex-col items-center text-center"
               >
                 {/* Step Number with Icon */}
@@ -85,7 +86,7 @@ const HowItWorks = () => {
                     {index + 1}
                   </div>
                 </div>
-                
+
                 {/* Step Text */}
                 <h3 className="text-xl font-semibold text-safedrop-primary mb-2">
                   {step.title[language]}

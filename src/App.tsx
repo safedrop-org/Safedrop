@@ -68,6 +68,7 @@ import { supabase } from "@/integrations/supabase/client";
 import DriverTerms from "./pages/DriverTerms";
 import CustomerNotifications from "./pages/customer/CustomerNotifications";
 import AdminSettings from "./pages/admin/AdminSettings";
+import Privacy from "./pages/Privacy";
 
 // Protected Routes for Customer
 
@@ -241,6 +242,14 @@ const AppContent = () => {
           element={
             <PublicRoute>
               <Terms />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/privacy"
+          element={
+            <PublicRoute>
+              <Privacy />
             </PublicRoute>
           }
         />

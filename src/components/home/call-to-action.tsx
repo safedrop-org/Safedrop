@@ -1,12 +1,11 @@
-
-import { useLanguage } from '@/components/ui/language-context';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { useLanguage } from "@/components/ui/language-context";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 
 const CallToAction = () => {
   const { t, language } = useLanguage();
-  const ArrowIcon = language === 'ar' ? ArrowLeft : ArrowRight;
+  const ArrowIcon = language === "ar" ? ArrowLeft : ArrowRight;
 
   return (
     <section className="py-20 bg-safedrop-primary">
@@ -23,21 +22,35 @@ const CallToAction = () => {
 
           <div className="max-w-3xl mx-auto text-center relative z-10">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              {language === 'ar' ? 'انضم إلينا الآن' : 'Join Us Now'}
+              {language === "ar" ? "انضم إلينا الآن" : "Join Us Now"}
             </h2>
             <p className="text-lg text-gray-300 mb-8">
-              {language === 'ar' ? 'انضم إلى منصة سيف دروب واستمتع بتجربة توصيل سريعة وآمنة' : 'Join SafeDrop platform and benefit from our premium services in package delivery and transaction protection'}
+              {language === "ar"
+                ? "انضم إلى منصة سيف دروب وابدأ رحلتك مع سائقين مستقلين لتوصيل احتياجاتك بأمان"
+                : "Join SafeDrop platform and start your journey with independent drivers to safely deliver your needs."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-white">
-                <Link to="/register/customer" className="flex items-center gap-2">
-                  {t('customerRegister')}
+              <Button
+                asChild
+                size="lg"
+                className="bg-safedrop-gold hover:bg-safedrop-gold/90 text-white"
+              >
+                <Link
+                  to="/register/customer"
+                  className="flex items-center gap-2"
+                >
+                  {t("customerRegister")}
                   <ArrowIcon className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-white text-black bg-white hover:bg-white/90 hover:text-safedrop-primary">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-white text-black bg-white hover:bg-white/90 hover:text-safedrop-primary"
+              >
                 <Link to="/register/driver" className="flex items-center gap-2">
-                  {t('driverRegister')}
+                  {t("driverRegister")}
                   <ArrowIcon className="h-4 w-4" />
                 </Link>
               </Button>

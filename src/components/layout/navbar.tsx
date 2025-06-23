@@ -105,7 +105,7 @@ const Navbar = () => {
                 onClick={toggleLanguage}
                 className="text-white"
               >
-                {language === "ar" ? "English" : "Arabic"}
+                {language === "ar" ? "English" : "العربية"}
               </Button>
 
               {isAdminPage && isAdminLoggedIn ? (
@@ -212,7 +212,7 @@ const Navbar = () => {
                 onClick={toggleLanguage}
                 className="w-full justify-center text-white"
               >
-                {language === "ar" ? "English" : "Arabic"}
+                {language === "ar" ? "English" : "العربية"}
               </Button>
             </div>
             <div className="mt-3 px-2 space-y-1">

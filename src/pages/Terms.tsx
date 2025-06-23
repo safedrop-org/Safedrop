@@ -13,14 +13,14 @@ const TermsContent = () => {
       <Navbar />
       <main className="flex-grow">
         <div className="bg-[#0A192F] py-12 mb-8">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
               {language === "ar" ? "الشروط والأحكام" : "Terms & Conditions"}
             </h1>
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           <div className="bg-white rounded-lg shadow-sm p-8 space-y-8">
             {language === "ar" ? (
               // Arabic content
@@ -28,32 +28,47 @@ const TermsContent = () => {
                 <section className="space-y-6" dir="rtl">
                   <div className="border-r-4 border-safedrop-gold pr-6">
                     <h2 className="text-2xl font-bold text-safedrop-primary mb-4">
-                      1. تعريفات
+                      1. التعريفات
                     </h2>
                     <ul className="space-y-4 text-gray-700 text-lg">
                       <li className="flex gap-2">
-                        <span className="font-semibold">المنصة:</span>
+                        <span className="font-semibold whitespace-nowrap">
+                          المنصة:
+                        </span>
                         <span>
-                          تشير إلى "SafeDrop"، وهي منصة إلكترونية تربط بين
-                          مستخدمين يرغبون في إرسال شحنات وسائقين مرخصين
-                          ومستقلين.
+                          تشير إلى موقع وتطبيق "سيف دروب" الإلكتروني، الذي يعمل
+                          كوسيط تقني يوفر وسيلة إلكترونية لربط المستخدمين
+                          الراغبين في إرسال أو استلام طلبات بمقدمي خدمات
+                          مستقلين.
                         </span>
                       </li>
                       <li className="flex gap-2">
-                        <span className="font-semibold">العميل:</span>
-                        <span>هو أي مستخدم يطلب خدمة التوصيل عبر المنصة.</span>
-                      </li>
-                      <li className="flex gap-2">
-                        <span className="font-semibold">السائق:</span>
+                        <span className="font-semibold whitespace-nowrap">
+                          مقدم الخدمة:
+                        </span>
                         <span>
-                          هو أي شخص مُسجل ومعتمد من قبل إدارة المنصة لتقديم خدمة
-                          التوصيل.
+                          الشخص الطبيعي أو الاعتباري الذي يقدم خدمات التوصيل أو
+                          النقل بصفة مستقلة، دون ارتباط تشغيلي أو تعاقدي مع
+                          المنصة.
                         </span>
                       </li>
                       <li className="flex gap-2">
-                        <span className="font-semibold">الشحنة:</span>
+                        <span className="font-semibold whitespace-nowrap">
+                          العميل:
+                        </span>
                         <span>
-                          أي غرض أو طرد يتم طلب توصيله من العميل عبر المنصة.
+                          الشخص الطبيعي أو الاعتباري الذي يستخدم المنصة لطلب
+                          خدمات التوصيل أو النقل.
+                        </span>
+                      </li>
+                      <li className="flex gap-2">
+                        <span className="font-semibold whitespace-nowrap">
+                          الخدمة:
+                        </span>
+                        <span>
+                          أي عملية توصيل أو استلام تتم خارج نطاق المنصة، ويجري
+                          تنفيذها مباشرة بين العميل ومقدم الخدمة دون تدخل من
+                          المنصة.
                         </span>
                       </li>
                     </ul>
@@ -66,29 +81,40 @@ const TermsContent = () => {
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      SafeDrop تعمل كوسيط تقني فقط ولا تقدم خدمات التوصيل
-                      بنفسها.
+                      تعمل "سيف دروب" كوسيط تقني محايد، تقتصر مهمته على تمكين
+                      التواصل التقني بين العملاء ومقدمي الخدمة، دون أن تشارك في
+                      تقديم الخدمة فعليًا أو الإشراف عليها.
                     </li>
-                    <li>لا تتحمل المنصة مسؤولية سلامة أو محتوى الشحنات.</li>
                     <li>
-                      تقدم المنصة نظام ضمان حجز قيمة الطلب حتى تأكيد الاستلام،
-                      ولا يُعد ذلك تأمينًا ماليًا.
+                      لا تُعد المنصة مزودًا لخدمة التوصيل أو النقل، ولا تملك أو
+                      تدير أي مركبات، ولا توظف أو تتحكم بمقدمي الخدمة.
+                    </li>
+                    <li>
+                      لا تتحمل المنصة أي مسؤولية قانونية أو تشغيلية تتعلق بتنفيذ
+                      الخدمة، بما في ذلك (على سبيل المثال لا الحصر): جودة النقل،
+                      توقيت التوصيل، أو حالة الشحنة.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-r-4 border-safedrop-gold pr-6" dir="rtl">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    3. التحقق من السائقين
+                    3. حدود المسؤولية
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
-                    <li>تخضع بيانات السائقين للمراجعة والموافقة.</li>
                     <li>
-                      لا يُسمح للسائقين بتقديم خدماتهم دون موافقة رسمية من
-                      المنصة.
+                      تتم جميع الاتفاقيات المتعلقة بالخدمة (بما في ذلك التكلفة،
+                      وسائل الدفع، وقت ومكان التسليم) بشكل مباشر بين العميل
+                      ومقدم الخدمة، دون تدخل أو مسؤولية على المنصة.
                     </li>
                     <li>
-                      يحق للمنصة تعليق أو إنهاء حساب السائق في حال وجود مخالفات.
+                      تقع مسؤولية التحقق من هوية وكفاءة مقدم الخدمة على العميل،
+                      وتخلي المنصة مسؤوليتها عن أي أضرار أو خسائر تنشأ عن
+                      التعامل بين الطرفين.
+                    </li>
+                    <li>
+                      في حال وقوع أي نزاع بين العميل ومقدم الخدمة، يتم حله
+                      بينهما مباشرة، وتخلي المنصة مسؤوليتها عن التدخل أو الضمان.
                     </li>
                   </ul>
                 </div>
@@ -98,63 +124,70 @@ const TermsContent = () => {
                     4. استخدام المنصة
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
-                    <li>يجب التسجيل بمعلومات صحيحة ودقيقة.</li>
                     <li>
-                      يُمنع استخدام المنصة لأي أنشطة مخالفة للقانون أو لنقل مواد
-                      ممنوعة.
+                      يقر المستخدم بأن استخدام المنصة يتم على مسؤوليته الخاصة.
+                    </li>
+                    <li>
+                      لا تضمن المنصة توفر خدمات في جميع الأوقات أو قبول جميع
+                      الطلبات.
+                    </li>
+                    <li>
+                      يلتزم المستخدمون بالامتثال لجميع الأنظمة واللوائح ذات
+                      الصلة، بما في ذلك اشتراطات الجهات التنظيمية ذات العلاقة
+                      (مثل الهيئة العامة للنقل)، حسب طبيعة الخدمة المنفذة.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-r-4 border-safedrop-gold pr-6" dir="rtl">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    5. المسؤولية
+                    5. الدفع
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      SafeDrop غير مسؤولة عن أي ضرر أو ضياع للشحنة بعد استلامها
-                      من العميل.
+                      لا تجمع المنصة أي مبالغ مالية نيابة عن أي طرف، ولا تدير
+                      حسابات أو محفظات مالية داخلية.
                     </li>
-                    <li>العميل مسؤول عن تغليف الشحنة بطريقة مناسبة.</li>
                     <li>
-                      في حال النزاع، تتدخل المنصة كطرف ميسر فقط دون التزام
-                      قانوني بالتعويض.
+                      تتم جميع عمليات الدفع والتعويضات بين العميل ومقدم الخدمة
+                      بشكل مباشر خارج المنصة، ما لم يُذكر خلاف ذلك بوضوح وبموجب
+                      خدمات طرف ثالث مستقل ومرخص.
+                    </li>
+                    <li>
+                      عمولة المنصة (إن وجدت) تُدفع بشكل منفصل ومباشر مقابل
+                      استخدام الخدمات التقنية، ولا تُعد جزءًا من تكلفة الخدمة
+                      المقدمة بين الطرفين.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-r-4 border-safedrop-gold pr-6" dir="rtl">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    6. المدفوعات والعمولة
+                    6. التعديلات
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
-                    <li>يتم حجز قيمة الطلب حتى تأكيد الاستلام من العميل.</li>
-                    <li>تخصم المنصة عمولة بنسبة 20% من قيمة الطلب.</li>
                     <li>
-                      يُحوَّل المبلغ المتبقي للسائق بعد تأكيد العميل استلام
-                      الطلب.
+                      تحتفظ المنصة بحق تعديل أو تحديث هذه الشروط في أي وقت دون
+                      إشعار مسبق.
+                    </li>
+                    <li>
+                      استمرار استخدام المنصة يُعد موافقة ضمنية على الشروط
+                      المعدّلة.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-r-4 border-safedrop-gold pr-6" dir="rtl">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    7. الشروط الخاصة
+                    7. القانون والاختصاص
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
-                    <li>لا يُسمح للسائقين المرفوضين نهائيًا بإعادة التسجيل.</li>
-                    <li>تحتفظ المنصة بحق إيقاف الحسابات التي تخرق الشروط.</li>
+                    <li>تخضع هذه الشروط لأنظمة المملكة العربية السعودية.</li>
+                    <li>
+                      في حال وقوع نزاع، تكون الجهة القضائية المختصة في المملكة
+                      هي المرجع الحصري للفصل فيه.
+                    </li>
                   </ul>
-                </div>
-
-                <div className="border-r-4 border-safedrop-gold pr-6" dir="rtl">
-                  <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    8. التعديلات
-                  </h2>
-                  <p className="text-gray-700 leading-relaxed">
-                    تحتفظ SafeDrop بحق تعديل الشروط والأحكام في أي وقت، ويتم
-                    إشعار المستخدمين بذلك عبر التطبيق أو البريد الإلكتروني.
-                  </p>
                 </div>
               </>
             ) : (
@@ -167,32 +200,45 @@ const TermsContent = () => {
                     </h2>
                     <ul className="space-y-4 text-gray-700 text-lg">
                       <li className="flex gap-2">
-                        <span className="font-semibold">Platform:</span>
+                        <span className="font-semibold whitespace-nowrap">
+                          Platform:
+                        </span>
                         <span>
-                          Refers to "SafeDrop," a digital platform that connects
-                          users who wish to send shipments with licensed and
-                          independent drivers.
+                          Refers to "SafeDrop" website and application, which
+                          operates as a neutral technical intermediary providing
+                          an electronic means to connect users wishing to send
+                          or receive orders with independent service providers.
                         </span>
                       </li>
                       <li className="flex gap-2">
-                        <span className="font-semibold">Customer:</span>
+                        <span className="font-semibold whitespace-nowrap">
+                          Service Provider:
+                        </span>
                         <span>
-                          Any user who requests delivery service through the
+                          A natural or legal person who independently offers
+                          delivery or transportation services, without any
+                          operational or contractual affiliation with the
                           platform.
                         </span>
                       </li>
                       <li className="flex gap-2">
-                        <span className="font-semibold">Driver:</span>
+                        <span className="font-semibold whitespace-nowrap">
+                          Client:
+                        </span>
                         <span>
-                          Any individual registered and approved by the
-                          platform's management to provide delivery services.
+                          A natural or legal person who uses the platform to
+                          request delivery or transportation services.
                         </span>
                       </li>
                       <li className="flex gap-2">
-                        <span className="font-semibold">Shipment:</span>
+                        <span className="font-semibold whitespace-nowrap">
+                          Service:
+                        </span>
                         <span>
-                          Any item or parcel requested by the customer for
-                          delivery through the platform.
+                          Any delivery or pickup operation performed outside the
+                          platform's scope, executed directly between the client
+                          and the service provider without the platform's
+                          intervention.
                         </span>
                       </li>
                     </ul>
@@ -205,34 +251,48 @@ const TermsContent = () => {
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      SafeDrop operates solely as a technology intermediary and
-                      does not provide delivery services itself.
+                      SafeDrop operates as a neutral technical intermediary
+                      whose role is limited to enabling technical communication
+                      between clients and service providers, without actual
+                      involvement in providing or supervising the service.
                     </li>
                     <li>
-                      The platform is not responsible for the safety or contents
-                      of shipments.
+                      The platform is not a provider of delivery or
+                      transportation services, does not own or manage any
+                      vehicles, and does not employ or control the service
+                      providers.
                     </li>
                     <li>
-                      SafeDrop provides a system that holds the payment until
-                      the delivery is confirmed, which does not constitute
-                      financial insurance.
+                      The platform bears no legal or operational responsibility
+                      related to service execution, including (but not limited
+                      to) transport quality, delivery timing, or shipment
+                      condition.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-l-4 border-safedrop-gold pl-6">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    3. Driver Verification
+                    3. Limitation of Liability
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
-                    <li>Driver data is subject to review and approval.</li>
                     <li>
-                      Drivers are not permitted to provide services without
-                      official approval from the platform.
+                      All agreements related to the service (including cost,
+                      payment methods, delivery time and location) are made
+                      directly between the client and the service provider,
+                      without intervention or liability on the platform.
                     </li>
                     <li>
-                      The platform reserves the right to suspend or terminate
-                      driver accounts in the case of violations.
+                      The client is responsible for verifying the identity and
+                      competence of the service provider, and the platform
+                      disclaims responsibility for any damages or losses arising
+                      from dealings between the parties.
+                    </li>
+                    <li>
+                      In case of any dispute between the client and the service
+                      provider, it shall be resolved directly between them, and
+                      the platform disclaims any liability for intervention or
+                      guarantee.
                     </li>
                   </ul>
                 </div>
@@ -243,80 +303,77 @@ const TermsContent = () => {
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      Users must register with accurate and truthful
-                      information.
+                      The user acknowledges that use of the platform is at their
+                      own risk.
                     </li>
                     <li>
-                      It is prohibited to use the platform for illegal
-                      activities or to transport prohibited materials.
+                      The platform does not guarantee availability of services
+                      at all times or acceptance of all requests.
+                    </li>
+                    <li>
+                      Users must comply with all relevant laws and regulations,
+                      including requirements of regulatory authorities (such as
+                      the General Authority for Transport), according to the
+                      nature of the executed service.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-l-4 border-safedrop-gold pl-6">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    5. Liability
+                    5. Payment
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      SafeDrop is not liable for any damage or loss of shipment
-                      once it is picked up from the customer.
+                      The platform does not collect any funds on behalf of any
+                      party and does not manage any internal accounts or
+                      wallets.
                     </li>
                     <li>
-                      Customers are responsible for proper packaging of their
-                      shipments.
+                      All payment and compensation transactions occur directly
+                      between the client and the service provider outside the
+                      platform, unless otherwise explicitly stated and provided
+                      via an independent licensed third-party service.
                     </li>
                     <li>
-                      In case of disputes, the platform may intervene as a
-                      facilitator but is not legally obligated to provide
-                      compensation.
+                      The platform's commission (if any) is paid separately and
+                      directly as a fee for the use of technical services and is
+                      not part of the service cost between the parties.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-l-4 border-safedrop-gold pl-6">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    6. Payments and Commission
+                    6. Amendments
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      The payment is held until the customer confirms receipt.
+                      The platform reserves the right to modify or update these
+                      terms at any time without prior notice.
                     </li>
                     <li>
-                      The platform deducts a 20% commission from the order
-                      value.
-                    </li>
-                    <li>
-                      The remaining amount is transferred to the driver after
-                      confirmation of receipt by the customer.
+                      Continued use of the platform constitutes implicit
+                      acceptance of the amended terms.
                     </li>
                   </ul>
                 </div>
 
                 <div className="border-l-4 border-safedrop-gold pl-6">
                   <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    7. Special Terms
+                    7. Governing Law and Jurisdiction
                   </h2>
                   <ul className="space-y-2 text-gray-700 leading-relaxed">
                     <li>
-                      Drivers who are permanently rejected may not re-register.
+                      These terms are governed by the laws of the Kingdom of
+                      Saudi Arabia.
                     </li>
                     <li>
-                      The platform reserves the right to suspend accounts that
-                      violate the terms.
+                      In the event of a dispute, the competent judicial
+                      authority in the Kingdom shall have exclusive jurisdiction
+                      to resolve it.
                     </li>
                   </ul>
-                </div>
-
-                <div className="border-l-4 border-safedrop-gold pl-6">
-                  <h2 className="text-xl font-bold text-safedrop-primary mb-4">
-                    8. Modifications
-                  </h2>
-                  <p className="text-gray-700 leading-relaxed">
-                    SafeDrop reserves the right to modify these terms and
-                    conditions at any time. Users will be notified through the
-                    app or via email.
-                  </p>
                 </div>
               </>
             )}

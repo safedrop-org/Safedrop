@@ -153,12 +153,19 @@ const Footer = () => {
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-700">
-          <div className="flex flex-wrap justify-center gap-4 mb-4 text-sm text-gray-400">
+          <div className="flex flex-wrap justify-center items-center gap-2 mb-4 text-sm text-gray-400">
             <Link
               to="/terms"
               className="hover:text-safedrop-gold transition-colors"
             >
               {t("termsAndConditions")}
+            </Link>
+            <span>|</span>
+            <Link
+              to="/privacy"
+              className="hover:text-safedrop-gold transition-colors"
+            >
+              {t("privacyPolicy")}
             </Link>
           </div>
           <p className="text-center text-sm text-gray-400" dir="auto">
