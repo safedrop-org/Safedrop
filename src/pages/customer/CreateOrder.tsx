@@ -98,7 +98,7 @@ const CreateOrderContent = () => {
   // Calculate minimum allowed price (40% of estimated cost)
   const getMinimumPrice = () => {
     if (!estimatedCost) return 0;
-    return Math.floor(estimatedCost * 0.4 * 100) / 100;
+    return Math.floor(estimatedCost * 0.6 * 100) / 100;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

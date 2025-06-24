@@ -12,10 +12,8 @@ export function cn(...inputs: ClassValue[]) {
  * @returns
  */
 export function calculateCost(distance: number) {
-  // Convert meters to kilometers
   const distanceInKm = distance / 1000;
 
-  // 1.5 SAR per kilometer + 10 SAR base cost
   const cost = distanceInKm * 1.5 + 10;
 
   return Math.floor(cost * 100) / 100;
