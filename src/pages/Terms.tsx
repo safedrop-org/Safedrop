@@ -257,8 +257,7 @@ const TermsContent = () => {
                     <li>
                       The platform is not a provider of delivery or
                       transportation services, does not own or manage any
-                      vehicles, and does not employ or control the service
-                      providers.
+                      vehicles, and does not employ or control the drivers.
                     </li>
                     <li>
                       The platform bears no legal or operational responsibility
@@ -287,9 +286,9 @@ const TermsContent = () => {
                       dealings between the parties.
                     </li>
                     <li>
-                      In case of any dispute between the client and the service
-                      provider, it shall be resolved directly between them, and
-                      the platform disclaims any liability for intervention or
+                      In case of any dispute between the client and the driver,
+                      it shall be resolved directly between them, and the
+                      platform disclaims any liability for intervention or
                       guarantee.
                     </li>
                   </ul>

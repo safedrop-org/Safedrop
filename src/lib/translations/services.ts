@@ -16,6 +16,6 @@ export const services: TranslationSection = {
   },
   verifiedDrivers: {
     ar: "سائقون مستقلون",
-    en: "Verified Drivers",
+    en: "Independent Drivers",
   },
 };
