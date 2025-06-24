@@ -243,8 +243,8 @@ const PrivacyContent = () => {
                       law enforcement or judicial entities)
                     </li>
                     <li>
-                      • Secure payment service providers (such as licensed
-                      payment gateways)
+                      • Secure payment drivers (such as licensed payment
+                      gateways)
                     </li>
                   </ul>
                 </div>

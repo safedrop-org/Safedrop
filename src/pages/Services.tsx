@@ -72,7 +72,7 @@ const ServicesContent = () => {
                   <p className="text-gray-600 mb-4">
                     {language === "ar"
                       ? "منصة تتيح ربط العملاء بمقدمي خدمة توصيل موثوقين، مع توفير أدوات تقنية تضمن سهولة الطلب ومتابعته."
-                      : "A platform that connects customers with reliable delivery service providers, offering technical tools to ensure easy order placement and tracking."}
+                      : "A platform that connects customers with reliable delivery drivers, offering technical tools to ensure easy order placement and tracking."}
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
@@ -213,7 +213,7 @@ const ServicesContent = () => {
                           : "ID and license verification"}
                       </span>
                     </li>
-                    <li className="flex items-center gap-2 text-gray-700">
+                    <li className="flex justify-start items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <span>
                         {language === "ar"
@@ -221,8 +221,8 @@ const ServicesContent = () => {
                           : "Ratings displayed after each delivery"}
                       </span>
                     </li>
-                    <li className="flex items-center gap-2 text-gray-700">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+                    <li className="flex justify-start gap-2 text-gray-700 ">
+                      <CheckCircle className="h-5 w-5 text-green-500 " />
                       <span>
                         {language === "ar"
                           ? "حرية اختيار السائق من قبل العميل"

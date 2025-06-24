@@ -1,22 +1,21 @@
-
 import { TranslationSection } from "./types";
 
 export const services: TranslationSection = {
   // Services
   parcelDelivery: {
     ar: "توصيل الطرود",
-    en: "Parcel Delivery"
+    en: "Parcel Delivery",
   },
   transactionProtection: {
     ar: "حماية المعاملات",
-    en: "Transaction Protection"
+    en: "Transaction Protection",
   },
   expressDelivery: {
     ar: "توصيل سريع",
-    en: "Express Delivery"
+    en: "Express Delivery",
   },
   verifiedDrivers: {
-    ar: "سائقون موثوقون",
-    en: "Verified Drivers"
+    ar: "سائقون مستقلون",
+    en: "Verified Drivers",
   },
 };
