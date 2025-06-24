@@ -30,8 +30,8 @@ const ServicesContent = () => {
             </h1>
             <p className="text-xl max-w-3xl mx-auto mb-8">
               {language === "ar"
-                ? "استكشف مجموعة متنوعة من الخدمات المتميزة التي تقدمها سيف دروب"
-                : "Explore a variety of premium services offered by SafeDrop"}
+                ? "نقدم حلولًا تقنية مبتكرة لربط العملاء بسائقين مستقلين لتنفيذ طلبات التوصيل عبر المنصة"
+                : "We offer innovative technical solutions that connect customers with independent drivers to fulfill delivery requests through the platform."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -241,13 +241,13 @@ const ServicesContent = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-bold text-safedrop-primary mb-6">
               {language === "ar"
-                ? "ابدأ مع سيف دروب اليوم"
-                : "Start with SafeDrop Today"}
+                ? "انضم الآن إلى سيف دروب"
+                : "Join SafeDrop Now"}
             </h2>
             <p className="text-xl text-gray-600 mb-8">
               {language === "ar"
-                ? "استمتع بتجربة توصيل سريعة وآمنة مع سيف دروب"
-                : "Experience safe and easy delivery with SafeDrop"}
+                ? "واستفد من منصة تقنية ذكية تربطك بسائقين مستقلين لتوصيل احتياجاتك بسرعة وأمان، بكل سهولة ومن دون تعقيد."
+                : "Benefit from a smart tech platform that connects you with independent drivers to deliver your needs quickly, safely, and effortlessly without any hassle."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
