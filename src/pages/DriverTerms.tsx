@@ -30,10 +30,10 @@ const DriverTermsContent = () => {
                 <section className="space-y-6" dir="rtl">
                   <div className="bg-gradient-to-r from-safedrop-primary/5 to-safedrop-gold/5 border border-safedrop-gold/20 rounded-lg p-6">
                     <h2 className="text-2xl font-bold text-safedrop-primary mb-4 text-center">
-                      اتفاقية استخدام السائق – منصة SafeDrop
+                      اتفاقية استخدام السائق – منصة سيف دروب
                     </h2>
                     <p className="text-safedrop-primary text-lg leading-relaxed font-medium text-center">
-                      بتسجيلك في منصة SafeDrop، فإنك تُقر وتوافق على ما يلي:
+                      بتسجيلك في منصة سيف دروب، فإنك تُقر وتوافق على ما يلي:
                     </p>
                   </div>
                 </section>

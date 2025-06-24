@@ -14,7 +14,6 @@ import {
   LanguageProvider,
   useLanguage,
 } from "@/components/ui/language-context";
-import { calculateCost } from "@/lib/utils";
 import {
   Popover,
   PopoverContent,
@@ -27,11 +26,18 @@ interface LocationType {
   details?: string;
 }
 
+interface CalculateOrderCostProps {
+  pickupLocation: string;
+  dropoffLocation: string;
+  onCostCalculated?: (cost: number) => void;
+}
+
 const CreateOrderContent = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, language } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
+  const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
   const languageParam = language === "ar" ? "ar" : "en";
   const [formData, setFormData] = useState({
     pickupLocation: {
@@ -88,6 +94,12 @@ const CreateOrderContent = () => {
     }
   };
 
+  // Calculate minimum allowed price (40% of estimated cost)
+  const getMinimumPrice = () => {
+    if (!estimatedCost) return 0;
+    return Math.floor(estimatedCost * 0.4 * 100) / 100;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -119,8 +131,21 @@ const CreateOrderContent = () => {
       return;
     }
 
+    // Check if price meets minimum requirement (40% of estimated cost)
+    if (estimatedCost) {
+      const minimumPrice = getMinimumPrice();
+      if (price < minimumPrice) {
+        toast.error(
+          language === "ar"
+            ? `السعر المدخل أقل من الحد الأدنى المطلوب. الحد الأدنى هو ${minimumPrice} ر.س`
+            : `The entered price is below the minimum required. Minimum price is ${minimumPrice} SAR`
+        );
+        return;
+      }
+    }
+
     try {
-      // Calculate distance and fare
+      // Calculate distance and fare for final validation
       const res = await fetch(
         `/google-api/maps/api/directions/json?origin=${encodeURIComponent(
           formData.pickupLocation.address
@@ -135,19 +160,6 @@ const CreateOrderContent = () => {
           language === "ar"
             ? "حدث خطأ أثناء حساب المسافة. تأكد من صحة العناوين."
             : "Error calculating distance. Please verify the addresses."
-        );
-        return;
-      }
-
-      const distance = data.routes[0].legs[0].distance.value; // in meters
-      const fare = calculateCost(distance);
-      const minFare = fare <= 10 ? 10 : Math.floor(fare * 0.7 * 100) / 100;
-
-      if (Number(price) < minFare) {
-        toast.error(
-          language === "ar"
-            ? `السعر المدخل منخفض مقارنة بالسعر المقترح ${minFare} ر.س. وقد لا يتم قبول الطلب`
-            : `The entered price is low compared to the suggested price ${minFare} SAR, and the order may not be accepted`
         );
         return;
       }
@@ -173,7 +185,7 @@ const CreateOrderContent = () => {
             price: price,
             status: "available",
             payment_status: "pending",
-            commission_rate: 0.15,
+            commission_rate: 0.2,
           },
         ])
         .select();
@@ -302,6 +314,7 @@ const CreateOrderContent = () => {
           <CalculateOrderCost
             pickupLocation={formData.pickupLocation.address}
             dropoffLocation={formData.dropoffLocation.address}
+            onCostCalculated={setEstimatedCost}
           />
 
           <Card className="p-6">
@@ -329,9 +342,18 @@ const CreateOrderContent = () => {
                     required
                   />
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
-                  {t("driverCommission")}
-                </p>
+                <div className="flex flex-col space-y-1 mt-1">
+                  <p className="text-sm text-gray-500">
+                    {t("driverCommission")}
+                  </p>
+                  {estimatedCost && (
+                    <p className="text-sm text-blue-600 font-medium">
+                      {language === "ar"
+                        ? `الحد الأدنى للسعر: ${getMinimumPrice()} ر.س`
+                        : `Minimum price: ${getMinimumPrice()} SAR`}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -455,7 +477,7 @@ const CalculateOrderCost = ({
       }
 
       // Format the price with proper currency display
-      const fareValue = fare <= 10 ? "10" : Math.floor(fare * 100) / 100;
+      const fareValue = Math.floor(fare * 100) / 100;
       const currencySymbol = currencyDisplay.symbol;
 
       // Set formatted price with appropriate spacing

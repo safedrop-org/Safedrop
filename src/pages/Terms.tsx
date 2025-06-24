@@ -44,7 +44,7 @@ const TermsContent = () => {
                       </li>
                       <li className="flex gap-2">
                         <span className="font-semibold whitespace-nowrap">
-                          مقدم الخدمة:
+                          السائق:
                         </span>
                         <span>
                           الشخص الطبيعي أو الاعتباري الذي يقدم خدمات التوصيل أو
@@ -67,8 +67,7 @@ const TermsContent = () => {
                         </span>
                         <span>
                           أي عملية توصيل أو استلام تتم خارج نطاق المنصة، ويجري
-                          تنفيذها مباشرة بين العميل ومقدم الخدمة دون تدخل من
-                          المنصة.
+                          تنفيذها مباشرة بين العميل والسائق دون تدخل من المنصة.
                         </span>
                       </li>
                     </ul>
@@ -105,16 +104,16 @@ const TermsContent = () => {
                     <li>
                       تتم جميع الاتفاقيات المتعلقة بالخدمة (بما في ذلك التكلفة،
                       وسائل الدفع، وقت ومكان التسليم) بشكل مباشر بين العميل
-                      ومقدم الخدمة، دون تدخل أو مسؤولية على المنصة.
+                      والسائق، دون تدخل أو مسؤولية على المنصة.
                     </li>
                     <li>
-                      تقع مسؤولية التحقق من هوية وكفاءة مقدم الخدمة على العميل،
-                      وتخلي المنصة مسؤوليتها عن أي أضرار أو خسائر تنشأ عن
-                      التعامل بين الطرفين.
+                      تقع مسؤولية التحقق من هوية وكفاءة السائق على العميل، وتخلي
+                      المنصة مسؤوليتها عن أي أضرار أو خسائر تنشأ عن التعامل بين
+                      الطرفين.
                     </li>
                     <li>
-                      في حال وقوع أي نزاع بين العميل ومقدم الخدمة، يتم حله
-                      بينهما مباشرة، وتخلي المنصة مسؤوليتها عن التدخل أو الضمان.
+                      في حال وقوع أي نزاع بين العميل والسائق، يتم حله بينهما
+                      مباشرة، وتخلي المنصة مسؤوليتها عن التدخل أو الضمان.
                     </li>
                   </ul>
                 </div>
@@ -149,9 +148,9 @@ const TermsContent = () => {
                       حسابات أو محفظات مالية داخلية.
                     </li>
                     <li>
-                      تتم جميع عمليات الدفع والتعويضات بين العميل ومقدم الخدمة
-                      بشكل مباشر خارج المنصة، ما لم يُذكر خلاف ذلك بوضوح وبموجب
-                      خدمات طرف ثالث مستقل ومرخص.
+                      تتم جميع عمليات الدفع والتعويضات بين العميل والسائق بشكل
+                      مباشر خارج المنصة، ما لم يُذكر خلاف ذلك بوضوح وبموجب خدمات
+                      طرف ثالث مستقل ومرخص.
                     </li>
                     <li>
                       عمولة المنصة (إن وجدت) تُدفع بشكل منفصل ومباشر مقابل
@@ -207,12 +206,12 @@ const TermsContent = () => {
                           Refers to "SafeDrop" website and application, which
                           operates as a neutral technical intermediary providing
                           an electronic means to connect users wishing to send
-                          or receive orders with independent service providers.
+                          or receive orders with independent drivers.
                         </span>
                       </li>
                       <li className="flex gap-2">
                         <span className="font-semibold whitespace-nowrap">
-                          Service Provider:
+                          Driver:
                         </span>
                         <span>
                           A natural or legal person who independently offers
@@ -237,8 +236,7 @@ const TermsContent = () => {
                         <span>
                           Any delivery or pickup operation performed outside the
                           platform's scope, executed directly between the client
-                          and the service provider without the platform's
-                          intervention.
+                          and the driver without the platform's intervention.
                         </span>
                       </li>
                     </ul>
@@ -253,8 +251,8 @@ const TermsContent = () => {
                     <li>
                       SafeDrop operates as a neutral technical intermediary
                       whose role is limited to enabling technical communication
-                      between clients and service providers, without actual
-                      involvement in providing or supervising the service.
+                      between clients and drivers, without actual involvement in
+                      providing or supervising the service.
                     </li>
                     <li>
                       The platform is not a provider of delivery or
@@ -279,14 +277,14 @@ const TermsContent = () => {
                     <li>
                       All agreements related to the service (including cost,
                       payment methods, delivery time and location) are made
-                      directly between the client and the service provider,
-                      without intervention or liability on the platform.
+                      directly between the client and the driver, without
+                      intervention or liability on the platform.
                     </li>
                     <li>
                       The client is responsible for verifying the identity and
-                      competence of the service provider, and the platform
-                      disclaims responsibility for any damages or losses arising
-                      from dealings between the parties.
+                      competence of the driver, and the platform disclaims
+                      responsibility for any damages or losses arising from
+                      dealings between the parties.
                     </li>
                     <li>
                       In case of any dispute between the client and the service
@@ -331,9 +329,9 @@ const TermsContent = () => {
                     </li>
                     <li>
                       All payment and compensation transactions occur directly
-                      between the client and the service provider outside the
-                      platform, unless otherwise explicitly stated and provided
-                      via an independent licensed third-party service.
+                      between the client and the driver outside the platform,
+                      unless otherwise explicitly stated and provided via an
+                      independent licensed third-party service.
                     </li>
                     <li>
                       The platform's commission (if any) is paid separately and
