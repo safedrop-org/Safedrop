@@ -95,7 +95,6 @@ const CreateOrderContent = () => {
     }
   };
 
-  // Calculate minimum allowed price (40% of estimated cost)
   const getMinimumPrice = () => {
     if (!estimatedCost) return 0;
     return Math.floor(estimatedCost * 0.6 * 100) / 100;
@@ -123,7 +122,6 @@ const CreateOrderContent = () => {
       return;
     }
 
-    // Verify price is a valid number
     const price = parseFloat(formData.price);
     if (isNaN(price)) {
       toast.error(
@@ -132,7 +130,6 @@ const CreateOrderContent = () => {
       return;
     }
 
-    // Check if price meets minimum requirement (40% of estimated cost)
     if (estimatedCost) {
       const minimumPrice = getMinimumPrice();
       if (price < minimumPrice) {
@@ -146,7 +143,6 @@ const CreateOrderContent = () => {
     }
 
     try {
-      // Calculate distance and fare for final validation
       const res = await fetch(
         `/google-api/maps/api/directions/json?origin=${encodeURIComponent(
           formData.pickupLocation.address
@@ -167,7 +163,6 @@ const CreateOrderContent = () => {
 
       setSubmitting(true);
 
-      // Insert order into database
       const { data: orderData, error } = await supabase
         .from("orders")
         .insert([
@@ -214,7 +209,6 @@ const CreateOrderContent = () => {
     }
   };
 
-  // Get currency format based on current language
   const currencyDisplay = currencyFormat[language];
 
   return (
@@ -426,10 +420,8 @@ const CalculateOrderCost = ({
   const [isCalculating, setIsCalculating] = useState(false);
   const languageParam = language === "ar" ? "ar" : "en";
 
-  // Get currency format based on current language
   const currencyDisplay = currencyFormat[language];
 
-  // Add validation for empty locations
   const locationsValid = pickupLocation && dropoffLocation;
 
   const handleOnclick = async () => {
@@ -477,11 +469,9 @@ const CalculateOrderCost = ({
         onCostCalculated(fare);
       }
 
-      // Format the price with proper currency display
       const fareValue = Math.floor(fare * 100) / 100;
       const currencySymbol = currencyDisplay.symbol;
 
-      // Set formatted price with appropriate spacing
       const formattedPrice =
         currencyDisplay.position === "suffix"
           ? `${fareValue}${
