@@ -153,9 +153,13 @@ const TermsContent = () => {
                       طرف ثالث مستقل ومرخص.
                     </li>
                     <li>
-                      عمولة المنصة (إن وجدت) تُدفع بشكل منفصل ومباشر مقابل
-                      استخدام الخدمات التقنية، ولا تُعد جزءًا من تكلفة الخدمة
-                      المقدمة بين الطرفين.
+                      الاشتراك الشهري المدفوع يُعد رسمًا مقابل استخدام المنصة
+                      والوصول إلى ميزاتها التقنية، ولا يُمثل عمولة على الطلبات
+                      أو نسبة من قيمة الخدمات المقدمة بين المستخدمين.
+                    </li>
+                    <li>
+                      لا تضمن المنصة عددًا معينًا من الطلبات أو أي دخل معين
+                      مقابل الاشتراك المدفوع.
                     </li>
                   </ul>
                 </div>
@@ -333,9 +337,14 @@ const TermsContent = () => {
                       independent licensed third-party service.
                     </li>
                     <li>
-                      The platform's commission (if any) is paid separately and
-                      directly as a fee for the use of technical services and is
-                      not part of the service cost between the parties.
+                      The paid monthly subscription is considered a fee for
+                      using the platform and accessing its technical features.
+                      It does not represent a commission on orders or a
+                      percentage of the services exchanged between users.
+                    </li>
+                    <li>
+                      The platform does not guarantee any specific number of
+                      orders or income in exchange for the paid subscription.
                     </li>
                   </ul>
                 </div>

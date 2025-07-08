@@ -746,4 +746,33 @@ export const authUI: TranslationSection = {
     ar: "جاري تسجيل الخروج...",
     en: "Logging out...",
   },
+
+  confirmDeleteDocument: {
+    ar: "تأكيد حذف المستند",
+    en: "Confirm Document Deletion",
+  },
+  deleteDocumentWarning: {
+    ar: "هل أنت متأكد من حذف هذا المستند؟ لا يمكن التراجع عن هذا الإجراء.",
+    en: "Are you sure you want to delete this document? This action cannot be undone.",
+  },
+  cancel: {
+    ar: "إلغاء",
+    en: "Cancel",
+  },
+  delete: {
+    ar: "حذف",
+    en: "Delete",
+  },
+  documentDeleteError: {
+    ar: "حدث خطأ أثناء حذف المستند",
+    en: "Error occurred while deleting document",
+  },
+  documentDeletedSuccess: {
+    ar: "تم حذف المستند بنجاح",
+    en: "Document deleted successfully",
+  },
+  databaseUpdateError: {
+    ar: "حدث خطأ أثناء تحديث قاعدة البيانات",
+    en: "Error occurred while updating database",
+  },
 };

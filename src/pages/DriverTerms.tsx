@@ -97,18 +97,19 @@ const DriverTermsContent = () => {
 
                 <div className="border-r-4 border-safedrop-gold pr-6" dir="rtl">
                   <h3 className="text-xl font-bold text-safedrop-primary mb-3">
-                    6. العمولة والمدفوعات
+                    6. الإشتراك والمدفوعات
                   </h3>
                   <div className="text-gray-700 leading-relaxed space-y-3">
                     <p>
-                      أوافق على سداد عمولة المنصة المحددة بنسبة 20% من قيمة
-                      الطلب، وتُدفع هذه العمولة بشكل مستقل عبر بوابة الدفع كشرط
-                      أساسي لإتاحة التواصل مع العميل داخل المنصة.
+                      أقرّ وأوافق على سداد الاشتراك الشهري للمنصة وفق الباقة
+                      المعلنة، وذلك كشرط أساسي لإتاحة الوصول إلى الطلبات
+                      والتواصل مع العملاء عبر المنصة.
                     </p>
                     <p>
-                      كما أقر بأن أي مبالغ أخرى يتم الاتفاق عليها مع العميل
-                      تُدفع مباشرة لي نقدًا أو وفق ما يتم التفاهم عليه، دون تدخل
-                      أو مسؤولية من المنصة.
+                      كما أقرّ بأن جميع المبالغ الأخرى يتم الاتفاق عليها مباشرة
+                      بيني وبين العميل، وتُدفع لي نقدًا أو بأي وسيلة يتم التفاهم
+                      عليها، دون تدخل أو مسؤولية من المنصة في تفاصيل الدفع أو
+                      تنفيذ الخدمة.
                     </p>
                   </div>
                 </div>
@@ -249,20 +250,21 @@ const DriverTermsContent = () => {
 
                 <div className="border-l-4 border-safedrop-gold pl-6">
                   <h3 className="text-xl font-bold text-safedrop-primary mb-3">
-                    6. Commission and Payments
+                    6. Subscription and Payments
                   </h3>
                   <div className="text-gray-700 leading-relaxed space-y-3">
                     <p>
-                      I agree to pay the platform's commission set at 20% of the
-                      order value, which is paid independently via the payment
-                      gateway as a prerequisite to enable communication with the
-                      customer within the platform.
+                      I acknowledge and agree to pay the monthly subscription
+                      fee for the platform as per the announced package, as a
+                      mandatory requirement to access orders and communicate
+                      with customers through the platform.
                     </p>
                     <p>
-                      I also acknowledge that any other amounts agreed upon with
-                      the customer shall be paid directly to me in cash or as
-                      otherwise agreed, without any interference or
-                      responsibility from the platform.
+                      I also acknowledge that all other payments are agreed upon
+                      directly between me and the customer and are paid to me in
+                      cash or through any agreed method, without any involvement
+                      or responsibility from the platform regarding payment
+                      details or service execution.
                     </p>
                   </div>
                 </div>

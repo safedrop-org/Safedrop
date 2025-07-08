@@ -1,13 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { DriverInfoCard } from "@/components/admin/driver/DriverInfoCard";
 import { DriverActions } from "@/components/admin/driver/DriverActions";
 import { RejectionDialog } from "@/components/admin/driver/RejectionDialog";
-import { Eye, Download, X } from "lucide-react";
+import { Eye, Download, X, Trash2 } from "lucide-react";
 import Cookies from "js-cookie";
 import {
   LanguageProvider,
@@ -77,6 +85,7 @@ const ImageCard = ({
   title,
   onView,
   onDownload,
+  onDelete,
   t,
 }: {
   src: string;
@@ -84,7 +93,8 @@ const ImageCard = ({
   title: string;
   onView: () => void;
   onDownload: () => void;
-  t: any;
+  onDelete: () => void;
+  t: (key: string) => string;
 }) => (
   <div className="space-y-3">
     <h4 className="text-base font-medium text-center text-gray-700">{title}</h4>
@@ -112,6 +122,15 @@ const ImageCard = ({
             <Download size={16} className="mr-1" />
             {t("download")}
           </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={onDelete}
+            className="bg-white bg-opacity-95 hover:bg-opacity-100 text-red-700 shadow-md"
+          >
+            <Trash2 size={16} className="mr-1" />
+            {t("delete")}
+          </Button>
         </div>
       </div>
     </div>
@@ -127,13 +146,18 @@ const DriverDetailsContent = () => {
   const [processingAction, setProcessingAction] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<{
+    url: string;
+    type: "id_image" | "license_image";
+  } | null>(null);
   const [viewingImage, setViewingImage] = useState<{
     src: string;
     alt: string;
     title: string;
   } | null>(null);
 
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     try {
       const adminAuthLS = localStorage.getItem("adminAuth") === "true";
       const adminAuthCookie = Cookies.get("adminAuth") === "true";
@@ -170,9 +194,9 @@ const DriverDetailsContent = () => {
       navigate("/admin/login");
       return false;
     }
-  };
+  }, [navigate, t]);
 
-  const fetchDriverDetails = async () => {
+  const fetchDriverDetails = useCallback(async () => {
     if (!id) return;
 
     setLoading(true);
@@ -230,7 +254,7 @@ const DriverDetailsContent = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, checkAdminAccess, t]);
 
   const saveDriverStatus = async (
     status: string,
@@ -302,7 +326,7 @@ const DriverDetailsContent = () => {
         result = upsertData;
       }
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Driver status update failed:", error);
       throw error;
     }
@@ -378,9 +402,9 @@ const DriverDetailsContent = () => {
       } else {
         throw new Error(t("statusUpdateError"));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error approving driver:", error);
-      toast.error(error.message || t("statusUpdateError"));
+      toast.error((error as Error).message || t("statusUpdateError"));
     } finally {
       setProcessingAction(false);
     }
@@ -417,9 +441,9 @@ const DriverDetailsContent = () => {
       } else {
         throw new Error(t("statusUpdateError"));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error rejecting driver:", error);
-      toast.error(error.message || t("statusUpdateError"));
+      toast.error((error as Error).message || t("statusUpdateError"));
     } finally {
       setProcessingAction(false);
     }
@@ -448,9 +472,121 @@ const DriverDetailsContent = () => {
     }
   };
 
+  const handleImageDelete = async (
+    documentType: "id_image" | "license_image"
+  ) => {
+    if (!driver) return;
+
+    const documentUrl =
+      documentType === "id_image" ? driver.id_image : driver.license_image;
+    if (!documentUrl) return;
+
+    setDocumentToDelete({ url: documentUrl, type: documentType });
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!documentToDelete) return;
+
+    setShowDeleteDialog(false);
+    await deleteDocument(documentToDelete.url, documentToDelete.type);
+    setDocumentToDelete(null);
+  };
+
+  const deleteDocument = async (
+    documentUrl: string,
+    documentType: "id_image" | "license_image"
+  ) => {
+    try {
+      const hasAccess = await checkAdminAccess();
+      if (!hasAccess) return;
+
+      const folder = documentType === "id_image" ? "id-cards" : "licenses";
+      let fileDeleted = false;
+
+      // Try direct deletion first
+      try {
+        const url = new URL(documentUrl);
+        const pathParts = url.pathname.split("/");
+        const fileName = pathParts[pathParts.length - 1];
+        const filePath = `${folder}/${fileName}`;
+
+        const { error } = await supabase.storage
+          .from("driver-documents")
+          .remove([filePath]);
+
+        if (!error) {
+          fileDeleted = true;
+        }
+      } catch (urlError) {
+        console.log("Direct deletion failed, trying file listing approach");
+      }
+
+      // If direct deletion failed, try listing files and finding a match
+      if (!fileDeleted) {
+        const { data: fileList, error: listError } = await supabase.storage
+          .from("driver-documents")
+          .list(folder);
+
+        if (!listError && fileList) {
+          const urlParts = documentUrl.split("/");
+          const lastPart = urlParts[urlParts.length - 1];
+
+          const foundFile = fileList.find(
+            (file) =>
+              file.name === lastPart ||
+              file.name.includes(lastPart) ||
+              (driver?.id && file.name.includes(driver.id))
+          );
+
+          if (foundFile) {
+            const correctPath = `${folder}/${foundFile.name}`;
+            const { error } = await supabase.storage
+              .from("driver-documents")
+              .remove([correctPath]);
+
+            if (!error) {
+              fileDeleted = true;
+            }
+          }
+        }
+      }
+
+      if (!fileDeleted) {
+        toast.error(t("documentDeleteError"));
+        return;
+      }
+
+      // Update the database to remove the document URL
+      const updateData = {
+        [documentType]: null,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error: updateError } = await supabase
+        .from("drivers")
+        .update(updateData)
+        .eq("id", driver?.id);
+
+      if (updateError) {
+        console.error("Error updating driver record:", updateError);
+        toast.error(t("databaseUpdateError"));
+        return;
+      }
+
+      // Update local state
+      setDriver((prev) => (prev ? { ...prev, [documentType]: null } : null));
+
+      toast.success(t("documentDeletedSuccess"));
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      toast.error(t("documentDeleteError"));
+    }
+  };
+
   useEffect(() => {
     fetchDriverDetails();
-  }, [id]);
+  }, [fetchDriverDetails]);
 
   if (loading) {
     return (
@@ -520,6 +656,7 @@ const DriverDetailsContent = () => {
                           `${driver.first_name}_${driver.last_name}_ID.jpg`
                         )
                       }
+                      onDelete={() => handleImageDelete("id_image")}
                       t={t}
                     />
                   )}
@@ -541,6 +678,7 @@ const DriverDetailsContent = () => {
                           `${driver.first_name}_${driver.last_name}_License.jpg`
                         )
                       }
+                      onDelete={() => handleImageDelete("license_image")}
                       t={t}
                     />
                   )}
@@ -590,6 +728,33 @@ const DriverDetailsContent = () => {
         onReasonChange={setRejectionReason}
         processing={processingAction}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("confirmDeleteDocument")}</DialogTitle>
+            <DialogDescription>
+              {t("deleteDocumentWarning") ||
+                "Are you sure you want to delete this document? This action cannot be undone."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setDocumentToDelete(null);
+              }}
+            >
+              {t("cancel") || "Cancel"}
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              {t("delete") || "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

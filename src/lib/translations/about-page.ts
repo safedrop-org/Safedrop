@@ -48,8 +48,8 @@ export const aboutPage: TranslationSection = {
     en: "Quality",
   },
   qualityDescription: {
-    ar: "نسعى لتقديم خدمة عالية الجودة تتجاوز توقعات عملائنا",
-    en: "We strive to deliver high-quality service that exceeds our customers' expectations",
+    ar: "نركز على تحسين تجربة المستخدم من خلال تصميم تقني فعّال وأدوات تسهّل عملية الطلب، بما يساهم في رفع مستوى الرضا لدى جميع الأطراف",
+    en: "We focus on enhancing the user experience through effective technical design and tools that facilitate the ordering process, contributing to increased satisfaction for all parties involved.",
   },
   transparency: {
     ar: "الشفافية",
@@ -66,5 +66,14 @@ export const aboutPage: TranslationSection = {
   innovationDescription: {
     ar: "نبحث باستمرار عن طرق جديدة وأفضل لتقديم خدماتنا وتطويرها",
     en: "We continuously look for new and better ways to deliver and improve our services",
+  },
+
+  reliability: {
+    ar: "الوثوقية",
+    en: "Reliability",
+  },
+  reliabilityDescription: {
+    ar: "نركز على تحسين تجربة المستخدم من خلال تصميم تقني فعّال وأدوات تسهّل عملية الطلب، بما يساهم في رفع مستوى الرضا لدى جميع الأطراف",
+    en: "We focus on enhancing the user experience through effective technical design and tools that facilitate the ordering process, contributing to increased satisfaction for all parties involved.",
   },
 };

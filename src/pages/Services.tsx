@@ -30,8 +30,8 @@ const ServicesContent = () => {
             </h1>
             <p className="text-xl max-w-3xl mx-auto mb-8">
               {language === "ar"
-                ? "نقدم حلولًا تقنية مبتكرة لربط العملاء بسائقين مستقلين لتنفيذ طلبات التوصيل عبر المنصة"
-                : "We offer innovative technical solutions that connect customers with independent drivers to fulfill delivery requests through the platform."}
+                ? "توفر المنصة وسيلة سهلة وآمنة لربط العملاء بالسائقين المستقلين، مع تمكين التواصل المباشر بين الطرفين خارج المنصة."
+                : "The platform provides a simple and secure way to connect customers with independent drivers, enabling direct communication between both parties outside the platform."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -79,24 +79,24 @@ const ServicesContent = () => {
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <span>
                         {language === "ar"
-                          ? "تغطية لجميع المناطق"
-                          : "Nationwide coverage"}
+                          ? "تغطية شاملة لكافة المناطق"
+                          : "Comprehensive coverage across all regions"}
                       </span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <span>
                         {language === "ar"
-                          ? "وسيلة آمنة للتواصل"
-                          : "Secure communication channel"}
+                          ? "نشر الطلبات ومتابعتها بشكل واضح"
+                          : "Clear order posting and tracking"}
                       </span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <span>
                         {language === "ar"
-                          ? "ربط مباشر بين الأطراف"
-                          : "Direct connection between parties"}
+                          ? "اتصال مباشر بين العملاء والسائقين"
+                          : "Direct connection between customers and drivers"}
                       </span>
                     </li>
                   </ul>
@@ -110,12 +110,12 @@ const ServicesContent = () => {
                   </div>
                   <h3 className="text-xl font-semibold mb-3">
                     {language === "ar"
-                      ? "حماية المعاملات"
-                      : "Transaction Protection"}
+                      ? "نظام الشفافية والأمان"
+                      : "Transparency and Safety"}
                   </h3>
                   <p className="text-gray-600 mb-4">
                     {language === "ar"
-                      ? "تسهل المنصة التعامل بين الطرفين من خلال نظام يوضح شروط الدفع ويضمن حقوق الطرفين."
+                      ? "يعمل النظام على توضيح تفاصيل الطلب وشروط الدفع بشكل واضح، دون تدخل في الاتفاقات المالية بين الطرفين."
                       : "The platform facilitates transactions by clarifying payment terms and ensuring the rights of both parties."}
                   </p>
                   <ul className="space-y-2">
@@ -123,16 +123,16 @@ const ServicesContent = () => {
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <span>
                         {language === "ar"
-                          ? "وضوح تفاصيل الطلب والدفع"
-                          : "Clear order and payment details"}
+                          ? "تفاصيل واضحة لكل طلب"
+                          : "Clear information for each order"}
                       </span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <span>
                         {language === "ar"
-                          ? "إثبات الاستلام قبل تحرير المبلغ"
-                          : "Proof of delivery before releasing payment"}
+                          ? "تأكيد الاستلام قبل إتمام العملية"
+                          : "Delivery confirmation before completion"}
                       </span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
@@ -140,7 +140,7 @@ const ServicesContent = () => {
                       <span>
                         {language === "ar"
                           ? "تعزيز الثقة بين الأطراف"
-                          : "Builds trust between users"}
+                          : "Strengthening trust between parties"}
                       </span>
                     </li>
                   </ul>
@@ -153,11 +153,13 @@ const ServicesContent = () => {
                     <Clock className="h-7 w-7 text-safedrop-gold" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">
-                    {language === "ar" ? "توصيل سريع" : "Express Delivery"}
+                    {language === "ar"
+                      ? "المرونة في التوصيل"
+                      : "Flexible Delivery"}
                   </h3>
                   <p className="text-gray-600 mb-4">
                     {language === "ar"
-                      ? "يمكن للمستخدمين نشر طلبات عاجلة، ويطلع عليها السائقون مباشرةً دون تدخل المنصة في التنفيذ."
+                      ? "تمكن المنصة العملاء من نشر طلبات فورية، ويختار السائقون قبول الطلبات التي تتناسب مع توافرهم دون وسيط أو تدخل."
                       : "Users can post urgent delivery requests, which are immediately visible to drivers without platform interference in execution."}
                   </p>
                   <ul className="space-y-2">
@@ -166,23 +168,23 @@ const ServicesContent = () => {
                       <span>
                         {language === "ar"
                           ? "إمكانية التوصيل في نفس اليوم حسب توفر السائق"
-                          : "Same-day delivery based on driver availability"}
+                          : "Same-day delivery when available"}
                       </span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <span>
                         {language === "ar"
-                          ? "مناسب للطلبات المستعجلة"
-                          : "Ideal for urgent requests"}
+                          ? "دعم للطلبات العاجلة"
+                          : "Suitable for urgent requests"}
                       </span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <span>
                         {language === "ar"
-                          ? "متاح في جميع الأوقات"
-                          : "Available at all times"}
+                          ? " خدمة متاحة على مدار الساعة"
+                          : "Available 24/7"}
                       </span>
                     </li>
                   </ul>
@@ -196,13 +198,13 @@ const ServicesContent = () => {
                   </div>
                   <h3 className="text-xl font-semibold mb-3">
                     {language === "ar"
-                      ? "سائقون مستقلون"
+                      ? "السائقون المستقلون"
                       : "Independent Drivers"}
                   </h3>
                   <p className="text-gray-600 mb-4">
                     {language === "ar"
-                      ? "يتمكن السائقون المستقلون من التسجيل في المنصة بعد رفع بياناتهم، وتُعرض تقييماتهم بعد تنفيذ الطلبات."
-                      : "Independent drivers can register on the platform by submitting their information, and their ratings are displayed after each completed delivery."}
+                      ? "تتيح المنصة للسائقين التسجيل بعد التحقق من بياناتهم، مع عرض تقييماتهم بشكل شفاف بعد تنفيذ كل طلب."
+                      : "Drivers can register on the platform after submitting their required information, and their ratings are displayed transparently after completing deliveries."}
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-gray-700">
@@ -210,7 +212,7 @@ const ServicesContent = () => {
                       <span>
                         {language === "ar"
                           ? "التحقق من الهوية والرخصة"
-                          : "ID and license verification"}
+                          : "Identity and license verification"}
                       </span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
@@ -218,15 +220,15 @@ const ServicesContent = () => {
                       <span>
                         {language === "ar"
                           ? "عرض التقييمات بعد كل توصيل"
-                          : "Ratings displayed after each delivery"}
+                          : "Display of customer ratings after each delivery"}
                       </span>
                     </li>
                     <li className="flex items-center gap-2 text-gray-700">
                       <CheckCircle className="h-5 w-5 text-green-500" />
                       <span>
                         {language === "ar"
-                          ? "حرية اختيار السائق من قبل العميل"
-                          : "Customers can freely choose the most suitable driver"}
+                          ? " قبول السائق للطلبات بناءً على رغبته وتوافره"
+                          : "Drivers accept requests based on their availability and preference"}
                       </span>
                     </li>
                   </ul>

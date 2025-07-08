@@ -41,12 +41,12 @@ const HowItWorks = () => {
     {
       icon: <CheckCircle className="h-10 w-10 text-safedrop-gold" />,
       title: {
-        ar: "تأكيد الاستلام ودفع العمولة",
-        en: "Delivery Confirmation & Commission Payment",
+        ar: "الاشتراك الشهري المسبق",
+        en: "Prepaid Monthly Subscription",
       },
       description: {
-        ar: "بعد تأكيد المستلم، يقوم السائق بسداد عمولة استخدام المنصة حسب السياسات المعتمدة.",
-        en: "After the recipient confirms delivery, the driver proceeds to pay the platform usage commission as per the approved policies.",
+        ar: "لضمان الوصول إلى الطلبات وقبولها، يشترط أن يكون السائق مشتركًا في إحدى الباقات الشهرية مسبقًا. الاشتراك لا يرتبط بعدد الطلبات ولا بتأكيد الاستلام.",
+        en: "To ensure access to and acceptance of delivery requests, drivers are required to have an active monthly subscription in advance. The subscription is not tied to the number of orders or the confirmation of delivery.",
       },
     },
   ];
