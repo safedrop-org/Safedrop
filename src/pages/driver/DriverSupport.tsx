@@ -61,6 +61,10 @@ const DriverSupportContent = () => {
       question: t("cantFindCustomerQuestion"),
       answer: t("cantFindCustomerAnswer"),
     },
+    {
+      question: t("deleteAccountQuestion"),
+      answer: t("deleteAccountAnswer"),
+    },
   ];
 
   return (
@@ -109,7 +113,12 @@ const DriverSupportContent = () => {
               <AccordionItem key={index} value={`item-${index + 1}`}>
                 <AccordionTrigger>{item.question}</AccordionTrigger>
                 <AccordionContent>
-                  <p className="text-gray-600">{item.answer}</p>
+                  <p
+                    className="text-gray-600"
+                    style={{ whiteSpace: "pre-line" }}
+                  >
+                    {item.answer}
+                  </p>
                 </AccordionContent>
               </AccordionItem>
             ))}

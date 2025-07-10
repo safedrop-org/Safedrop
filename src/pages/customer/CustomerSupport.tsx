@@ -87,13 +87,15 @@ const CustomerSupportContent = () => {
               <AccordionTrigger>{t("contactDriver")}</AccordionTrigger>
               <AccordionContent>{t("contactDriverAnswer")}</AccordionContent>
             </AccordionItem>
-            {/* <AccordionItem value="item-4">
-              <AccordionTrigger>{t("refundComplaint")}</AccordionTrigger>
-              <AccordionContent>{t("refundComplaintAnswer")}</AccordionContent>
-            </AccordionItem> */}
             <AccordionItem value="item-4">
               <AccordionTrigger>{t("modifyAddress")}</AccordionTrigger>
               <AccordionContent>{t("modifyAddressAnswer")}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-5">
+              <AccordionTrigger>{t("deleteAccountQuestion")}</AccordionTrigger>
+              <AccordionContent style={{ whiteSpace: "pre-line" }}>
+                {t("deleteAccountAnswer")}
+              </AccordionContent>
             </AccordionItem>
           </Accordion>
         </Card>

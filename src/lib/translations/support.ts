@@ -165,4 +165,14 @@ export const supportTranslations: TranslationSection = {
     ar: "بعد قبول الطلب، قد تتوفر خيارات محددة للتعديل حسب حالة الطلب، يمكنك التواصل مع الدعم للمساعدة.",
     en: "After order acceptance, specific modification options may be available depending on the order status. You can contact support for assistance.",
   },
+
+  // Account Deletion FAQ
+  deleteAccountQuestion: {
+    ar: "كيف يمكنني حذف حسابي؟",
+    en: "How can I delete my account?",
+  },
+  deleteAccountAnswer: {
+    ar: "يمكنك حذف حسابك في أي وقت من خلال إرسال طلب إلى فريق الدعم عبر البريد الإلكتروني التالي:\n\ninfo@safedropksa.com\n\nيرجى التأكد من تضمين المعلومات التالية في الرسالة:\n\n• الاسم الكامل\n• رقم الجوال المسجل في الحساب\n• توضيح صريح بطلب حذف الحساب\n\nسيتم معالجة الطلب خلال مدة لا تتجاوز 7 أيام عمل، وسيتم حذف الحساب وجميع البيانات المرتبطة به وفق سياسة الخصوصية، ما لم تكن هناك التزامات مالية أو قانونية قائمة.",
+    en: "You can delete your account at any time by sending a request to our support team via the following email:\n\ninfo@safedropksa.com\n\nPlease make sure to include the following information in your message:\n\n• Full name\n• Registered mobile number\n• A clear statement requesting account deletion\n\nYour request will be processed within 7 business days, and your account along with all associated data will be deleted in accordance with our Privacy Policy, unless there are any outstanding financial or legal obligations.",
+  },
 };

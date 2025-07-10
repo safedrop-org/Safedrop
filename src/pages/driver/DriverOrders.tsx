@@ -34,7 +34,8 @@ const DriverOrdersContent = () => {
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [driverSubscription, setDriverSubscription] = useState(null);
-  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [monthlyLoading, setMonthlyLoading] = useState(false);
+  const [yearlyLoading, setYearlyLoading] = useState(false);
 
   // Location state
   const [driverLocation, setDriverLocation] = useState<{
@@ -291,7 +292,12 @@ const DriverOrdersContent = () => {
 
   // Add subscription creation function
   const createSubscription = async (planType: string) => {
-    setSubscriptionLoading(true);
+    // Set the appropriate loading state based on plan type
+    if (planType === "monthly") {
+      setMonthlyLoading(true);
+    } else {
+      setYearlyLoading(true);
+    }
 
     try {
       const { data, error } = await supabase.functions.invoke(
@@ -314,7 +320,12 @@ const DriverOrdersContent = () => {
         err instanceof Error ? err.message : "خطأ في إنشاء الاشتراك";
       toast.error(errorMessage);
     } finally {
-      setSubscriptionLoading(false);
+      // Reset the appropriate loading state
+      if (planType === "monthly") {
+        setMonthlyLoading(false);
+      } else {
+        setYearlyLoading(false);
+      }
     }
   };
 
@@ -897,10 +908,10 @@ const DriverOrdersContent = () => {
 
                       <Button
                         onClick={() => createSubscription("monthly")}
-                        disabled={subscriptionLoading}
+                        disabled={monthlyLoading}
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
                       >
-                        {subscriptionLoading
+                        {monthlyLoading
                           ? t("loading") || "جاري التحميل..."
                           : t("subscribeMonthly") || "اشترك شهرياً"}
                       </Button>
@@ -977,10 +988,10 @@ const DriverOrdersContent = () => {
 
                       <Button
                         onClick={() => createSubscription("yearly")}
-                        disabled={subscriptionLoading}
+                        disabled={yearlyLoading}
                         className="w-full bg-safedrop-gold hover:bg-amber-500 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg"
                       >
-                        {subscriptionLoading
+                        {yearlyLoading
                           ? t("loading") || "جاري التحميل..."
                           : t("subscribeYearlyAndSave") || "اشترك سنوياً ووفر"}
                       </Button>
@@ -994,7 +1005,7 @@ const DriverOrdersContent = () => {
                     variant="outline"
                     onClick={() => setShowSubscriptionModal(false)}
                     className="w-full border-gray-300 py-3 rounded-lg font-medium"
-                    disabled={subscriptionLoading}
+                    disabled={monthlyLoading || yearlyLoading}
                   >
                     {t("cancel") || "إلغاء"}
                   </Button>
