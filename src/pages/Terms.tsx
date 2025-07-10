@@ -192,6 +192,18 @@ const TermsContent = () => {
                     </li>
                   </ul>
                 </div>
+                <div className="border-r-4 border-safedrop-gold pr-6" dir="rtl">
+                  <h2 className="text-xl font-bold text-safedrop-primary mb-4">
+                    8. سياسة الاسترجاع
+                  </h2>
+                  <ul className="space-y-2 text-gray-700 leading-relaxed">
+                    <li>
+                      جميع المدفوعات التي تتم عبر المنصة مقابل الاشتراكات أو
+                      الخدمات التقنية تُعد نهائية وغير قابلة للاسترجاع، سواء
+                      كليًا أو جزئيًا، بعد إتمام عملية الدفع.
+                    </li>
+                  </ul>
+                </div>
               </>
             ) : (
               // English content
@@ -378,6 +390,20 @@ const TermsContent = () => {
                       In the event of a dispute, the competent judicial
                       authority in the Kingdom shall have exclusive jurisdiction
                       to resolve it.
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="border-l-4 border-safedrop-gold pl-6">
+                  <h2 className="text-xl font-bold text-safedrop-primary mb-4">
+                    8. Refund Policy
+                  </h2>
+                  <ul className="space-y-2 text-gray-700 leading-relaxed">
+                    <li>
+                      All payments made through the platform for subscriptions
+                      or technical services are considered final and
+                      non-refundable, whether in full or in part, once the
+                      payment process is completed.
                     </li>
                   </ul>
                 </div>

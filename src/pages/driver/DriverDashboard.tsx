@@ -599,7 +599,7 @@ const DriverDashboardContent = () => {
                     >
                       {t("paymentDetails")}
                     </Button>
-                    <Button
+                    {/* <Button
                       className="bg-safedrop-gold hover:bg-safedrop-gold/90 flex-1"
                       onClick={() =>
                         toast({
@@ -610,7 +610,7 @@ const DriverDashboardContent = () => {
                       }
                     >
                       {t("requestWithdrawal")}
-                    </Button>
+                    </Button> */}
                   </div>
                 </CardContent>
               </Card>

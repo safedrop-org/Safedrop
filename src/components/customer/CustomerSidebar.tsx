@@ -59,11 +59,11 @@ const CustomerSidebar = () => {
       icon: <Package className="h-5 w-5" />,
       label: t("My Orders"),
     },
-    {
-      path: "/customer/billing",
-      icon: <CreditCard className="h-5 w-5" />,
-      label: t("Billing & Payment"),
-    },
+    // {
+    //   path: "/customer/billing",
+    //   icon: <CreditCard className="h-5 w-5" />,
+    //   label: t("Billing & Payment"),
+    // },
     {
       path: "/customer/profile",
       icon: <User className="h-5 w-5" />,

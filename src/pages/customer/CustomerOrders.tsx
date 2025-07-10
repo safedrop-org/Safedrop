@@ -12,8 +12,17 @@ import {
   DollarSign,
   Navigation,
   CheckCircle,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   LanguageProvider,
   useLanguage,
@@ -24,6 +33,8 @@ const CustomerOrdersContent = () => {
   const [activeOrders, setActiveOrders] = useState([]);
   const [historyOrders, setHistoryOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
   const { t, language } = useLanguage();
 
   useEffect(() => {
@@ -189,6 +200,47 @@ const CustomerOrdersContent = () => {
     }
   };
 
+  const handleCancelOrder = (orderId) => {
+    setOrderToCancel(orderId);
+    setShowCancelDialog(true);
+  };
+
+  const confirmCancelOrder = async () => {
+    if (!orderToCancel) return;
+
+    try {
+      setLoading(true);
+      setShowCancelDialog(false);
+
+      // Update order status to cancelled
+      const { error: orderError } = await supabase
+        .from("orders")
+        .update({ status: "cancelled" })
+        .eq("id", orderToCancel);
+
+      if (orderError) throw orderError;
+
+      toast.success(
+        language === "ar"
+          ? "تم إلغاء الطلب بنجاح"
+          : "Order cancelled successfully"
+      );
+
+      // Reload orders
+      window.location.reload();
+    } catch (error) {
+      console.error("Error cancelling order:", error);
+      toast.error(
+        language === "ar"
+          ? "حدث خطأ أثناء إلغاء الطلب"
+          : "Error cancelling order"
+      );
+    } finally {
+      setLoading(false);
+      setOrderToCancel(null);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
@@ -322,17 +374,36 @@ const CustomerOrdersContent = () => {
                               {getStatusBadge(order.status)}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap text-sm">
-                              {order.status === "approaching" && (
-                                <Button
-                                  onClick={() => handleCompleteOrder(order.id)}
-                                  variant="default"
-                                  size="sm"
-                                  className="gap-1 whitespace-nowrap"
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                  {t("Order Received")}
-                                </Button>
-                              )}
+                              <div className="flex gap-2">
+                                {/* Cancel button - only show for available and picked_up orders */}
+                                {(order.status === "available" ||
+                                  order.status === "picked_up") && (
+                                  <Button
+                                    onClick={() => handleCancelOrder(order.id)}
+                                    variant="destructive"
+                                    size="sm"
+                                    className="gap-1 whitespace-nowrap"
+                                  >
+                                    <X className="h-4 w-4" />
+                                    {t("Cancel Order")}
+                                  </Button>
+                                )}
+
+                                {/* Complete order button - only show for approaching orders */}
+                                {order.status === "approaching" && (
+                                  <Button
+                                    onClick={() =>
+                                      handleCompleteOrder(order.id)
+                                    }
+                                    variant="default"
+                                    size="sm"
+                                    className="gap-1 whitespace-nowrap"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                    {t("Order Received")}
+                                  </Button>
+                                )}
+                              </div>
                             </td>
                           </tr>,
                           <tr key={`${order.id}-map`}>
@@ -487,6 +558,32 @@ const CustomerOrdersContent = () => {
           </Tabs>
         )}
       </main>
+
+      {/* Cancel Order Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("Confirm Order Cancellation")}</DialogTitle>
+            <DialogDescription>
+              {t("Cancel Order Confirmation")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCancelDialog(false);
+                setOrderToCancel(null);
+              }}
+            >
+              {t("cancel")}
+            </Button>
+            <Button variant="destructive" onClick={confirmCancelOrder}>
+              {t("Confirm Cancellation")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -509,7 +606,7 @@ function StaticMap({ pickup_location, dropoff_location, driver_location }) {
       `https://maps.googleapis.com/maps/api/staticmap?` +
       `size=624x351` +
       `&markers=color:green|label:A|${encodeURIComponent(pickup_location)}` +
-      `&markers=color:red|label:B|${encodeURIComponent(dropoff_location)}` +
+      `&markers=color:red|label=B|${encodeURIComponent(dropoff_location)}` +
       (marker ? `&markers=${encodeURIComponent(marker)}` : "") +
       `&key=${GOOGLE_MAPS_API_KEY}`;
 

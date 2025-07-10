@@ -74,7 +74,7 @@ const Footer = () => {
                   to="/services"
                   className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm"
                 >
-                  {t("parcelDelivery")}
+                  {t("connectingCustomers")}
                 </Link>
               </li>
               <li>
@@ -82,7 +82,7 @@ const Footer = () => {
                   to="/services"
                   className="text-gray-300 hover:text-safedrop-gold transition-colors text-sm"
                 >
-                  {t("transactionProtection")}
+                  {t("TransparencySafety")}
                 </Link>
               </li>
               <li>

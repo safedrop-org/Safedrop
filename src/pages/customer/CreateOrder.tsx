@@ -51,7 +51,6 @@ const CreateOrderContent = () => {
     } as LocationType,
     packageDetails: "",
     notes: "",
-    price: "",
   });
 
   useEffect(() => {
@@ -85,21 +84,6 @@ const CreateOrderContent = () => {
     }));
   };
 
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === "" || /^\d*\.?\d*$/.test(value)) {
-      setFormData((prev) => ({
-        ...prev,
-        price: value,
-      }));
-    }
-  };
-
-  const getMinimumPrice = () => {
-    if (!estimatedCost) return 0;
-    return Math.floor(estimatedCost * 0.6 * 100) / 100;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -111,8 +95,7 @@ const CreateOrderContent = () => {
     if (
       !formData.pickupLocation.address ||
       !formData.dropoffLocation.address ||
-      !formData.packageDetails ||
-      !formData.price
+      !formData.packageDetails
     ) {
       toast.error(
         language === "ar"
@@ -122,24 +105,13 @@ const CreateOrderContent = () => {
       return;
     }
 
-    const price = parseFloat(formData.price);
-    if (isNaN(price)) {
+    if (!estimatedCost) {
       toast.error(
-        language === "ar" ? "يرجى إدخال سعر صحيح" : "Please enter a valid price"
+        language === "ar"
+          ? "يرجى حساب التكلفة أولاً"
+          : "Please calculate the cost first"
       );
       return;
-    }
-
-    if (estimatedCost) {
-      const minimumPrice = getMinimumPrice();
-      if (price < minimumPrice) {
-        toast.error(
-          language === "ar"
-            ? `السعر المدخل أقل من الحد الأدنى المطلوب. الحد الأدنى هو ${minimumPrice} ر.س`
-            : `The entered price is below the minimum required. Minimum price is ${minimumPrice} SAR`
-        );
-        return;
-      }
     }
 
     try {
@@ -178,7 +150,7 @@ const CreateOrderContent = () => {
             },
             package_details: formData.packageDetails,
             notes: formData.notes,
-            price: price,
+            price: estimatedCost,
             status: "available",
             payment_status: "pending",
             commission_rate: 0.2,
@@ -197,12 +169,12 @@ const CreateOrderContent = () => {
           : "Order created successfully"
       );
       navigate("/customer/orders");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating order:", error);
       toast.error(
         (language === "ar"
           ? "حدث خطأ أثناء إنشاء الطلب: "
-          : "Error creating order: ") + (error.message || "")
+          : "Error creating order: ") + (error instanceof Error ? error.message : "")
       );
     } finally {
       setSubmitting(false);
@@ -318,38 +290,15 @@ const CreateOrderContent = () => {
               {t("shipmentDetails")}
             </h2>
             <div className="space-y-4">
-              <div>
-                <Label
-                  htmlFor="price"
-                  className="block mb-1 font-medium text-gray-700"
-                >
-                  {t("price")}
-                </Label>
-                <div>
-                  <Input
-                    id="price"
-                    name="price"
-                    type="text"
-                    className="text-left"
-                    placeholder="0.00"
-                    value={formData.price}
-                    onChange={handlePriceChange}
-                    required
-                  />
-                </div>
-                <div className="flex flex-col space-y-1 mt-1">
-                  <p className="text-sm text-gray-500">
-                    {t("driverCommission")}
+              {estimatedCost && (
+                <div className="mb-4">
+                  <p className="text-sm text-blue-600 font-medium">
+                    {language === "ar"
+                      ? `التكلفة المقدرة: ${estimatedCost} ر.س`
+                      : `Estimated cost: ${estimatedCost} SAR`}
                   </p>
-                  {estimatedCost && (
-                    <p className="text-sm text-blue-600 font-medium">
-                      {language === "ar"
-                        ? `الحد الأدنى للسعر: ${getMinimumPrice()} ر.س`
-                        : `Minimum price: ${getMinimumPrice()} SAR`}
-                    </p>
-                  )}
                 </div>
-              </div>
+              )}
 
               <div>
                 <Label htmlFor="packageDetails">

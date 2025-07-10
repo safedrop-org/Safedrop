@@ -67,7 +67,9 @@ const ServicesContent = () => {
                     <Package className="h-7 w-7 text-safedrop-gold" />
                   </div>
                   <h3 className="text-xl font-semibold mb-3">
-                    {language === "ar" ? "توصيل الطرود" : "Parcel Delivery"}
+                    {language === "ar"
+                      ? "ربط العملاء بمقدمي خدمات التوصيل"
+                      : "Connecting customers with delivery service providers"}
                   </h3>
                   <p className="text-gray-600 mb-4">
                     {language === "ar"

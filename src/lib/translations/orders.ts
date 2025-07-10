@@ -46,6 +46,22 @@ export const orders: TranslationSection = {
     ar: "تم الاستلام",
     en: "Order Received",
   },
+  "Cancel Order": {
+    ar: "إلغاء الطلب",
+    en: "Cancel Order",
+  },
+  "Confirm Order Cancellation": {
+    ar: "تأكيد إلغاء الطلب",
+    en: "Confirm Order Cancellation",
+  },
+  "Cancel Order Confirmation": {
+    ar: "هل أنت متأكد من إلغاء هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.",
+    en: "Are you sure you want to cancel this order? This action cannot be undone.",
+  },
+  "Confirm Cancellation": {
+    ar: "تأكيد الإلغاء",
+    en: "Confirm Cancellation",
+  },
   available: {
     ar: "متاح",
     en: "Available",

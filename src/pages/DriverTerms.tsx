@@ -170,6 +170,19 @@ const DriverTermsContent = () => {
                     </p>
                   </div>
                 </div>
+                <div className="border-r-4 border-safedrop-gold pr-6" dir="rtl">
+                  <h3 className="text-xl font-bold text-safedrop-primary mb-3">
+                    11. سياسة الاسترجاع
+                  </h3>
+                  <div className="text-gray-700 leading-relaxed space-y-3">
+                    <p>
+                      يقر السائق بأن رسوم الاشتراك الشهري تُدفع مقابل استخدام
+                      الخدمات التقنية للمنصة، وأنها رسوم غير قابلة للاسترجاع بأي
+                      شكل من الأشكال بعد الدفع، سواء كليًا أو جزئيًا، حتى في حال
+                      عدم الاستفادة من الخدمة أو إلغاء الاشتراك لاحقًا.
+                    </p>
+                  </div>
+                </div>
               </>
             ) : (
               // English content
@@ -326,6 +339,21 @@ const DriverTermsContent = () => {
                     <p>
                       I understand that any abuse or violation may result in
                       immediate suspension of my account without prior notice.
+                    </p>
+                  </div>
+                </div>
+                <div className="border-l-4 border-safedrop-gold pl-6">
+                  <h3 className="text-xl font-bold text-safedrop-primary mb-3">
+                    11. Refund Policy
+                  </h3>
+                  <div className="text-gray-700 leading-relaxed space-y-3">
+                    <p>
+                      The driver acknowledges that the monthly subscription fee
+                      is paid in exchange for the use of the platform’s
+                      technical services, and that this fee is non-refundable
+                      under any circumstances after payment, whether in full or
+                      in part, even if the service is not utilized or the
+                      subscription is later canceled.
                     </p>
                   </div>
                 </div>
