@@ -19,6 +19,7 @@ import { pages } from "./pages";
 import { complaints } from "./complaints";
 import { customers } from "./customers";
 import { finance } from "./finance";
+import { subscription } from "./subscription";
 // Combine all translation sections
 export const translations: Translations = {
   ...siteCommon,
@@ -41,4 +42,5 @@ export const translations: Translations = {
   ...customers,
   ...finance,
   ...pages,
+  ...subscription,
 };

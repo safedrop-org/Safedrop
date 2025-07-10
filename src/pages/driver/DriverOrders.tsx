@@ -1,10 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "@/components/ui/language-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DriverSidebar from "@/components/driver/DriverSidebar";
-import { Clock, AlertTriangle, MapPin, RefreshCw } from "lucide-react";
+import {
+  Clock,
+  AlertTriangle,
+  MapPin,
+  RefreshCw,
+  SaudiRiyal,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useOrders } from "@/hooks/useOrders";
 import { useAuth } from "@/hooks/useAuth";
@@ -26,6 +32,9 @@ const DriverOrdersContent = () => {
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [driverSubscription, setDriverSubscription] = useState(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
 
   // Location state
   const [driverLocation, setDriverLocation] = useState<{
@@ -37,7 +46,7 @@ const DriverOrdersContent = () => {
   const [locationWatchId, setLocationWatchId] = useState<number | null>(null);
 
   // Request location permission and start tracking
-  const requestLocation = async () => {
+  const requestLocation = useCallback(async () => {
     if (!navigator.geolocation) {
       setLocationError(
         t("locationNotSupported") || "الموقع الجغرافي غير مدعوم في هذا المتصفح"
@@ -93,24 +102,28 @@ const DriverOrdersContent = () => {
       );
 
       setLocationWatchId(watchId);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Location request error:", error);
       let errorMessage =
         t("locationRequestFailed") || "فشل في الحصول على الموقع الجغرافي";
 
-      switch (error.code) {
-        case 1: // PERMISSION_DENIED
-          errorMessage =
-            t("locationPermissionDenied") ||
-            "تم رفض الإذن للوصول للموقع الجغرافي";
-          break;
-        case 2: // POSITION_UNAVAILABLE
-          errorMessage = t("locationUnavailable") || "الموقع الجغرافي غير متاح";
-          break;
-        case 3: // TIMEOUT
-          errorMessage =
-            t("locationTimeout") || "انتهت مهلة الحصول على الموقع الجغرافي";
-          break;
+      if (error && typeof error === "object" && "code" in error) {
+        const geoError = error as GeolocationPositionError;
+        switch (geoError.code) {
+          case 1: // PERMISSION_DENIED
+            errorMessage =
+              t("locationPermissionDenied") ||
+              "تم رفض الإذن للوصول للموقع الجغرافي";
+            break;
+          case 2: // POSITION_UNAVAILABLE
+            errorMessage =
+              t("locationUnavailable") || "الموقع الجغرافي غير متاح";
+            break;
+          case 3: // TIMEOUT
+            errorMessage =
+              t("locationTimeout") || "انتهت مهلة الحصول على الموقع الجغرافي";
+            break;
+        }
       }
 
       setLocationError(errorMessage);
@@ -118,7 +131,7 @@ const DriverOrdersContent = () => {
     } finally {
       setIsRequestingLocation(false);
     }
-  };
+  }, [t]);
 
   // Auto-request location on component mount
   useEffect(() => {
@@ -132,7 +145,13 @@ const DriverOrdersContent = () => {
         navigator.geolocation.clearWatch(locationWatchId);
       }
     };
-  }, [user?.id]);
+  }, [
+    user?.id,
+    driverLocation,
+    locationError,
+    locationWatchId,
+    requestLocation,
+  ]);
 
   // Fetch driver's current availability status on component mount
   useEffect(() => {
@@ -164,6 +183,44 @@ const DriverOrdersContent = () => {
 
     fetchDriverStatus();
   }, [user?.id]);
+
+  // Add this function to check driver subscription
+  const checkDriverSubscription = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data: driverData, error } = await supabase
+        .from("drivers")
+        .select(
+          "subscription_status, subscription_expires_at, subscription_plan, subscription_amount"
+        )
+        .eq("id", user.id)
+        .single();
+
+      if (error) {
+        console.error("Error fetching subscription:", error);
+        return;
+      }
+
+      // Check if subscription is active and not expired
+      const isSubscriptionActive =
+        driverData?.subscription_status === "active" &&
+        driverData?.subscription_expires_at &&
+        new Date(driverData.subscription_expires_at) > new Date();
+
+      setDriverSubscription({
+        ...driverData,
+        isActive: isSubscriptionActive,
+      });
+    } catch (err) {
+      console.error("Error checking subscription:", err);
+    }
+  }, [user?.id]);
+
+  // Add useEffect to check subscription on mount
+  useEffect(() => {
+    checkDriverSubscription();
+  }, [user?.id, checkDriverSubscription]);
 
   // Update driver availability when toggle changes
   const updateDriverAvailability = async (newAvailability: boolean) => {
@@ -232,8 +289,44 @@ const DriverOrdersContent = () => {
     }
   };
 
+  // Add subscription creation function
+  const createSubscription = async (planType: string) => {
+    setSubscriptionLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "create-driver-subscription",
+        {
+          body: {
+            driverId: user.id,
+            planType: planType,
+          },
+        }
+      );
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      // Redirect to payment
+      window.location.href = data.paymentUrl;
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "خطأ في إنشاء الاشتراك";
+      toast.error(errorMessage);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  };
+
   const handleAvailabilityToggle = () => {
     if (updatingAvailability) return;
+
+    // Check subscription before allowing availability toggle
+    if (!driverSubscription?.isActive) {
+      setShowSubscriptionModal(true);
+      return;
+    }
+
     const newAvailability = !isAvailable;
     updateDriverAvailability(newAvailability);
   };
@@ -406,75 +499,122 @@ const DriverOrdersContent = () => {
               </h1>
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      driverLocation
+                        ? "bg-green-500 animate-pulse"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
                   <MapPin
                     className={`h-4 w-4 ${
-                      driverLocation ? "text-green-500" : "text-red-500"
+                      driverLocation ? "text-green-600" : "text-red-500"
                     }`}
                   />
-                  <span className="text-xs sm:text-sm">
+                  <span
+                    className={`text-xs sm:text-sm font-medium ${
+                      driverLocation ? "text-green-700" : "text-red-600"
+                    }`}
+                  >
                     {driverLocation
-                      ? t("locationActive")
-                      : t("locationInactive")}
+                      ? t("locationActive") || "الموقع نشط"
+                      : t("locationInactive") || "الموقع غير نشط"}
                   </span>
                   {!driverLocation && !isRequestingLocation && (
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={requestLocation}
-                      className="text-xs px-2 py-1"
+                      className="text-xs px-3 py-1 border-safedrop-gold text-safedrop-gold hover:bg-safedrop-gold hover:text-white transition-colors"
                     >
-                      <RefreshCw className="h-3 w-3 mr-1" />
-                      {t("enableLocation")}
+                      <RefreshCw className="h-3 w-3 mr-1 rtl:ml-1 rtl:mr-0" />
+                      {t("enableLocation") || "تفعيل الموقع"}
                     </Button>
                   )}
                   {isRequestingLocation && (
-                    <div className="flex items-center gap-1">
-                      <div className="animate-spin h-3 w-3 border border-gray-400 border-t-transparent rounded-full"></div>
-                      <span className="text-xs">{t("locating")}...</span>
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin h-3 w-3 border-2 border-safedrop-gold border-t-transparent rounded-full"></div>
+                      <span className="text-xs text-safedrop-gold font-medium">
+                        {t("locating") || "جاري التحديد"}...
+                      </span>
                     </div>
                   )}
                 </div>
 
                 {/* Availability Toggle */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm">
-                    {t("availabilityStatus")}:
+                <div className="flex items-center gap-3">
+                  <span className="text-xs sm:text-sm font-medium text-gray-700">
+                    {t("availabilityStatus") || "حالة التوفر"}:
                   </span>
                   <div
-                    className={`relative h-6 w-12 cursor-pointer rounded-full transition-colors duration-200 ${
+                    className={`relative h-7 w-14 cursor-pointer rounded-full transition-all duration-300 shadow-inner ${
                       updatingAvailability
                         ? "bg-gray-300 cursor-not-allowed"
                         : isAvailable
-                        ? "bg-green-500"
-                        : "bg-gray-200"
+                        ? "bg-gradient-to-r from-safedrop-gold to-amber-500 shadow-safedrop-gold/30"
+                        : "bg-gray-300 hover:bg-gray-400"
                     }`}
                     onClick={handleAvailabilityToggle}
                   >
                     <div
-                      className={`absolute transition-transform duration-200 h-5 w-5 top-0.5 rounded-full bg-white ${
-                        isAvailable ? "right-0.5" : "left-0.5"
+                      className={`absolute transition-all duration-300 h-5 w-5 top-1 rounded-full bg-white shadow-lg ${
+                        isAvailable
+                          ? "right-1 rtl:left-1 rtl:right-auto"
+                          : "left-1 rtl:right-1 rtl:left-auto"
+                      } ${
+                        isAvailable
+                          ? "shadow-safedrop-gold/40"
+                          : "shadow-gray-400/40"
                       }`}
                     />
                     {updatingAvailability && (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="animate-spin h-3 w-3 border border-gray-400 border-t-transparent rounded-full"></div>
+                        <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
                       </div>
                     )}
                   </div>
                   <span
-                    className={`text-xs sm:text-sm font-medium ${
-                      isAvailable ? "text-green-600" : "text-gray-500"
+                    className={`text-xs sm:text-sm font-semibold ${
+                      isAvailable ? "text-safedrop-gold" : "text-gray-500"
                     }`}
                   >
                     {isAvailable
-                      ? t("availableForOrders")
-                      : t("notAvailableForOrders")}
+                      ? t("availableForOrders") || "متاح للطلبات"
+                      : t("notAvailableForOrders") || "غير متاح"}
                   </span>
                 </div>
               </div>
             </div>
           </div>
         </header>
+
+        {/* Subscription status indicator */}
+        {driverSubscription?.isActive && (
+          <div className="bg-gradient-to-r from-safedrop-gold/10 to-amber-50 border border-safedrop-gold/30 p-3 mx-4 mt-2 rounded-lg shadow-sm">
+            <div className="flex items-center gap-3 text-safedrop-gold">
+              <div className="w-8 h-8 bg-safedrop-gold rounded-full flex items-center justify-center">
+                <span className="text-white text-sm">✓</span>
+              </div>
+              <div className="flex-1">
+                <div className="font-semibold text-sm">
+                  {t("subscriptionActive") || "الاشتراك نشط"}
+                </div>
+                <div className="text-xs text-gray-600">
+                  {t("plan") || "الخطة"}:{" "}
+                  {driverSubscription.subscription_plan === "monthly"
+                    ? t("monthly") || "شهري"
+                    : t("yearly") || "سنوي"}{" "}
+                  • {t("expiresOn") || "ينتهي في"}{" "}
+                  {new Date(
+                    driverSubscription.subscription_expires_at
+                  ).toLocaleDateString(
+                    t("locale") === "en" ? "en-US" : "ar-SA"
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Location Error Alert */}
         {locationError && (
@@ -686,6 +826,195 @@ const DriverOrdersContent = () => {
             </Tabs>
           </div>
         </main>
+
+        {/* Subscription Modal */}
+        {showSubscriptionModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-safedrop-gold to-amber-500 p-6 rounded-t-2xl text-white">
+                <div className="flex items-center justify-center mb-2">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl">
+                    🚗
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-center">
+                  {t("driverSubscriptionRequired") || "اشتراك السائق مطلوب"}
+                </h3>
+                <p className="text-center text-white/90 text-sm mt-2">
+                  {t("subscriptionRequiredMessage") ||
+                    "يجب الاشتراك أولاً لتتمكن من قبول الطلبات وتفعيل حالة التوفر"}
+                </p>
+              </div>
+
+              <div className="p-6">
+                <div className="space-y-4">
+                  {/* Monthly Plan */}
+                  <div className="relative group">
+                    <div className="border-2 border-blue-200 hover:border-blue-300 rounded-xl p-4 transition-all duration-200 hover:shadow-lg bg-gradient-to-br from-blue-50 to-blue-100/50">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-blue-700 text-lg">
+                            {t("monthlySubscription") || "الاشتراك الشهري"}
+                          </h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {t("onePaymentFor30Days") ||
+                              "دفعة واحدة لمدة 30 يوم"}
+                          </p>
+                        </div>
+                        <div className="text-right ltr:text-left">
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-bold text-blue-700">
+                              69
+                            </span>
+                            <span className="text-sm text-black font-medium">
+                              {/* {t("currency") || "ريال"} */}
+                              <SaudiRiyal className="w-6 h-6" />
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <span className="text-green-500">✅</span>
+                          <span>
+                            {t("unlimitedOrderAcceptance") ||
+                              "قبول طلبات غير محدودة"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <span className="text-green-500">✅</span>
+                          <span>{t("support24_7") || "دعم فني 24/7"}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <span className="text-green-500">✅</span>
+                          <span>
+                            {t("earningsAnalytics") || "تحليلات الأرباح"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <Button
+                        onClick={() => createSubscription("monthly")}
+                        disabled={subscriptionLoading}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+                      >
+                        {subscriptionLoading
+                          ? t("loading") || "جاري التحميل..."
+                          : t("subscribeMonthly") || "اشترك شهرياً"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Yearly Plan - Recommended */}
+                  <div className="relative group">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-safedrop-gold to-amber-500 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg z-10">
+                      {t("save47Percent") || "وفر 328"}
+                      <SaudiRiyal className="w-5 h-5 inline" /> (47%)
+                    </div>
+                    <div className="border-2 border-safedrop-gold hover:border-amber-500 rounded-xl p-4 pt-6 transition-all duration-200 hover:shadow-xl bg-gradient-to-br from-amber-50 to-safedrop-gold/10 relative">
+                      <div className="absolute -top-3 right-2 ltr:left-2 ltr:right-auto">
+                        <span className="bg-safedrop-gold text-white text-xs px-2 py-1 rounded-full font-bold">
+                          {t("recommended") || "الأفضل"}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <h4 className="font-bold text-safedrop-gold text-lg">
+                            {t("yearlySubscription") || "الاشتراك السنوي"}
+                          </h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {t("onePaymentFor365Days") ||
+                              "دفعة واحدة لمدة 365 يوم"}
+                          </p>
+                        </div>
+                        <div className="text-right ltr:text-left">
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-3xl font-bold text-safedrop-gold">
+                              500
+                            </span>
+                            <span className="text-sm text-black font-medium">
+                              <SaudiRiyal className="w-6 h-6" />
+                            </span>
+                          </div>
+                          <div className="text-xs text-safedrop-gold font-semibold mt-1">
+                            {t("insteadOf828") || "بدلاً من 828 ريال"}{" "}
+                            <SaudiRiyal className="w-5 h-5 inline" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <span className="text-green-500">✅</span>
+                          <span>
+                            {t("unlimitedOrderAcceptance") ||
+                              "قبول طلبات غير محدودة"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <span className="text-green-500">✅</span>
+                          <span>
+                            {t("premiumSupport24_7") || "دعم فني مميز 24/7"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <span className="text-green-500">✅</span>
+                          <span>
+                            {t("advancedEarningsAnalytics") ||
+                              "تحليلات متقدمة للأرباح"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm font-semibold text-safedrop-gold">
+                          <span>💰</span>
+                          <span>
+                            {t("bestValueForMoney") || "أفضل قيمة مقابل المال"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <Button
+                        onClick={() => createSubscription("yearly")}
+                        disabled={subscriptionLoading}
+                        className="w-full bg-safedrop-gold hover:bg-amber-500 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg"
+                      >
+                        {subscriptionLoading
+                          ? t("loading") || "جاري التحميل..."
+                          : t("subscribeYearlyAndSave") || "اشترك سنوياً ووفر"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowSubscriptionModal(false)}
+                    className="w-full border-gray-300 py-3 rounded-lg font-medium"
+                    disabled={subscriptionLoading}
+                  >
+                    {t("cancel") || "إلغاء"}
+                  </Button>
+
+                  <div className="text-center mt-4 space-y-1">
+                    <div className="text-xs text-gray-500 flex items-center justify-center gap-2">
+                      <span>💳</span>
+                      <span>
+                        {t("securePaymentViaPaylink") || "دفع آمن عبر Paylink"}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {t("noAutoRenewal") || "بدون تجديد تلقائي"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

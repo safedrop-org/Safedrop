@@ -60,6 +60,7 @@ import DriverSupport from "./pages/driver/DriverSupport";
 import DriverSettings from "./pages/driver/DriverSettings";
 import DriverSecurityQuestions from "./pages/driver/SecurityQuestions";
 import DriverLogout from "./pages/driver/Logout";
+import DriverPaymentSuccess from "./pages/driver/payment-success";
 
 // Auth Components
 import { useAuth } from "@/components/auth/AuthContext";
@@ -402,6 +403,10 @@ const AppContent = () => {
         {/* Driver Routes */}
         <Route path="/driver/pending-approval" element={<PendingApproval />} />
         <Route path="/driver/logout" element={<DriverLogout />} />
+        <Route
+          path="/driver/payment-success"
+          element={<DriverPaymentSuccess />}
+        />
         <Route
           path="/driver"
           element={
