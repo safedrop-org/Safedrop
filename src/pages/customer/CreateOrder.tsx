@@ -105,14 +105,7 @@ const CreateOrderContent = () => {
       return;
     }
 
-    if (!estimatedCost) {
-      toast.error(
-        language === "ar"
-          ? "يرجى حساب التكلفة أولاً"
-          : "Please calculate the cost first"
-      );
-      return;
-    }
+
 
     try {
       const res = await fetch(
@@ -150,7 +143,6 @@ const CreateOrderContent = () => {
             },
             package_details: formData.packageDetails,
             notes: formData.notes,
-            price: estimatedCost,
             status: "available",
             payment_status: "pending",
             commission_rate: 0.2,

@@ -14,7 +14,7 @@ export function cn(...inputs: ClassValue[]) {
 export function calculateCost(distance: number) {
   const distanceInKm = distance / 1000;
 
-  const cost = distanceInKm * 1.5 + 10;
+  const cost = distanceInKm * 1.5;
 
   return Math.floor(cost * 100) / 100;
 }
