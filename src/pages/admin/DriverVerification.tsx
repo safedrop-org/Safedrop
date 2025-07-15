@@ -45,6 +45,12 @@ interface Driver {
   created_at?: string; // Driver registration date
   updated_at?: string; // Driver acceptance date
   profile_created_at?: string; // Profile creation date as fallback
+
+  subscription_status: string;
+  subscription_plan: string;
+  subscription_amount: number;
+  subscription_activated_at: string;
+  subscription_expires_at: string;
 }
 
 interface DriverStatusCategory {
@@ -177,6 +183,54 @@ const MobileDriverCard: React.FC<{
             )}
           </div>
 
+          {/* subsccription Details */}
+          <div className="space-y-2 pt-2 border-t">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">{t("subscriptionStatus")}:</span>
+              <span className="font-medium">{driver.subscription_status}</span>
+            </div>
+            {driver.subscription_status === "active" && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">
+                    {t("subscriptionPlan")}:
+                  </span>
+                  <span className="font-medium">
+                    {driver.subscription_plan}
+                  </span>
+                </div>
+
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">
+                    {t("subscriptionAmount")}:
+                  </span>
+                  <span dir="ltr" className="font-medium">
+                    {driver.subscription_amount}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <span className="text-gray-600">
+                    {t("subscriptionActivationDate")}:
+                  </span>
+                  <span className="font-medium">
+                    {formatDate(driver.subscription_activated_at)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <span className="text-gray-600">
+                    {t("subscriptionExpiresDate")}:
+                  </span>
+                  <span className="font-medium">
+                    {formatDate(driver.subscription_expires_at)}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+
           {/* Action Button */}
           <div className="pt-3 border-t">
             <Button
@@ -299,6 +353,23 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
                 <TableHead className="text-center whitespace-nowrap font-bold">
                   {t("acceptanceDate")}
                 </TableHead>
+
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("subscriptionStatus")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("subscriptionPlan")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("subscriptionAmount")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("subscriptionActivationDate")}
+                </TableHead>
+                <TableHead className="text-center whitespace-nowrap font-bold">
+                  {t("subscriptionExpiresDate")}
+                </TableHead>
+
                 <TableHead className="text-center whitespace-nowrap font-bold">
                   {t("actions")}
                 </TableHead>
@@ -355,6 +426,23 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
                         ? formatDate(driver.updated_at)
                         : t("notApplicable")}
                     </TableCell>
+
+                    <TableCell className="text-center">
+                      {driver.subscription_status}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {driver.subscription_plan}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {driver.subscription_amount}
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
+                      {formatDate(driver.subscription_activated_at)}
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
+                      {formatDate(driver.subscription_expires_at)}
+                    </TableCell>
+
                     <TableCell className="text-center">
                       <Button
                         variant="ghost"
@@ -455,7 +543,9 @@ const DriverVerification = () => {
       const driverIds = profilesData.map((d) => d.id);
       const { data: driversData, error: driversError } = await supabase
         .from("drivers")
-        .select("id, status, created_at, updated_at")
+        .select(
+          "id, status, created_at, updated_at,subscription_status, subscription_plan, subscription_amount, subscription_activated_at, subscription_expires_at"
+        )
         .in("id", driverIds);
 
       if (driversError) throw driversError;
@@ -472,7 +562,7 @@ const DriverVerification = () => {
           };
         });
       }
-
+      /*
       const driversCombined = profilesData.map((profile) => {
         const driverDates = driverDatesMap[profile.id] || {};
         return {
@@ -481,6 +571,14 @@ const DriverVerification = () => {
           created_at: driverDates.created_at, // Driver table created_at (registration date)
           updated_at: driverDates.updated_at, // Driver table updated_at (acceptance date)
           profile_created_at: profile.created_at, // Profile created_at as fallback
+        };
+      });
+      */
+      const driversCombined = driversData.map((driver) => {
+        const profile = profilesData.find((p) => p.id === driver.id);
+        return {
+          ...profile,
+          ...driver,
         };
       });
 

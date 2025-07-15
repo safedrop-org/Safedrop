@@ -1,6 +1,27 @@
 import { TranslationSection } from "./types";
 
 export const driver: TranslationSection = {
+  subscriptionStatus: {
+    ar: "حالة الاشتراك",
+    en: "Subscription Status",
+  },
+  subscriptionPlan: {
+    ar: "نوع الاشتراك",
+    en: "Subscription Plan",
+  },
+  subscriptionAmount: {
+    ar: "قيمة الاشتراك",
+    en: "Subscription Amount",
+  },
+  subscriptionActivationDate: {
+    ar: "تاريخ التفعيل",
+    en: "Activation Date",
+  },
+  subscriptionExpiresDate: {
+    ar: "تاريخ الانتهاء",
+    en: "Expires Date",
+  },
+
   manageOrders: {
     ar: "إدارة الطلبات",
     en: "Manage Orders",
