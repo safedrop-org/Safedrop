@@ -1,6 +1,22 @@
 import { TranslationSection } from "./types";
 
 export const driver: TranslationSection = {
+  active: {
+    ar: "نشط",
+    en: "Active",
+  },
+  inactive: {
+    ar: "غير نشط",
+    en: "Inactive",
+  },
+  monthly: {
+    ar: "شهرى",
+    en: "Monthly",
+  },
+  yearly: {
+    ar: "سنوى",
+    en: "Yearly",
+  },
   subscriptionStatus: {
     ar: "حالة الاشتراك",
     en: "Subscription Status",

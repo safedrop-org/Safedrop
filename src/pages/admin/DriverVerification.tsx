@@ -187,7 +187,9 @@ const MobileDriverCard: React.FC<{
           <div className="space-y-2 pt-2 border-t">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">{t("subscriptionStatus")}:</span>
-              <span className="font-medium">{driver.subscription_status}</span>
+              <span className="font-medium">
+                {t(driver.subscription_status)}
+              </span>
             </div>
             {driver.subscription_status === "active" && (
               <>
@@ -196,7 +198,7 @@ const MobileDriverCard: React.FC<{
                     {t("subscriptionPlan")}:
                   </span>
                   <span className="font-medium">
-                    {driver.subscription_plan}
+                    {t(driver.subscription_plan)}
                   </span>
                 </div>
 
@@ -205,7 +207,7 @@ const MobileDriverCard: React.FC<{
                     {t("subscriptionAmount")}:
                   </span>
                   <span dir="ltr" className="font-medium">
-                    {driver.subscription_amount}
+                    {driver.subscription_amount} ريال
                   </span>
                 </div>
 
@@ -428,13 +430,13 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
                     </TableCell>
 
                     <TableCell className="text-center">
-                      {driver.subscription_status}
+                      {t(driver.subscription_status)}
                     </TableCell>
                     <TableCell className="text-center">
-                      {driver.subscription_plan}
+                      {t(driver.subscription_plan) || "-"}
                     </TableCell>
                     <TableCell className="text-center">
-                      {driver.subscription_amount}
+                      {driver.subscription_amount || "-"} ريال
                     </TableCell>
                     <TableCell className="text-center whitespace-nowrap">
                       {formatDate(driver.subscription_activated_at)}
