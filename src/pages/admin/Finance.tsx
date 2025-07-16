@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -30,6 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/components/ui/language-context";
 import { toast } from "sonner";
+import { set } from "date-fns";
 
 // Financial Stat Card Component
 const StatCard = ({
@@ -115,29 +116,71 @@ const Finance = () => {
     queryFn: async () => {
       try {
         setError(null);
-        const { data, error } = await supabase.rpc("get_financial_summary", {
-          period_type: timeRange,
-        });
+        const today = new Date();
+        const d = today.getDate();
+        const m = today.getMonth();
+        const y = today.getFullYear();
+        let start: string;
+        let end: string;
+
+        if (timeRange === "daily") {
+          start = new Date(Date.UTC(y, m, d, 0, 0, 0)).toISOString();
+          end = new Date(Date.UTC(y, m, d + 1, 0, 0, 0)).toISOString();
+        }
+
+        if (timeRange === "weekly") {
+          // Get day of the week (0 = Sunday, 6 = Saturday)
+          const dayOfWeek = today.getDay();
+
+          // Calculate difference to previous Saturday
+          const diffToSaturday = (dayOfWeek + 1) % 7;
+
+          // Get Saturday (start of week)
+          const weekStart = new Date(
+            Date.UTC(y, m, d - diffToSaturday, 0, 0, 0)
+          );
+
+          // Get Friday (end of week)
+          const weekEnd = new Date(
+            Date.UTC(y, m, weekStart.getDate() + 7, 0, 0, 0)
+          );
+
+          start = weekStart.toISOString();
+          end = weekEnd.toISOString();
+        }
+
+        if (timeRange === "monthly") {
+          start = new Date(Date.UTC(y, m, 1, 0, 0, 0)).toISOString();
+          end = new Date(Date.UTC(y, m + 1, 1, 0, 0, 0)).toISOString();
+        }
+
+        if (timeRange === "yearly") {
+          start = new Date(Date.UTC(y, 0, 1, 0, 0, 0)).toISOString();
+          end = new Date(Date.UTC(y, 11, 31, 0, 0, 0)).toISOString();
+        }
+
+        const { data } = await supabase
+          .from("driver_payments")
+          .select("amount")
+          .eq("status", "completed")
+          .gte("created_at", start)
+          .lte("created_at", end);
+
+        const totalAmount = data.reduce(
+          (acc, payment) => acc + payment.amount,
+          0
+        );
+
+        console.log("Financial Data:", totalAmount);
 
         if (error) throw error;
-        return (
-          data || {
-            total_revenue: 0,
-            commissions: 0,
-            platform_profit: 0,
-            driver_profit: 0,
-          }
-        );
+
+        return data;
       } catch (error) {
         console.error("Error fetching financial data:", error);
         setError(t("errorFetchingFinancialData"));
         toast.error(t("errorFetchingFinancialData"));
-        return {
-          total_revenue: 0,
-          commissions: 0,
-          platform_profit: 0,
-          driver_profit: 0,
-        };
+        return [];
       }
     },
   });
@@ -183,10 +226,10 @@ const Finance = () => {
     const csvData = [
       [
         getPeriodText(),
-        financialData.total_revenue || 0,
-        financialData.commissions || 0,
-        financialData.platform_profit || 0,
-        financialData.driver_profit || 0,
+        financialData || 0,
+        financialData || 0,
+        financialData || 0,
+        financialData || 0,
       ],
     ];
 
@@ -301,12 +344,15 @@ const Finance = () => {
           <div className="hidden lg:grid lg:grid-cols-4 gap-4 mb-6">
             <StatCard
               title={t("totalAmountReceived")}
-              value={formatCurrency(financialData?.total_revenue)}
+              value={formatCurrency(
+                financialData?.reduce((acc, payment) => acc + payment.amount, 0)
+              )}
               icon={<DollarSign size={20} />}
               description={getPeriodText()}
               textColor="text-green-600"
               isLoading={isLoading}
             />
+            {/*
             <StatCard
               title={t("totalCommissions20")}
               value={formatCurrency(financialData?.commissions)}
@@ -331,19 +377,23 @@ const Finance = () => {
               textColor="text-orange-600"
               isLoading={isLoading}
             />
+            */}
           </div>
 
           {/* Tablet/Mobile Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-4 mb-6">
             <MobileStatCard
               title={t("totalAmountReceived")}
-              value={formatCurrency(financialData?.total_revenue)}
+              value={formatCurrency(
+                financialData?.reduce((acc, payment) => acc + payment.amount, 0)
+              )}
               icon={<DollarSign size={20} />}
               description={getPeriodText()}
               textColor="text-green-600"
               isLoading={isLoading}
               t={t}
             />
+            {/*
             <MobileStatCard
               title={t("totalCommissions20")}
               value={formatCurrency(financialData?.commissions)}
@@ -370,7 +420,8 @@ const Finance = () => {
               textColor="text-orange-600"
               isLoading={isLoading}
               t={t}
-            />
+              />
+              */}
           </div>
         </div>
 

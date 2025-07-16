@@ -53,8 +53,8 @@ export const finance: TranslationSection = {
 
   // Financial Stats
   totalAmountReceived: {
-    ar: "إجمالي المبالغ المستلمة",
-    en: "Total Amount Received",
+    ar: "إجمالي مبالغ الاشتراكات",
+    en: "Total Subscriptions Amount",
   },
   totalCommissions20: {
     ar: "إجمالي العمولات (20٪)",
