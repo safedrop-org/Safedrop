@@ -70,7 +70,10 @@ const MobileDriverCard: React.FC<{
   const statusCategory = statusCategories.find(
     (cat) => cat.name === driver.status
   );
-
+  const formatCurrency = (value: number) => {
+    if (value === undefined || value === null) return `0 ${t("currency")}`;
+    return `${value.toLocaleString()} ${t("currency")}`;
+  };
   const getStatusBadgeStyle = (status: string) => {
     const category = statusCategories.find((cat) => cat.name === status);
     const color = category ? category.color : "#6c757d";
@@ -207,7 +210,7 @@ const MobileDriverCard: React.FC<{
                     {t("subscriptionAmount")}:
                   </span>
                   <span dir="ltr" className="font-medium">
-                    {driver.subscription_amount} ريال
+                    {formatCurrency(driver.subscription_amount)}
                   </span>
                 </div>
 
@@ -325,7 +328,10 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
       </div>
     );
   }
-
+  const formatCurrency = (value: number) => {
+    if (value === undefined || value === null) return `0 ${t("currency")}`;
+    return `${value.toLocaleString()} ${t("currency")}`;
+  };
   return (
     <>
       {/* Desktop Table */}
@@ -436,7 +442,7 @@ const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
                       {t(driver.subscription_plan) || "-"}
                     </TableCell>
                     <TableCell className="text-center">
-                      {driver.subscription_amount || "-"} ريال
+                      {formatCurrency(driver.subscription_amount)}
                     </TableCell>
                     <TableCell className="text-center whitespace-nowrap">
                       {formatDate(driver.subscription_activated_at)}

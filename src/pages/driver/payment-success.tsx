@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/components/ui/language-context";
 
 const DriverPaymentSuccess = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ const DriverPaymentSuccess = () => {
   const [status, setStatus] = useState("checking");
   const [verifying, setVerifying] = useState(false);
   const [subscription, setSubscription] = useState(null);
+  const { language } = useLanguage();
 
   const verifyPayment = useCallback(async () => {
     if (!user?.id) return;
@@ -29,6 +31,7 @@ const DriverPaymentSuccess = () => {
         "verify-driver-payment",
         {
           body: {
+            language,
             orderNumber: orderNumber,
             transactionNo: transactionNo, // Include transaction number for better verification
             driverId: user.id,
