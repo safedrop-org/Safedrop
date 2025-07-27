@@ -4,11 +4,7 @@ import {
   LanguageProvider,
   useLanguage,
 } from "@/components/ui/language-context";
-import Navbar from "@/components/layout/navbar";
-import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -29,6 +25,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Cookies from "js-cookie";
 import { User } from "@supabase/supabase-js";
+import { ErrorAlert } from "@/components/auth/AuthLayout";
+import { AuthInput, AuthCard, LoadingButton } from "@/components/auth/AuthInput";
+import Navbar from "@/components/layout/navbar";
+import Footer from "@/components/layout/footer";
+import { Label } from "@/components/ui/label";
 
 interface UserMetadata {
   id?: string;
@@ -98,7 +99,7 @@ const LoginContent = () => {
         document.title
       );
     }
-  }, [location]);
+  }, [location, t]);
 
   // Set auth cookies
   const setAuthCookie = useCallback(
@@ -451,133 +452,89 @@ const LoginContent = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-grow py-16 bg-gray-50">
-        <div className="max-w-md mx-auto px-4">
-          <Card className="shadow-lg">
-            <CardHeader className="text-center pb-2">
-              <img
-                alt="SafeDrop Logo"
-                className="mx-auto h-20 w-auto mb-2"
-                src="/lovable-uploads/abbaa84d-9220-43c2-833e-afb017f5a986.png"
-              />
-              <CardTitle className="text-2xl font-bold text-safedrop-primary">
-                {t("login")}
-              </CardTitle>
-              <CardDescription>{t("loginDescription")}</CardDescription>
-            </CardHeader>
+      <AuthCard 
+        title={t("login")} 
+        description={t("loginDescription")}
+      >
+        {statusMessage.text && (
+          <ErrorAlert 
+            message={statusMessage.text}
+            type={statusMessage.type || "error"}
+          />
+        )}
 
-            {statusMessage.text && (
-              <div
-                className={`mx-6 my-2 p-3 rounded-md ${
-                  statusMessage.type === "success"
-                    ? "bg-green-50 border border-green-200 text-green-800"
-                    : "bg-red-50 border border-red-200 text-red-800"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {statusMessage.type === "success" ? (
-                    <CheckCircle className="h-5 w-5" />
-                  ) : (
-                    <AlertCircle className="h-5 w-5" />
-                  )}
-                  <p>{statusMessage.text}</p>
-                </div>
+        <form onSubmit={handleLogin}>
+          <div className="space-y-4 p-6">
+            <AuthInput
+              id="email"
+              label={t("email")}
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              icon={MailIcon}
+            />
+
+            <AuthInput
+              id="password"
+              label={t("password")}
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              icon={LockIcon}
+            />
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  className="w-4 h-4 text-safedrop-gold border-gray-300 rounded focus:ring-safedrop-gold"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                <Label htmlFor="remember" className="text-sm">
+                  {t("rememberMe")}
+                </Label>
               </div>
-            )}
+              <Link
+                to="/forgot-password"
+                className="text-sm text-safedrop-gold hover:underline"
+              >
+                {t("forgotPassword")}
+              </Link>
+            </div>
+          </div>
 
-            <form onSubmit={handleLogin}>
-              <CardContent className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t("email")}</Label>
-                  <div className="relative">
-                    <MailIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                    <Input
-                      id="email"
-                      type="email"
-                      className="pl-10 rtl:pl-4 rtl:pr-10"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                </div>
+          <div className="px-6 pb-6 space-y-4">
+            <LoadingButton
+              isLoading={isLoading}
+              loadingText={t("loggingIn")}
+              normalText={t("login")}
+            />
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">{t("password")}</Label>
-                  <div className="relative">
-                    <LockIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 rtl:left-auto rtl:right-3" />
-                    <Input
-                      id="password"
-                      type="password"
-                      className="pl-10 rtl:pl-4 rtl:pr-10"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <input
-                      type="checkbox"
-                      id="remember"
-                      className="w-4 h-4 text-safedrop-gold border-gray-300 rounded focus:ring-safedrop-gold"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    <Label htmlFor="remember" className="text-sm">
-                      {t("rememberMe")}
-                    </Label>
-                  </div>
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-safedrop-gold hover:underline"
-                  >
-                    {t("forgotPassword")}
-                  </Link>
-                </div>
-              </CardContent>
-
-              <CardFooter className="flex flex-col space-y-4">
-                <Button
-                  type="submit"
-                  className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-                  disabled={isLoading}
+            <div className="text-center text-sm">
+              {t("noAccount")}{" "}
+              <div className="flex justify-center gap-2 mt-2">
+                <Link
+                  to="/register/customer"
+                  className="text-safedrop-gold hover:underline font-semibold"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t("loggingIn")}
-                    </>
-                  ) : (
-                    t("login")
-                  )}
-                </Button>
-
-                <div className="text-center text-sm">
-                  {t("noAccount")}{" "}
-                  <div className="flex justify-center gap-2 mt-2">
-                    <Link
-                      to="/register/customer"
-                      className="text-safedrop-gold hover:underline font-semibold"
-                    >
-                      {t("registerAsCustomer")}
-                    </Link>
-                    <span className="text-gray-500">|</span>
-                    <Link
-                      to="/register/driver"
-                      className="text-safedrop-gold hover:underline font-semibold"
-                    >
-                      {t("registerAsDriver")}
-                    </Link>
-                  </div>
-                </div>
-              </CardFooter>
-            </form>
-          </Card>
-        </div>
-      </main>
+                  {t("registerAsCustomer")}
+                </Link>
+                <span className="text-gray-500">|</span>
+                <Link
+                  to="/register/driver"
+                  className="text-safedrop-gold hover:underline font-semibold"
+                >
+                  {t("registerAsDriver")}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </form>
+      </AuthCard>
       <Footer />
     </div>
   );

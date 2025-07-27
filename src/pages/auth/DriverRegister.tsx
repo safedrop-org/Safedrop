@@ -28,60 +28,78 @@ import {
   Calendar,
   Upload,
   ExternalLink,
-  AlertCircle,
 } from "lucide-react";
-import Cookies from "js-cookie";
+import { 
+  PageLayout, 
+  LogoHeader, 
+  ErrorAlert, 
+  SuccessPage 
+} from "@/components/auth/AuthLayout";
+import { 
+  AUTH_CONSTANTS, 
+  UserData 
+} from "@/components/auth/authConstants";
+import { 
+  checkEmailExists, 
+  isEmailDuplicateError, 
+  sendAdminNotification, 
+  setPendingUserCookie 
+} from "@/components/auth/authUtils";
+import { 
+  CustomFormField 
+} from "@/components/auth/FormFields";
 
 const DriverRegisterContent = () => {
   const { t, language } = useLanguage();
   const navigate = useNavigate();
+
   const [isLoading, setIsLoading] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [registrationError, setRegistrationError] = useState(null);
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
   const [waitTime, setWaitTime] = useState(0);
   const [idImagePreview, setIdImagePreview] = useState("");
   const [licenseImagePreview, setLicenseImagePreview] = useState("");
-  const [idImageFile, setIdImageFile] = useState(null);
-  const [licenseImageFile, setLicenseImageFile] = useState(null);
-  const [debugInfo, setDebugInfo] = useState(null);
+  const [idImageFile, setIdImageFile] = useState<File | null>(null);
+  const [licenseImageFile, setLicenseImageFile] = useState<File | null>(null);
+  const [debugInfo, setDebugInfo] = useState<Record<string, unknown> | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const driverRegisterSchema = z.object({
-    firstName: z.string().min(2, {
+    firstName: z.string().min(AUTH_CONSTANTS.VALIDATION_RULES.MIN_NAME_LENGTH, {
       message: t("requiredFirstName"),
     }),
-    lastName: z.string().min(2, {
+    lastName: z.string().min(AUTH_CONSTANTS.VALIDATION_RULES.MIN_NAME_LENGTH, {
       message: t("requiredLastName"),
     }),
     email: z.string().email({
       message: t("invalidEmail"),
     }),
-    phone: z.string().min(10, {
+    phone: z.string().min(AUTH_CONSTANTS.VALIDATION_RULES.MIN_PHONE_LENGTH, {
       message: t("invalidPhoneNumber"),
     }),
-    password: z.string().min(8, {
+    password: z.string().min(AUTH_CONSTANTS.VALIDATION_RULES.MIN_PASSWORD_LENGTH, {
       message: t("passwordMinLength"),
     }),
     birthDate: z.string().min(1, {
       message: t("requiredBirthDate"),
     }),
-    nationalId: z.string().min(10, {
+    nationalId: z.string().min(AUTH_CONSTANTS.VALIDATION_RULES.MIN_NATIONAL_ID_LENGTH, {
       message: t("requiredNationalId"),
     }),
-    licenseNumber: z.string().min(5, {
+    licenseNumber: z.string().min(AUTH_CONSTANTS.VALIDATION_RULES.MIN_LICENSE_LENGTH, {
       message: t("requiredLicenseNumber"),
     }),
     vehicleInfo: z.object({
-      make: z.string().min(2, {
+      make: z.string().min(AUTH_CONSTANTS.VALIDATION_RULES.MIN_VEHICLE_INFO_LENGTH, {
         message: t("requiredVehicleMake"),
       }),
-      model: z.string().min(2, {
+      model: z.string().min(AUTH_CONSTANTS.VALIDATION_RULES.MIN_VEHICLE_INFO_LENGTH, {
         message: t("requiredVehicleModel"),
       }),
-      year: z.string().regex(/^\d{4}$/, {
+      year: z.string().regex(AUTH_CONSTANTS.VALIDATION_RULES.YEAR_REGEX, {
         message: t("requiredVehicleYear"),
       }),
-      plateNumber: z.string().min(4, {
+      plateNumber: z.string().min(AUTH_CONSTANTS.VALIDATION_RULES.MIN_PLATE_NUMBER_LENGTH, {
         message: t("requiredPlateNumber"),
       }),
     }),
@@ -90,8 +108,8 @@ const DriverRegisterContent = () => {
     acceptTerms: z.boolean().refine((val) => val === true, {
       message:
         language === "ar"
-          ? "يجب الموافقة على الشروط والأحكام"
-          : "You must accept the terms and conditions",
+          ? AUTH_CONSTANTS.ERROR_MESSAGES.TERMS_REQUIRED.ar
+          : AUTH_CONSTANTS.ERROR_MESSAGES.TERMS_REQUIRED.en,
     }),
   });
 
@@ -130,37 +148,21 @@ const DriverRegisterContent = () => {
     },
   });
 
-  // Fixed email checking function using the database function
-  const checkEmailExists = async (email) => {
-    try {
-      const { data, error } = await supabase.rpc("check_email_exists", {
-        email_to_check: email.toLowerCase(),
-      });
-
-      if (error) {
-        console.error("Error checking email:", error);
-        return false; // Allow registration on error
-      }
-
-      return data; // Returns boolean: true if email exists, false if available
-    } catch (error) {
-      console.error("Error in email check:", error);
-      return false;
-    }
+  // Fixed email checking function using the database function - removed duplicate, using shared utility
+  const handleEmailDuplicateError = () => {
+    setRegistrationError(AUTH_CONSTANTS.DUPLICATE_EMAIL_MESSAGE);
+    toast.error(AUTH_CONSTANTS.DUPLICATE_EMAIL_TOAST);
+    setIsLoading(false);
   };
 
   const handleRateLimitError = () => {
     setWaitTime(60);
-    setRegistrationError(
-      "تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار دقيقة واحدة قبل المحاولة مرة أخرى"
-    );
-    toast.error(
-      "تم تجاوز الحد المسموح للتسجيل، يرجى الانتظار دقيقة واحدة قبل المحاولة مرة أخرى"
-    );
+    setRegistrationError(AUTH_CONSTANTS.ERROR_MESSAGES.RATE_LIMIT);
+    toast.error(AUTH_CONSTANTS.ERROR_MESSAGES.RATE_LIMIT);
   };
 
-  const handleImageChange = (e, type) => {
-    const file = e.target.files[0];
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'id' | 'license') => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
@@ -176,55 +178,50 @@ const DriverRegisterContent = () => {
     reader.readAsDataURL(file);
   };
 
+  // Upload single file to Supabase Storage
+  const uploadSingleFile = async (file: File, userId: string, type: 'id' | 'license') => {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${userId}_${type}_image_${Date.now()}.${fileExt}`;
+    const folderPath = type === 'id' ? 'id-cards' : 'licenses';
+    const filePath = `${folderPath}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from("driver-documents")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error(`Error uploading ${type} image:`, error);
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from("driver-documents")
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
   // Upload files directly to Supabase Storage
-  const uploadFilesToSupabase = async (userId) => {
-    const uploadResults = {};
+  const uploadFilesToSupabase = async (userId: string) => {
+    const uploadResults: { id_image?: string; license_image?: string } = {};
+    
     try {
       // Upload ID image if exists
       if (idImageFile) {
-        const fileExt = idImageFile.name.split(".").pop();
-        const fileName = `${userId}_id_image_${Date.now()}.${fileExt}`;
-        const filePath = `id-cards/${fileName}`;
-
-        const { error: idUploadError } = await supabase.storage
-          .from("driver-documents")
-          .upload(filePath, idImageFile, {
-            cacheControl: "3600",
-            upsert: false,
-          });
-
-        if (!idUploadError) {
-          const { data: idImageData } = supabase.storage
-            .from("driver-documents")
-            .getPublicUrl(filePath);
-
-          uploadResults.id_image = idImageData.publicUrl;
-        } else {
-          console.error("Error uploading ID image:", idUploadError);
+        const idImageUrl = await uploadSingleFile(idImageFile, userId, 'id');
+        if (idImageUrl) {
+          uploadResults.id_image = idImageUrl;
         }
       }
 
       // Upload license image if exists
       if (licenseImageFile) {
-        const fileExt = licenseImageFile.name.split(".").pop();
-        const fileName = `${userId}_license_image_${Date.now()}.${fileExt}`;
-        const filePath = `licenses/${fileName}`;
-
-        const { error: licenseUploadError } = await supabase.storage
-          .from("driver-documents")
-          .upload(filePath, licenseImageFile, {
-            cacheControl: "3600",
-            upsert: false,
-          });
-
-        if (!licenseUploadError) {
-          const { data: licenseImageData } = supabase.storage
-            .from("driver-documents")
-            .getPublicUrl(filePath);
-
-          uploadResults.license_image = licenseImageData.publicUrl;
-        } else {
-          console.error("Error uploading license image:", licenseUploadError);
+        const licenseImageUrl = await uploadSingleFile(licenseImageFile, userId, 'license');
+        if (licenseImageUrl) {
+          uploadResults.license_image = licenseImageUrl;
         }
       }
 
@@ -236,8 +233,8 @@ const DriverRegisterContent = () => {
   };
 
   // Store file data in localStorage as backup
-  const storeFileData = (userId, idImage, licenseImage) => {
-    const fileData = {};
+  const storeFileData = (userId: string, idImage: File | null, licenseImage: File | null) => {
+    const fileData: Record<string, { name: string; dataUrl: string }> = {};
 
     if (idImage) {
       fileData["id_image"] = {
@@ -260,7 +257,7 @@ const DriverRegisterContent = () => {
   };
 
   // Create driver record directly
-  const createDriverRecord = async (userId, data, imageUrls) => {
+  const createDriverRecord = async (userId: string, data: DriverFormValues, imageUrls: { id_image?: string; license_image?: string }) => {
     try {
       const driverData = {
         id: userId,
@@ -317,53 +314,90 @@ const DriverRegisterContent = () => {
     window.open("/driver-terms", "_blank");
   };
 
-  const sendAdminNotification = async (userData, userType = "customer") => {
-    try {
-      console.log(
-        `Sending admin notification for new ${userType}:`,
-        userData.email
-      );
-
-      const currentLanguage = "ar";
-
-      const { data: emailResult, error: emailError } =
-        await supabase.functions.invoke("send-admin-notification", {
-          body: {
-            userData: {
-              first_name: userData.first_name,
-              last_name: userData.last_name,
-              email: userData.email,
-              phone: userData.phone,
-              user_type: userData.user_type,
-              created_at: new Date().toISOString(),
-            },
-            userType: userType,
-            language: currentLanguage,
-          },
-        });
-
-      if (emailError) {
-        console.error("Error sending admin notification:", emailError);
-      } else {
-        console.log("Admin notification sent successfully:", emailResult);
-      }
-    } catch (error) {
-      console.error("Error in sendAdminNotification:", error);
+  // Handle signup error logic
+  const handleSignUpError = (signUpError: { message: string }) => {
+    if (
+      signUpError.message.includes("rate limit") ||
+      signUpError.message.toLowerCase().includes("email rate limit exceeded")
+    ) {
+      handleRateLimitError();
+    } else if (
+      signUpError.message.includes("User already registered") ||
+      signUpError.message.includes("already been registered") ||
+      signUpError.message.includes("duplicate") ||
+      signUpError.message.includes("already exists") ||
+      signUpError.message.includes("already taken")
+    ) {
+      handleEmailDuplicateError();
+    } else {
+      const errorMessage = AUTH_CONSTANTS.ERROR_MESSAGES.ACCOUNT_CREATION_ERROR(signUpError.message);
+      setRegistrationError(errorMessage);
+      toast.error(errorMessage);
     }
+    setIsLoading(false);
   };
+
+  // Create user account with Supabase Auth
+  const createUserAccount = async (data: DriverFormValues) => {
+    return await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          phone: data.phone,
+          user_type: "driver",
+          birth_date: data.birthDate,
+        },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  };
+
+  // Complete registration process
+  const completeRegistration = async (authData: { user: { id: string } }, data: DriverFormValues) => {
+    const imageUrls = await uploadFilesToSupabase(authData.user.id);
+    
+    const driverCreated = await createDriverRecord(
+      authData.user.id,
+      data,
+      imageUrls
+    );
+
+    if (!driverCreated) {
+      storeFileData(authData.user.id, idImageFile, licenseImageFile);
+    }
+
+    const notificationData: UserData = {
+      id: authData.user.id,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      phone: data.phone,
+      email: data.email,
+      user_type: "driver",
+    };
+
+    setPendingUserCookie(notificationData);
+    await sendAdminNotification(notificationData, "driver");
+    
+    setRegistrationComplete(true);
+    toast.success(t("registrationSuccess"));
+  };
+
+  // Removed duplicate sendAdminNotification function - using shared utility
 
   const onSubmit = async (data: DriverFormValues) => {
     if (waitTime > 0) {
-      toast.error(`يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى`);
+      toast.error(AUTH_CONSTANTS.ERROR_MESSAGES.WAIT_MESSAGE(waitTime));
       return;
     }
 
     if (!acceptedTerms) {
-      toast.error(
-        language === "ar"
-          ? "يجب الموافقة على الشروط والأحكام"
-          : "You must accept the terms and conditions"
-      );
+      const termsMessage = language === "ar" 
+        ? AUTH_CONSTANTS.ERROR_MESSAGES.TERMS_REQUIRED.ar 
+        : AUTH_CONSTANTS.ERROR_MESSAGES.TERMS_REQUIRED.en;
+      toast.error(termsMessage);
       return;
     }
 
@@ -373,126 +407,30 @@ const DriverRegisterContent = () => {
 
     try {
       const emailExists = await checkEmailExists(data.email);
-
       if (emailExists) {
-        setRegistrationError(
-          language === "ar"
-            ? "هذا البريد الإلكتروني مسجل بالفعل. يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول."
-            : "This email is already registered. Please use a different email or login."
-        );
-        toast.error(
-          language === "ar"
-            ? "هذا البريد الإلكتروني مسجل بالفعل"
-            : "This email is already registered"
-        );
-        setIsLoading(false);
+        handleEmailDuplicateError();
         return;
       }
 
-      const { data: authData, error: signUpError } = await supabase.auth.signUp(
-        {
-          email: data.email,
-          password: data.password,
-          options: {
-            data: {
-              first_name: data.firstName,
-              last_name: data.lastName,
-              phone: data.phone,
-              user_type: "driver",
-              birth_date: data.birthDate,
-            },
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        }
-      );
+      const { data: authData, error: signUpError } = await createUserAccount(data);
 
       if (signUpError) {
-        if (
-          signUpError.message.includes("rate limit") ||
-          signUpError.message
-            .toLowerCase()
-            .includes("email rate limit exceeded")
-        ) {
-          handleRateLimitError();
-        } else if (
-          signUpError.message.includes("User already registered") ||
-          signUpError.message.includes("already been registered") ||
-          signUpError.message.includes("duplicate") ||
-          signUpError.message.includes("already exists") ||
-          signUpError.message.includes("already taken")
-        ) {
-          setRegistrationError(
-            language === "ar"
-              ? "هذا البريد الإلكتروني مسجل بالفعل. يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول."
-              : "This email is already registered. Please use a different email or login."
-          );
-          toast.error(
-            "البريد الإلكتروني مسجل بالفعل، يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول"
-          );
-        } else {
-          setRegistrationError(
-            "خطأ أثناء إنشاء الحساب: " + signUpError.message
-          );
-          toast.error("خطأ أثناء إنشاء الحساب: " + signUpError.message);
-        }
-        setIsLoading(false);
+        handleSignUpError(signUpError);
         return;
       }
 
       if (!authData.user) {
-        setRegistrationError("فشل إنشاء الحساب، يرجى المحاولة مرة أخرى");
-        toast.error("فشل إنشاء الحساب، يرجى المحاولة مرة أخرى");
+        setRegistrationError(AUTH_CONSTANTS.ERROR_MESSAGES.ACCOUNT_CREATION_FAILED);
+        toast.error(AUTH_CONSTANTS.ERROR_MESSAGES.ACCOUNT_CREATION_FAILED);
         setIsLoading(false);
         return;
       }
 
-      const imageUrls = await uploadFilesToSupabase(authData.user.id);
-
-      const driverCreated = await createDriverRecord(
-        authData.user.id,
-        data,
-        imageUrls
-      );
-
-      if (!driverCreated) {
-        storeFileData(authData.user.id, idImageFile, licenseImageFile);
-      }
-
-      const pendingUserDetails = {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        phone: data.phone,
-        email: data.email,
-        user_type: "driver",
-        birth_date: data.birthDate,
-        national_id: data.nationalId,
-        license_number: data.licenseNumber,
-        vehicle_info: data.vehicleInfo,
-      };
-
-      Cookies.set("pendingUserDetails", JSON.stringify(pendingUserDetails), {
-        expires: 1 / 24,
-        secure: true,
-        sameSite: "strict",
-      });
-
-      const notificationData = {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        phone: data.phone,
-        email: data.email,
-        user_type: "driver",
-      };
-      await sendAdminNotification(notificationData, "driver");
-
-      setRegistrationComplete(true);
-      toast.success(t("registrationSuccess"));
+      await completeRegistration(authData, data);
     } catch (error) {
       console.error("Unexpected error during registration:", error);
-      setRegistrationError(
-        "حدث خطأ غير متوقع أثناء التسجيل، يرجى المحاولة مرة أخرى"
-      );
-      toast.error("حدث خطأ غير متوقع أثناء التسجيل، يرجى المحاولة مرة أخرى");
+      setRegistrationError(AUTH_CONSTANTS.ERROR_MESSAGES.UNEXPECTED_ERROR);
+      toast.error(AUTH_CONSTANTS.ERROR_MESSAGES.UNEXPECTED_ERROR);
       setDebugInfo({
         stage: "unexpected_error",
         error: error,
@@ -504,52 +442,20 @@ const DriverRegisterContent = () => {
 
   if (registrationComplete) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <img
-            src="/lovable-uploads/264169e0-0b4b-414f-b808-612506987f4a.png"
-            alt="SafeDrop Logo"
-            className="mx-auto h-20 w-auto mb-4"
-          />
-          <h2 className="text-2xl font-bold text-safedrop-primary mt-6">
-            {t("registrationSuccess")}
-          </h2>
-          <p className="mt-4 text-gray-600">
-            {language === "ar"
-              ? "شكراً لتسجيلك في سيف دروب. تم إرسال رسالة تأكيد إلى بريدك الإلكتروني."
-              : "Thank you for registering with SafeDrop. A confirmation email has been sent to your email."}
-          </p>
-          <p className="mt-4 text-gray-600">
-            {language === "ar"
-              ? "يرجى فتح البريد الإلكتروني والنقر على رابط التأكيد لإكمال عملية التسجيل."
-              : "Please open the email and click on the confirmation link to complete the registration process."}
-          </p>
-          <div className="mt-8">
-            <Button
-              onClick={() => navigate("/login")}
-              className="bg-safedrop-gold hover:bg-safedrop-gold/90 w-full"
-            >
-              {t("login")}
-            </Button>
-          </div>
-        </div>
-      </div>
+      <SuccessPage
+        title={t("registrationSuccess")}
+        description={language === "ar"
+          ? "شكراً لتسجيلك في سيف دروب. تم إرسال رسالة تأكيد إلى بريدك الإلكتروني. يرجى فتح البريد الإلكتروني والنقر على رابط التأكيد لإكمال عملية التسجيل."
+          : "Thank you for registering with SafeDrop. A confirmation email has been sent to your email. Please open the email and click on the confirmation link to complete the registration process."}
+        buttonText={t("login")}
+        onButtonClick={() => navigate("/login")}
+      />
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8">
-        <div className="text-center">
-          <img
-            alt="SafeDrop Logo"
-            className="mx-auto h-20 w-auto mb-4"
-            src="/lovable-uploads/264169e0-0b4b-414f-b808-612506987f4a.png"
-          />
-          <h2 className="text-3xl font-bold text-safedrop-primary">
-            {t("driverRegister")}
-          </h2>
-        </div>
+    <PageLayout>
+      <LogoHeader title={t("driverRegister")} />
 
         {waitTime > 0 && (
           <div className="bg-amber-50 border border-amber-300 rounded-md p-4 mb-4 text-center">
@@ -562,23 +468,16 @@ const DriverRegisterContent = () => {
           </div>
         )}
 
-        {registrationError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-            <div className="flex gap-2 items-center justify-center">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-              <p className="text-red-700">{registrationError}</p>
-            </div>
-          </div>
-        )}
+        {registrationError && <ErrorAlert message={registrationError} />}
 
         {debugInfo && (
           <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4 text-xs">
             <h3 className="text-red-800 font-medium">
               Debug Info (Admin Only)
             </h3>
-            <p className="text-red-700">Stage: {debugInfo.stage}</p>
+            <p className="text-red-700">Stage: {String(debugInfo.stage)}</p>
             <p className="text-red-700">
-              Error: {JSON.stringify(debugInfo.error)}
+              Error: {String(debugInfo.error)}
             </p>
             {debugInfo.data && (
               <pre className="mt-2 overflow-auto max-h-32">
@@ -591,191 +490,88 @@ const DriverRegisterContent = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex gap-4">
-              <FormField
+              <CustomFormField
                 control={form.control}
                 name="firstName"
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormLabel>{t("firstName")}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input
-                          placeholder={t("firstName")}
-                          className="pl-10"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label={t("firstName")}
+                placeholder={t("firstName")}
+                icon={UserIcon}
+                className="flex-1"
               />
-              <FormField
+              <CustomFormField
                 control={form.control}
                 name="lastName"
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormLabel>{t("lastName")}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input
-                          placeholder={t("lastName")}
-                          className="pl-10"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label={t("lastName")}
+                placeholder={t("lastName")}
+                icon={UserIcon}
+                className="flex-1"
               />
             </div>
 
-            <FormField
+            <CustomFormField
               control={form.control}
               name="birthDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("birthDate")}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input
-                        type="date"
-                        placeholder={t("birthDate")}
-                        className="pl-10"
-                        {...field}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label={t("birthDate")}
+              placeholder={t("birthDate")}
+              type="date"
+              icon={Calendar}
             />
 
-            <FormField
+            <CustomFormField
               control={form.control}
               name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("email")}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input
-                        type="email"
-                        placeholder={t("emailPlaceholder")}
-                        className="pl-10"
-                        {...field}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label={t("email")}
+              placeholder={t("emailPlaceholder")}
+              type="email"
+              icon={MailIcon}
             />
 
-            <FormField
+            <CustomFormField
               control={form.control}
               name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("phone")}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input
-                        type="tel"
-                        placeholder={t("phonePlaceholder")}
-                        className="pl-10"
-                        {...field}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label={t("phone")}
+              placeholder={t("phonePlaceholder")}
+              type="tel"
+              icon={PhoneIcon}
             />
 
-            <FormField
+            <CustomFormField
               control={form.control}
               name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("password")}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        {...field}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label={t("password")}
+              placeholder="••••••••"
+              type="password"
+              icon={LockIcon}
             />
 
+            {/* الحقول التي تحتاج FormField عادي لأنها لا تحتوي على أيقونات */}
             <div className="grid grid-cols-2 gap-4">
-              <FormField
+              <CustomFormField
                 control={form.control}
                 name="nationalId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("nationalId")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t("nationalId")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label={t("nationalId")}
+                placeholder={t("nationalId")}
               />
-              <FormField
+              <CustomFormField
                 control={form.control}
                 name="licenseNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("licenseNumber")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t("licenseNumber")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label={t("licenseNumber")}
+                placeholder={t("licenseNumber")}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField
+              <CustomFormField
                 control={form.control}
                 name="vehicleInfo.make"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("vehicleMake")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t("vehicleMake")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label={t("vehicleMake")}
+                placeholder={t("vehicleMake")}
               />
-              <FormField
+              <CustomFormField
                 control={form.control}
                 name="vehicleInfo.model"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("vehicleModel")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t("vehicleModel")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label={t("vehicleModel")}
+                placeholder={t("vehicleModel")}
               />
               <FormField
                 control={form.control}
@@ -794,18 +590,11 @@ const DriverRegisterContent = () => {
                   </FormItem>
                 )}
               />
-              <FormField
+              <CustomFormField
                 control={form.control}
                 name="vehicleInfo.plateNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("plateNumber")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t("plateNumber")} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label={t("plateNumber")}
+                placeholder={t("plateNumber")}
               />
             </div>
 
@@ -895,7 +684,7 @@ const DriverRegisterContent = () => {
                     <Checkbox
                       checked={acceptedTerms}
                       onCheckedChange={(checked) => {
-                        setAcceptedTerms(checked);
+                        setAcceptedTerms(checked === true);
                         field.onChange(checked);
                       }}
                     />
@@ -952,8 +741,7 @@ const DriverRegisterContent = () => {
             {t("login")}
           </a>
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 };
 

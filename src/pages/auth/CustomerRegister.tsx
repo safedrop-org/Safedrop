@@ -1,18 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
 import {
   LanguageProvider,
@@ -24,28 +15,52 @@ import {
   LockIcon,
   MailIcon,
   PhoneIcon,
-  CheckCircle2,
-  AlertCircle,
+  LucideIcon,
 } from "lucide-react";
-import Cookies from "js-cookie";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  PageLayout, 
+  LogoHeader, 
+  ErrorAlert, 
+  SuccessPage 
+} from "@/components/auth/AuthLayout";
+import { 
+  AUTH_CONSTANTS, 
+  UserData 
+} from "@/components/auth/authConstants";
+import { 
+  checkEmailExists, 
+  isEmailDuplicateError, 
+  sendAdminNotification, 
+  setPendingUserCookie 
+} from "@/components/auth/authUtils";
+import { 
+  CustomFormField, 
+  FormFieldConfig 
+} from "@/components/auth/FormFields";
+
+// Schema definition (moved outside component to avoid recreating)
+const createCustomerRegisterSchema = (t: (key: string) => string) => z.object({
+  firstName: z.string().min(AUTH_CONSTANTS.MIN_NAME_LENGTH, { message: t("requiredFirstName") }),
+  lastName: z.string().min(AUTH_CONSTANTS.MIN_NAME_LENGTH, { message: t("requiredLastName") }),
+  email: z.string().email({ message: t("invalidEmail") }),
+  phone: z.string().min(AUTH_CONSTANTS.MIN_PHONE_LENGTH, { message: t("invalidPhoneNumber") }),
+  password: z.string().min(AUTH_CONSTANTS.MIN_PASSWORD_LENGTH, { message: t("passwordMinLength") }),
+});
+
+type CustomerFormValues = z.infer<ReturnType<typeof createCustomerRegisterSchema>>;
 
 const CustomerRegisterContent = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [registrationError, setRegistrationError] = useState(null);
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
 
-  const customerRegisterSchema = z.object({
-    firstName: z.string().min(2, { message: t("requiredFirstName") }),
-    lastName: z.string().min(2, { message: t("requiredLastName") }),
-    email: z.string().email({ message: t("invalidEmail") }),
-    phone: z.string().min(10, { message: t("invalidPhoneNumber") }),
-    password: z.string().min(8, { message: t("passwordMinLength") }),
-  });
+  // Memoized schema to prevent recreation on every render
+  const customerRegisterSchema = useMemo(() => createCustomerRegisterSchema(t), [t]);
 
-  type CustomerFormValues = z.infer<typeof customerRegisterSchema>;
-
+  // Form configuration
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerRegisterSchema),
     defaultValues: {
@@ -57,59 +72,12 @@ const CustomerRegisterContent = () => {
     },
   });
 
-  // Fixed email checking function using the database function
-  const checkEmailExists = async (email) => {
-    try {
-      const { data, error } = await supabase.rpc("check_email_exists", {
-        email_to_check: email.toLowerCase(),
-      });
-
-      if (error) {
-        console.error("Error checking email:", error);
-        return false; // Allow registration on error
-      }
-
-      return data; // Returns boolean: true if email exists, false if available
-    } catch (error) {
-      console.error("Error in email check:", error);
-      return false;
-    }
-  };
-
-  const sendAdminNotification = async (userData, userType = "customer") => {
-    try {
-      console.log(
-        `Sending admin notification for new ${userType}:`,
-        userData.email
-      );
-
-      const currentLanguage = "ar";
-
-      const { data: emailResult, error: emailError } =
-        await supabase.functions.invoke("send-admin-notification", {
-          body: {
-            userData: {
-              first_name: userData.first_name,
-              last_name: userData.last_name,
-              email: userData.email,
-              phone: userData.phone,
-              user_type: userData.user_type,
-              created_at: new Date().toISOString(),
-            },
-            userType: userType,
-            language: currentLanguage,
-          },
-        });
-
-      if (emailError) {
-        console.error("Error sending admin notification:", emailError);
-      } else {
-        console.log("Admin notification sent successfully:", emailResult);
-      }
-    } catch (error) {
-      console.error("Error in sendAdminNotification:", error);
-    }
-  };
+  // Utility functions
+  const handleEmailDuplicateError = useCallback(() => {
+    setRegistrationError(AUTH_CONSTANTS.DUPLICATE_EMAIL_MESSAGE);
+    toast.error(AUTH_CONSTANTS.DUPLICATE_EMAIL_TOAST);
+    setIsLoading(false);
+  }, []);
 
   const onSubmit = async (data: CustomerFormValues) => {
     if (isLoading) return;
@@ -121,43 +89,27 @@ const CustomerRegisterContent = () => {
       const emailExists = await checkEmailExists(data.email);
 
       if (emailExists) {
-        setRegistrationError(
-          "هذا البريد الإلكتروني مسجل بالفعل. يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول."
-        );
-        toast.error("هذا البريد الإلكتروني مسجل بالفعل");
-        setIsLoading(false);
+        handleEmailDuplicateError();
         return;
       }
 
-      const { data: authData, error: signUpError } = await supabase.auth.signUp(
-        {
-          email: data.email,
-          password: data.password,
-          options: {
-            data: {
-              first_name: data.firstName,
-              last_name: data.lastName,
-              phone: data.phone,
-              user_type: "customer",
-            },
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            phone: data.phone,
+            user_type: "customer",
           },
-        }
-      );
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
       if (signUpError) {
-        if (
-          signUpError.message.includes("User already registered") ||
-          signUpError.message.includes("already been registered") ||
-          signUpError.message.includes("duplicate") ||
-          signUpError.message.includes("already exists") ||
-          signUpError.message.includes("already taken")
-        ) {
-          setRegistrationError(
-            "هذا البريد الإلكتروني مسجل بالفعل. يرجى استخدام بريد إلكتروني آخر أو تسجيل الدخول."
-          );
-          toast.error("هذا البريد الإلكتروني مسجل بالفعل");
-          setIsLoading(false);
+        if (isEmailDuplicateError(signUpError.message)) {
+          handleEmailDuplicateError();
           return;
         }
         throw signUpError;
@@ -165,7 +117,7 @@ const CustomerRegisterContent = () => {
 
       if (!authData.user) throw new Error(t("userCreationFailed"));
 
-      const pendingUserDetails = {
+      const pendingUserDetails: UserData = {
         id: authData.user.id,
         first_name: data.firstName,
         last_name: data.lastName,
@@ -174,213 +126,141 @@ const CustomerRegisterContent = () => {
         user_type: "customer",
       };
 
-      Cookies.set("pendingUserDetails", JSON.stringify(pendingUserDetails), {
-        expires: 1 / 24,
-        secure: true,
-        sameSite: "strict",
-      });
+      setPendingUserCookie(pendingUserDetails);
 
       await sendAdminNotification(pendingUserDetails, "customer");
 
       setRegistrationComplete(true);
       toast.success(t("registrationSuccess"));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration error:", error);
 
-      const errorMsg =
-        error.message?.includes("User already registered") ||
-        error.message?.includes("duplicate key") ||
-        error.message?.includes("already registered")
-          ? "هذا البريد الإلكتروني مسجل بالفعل"
-          : error.message || t("registrationError");
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMsg = isEmailDuplicateError(errorMessage)
+        ? AUTH_CONSTANTS.DUPLICATE_EMAIL_TOAST
+        : errorMessage || t("registrationError");
 
       setRegistrationError(errorMsg);
-      toast.error(t("registrationError"), { description: error.message });
+      toast.error(t("registrationError"), { description: errorMessage });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Form field configurations
+  const formFields: FormFieldConfig[] = useMemo(() => [
+    {
+      name: "firstName",
+      label: t("firstName"),
+      placeholder: t("firstName"),
+      icon: UserIcon,
+    },
+    {
+      name: "lastName",
+      label: t("lastName"),
+      placeholder: t("lastName"),
+      icon: UserIcon,
+    },
+    {
+      name: "email",
+      label: t("email"),
+      placeholder: t("emailPlaceholder"),
+      type: "email",
+      icon: MailIcon,
+    },
+    {
+      name: "phone",
+      label: t("phone"),
+      placeholder: t("phonePlaceholder"),
+      type: "tel",
+      icon: PhoneIcon,
+    },
+    {
+      name: "password",
+      label: t("password"),
+      placeholder: "••••••••",
+      type: "password",
+      icon: LockIcon,
+    },
+  ], [t]);
+
+  // Reusable components
+  const SuccessPageComponent: React.FC = () => (
+    <SuccessPage
+      title={t("accountCreatedSuccessfully")}
+      description={t("emailVerificationSuccess")}
+      buttonText={t("goToLoginPage")}
+      onButtonClick={() =>
+        navigate("/login", {
+          state: { email: form.getValues("email") },
+        })
+      }
+    />
+  );
+
+  // Render
   if (registrationComplete) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8 text-center">
-          <div className="mx-auto flex items-center justify-center">
-            <CheckCircle2 className="h-16 w-16 text-green-500" />
-          </div>
-          <h2 className="text-2xl font-bold text-safedrop-primary">
-            {t("accountCreatedSuccessfully")}
-          </h2>
-          <p className="mt-2 text-gray-600">{t("emailVerificationSuccess")}</p>
-          <div className="mt-6">
-            <Button
-              onClick={() =>
-                navigate("/login", {
-                  state: { email: form.getValues("email") },
-                })
-              }
-              className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-            >
-              {t("goToLoginPage")}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <SuccessPageComponent />;
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white shadow-lg rounded-xl p-8">
-        <div className="text-center">
-          <img
-            alt="SafeDrop Logo"
-            className="mx-auto h-20 w-auto mb-4"
-            src="/lovable-uploads/abbaa84d-9220-43c2-833e-afb017f5a986.png"
-          />
-          <h2 className="text-3xl font-bold text-safedrop-primary">
-            {t("customerRegister")}
-          </h2>
-        </div>
+    <PageLayout>
+      <LogoHeader title={t("customerRegister")} />
+      
+      {registrationError && <ErrorAlert message={registrationError} />}
 
-        {registrationError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-            <div className="flex gap-2 items-center justify-center">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-              <p className="text-red-700">{registrationError}</p>
-            </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Name fields */}
+          <div className="flex gap-4">
+            <CustomFormField
+              control={form.control}
+              name="firstName"
+              label={formFields[0].label}
+              placeholder={formFields[0].placeholder}
+              icon={formFields[0].icon}
+              className="flex-1"
+            />
+            <CustomFormField
+              control={form.control}
+              name="lastName"
+              label={formFields[1].label}
+              placeholder={formFields[1].placeholder}
+              icon={formFields[1].icon}
+              className="flex-1"
+            />
           </div>
-        )}
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex gap-4">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormLabel>{t("firstName")}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input
-                          placeholder={t("firstName")}
-                          className="pl-10"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormLabel>{t("lastName")}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input
-                          placeholder={t("lastName")}
-                          className="pl-10"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
+          {/* Other fields */}
+          {formFields.slice(2).map((field) => (
+            <CustomFormField
+              key={field.name}
               control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("email")}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <MailIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input
-                        type="email"
-                        placeholder={t("emailPlaceholder")}
-                        className="pl-10"
-                        {...field}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              name={field.name as keyof CustomerFormValues}
+              label={field.label}
+              placeholder={field.placeholder}
+              type={field.type}
+              icon={field.icon}
             />
+          ))}
 
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("phone")}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input
-                        type="tel"
-                        placeholder={t("phonePlaceholder")}
-                        className="pl-10"
-                        {...field}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <Button
+            type="submit"
+            className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
+            disabled={isLoading}
+          >
+            {isLoading ? t("registering") : t("register")}
+          </Button>
+        </form>
+      </Form>
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("password")}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <LockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        {...field}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button
-              type="submit"
-              className="w-full bg-safedrop-gold hover:bg-safedrop-gold/90"
-              disabled={isLoading}
-            >
-              {isLoading ? t("registering") : t("register")}
-            </Button>
-          </form>
-        </Form>
-
-        <div className="text-center mt-4">
-          {t("alreadyHaveAccount")}{" "}
-          <Link to="/login" className="text-safedrop-gold hover:underline">
-            {t("login")}
-          </Link>
-        </div>
+      <div className="text-center mt-4">
+        {t("alreadyHaveAccount")}{" "}
+        <Link to="/login" className="text-safedrop-gold hover:underline">
+          {t("login")}
+        </Link>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 
