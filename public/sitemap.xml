@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://www.safedropksa.com/</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ar-SA" href="https://www.safedropksa.com/" />
+    <xhtml:link rel="alternate" hreflang="en-SA" href="https://www.safedropksa.com/en" />
+  </url>
+  
+  <!-- Services Page -->
+  <url>
+    <loc>https://www.safedropksa.com/services</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ar-SA" href="https://www.safedropksa.com/services" />
+    <xhtml:link rel="alternate" hreflang="en-SA" href="https://www.safedropksa.com/en/services" />
+  </url>
+  
+  <!-- Pricing Page -->
+  <url>
+    <loc>https://www.safedropksa.com/pricing</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar-SA" href="https://www.safedropksa.com/pricing" />
+    <xhtml:link rel="alternate" hreflang="en-SA" href="https://www.safedropksa.com/en/pricing" />
+  </url>
+  
+  <!-- About Page -->
+  <url>
+    <loc>https://www.safedropksa.com/about</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar-SA" href="https://www.safedropksa.com/about" />
+    <xhtml:link rel="alternate" hreflang="en-SA" href="https://www.safedropksa.com/en/about" />
+  </url>
+  
+  <!-- Contact Page -->
+  <url>
+    <loc>https://www.safedropksa.com/contact</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar-SA" href="https://www.safedropksa.com/contact" />
+    <xhtml:link rel="alternate" hreflang="en-SA" href="https://www.safedropksa.com/en/contact" />
+  </url>
+  
+  <!-- Register Pages -->
+  <url>
+    <loc>https://www.safedropksa.com/register</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Terms and Privacy -->
+  <url>
+    <loc>https://www.safedropksa.com/terms</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.safedropksa.com/privacy</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Driver Terms -->
+  <url>
+    <loc>https://www.safedropksa.com/driver-terms</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- City-specific Landing Pages -->
+  <url>
+    <loc>https://www.safedropksa.com/riyadh-delivery</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.safedropksa.com/jeddah-delivery</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.safedropksa.com/dammam-delivery</loc>
+    <lastmod>2025-01-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+</urlset>

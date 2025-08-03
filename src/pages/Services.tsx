@@ -8,6 +8,7 @@ import Footer from "@/components/layout/footer";
 import { Shield, Truck, Package, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { SEO } from "@/components/layout/SEO";
 
 const ServicesContent = () => {
   const { t, language } = useLanguage();
@@ -18,8 +19,62 @@ const ServicesContent = () => {
     document.documentElement.lang = language;
   }, [language]);
 
+  const servicesSchemaData = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "خدمات التوصيل الآمن - سيف دروب",
+    "provider": {
+      "@type": "Organization",
+      "name": "سيف دروب - SafeDrop KSA",
+      "url": "https://www.safedropksa.com"
+    },
+    "description": "خدمات توصيل متخصصة وآمنة للشحنات الثمينة في المملكة العربية السعودية",
+    "areaServed": {
+      "@type": "Country",
+      "name": "المملكة العربية السعودية"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "كتالوج خدمات التوصيل",
+      "itemListElement": [
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "توصيل الشحنات الثمينة",
+            "description": "خدمة توصيل مؤمنة للمجوهرات والإلكترونيات والوثائق المهمة"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "التوصيل السريع",
+            "description": "توصيل في نفس اليوم لجميع أنحاء المملكة"
+          }
+        },
+        {
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "Service",
+            "name": "التتبع المباشر",
+            "description": "تتبع الشحنة في الوقت الفعلي عبر التطبيق"
+          }
+        }
+      ]
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title="خدمات التوصيل الآمن والمضمون للشحنات الثمينة في السعودية - سيف دروب"
+        description="اكتشف خدمات التوصيل المتخصصة من سيف دروب: توصيل الشحنات الثمينة، التوصيل السريع، التتبع المباشر، والتأمين الشامل. خدمة احترافية في جميع أنحاء المملكة العربية السعودية."
+        keywords="خدمات التوصيل السعودية, توصيل الشحنات الثمينة, التوصيل السريع, تتبع الشحنات, تأمين الشحنات, خدمة توصيل احترافية, سيف دروب خدمات, SafeDrop services"
+        url="https://www.safedropksa.com/services"
+        canonical="https://www.safedropksa.com/services"
+        schemaData={servicesSchemaData}
+      />
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}

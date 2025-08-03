@@ -5,12 +5,47 @@ import {
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { Award, Target, Users, Shield } from "lucide-react";
+import { SEO } from "@/components/layout/SEO";
 
 const AboutContent = () => {
   const { t } = useLanguage();
 
+  const aboutSchemaData = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "mainEntity": {
+      "@type": "Organization",
+      "name": "سيف دروب - SafeDrop KSA",
+      "description": "شركة رائدة في خدمات التوصيل الآمن والمضمون للشحنات الثمينة في المملكة العربية السعودية",
+      "foundingDate": "2023",
+      "url": "https://www.safedropksa.com",
+      "logo": "https://www.safedropksa.com/logo-safedrop-ksa.png",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "شارع الملك فهد",
+        "addressLocality": "الرياض",
+        "addressRegion": "منطقة الرياض",
+        "postalCode": "11564",
+        "addressCountry": "SA"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+966-11-123-4567",
+        "contactType": "customer service"
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title="من نحن - سيف دروب: الرائدون في خدمات التوصيل الآمن في السعودية"
+        description="تعرف على قصة سيف دروب، الشركة الرائدة في خدمات التوصيل الآمن والمضمون للشحنات الثمينة في المملكة العربية السعودية. رؤيتنا، رسالتنا، وقيمنا في خدمة عملائنا."
+        keywords="من نحن سيف دروب, قصة SafeDrop, شركة التوصيل السعودية, رؤية ورسالة سيف دروب, عن الشركة, تاريخ SafeDrop KSA"
+        url="https://www.safedropksa.com/about"
+        canonical="https://www.safedropksa.com/about"
+        schemaData={aboutSchemaData}
+      />
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}

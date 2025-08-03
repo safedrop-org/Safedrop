@@ -1,20 +1,12 @@
-import AdminSidebar from "@/components/admin/AdminSidebar";
-import { LanguageProvider } from "@/components/ui/language-context";
+import { AdminLayout } from "@/components/admin";
 import DriverDetails from "./DriverDetails";
 
-const DriverVerificationWithSidebar = () => {
+const DriverDetailsWithSidebar = () => {
   return (
-    <LanguageProvider>
-      <div className="flex h-screen overflow-hidden">
-        <AdminSidebar />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <main className="flex-1 overflow-y-auto p-6">
-            <DriverDetails />
-          </main>
-        </div>
-      </div>
-    </LanguageProvider>
+    <AdminLayout>
+      <DriverDetails />
+    </AdminLayout>
   );
 };
 
-export default DriverVerificationWithSidebar;
+export default DriverDetailsWithSidebar;

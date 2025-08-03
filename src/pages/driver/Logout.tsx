@@ -24,7 +24,7 @@ const DriverLogout = () => {
     };
 
     performLogout();
-  }, [navigate, signOut]);
+  }, [navigate, signOut, t]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

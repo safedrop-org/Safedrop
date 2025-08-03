@@ -1,0 +1,24 @@
+# SEO Configuration Headers for SafeDrop KSA
+
+# Security Headers
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-src 'self'
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: geolocation=(self), microphone=(), camera=()
+
+# Cache Headers for Performance
+Cache-Control: max-age=31536000, immutable
+# For HTML files
+Cache-Control: no-cache, no-store, must-revalidate
+
+# GZIP Compression
+Content-Encoding: gzip
+
+# Preload Critical Resources
+Link: </fonts/main.woff2>; rel=preload; as=font; type=font/woff2; crossorigin
+Link: </css/critical.css>; rel=preload; as=style
+
+# Service Worker
+Service-Worker-Allowed: /

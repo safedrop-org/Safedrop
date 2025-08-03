@@ -1,21 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth/AuthContext";
-import CustomerSidebar from "@/components/customer/CustomerSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import CustomerPageLayout from "@/components/customer/CustomerPageLayout";
+import StatusBadge from "@/components/customer/common/StatusBadge";
+import DataTable from "@/components/customer/common/DataTable";
+import { StatsGrid } from "@/components/customer/common/StatsGrid";
+import { useFormatDate, useFormatCurrency } from "@/hooks/useFormatters";
 import { toast } from "sonner";
 import { CreditCard, DollarSign, Receipt, AlertCircle } from "lucide-react";
-import {
-  LanguageProvider,
-  useLanguage,
-} from "@/components/ui/language-context";
+import { useLanguage } from "@/components/ui/language-context";
+
+interface Transaction {
+  id: string;
+  order_id: string;
+  order_number: string;
+  price: number;
+  payment_status: string;
+  created_at: string;
+  status: string;
+}
 
 const CustomerBillingContent = () => {
   const { user } = useAuth();
-  const [transactions, setTransactions] = useState([]);
+  const { t } = useLanguage();
+  const { formatDate } = useFormatDate();
+  const { formatCurrency } = useFormatCurrency();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalSpent, setTotalSpent] = useState(0);
-  const { t } = useLanguage();
 
   useEffect(() => {
     if (!user) return;
@@ -50,193 +62,74 @@ const CustomerBillingContent = () => {
       }
     };
 
-    fetchTransactions();
   }, [user, t]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }).format(date);
-  };
+  const statsData = [
+    {
+      title: t("Total Payments"),
+      value: formatCurrency(totalSpent),
+      icon: <DollarSign className="h-5 w-5 text-safedrop-gold" />,
+    },
+    {
+      title: t("Payment Method"),
+      value: t("You need to add a payment method"),
+      icon: <CreditCard className="h-5 w-5 text-safedrop-gold" />,
+      description: t("No payment methods registered"),
+    },
+    {
+      title: t("Number of Invoices"),
+      value: transactions.length.toString(),
+      icon: <Receipt className="h-5 w-5 text-safedrop-gold" />,
+    },
+  ];
 
-  const formatCurrency = (amount) => {
-    return amount
-      ? `${amount.toFixed(2)} ${t("currency")}`
-      : `0.00 ${t("currency")}`;
-  };
-
-  const getPaymentStatusBadge = (status) => {
-    const badgeClasses = {
-      base: "px-2 py-1 rounded-full text-xs font-medium",
-      paid: "bg-green-100 text-green-800",
-      pending: "bg-yellow-100 text-yellow-800",
-      failed: "bg-red-100 text-red-800",
-    };
-
-    const statusTranslation = {
-      paid: t("paid"),
-      pending: t("pending"),
-      failed: t("failed"),
-    };
-
-    return (
-      <span className={`${badgeClasses.base} ${badgeClasses[status]}`}>
-        {statusTranslation[status] || status}
-      </span>
-    );
-  };
+  const tableColumns = [
+    {
+      key: "order_id",
+      header: t("Invoice ID"),
+      className: "text-gray-900",
+    },
+    {
+      key: "order_number",
+      header: t("Order ID"),
+    },
+    {
+      key: "created_at",
+      header: t("Date"),
+      render: (value: string) => formatDate(value),
+    },
+    {
+      key: "price",
+      header: t("Amount"),
+      render: (value: number) => formatCurrency(value),
+    },
+    {
+      key: "payment_status",
+      header: t("Payment Status"),
+      render: (value: string) => <StatusBadge status={value} type="payment" />,
+    },
+  ];
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <CustomerSidebar />
-      <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-3xl font-bold mb-6 text-safedrop-primary">
-          {t("Billing & Payment")}
-        </h1>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-safedrop-primary"></div>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-safedrop-gold" />
-                    <span>{t("Total Payments")}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">
-                    {formatCurrency(totalSpent)}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-safedrop-gold" />
-                    <span>{t("Payment Method")}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg">
-                    {t("You need to add a payment method")}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {t("No payment methods registered")}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Receipt className="h-5 w-5 text-safedrop-gold" />
-                    <span>{t("Number of Invoices")}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{transactions.length}</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle className="text-xl">
-                  {t("Payment History")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {transactions.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {t("Invoice ID")}
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {t("Order ID")}
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {t("Date")}
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {t("Amount")}
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          >
-                            {t("Payment Status")}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {transactions.map((tx) => (
-                          <tr key={tx.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {tx.order_id}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {tx.order_number}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {formatDate(tx.created_at)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {formatCurrency(tx.price)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {getPaymentStatusBadge(tx.payment_status)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="text-center py-10 text-gray-500">
-                    <AlertCircle className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                    <p>{t("No financial transactions currently")}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </>
-        )}
-      </main>
-    </div>
+    <CustomerPageLayout title={t("Billing & Payment")} loading={loading}>
+      <StatsGrid stats={statsData} className="mb-6" />
+      
+      <DataTable
+        title={t("Payment History")}
+        columns={tableColumns}
+        data={transactions}
+        emptyState={{
+          icon: <AlertCircle className="h-16 w-16 text-gray-300 mx-auto mb-4" />,
+          title: t("No financial transactions currently"),
+          description: t("Your payment history will appear here once you start making orders"),
+        }}
+      />
+    </CustomerPageLayout>
   );
 };
 
 const CustomerBilling = () => {
-  return (
-    <LanguageProvider>
-      <CustomerBillingContent />
-    </LanguageProvider>
-  );
+  return <CustomerBillingContent />;
 };
 
 export default CustomerBilling;

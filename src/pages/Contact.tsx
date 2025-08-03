@@ -10,10 +10,43 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { MapPin, Mail, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SEO } from '@/components/layout/SEO';
 
 const ContactContent = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  
+  const contactSchemaData = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "mainEntity": {
+      "@type": "Organization",
+      "name": "سيف دروب - SafeDrop KSA",
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "telephone": "+966-11-123-4567",
+          "contactType": "customer service",
+          "availableLanguage": ["Arabic", "English"],
+          "hoursAvailable": {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            "opens": "08:00",
+            "closes": "22:00"
+          }
+        }
+      ],
+      "email": "info@safedropksa.com",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "شارع الملك فهد",
+        "addressLocality": "الرياض",
+        "addressRegion": "منطقة الرياض",
+        "postalCode": "11564",
+        "addressCountry": "SA"
+      }
+    }
+  };
   
   const [formState, setFormState] = useState({
     name: '',
@@ -56,6 +89,14 @@ const ContactContent = () => {
   
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title="تواصل معنا - سيف دروب | خدمة عملاء متميزة 24/7 في السعودية"
+        description="تواصل مع فريق خدمة العملاء في سيف دروب. نحن هنا لمساعدتك في جميع استفساراتك حول خدمات التوصيل الآمن في المملكة العربية السعودية. اتصل بنا، راسلنا، أو زر مكاتبنا."
+        keywords="تواصل معنا سيف دروب, خدمة عملاء SafeDrop, رقم هاتف سيف دروب, عنوان مكاتب سيف دروب, دعم فني SafeDrop KSA, استفسارات التوصيل"
+        url="https://www.safedropksa.com/contact"
+        canonical="https://www.safedropksa.com/contact"
+        schemaData={contactSchemaData}
+      />
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}

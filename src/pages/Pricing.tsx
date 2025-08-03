@@ -5,9 +5,46 @@ import Navbar from '@/components/layout/navbar';
 import Footer from '@/components/layout/footer';
 import { CheckIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SEO } from '@/components/layout/SEO';
 
 const PricingContent = () => {
   const { t } = useLanguage();
+
+  const pricingSchemaData = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "خدمات التوصيل الآمن - باقات الأسعار",
+    "brand": {
+      "@type": "Brand",
+      "name": "سيف دروب - SafeDrop KSA"
+    },
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "الباقة الأساسية",
+        "description": "باقة التوصيل الأساسية للمستخدمين الأفراد",
+        "price": "99",
+        "priceCurrency": "SAR",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "Organization",
+          "name": "سيف دروب - SafeDrop KSA"
+        }
+      },
+      {
+        "@type": "Offer",
+        "name": "الباقة المتميزة",
+        "description": "باقة متقدمة للتجار والشركات الصغيرة",
+        "price": "199",
+        "priceCurrency": "SAR",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "Organization",
+          "name": "سيف دروب - SafeDrop KSA"
+        }
+      }
+    ]
+  };
 
   const pricingPlans = [
     {
@@ -53,6 +90,14 @@ const PricingContent = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEO
+        title="باقات وأسعار خدمة التوصيل الآمن في السعودية - سيف دروب"
+        description="تعرف على باقات وأسعار خدمة التوصيل الآمن من سيف دروب. باقات متنوعة تناسب الأفراد والتجار والشركات بأسعار تنافسية وخدمات مميزة في جميع أنحاء المملكة العربية السعودية."
+        keywords="أسعار التوصيل السعودية, باقات الشحن, تكلفة التوصيل الآمن, أسعار سيف دروب, باقات التوصيل, عروض الشحن السعودية, SafeDrop pricing"
+        url="https://www.safedropksa.com/pricing"
+        canonical="https://www.safedropksa.com/pricing"
+        schemaData={pricingSchemaData}
+      />
       <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}

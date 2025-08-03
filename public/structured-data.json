@@ -1,0 +1,141 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.safedropksa.com/#organization",
+      "name": "سيف دروب - SafeDrop KSA",
+      "alternateName": "SafeDrop KSA",
+      "url": "https://www.safedropksa.com",
+      "logo": {
+        "@type": "ImageObject",
+        "@id": "https://www.safedropksa.com/#logo",
+        "url": "https://www.safedropksa.com/logo-safedrop-ksa.png",
+        "contentUrl": "https://www.safedropksa.com/logo-safedrop-ksa.png",
+        "width": 512,
+        "height": 512,
+        "caption": "سيف دروب - SafeDrop KSA"
+      },
+      "image": {
+        "@id": "https://www.safedropksa.com/#logo"
+      },
+      "description": "الشركة الرائدة في خدمات التوصيل الآمن والمضمون للشحنات الثمينة في المملكة العربية السعودية",
+      "telephone": "+966-11-123-4567",
+      "email": "info@safedropksa.com",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "شارع الملك فهد",
+        "addressLocality": "الرياض",
+        "addressRegion": "منطقة الرياض",
+        "postalCode": "11564",
+        "addressCountry": "SA"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 24.7136,
+        "longitude": 46.6753
+      },
+      "foundingDate": "2023",
+      "numberOfEmployees": {
+        "@type": "QuantitativeValue",
+        "value": "50-100"
+      },
+      "areaServed": [
+        {
+          "@type": "Country",
+          "name": "المملكة العربية السعودية",
+          "sameAs": "https://en.wikipedia.org/wiki/Saudi_Arabia"
+        }
+      ],
+      "serviceType": [
+        "Delivery Service",
+        "Logistics",
+        "Secure Transport"
+      ],
+      "sameAs": [
+        "https://twitter.com/safedropksa",
+        "https://instagram.com/safedropksa",
+        "https://linkedin.com/company/safedropksa"
+      ],
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "telephone": "+966-11-123-4567",
+          "contactType": "customer service",
+          "availableLanguage": ["Arabic", "English"],
+          "hoursAvailable": {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday", 
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ],
+            "opens": "08:00",
+            "closes": "22:00"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "Service",
+      "@id": "https://www.safedropksa.com/#service",
+      "name": "خدمة التوصيل الآمن",
+      "provider": {
+        "@id": "https://www.safedropksa.com/#organization"
+      },
+      "description": "خدمة توصيل احترافية وآمنة للشحنات الثمينة والمهمة",
+      "serviceType": "Delivery Service",
+      "areaServed": {
+        "@type": "Country",
+        "name": "المملكة العربية السعودية"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "كتالوج خدمات التوصيل",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "توصيل الشحنات الثمينة",
+              "description": "خدمة توصيل مؤمنة للمجوهرات والإلكترونيات والوثائق المهمة"
+            },
+            "priceRange": "99-499 SAR"
+          },
+          {
+            "@type": "Offer", 
+            "itemOffered": {
+              "@type": "Service",
+              "name": "التوصيل السريع",
+              "description": "توصيل في نفس اليوم لجميع أنحاء المملكة"
+            },
+            "priceRange": "99-499 SAR"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.safedropksa.com/#website", 
+      "url": "https://www.safedropksa.com",
+      "name": "سيف دروب - SafeDrop KSA",
+      "description": "الموقع الرسمي لشركة سيف دروب لخدمات التوصيل الآمن في السعودية",
+      "publisher": {
+        "@id": "https://www.safedropksa.com/#organization"
+      },
+      "inLanguage": "ar-SA",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.safedropksa.com/search?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}

@@ -32,6 +32,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useLanguage } from "@/components/ui/language-context";
+import { ISSUE_TYPE_KEYS, COMPLAINT_CONSTANTS, COMPLAINT_STATUS } from "@/constants/complaint";
+import { handleFileUpload, validateFile, getIssueTypeLabel } from "@/utils/complaintUtils";
+import { createComplaintNotifications, sendComplaintEmailNotification } from "@/utils/complaintNotifications";
+import { ComplaintFormValues } from "@/types/complaint";
 
 const CustomerComplaintFormModal = ({ trigger }) => {
   const { user } = useAuth();
@@ -46,7 +50,7 @@ const CustomerComplaintFormModal = ({ trigger }) => {
     issue_type: z.string().min(1, { message: t("issueTypeRequired") }),
     description: z
       .string()
-      .min(10, { message: t("problemDescriptionRequired") }),
+      .min(COMPLAINT_CONSTANTS.MIN_DESCRIPTION_LENGTH, { message: t("problemDescriptionRequired") }),
     order_number: z.string().optional(),
   });
 
@@ -61,85 +65,14 @@ const CustomerComplaintFormModal = ({ trigger }) => {
     },
   });
 
-  const issueTypes = [
-    { value: "login", label: t("issueTypeLogin") },
-    { value: "order", label: t("issueTypeOrder") },
-    { value: "payment", label: t("issueTypePayment") },
-    { value: "customer", label: t("issueTypeCustomer") },
-    { value: "other", label: t("issueTypeOther") },
-  ];
-
-  const getIssueTypeLabel = (type: string) => {
-    const types = {
-      login: t("issueTypeLogin"),
-      order: t("issueTypeOrder"),
-      payment: t("issueTypePayment"),
-      customer: t("issueTypeCustomer"),
-      other: t("issueTypeOther"),
-    };
-    return types[type as keyof typeof types] || type;
-  };
-
-  const handleFileUpload = async (file: File): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `complaint-attachments/${fileName}`;
-
-      setUploadProgress(10);
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("complaint-attachments")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw uploadError;
-      }
-
-      setUploadProgress(80);
-
-      const { data: urlData } = supabase.storage
-        .from("complaint-attachments")
-        .getPublicUrl(filePath);
-
-      setUploadProgress(100);
-
-      if (urlData?.publicUrl) {
-        return urlData.publicUrl;
-      }
-
-      throw new Error("Failed to get public URL");
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      toast.error(t("fileUploadError"));
-      return null;
-    }
-  };
+  const issueTypes = ISSUE_TYPE_KEYS.map((issueType) => ({
+    value: issueType.value,
+    label: t(issueType.labelKey),
+  }));
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(t("fileTooLarge"));
-        return;
-      }
-
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "application/pdf",
-        "text/plain",
-      ];
-      if (!allowedTypes.includes(file.type)) {
-        toast.error(t("unsupportedFileType"));
-        return;
-      }
-
+    if (file && validateFile(file, t)) {
       setUploadedFile(file);
     }
   };
@@ -147,115 +80,6 @@ const CustomerComplaintFormModal = ({ trigger }) => {
   const removeFile = () => {
     setUploadedFile(null);
     setUploadProgress(0);
-  };
-
-  const createNotifications = async (complaintData: any, userName: string) => {
-    try {
-      await supabase.from("customer_notifications").insert({
-        customer_id: user.id,
-        title: t("complaintConfirmationTitle"),
-        message: t("complaintConfirmationMessage").replace(
-          "{issueType}",
-          getIssueTypeLabel(complaintData.issue_type)
-        ),
-        notification_type: "complaint_confirmation",
-        read: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-
-      let { data: admins, error: adminError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("role", "admin");
-
-      if (!admins || admins.length === 0) {
-        const { data: adminsByType } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("user_type", "admin");
-
-        if (adminsByType && adminsByType.length > 0) {
-          admins = adminsByType;
-        }
-      }
-
-      if (!admins || admins.length === 0) {
-        const { data: adminsByEmail } = await supabase
-          .from("profiles")
-          .select("id")
-          .or("email.ilike.%admin%,email.ilike.%support%");
-
-        if (adminsByEmail && adminsByEmail.length > 0) {
-          admins = adminsByEmail;
-        }
-      }
-
-      if (admins && admins.length > 0) {
-        const adminNotifications = admins.map((admin) => ({
-          customer_id: admin.id,
-          title: t("newComplaintTitle"),
-          message: t("newComplaintMessage")
-            .replace("{userName}", userName)
-            .replace(
-              "{issueType}",
-              getIssueTypeLabel(complaintData.issue_type)
-            ),
-          notification_type: "complaint",
-          read: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }));
-
-        await supabase
-          .from("customer_notifications")
-          .insert(adminNotifications);
-      } else {
-        console.warn("No admin users found for notifications");
-      }
-    } catch (error) {
-      console.error("Error creating notifications:", error);
-    }
-  };
-
-  const sendEmailNotification = async (complaintData) => {
-    try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("email, first_name, last_name")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile) {
-        console.log("No profile found for user");
-        return;
-      }
-
-      console.log("Attempting to send email to:", profile.email);
-
-      const currentLanguage = language;
-
-      const { data: emailResult, error: emailError } =
-        await supabase.functions.invoke("send-complaint-confirmation", {
-          body: {
-            to: profile.email,
-            language: currentLanguage,
-            complaintData: {
-              ...complaintData,
-              userName: `${profile.first_name} ${profile.last_name}`,
-              userEmail: profile.email,
-            },
-          },
-        });
-
-      if (emailError) {
-        console.error("Error sending email:", emailError);
-      } else {
-        console.log("Email sent successfully:", emailResult);
-      }
-    } catch (error) {
-      console.error("Error in sendEmailNotification:", error);
-    }
   };
 
   const onSubmit = async (data: ComplaintFormValues) => {
@@ -271,7 +95,7 @@ const CustomerComplaintFormModal = ({ trigger }) => {
 
       if (uploadedFile) {
         setUploadProgress(0);
-        attachmentUrl = await handleFileUpload(uploadedFile);
+        attachmentUrl = await handleFileUpload(uploadedFile, user.id, setUploadProgress, t);
         if (!attachmentUrl) {
           setIsLoading(false);
           return;
@@ -284,7 +108,7 @@ const CustomerComplaintFormModal = ({ trigger }) => {
         description: data.description,
         order_number: data.order_number || null,
         attachment_url: attachmentUrl,
-        status: "pending",
+        status: COMPLAINT_STATUS.PENDING,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -295,7 +119,8 @@ const CustomerComplaintFormModal = ({ trigger }) => {
         .select()
         .single();
 
-      sendEmailNotification(complaint);
+      // Send email notification
+      await sendComplaintEmailNotification(complaint, user.id, language);
 
       if (complaintError) {
         console.error("Error creating complaint:", complaintError);
@@ -312,7 +137,8 @@ const CustomerComplaintFormModal = ({ trigger }) => {
         ? `${userProfile.first_name} ${userProfile.last_name}`
         : t("defaultUserName");
 
-      await createNotifications(complaintData, userName);
+      // Create notifications
+      await createComplaintNotifications(complaintData, userName, user.id, t);
 
       toast.success(t("complaintSubmittedSuccess"));
 

@@ -1,31 +1,29 @@
 import { useState, useEffect } from "react";
-import {
-  LanguageProvider,
-  useLanguage,
-} from "@/components/ui/language-context";
+import { useLanguage } from "@/components/ui/language-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import DriverSidebar from "@/components/driver/DriverSidebar";
-import {
-  Bell,
-  Package,
-  Star,
-  DollarSign,
-  Settings,
-  MessageSquare,
-  CheckCircle,
-  Clock,
-} from "lucide-react";
+import { Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { 
+  DriverPageLayout, 
+  DriverNotificationCard, 
+  DriverLoadingSpinner 
+} from "@/components/driver/common";
 
 const DriverNotificationsContent = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Array<{
+    id: string;
+    title: string;
+    message: string;
+    notification_type: string;
+    created_at: string;
+    read: boolean;
+  }>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -109,208 +107,63 @@ const DriverNotificationsContent = () => {
     }
   };
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case "order":
-        return <Package className="h-5 w-5 text-blue-600" />;
-      case "rating":
-        return <Star className="h-5 w-5 text-yellow-600" />;
-      case "earning":
-        return <DollarSign className="h-5 w-5 text-green-600" />;
-      case "complaint":
-      case "complaint_confirmation":
-        return <MessageSquare className="h-5 w-5 text-orange-600" />;
-      case "complaint_resolved":
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case "system":
-        return <Settings className="h-5 w-5 text-purple-600" />;
-      default:
-        return <Bell className="h-5 w-5 text-gray-600" />;
-    }
-  };
-
-  const getNotificationColor = (type: string, read: boolean) => {
-    const baseColors = {
-      order: "bg-blue-50 border-blue-200",
-      rating: "bg-yellow-50 border-yellow-200",
-      earning: "bg-green-50 border-green-200",
-      complaint: "bg-orange-50 border-orange-200",
-      complaint_confirmation: "bg-blue-50 border-blue-200",
-      complaint_resolved: "bg-green-50 border-green-200",
-      system: "bg-purple-50 border-purple-200",
-      default: "bg-gray-50 border-gray-200",
-    };
-
-    const color = baseColors[type] || baseColors.default;
-    return read ? "bg-white border-gray-200" : color;
-  };
-
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen bg-gray-50">
-        <DriverSidebar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
+    return <DriverLoadingSpinner message={t("loadingNotifications")} fullScreen />;
   }
 
+  const headerActions = unreadCount > 0 ? (
+    <>
+      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+        {unreadCount} {t("unread")}
+      </Badge>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={markAllAsRead}
+        className="text-blue-600"
+      >
+        {t("markAllAsRead")}
+      </Button>
+    </>
+  ) : null;
+
   return (
-    <div className="flex h-screen bg-gray-50">
-      <DriverSidebar />
-
-      <div className="flex-1 flex flex-col overflow-auto">
-        <header className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold text-gray-900">
-                  {t("notificationsPageTitle")}
-                </h1>
-                {unreadCount > 0 && (
-                  <Badge variant="destructive" className="bg-red-500">
-                    {unreadCount} {t("newNotification")}
-                  </Badge>
-                )}
-              </div>
-              <div className="flex gap-2">
-                {unreadCount > 0 && (
-                  <Button variant="outline" size="sm" onClick={markAllAsRead}>
-                    {t("markAllAsRead")}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-auto p-4">
-          <div className="max-w-3xl mx-auto space-y-4">
-            {notifications.length > 0 ? (
-              notifications.map((notification) => (
-                <Card
-                  key={notification.id}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-md ${getNotificationColor(
-                    notification.notification_type,
-                    notification.read
-                  )}`}
-                  onClick={() =>
-                    !notification.read && markAsRead(notification.id)
-                  }
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          notification.read
-                            ? "bg-gray-100"
-                            : "bg-white shadow-sm"
-                        }`}
-                      >
-                        {getNotificationIcon(notification.notification_type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p
-                                className={`font-medium text-sm ${
-                                  notification.read
-                                    ? "text-gray-700"
-                                    : "text-gray-900"
-                                }`}
-                              >
-                                {notification.title}
-                              </p>
-                              {!notification.read && (
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              )}
-                            </div>
-                            <p
-                              className={`text-sm leading-relaxed ${
-                                notification.read
-                                  ? "text-gray-500"
-                                  : "text-gray-700"
-                              }`}
-                            >
-                              {notification.message}
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-end gap-2">
-                            <span className="text-xs text-gray-500 whitespace-nowrap">
-                              {format(
-                                new Date(notification.created_at),
-                                "dd/MM/yyyy"
-                              )}
-                            </span>
-                            <span className="text-xs text-gray-400 whitespace-nowrap">
-                              {format(
-                                new Date(notification.created_at),
-                                "HH:mm"
-                              )}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Action buttons */}
-                        <div className="flex justify-end mt-3 gap-2">
-                          {!notification.read && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                markAsRead(notification.id);
-                              }}
-                              className="text-xs"
-                            >
-                              {t("markAsRead")}
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteNotification(notification.id);
-                            }}
-                            className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            {t("deleteNotification")}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-12">
-                <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {t("noNotificationsAvailable")}
-                </h3>
-                <p className="text-gray-500">
-                  {t("notificationsWillAppearHere")}
-                </p>
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
-    </div>
+    <DriverPageLayout 
+      title={t("notifications")}
+      headerActions={headerActions}
+    >
+      {notifications.length === 0 ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {t("noNotifications")}
+            </h3>
+            <p className="text-gray-500">
+              {t("noNotificationsDescription")}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {notifications.map((notification) => (
+            <DriverNotificationCard
+              key={notification.id}
+              notification={notification}
+              onMarkAsRead={markAsRead}
+              onDelete={deleteNotification}
+            />
+          ))}
+        </div>
+      )}
+    </DriverPageLayout>
   );
 };
 
 const DriverNotifications = () => {
-  return (
-    <LanguageProvider>
-      <DriverNotificationsContent />
-    </LanguageProvider>
-  );
+  return <DriverNotificationsContent />;
 };
 
 export default DriverNotifications;

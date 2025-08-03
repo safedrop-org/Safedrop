@@ -12,3 +12,36 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /private/
+Disallow: /*.json$
+Disallow: /auth/
+
+# Allow important directories
+Allow: /services/
+Allow: /pricing/
+Allow: /about/
+Allow: /contact/
+Allow: /register/
+
+# Sitemap location
+Sitemap: https://www.safedropksa.com/sitemap.xml
+
+# Host directive (helps with canonicalization)
+Host: https://www.safedropksa.com
