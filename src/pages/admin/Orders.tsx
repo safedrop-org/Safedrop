@@ -92,7 +92,7 @@ const Orders: React.FC = () => {
           <CardContent className="p-6">
             <div className="text-center space-y-4">
               <div className="text-red-500">
-                <AlertTriangle className="h-12 w-12 mx-auto" />
+                <AlertTriangle className="h-12  w-12 mx-auto" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-red-800 mb-2">
