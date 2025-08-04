@@ -17,7 +17,8 @@ export function useAuth() {
   const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
 
-  const clearAuthData = useCallback((preserveVerificationData = false) => {
+  // Helper function to clear authentication cookies
+  const clearAuthCookies = useCallback((preserveVerificationData = false) => {
     const authCookieKeys = Object.keys(Cookies.get()).filter(
       (key) =>
         key.includes("Auth") ||
@@ -28,31 +29,49 @@ export function useAuth() {
     authCookieKeys.forEach((cookieName) => {
       Cookies.remove(cookieName, { path: "/" });
     });
+  }, []);
 
-    if (!preserveVerificationData) {
-      for (const key of Object.keys(localStorage)) {
-        if (
-          key.startsWith("driverFiles_") ||
-          key === "pendingDriverRegistration" ||
-          key === "pendingDriverData"
-        ) {
-          localStorage.removeItem(key);
-        }
+  // Helper function to clear driver-specific localStorage items
+  const clearDriverLocalStorage = useCallback(() => {
+    for (const key of Object.keys(localStorage)) {
+      if (
+        key.startsWith("driverFiles_") ||
+        key === "pendingDriverRegistration" ||
+        key === "pendingDriverData"
+      ) {
+        localStorage.removeItem(key);
       }
     }
+  }, []);
 
+  // Helper function to clear Supabase localStorage items
+  const clearSupabaseLocalStorage = useCallback(() => {
     if (window.localStorage) {
       Object.keys(localStorage)
         .filter((key) => key.startsWith("sb-"))
         .forEach((key) => localStorage.removeItem(key));
     }
+  }, []);
 
+  // Helper function to safely clear sessionStorage
+  const clearSessionStorageSafely = useCallback(() => {
     try {
       sessionStorage.clear();
     } catch (error) {
       console.error("Error clearing sessionStorage:", error);
     }
   }, []);
+
+  const clearAuthData = useCallback((preserveVerificationData = false) => {
+    clearAuthCookies(preserveVerificationData);
+
+    if (!preserveVerificationData) {
+      clearDriverLocalStorage();
+    }
+
+    clearSupabaseLocalStorage();
+    clearSessionStorageSafely();
+  }, [clearAuthCookies, clearDriverLocalStorage, clearSupabaseLocalStorage, clearSessionStorageSafely]);
 
   const setAuthCookieByType = useCallback((type, email) => {
     const existingAuthCookies = Object.keys(Cookies.get()).filter(

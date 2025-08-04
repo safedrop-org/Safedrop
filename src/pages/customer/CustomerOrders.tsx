@@ -42,6 +42,49 @@ const CustomerOrdersContent = () => {
     setOrderToCancel(null);
   };
 
+  const renderActiveOrdersTab = () => (
+    <TabsContent
+      value="active"
+      className="bg-white p-4 rounded-lg shadow"
+    >
+      <h3 className="text-xl font-semibold mb-4">
+        {t("Active Orders")}
+      </h3>
+      <OrderTable
+        orders={activeOrders}
+        onCancelOrder={handleCancelOrder}
+        onCompleteOrder={handleCompleteOrder}
+        showActions={true}
+      />
+    </TabsContent>
+  );
+
+  const renderHistoryOrdersTab = () => (
+    <TabsContent
+      value="history"
+      className="bg-white p-4 rounded-lg shadow"
+    >
+      <h3 className="text-xl font-semibold mb-4">
+        {t("Order History")}
+      </h3>
+      <OrderTable
+        orders={historyOrders}
+        showActions={false}
+      />
+    </TabsContent>
+  );
+
+  const renderOrderTabs = () => (
+    <Tabs defaultValue="active" className="w-full">
+      <TabsList className="w-full grid grid-cols-2 mb-6">
+        <TabsTrigger value="active">{t("Active Orders")}</TabsTrigger>
+        <TabsTrigger value="history">{t("Order History")}</TabsTrigger>
+      </TabsList>
+      {renderActiveOrdersTab()}
+      {renderHistoryOrdersTab()}
+    </Tabs>
+  );
+
   return (
     <div className="flex h-screen bg-gray-50">
       <CustomerSidebar />
@@ -50,44 +93,7 @@ const CustomerOrdersContent = () => {
           {t("orders")}
         </h1>
 
-        {loading ? (
-          <LoadingSpinner />
-        ) : (
-          <Tabs defaultValue="active" className="w-full">
-            <TabsList className="w-full grid grid-cols-2 mb-6">
-              <TabsTrigger value="active">{t("Active Orders")}</TabsTrigger>
-              <TabsTrigger value="history">{t("Order History")}</TabsTrigger>
-            </TabsList>
-
-            <TabsContent
-              value="active"
-              className="bg-white p-4 rounded-lg shadow"
-            >
-              <h3 className="text-xl font-semibold mb-4">
-                {t("Active Orders")}
-              </h3>
-              <OrderTable
-                orders={activeOrders}
-                onCancelOrder={handleCancelOrder}
-                onCompleteOrder={handleCompleteOrder}
-                showActions={true}
-              />
-            </TabsContent>
-
-            <TabsContent
-              value="history"
-              className="bg-white p-4 rounded-lg shadow"
-            >
-              <h3 className="text-xl font-semibold mb-4">
-                {t("Order History")}
-              </h3>
-              <OrderTable
-                orders={historyOrders}
-                showActions={false}
-              />
-            </TabsContent>
-          </Tabs>
-        )}
+        {loading ? <LoadingSpinner /> : renderOrderTabs()}
       </main>
 
       {/* Cancel Order Confirmation Dialog */}

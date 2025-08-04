@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useLanguage } from "@/components/ui/language-context";
-import { Card, CardContent } from "@/components/ui/card";
+import { useLanguage, LanguageProvider } from "@/components/ui/language-context";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DriverSidebar from "@/components/driver/DriverSidebar";
@@ -17,7 +16,237 @@ import { useAuth } from "@/hooks/useAuth";
 import OrderDetailsCard from "@/components/driver/OrderDetailsCard";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { LanguageProvider } from "@/components/ui/language-context";
+
+// Component for location status display
+const LocationStatus = ({ 
+  driverLocation, 
+  isRequestingLocation, 
+  requestLocation, 
+  t 
+}: {
+  driverLocation: any;
+  isRequestingLocation: boolean;
+  requestLocation: () => void;
+  t: (key: string) => string;
+}) => (
+  <div className="flex items-center gap-2">
+    <div
+      className={`w-3 h-3 rounded-full ${
+        driverLocation ? "bg-green-500 animate-pulse" : "bg-red-500"
+      }`}
+    ></div>
+    <MapPin
+      className={`h-4 w-4 ${
+        driverLocation ? "text-green-600" : "text-red-500"
+      }`}
+    />
+    <span
+      className={`text-xs sm:text-sm font-medium ${
+        driverLocation ? "text-green-700" : "text-red-600"
+      }`}
+    >
+      {driverLocation
+        ? t("locationActive") || "الموقع نشط"
+        : t("locationInactive") || "الموقع غير نشط"}
+    </span>
+    {!driverLocation && !isRequestingLocation && (
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={requestLocation}
+        className="text-xs px-3 py-1 border-safedrop-gold text-safedrop-gold hover:bg-safedrop-gold hover:text-white transition-colors"
+      >
+        <RefreshCw className="h-3 w-3 mr-1 rtl:ml-1 rtl:mr-0" />
+        {t("enableLocation") || "تفعيل الموقع"}
+      </Button>
+    )}
+    {isRequestingLocation && (
+      <div className="flex items-center gap-2">
+        <div className="animate-spin h-3 w-3 border-2 border-safedrop-gold border-t-transparent rounded-full"></div>
+        <span className="text-xs text-safedrop-gold font-medium">
+          {t("locating") || "جاري التحديد"}...
+        </span>
+      </div>
+    )}
+  </div>
+);
+
+// Component for availability toggle
+const AvailabilityToggle = ({ 
+  isAvailable, 
+  updatingAvailability, 
+  handleAvailabilityToggle, 
+  t 
+}: {
+  isAvailable: boolean;
+  updatingAvailability: boolean;
+  handleAvailabilityToggle: () => void;
+  t: (key: string) => string;
+}) => {
+  const getToggleClassName = () => {
+    if (updatingAvailability) {
+      return "bg-gray-300 cursor-not-allowed";
+    }
+    return isAvailable
+      ? "bg-gradient-to-r from-safedrop-gold to-amber-500 shadow-safedrop-gold/30"
+      : "bg-gray-300 hover:bg-gray-400";
+  };
+
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs sm:text-sm font-medium text-gray-700">
+        {t("availabilityStatus") || "حالة التوفر"}:
+      </span>
+      <button
+        className={`relative h-7 w-14 rounded-full transition-all duration-300 shadow-inner ${getToggleClassName()}`}
+        onClick={handleAvailabilityToggle}
+        disabled={updatingAvailability}
+        aria-label={t("toggleAvailability") || "تبديل حالة التوفر"}
+      >
+        <div
+          className={`absolute transition-all duration-300 h-5 w-5 top-1 rounded-full bg-white shadow-lg ${
+            isAvailable
+              ? "right-1 rtl:left-1 rtl:right-auto"
+              : "left-1 rtl:right-1 rtl:left-auto"
+          } ${
+            isAvailable
+              ? "shadow-safedrop-gold/40"
+              : "shadow-gray-400/40"
+          }`}
+        />
+        {updatingAvailability && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
+          </div>
+        )}
+      </button>
+      <span
+        className={`text-xs sm:text-sm font-semibold ${
+          isAvailable ? "text-safedrop-gold" : "text-gray-500"
+        }`}
+      >
+        {isAvailable
+          ? t("availableForOrders") || "متاح للطلبات"
+          : t("notAvailableForOrders") || "غير متاح"}
+      </span>
+    </div>
+  );
+};
+
+// Component for available orders content
+const AvailableOrdersContent = ({ 
+  isAvailable, 
+  availableOrders, 
+  updatingAvailability, 
+  handleAvailabilityToggle, 
+  refetch, 
+  handleAcceptOrder, 
+  driverLocation, 
+  t 
+}: {
+  isAvailable: boolean;
+  availableOrders: any[];
+  updatingAvailability: boolean;
+  handleAvailabilityToggle: () => void;
+  refetch: () => void;
+  handleAcceptOrder: (id: string) => Promise<void>;
+  driverLocation: any;
+  t: (key: string) => string;
+}) => {
+  if (!isAvailable) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-center">
+        <div className="flex flex-col items-center justify-center">
+          <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
+          <p className="text-gray-600 mb-4">
+            {t("notAvailableMessage")}
+          </p>
+          <Button
+            variant="default"
+            className="bg-safedrop-gold hover:bg-safedrop-gold/90"
+            onClick={handleAvailabilityToggle}
+            disabled={updatingAvailability}
+          >
+            {updatingAvailability
+              ? t("updating") || "جاري التحديث..."
+              : t("changeToAvailable")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (availableOrders.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6 text-center">
+        <div className="flex flex-col items-center justify-center">
+          <Clock className="h-12 w-12 text-gray-400 mb-4" />
+          <p className="text-gray-500">{t("noAvailableOrders")}</p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => refetch()}
+          >
+            {t("refreshOrders") || "تحديث الطلبات"}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {availableOrders.map((order) => (
+        <OrderDetailsCard
+          key={order.id}
+          order={order}
+          onOrderUpdate={refetch}
+          driverLocation={driverLocation}
+          showAcceptButton={true}
+          onAcceptOrder={handleAcceptOrder}
+        />
+      ))}
+    </>
+  );
+};
+
+// Component for subscription status indicator
+const SubscriptionStatusIndicator = ({ 
+  driverSubscription, 
+  t 
+}: {
+  driverSubscription: any;
+  t: (key: string) => string;
+}) => {
+  if (!driverSubscription?.isActive) return null;
+
+  return (
+    <div className="bg-gradient-to-r from-safedrop-gold/10 to-amber-50 border border-safedrop-gold/30 p-3 mx-4 mt-2 rounded-lg shadow-sm">
+      <div className="flex items-center gap-3 text-safedrop-gold">
+        <div className="w-8 h-8 bg-safedrop-gold rounded-full flex items-center justify-center">
+          <span className="text-white text-sm">✓</span>
+        </div>
+        <div className="flex-1">
+          <div className="font-semibold text-sm">
+            {t("subscriptionActive") || "الاشتراك نشط"}
+          </div>
+          <div className="text-xs text-gray-600">
+            {t("plan") || "الخطة"}:{" "}
+            {driverSubscription.subscription_plan === "monthly"
+              ? t("monthly") || "شهري"
+              : t("yearly") || "سنوي"}{" "}
+            • {t("expiresOn") || "ينتهي في"}{" "}
+            {new Date(
+              driverSubscription.subscription_expires_at
+            ).toLocaleDateString(
+              t("locale") === "en" ? "en-US" : "ar-SA"
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Move the component content to be inside a component that is used only after LanguageProvider is initialized
 const DriverOrdersContent = () => {
@@ -27,9 +256,6 @@ const DriverOrdersContent = () => {
   const queryClient = useQueryClient();
   const { data: orders = [], isLoading, error, refetch } = useOrders();
   const [activeTab, setActiveTab] = useState("current");
-  const [lastAcceptedOrderId, setLastAcceptedOrderId] = useState<string | null>(
-    null
-  );
   const [isProcessing, setIsProcessing] = useState(false);
   const [updatingAvailability, setUpdatingAvailability] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -185,33 +411,133 @@ const DriverOrdersContent = () => {
     fetchDriverStatus();
   }, [user?.id]);
 
+  // Helper function to check if subscription is active
+  const isSubscriptionActive = (subscriptionData: any) => {
+    return (
+      subscriptionData?.subscription_status === "active" &&
+      subscriptionData?.subscription_expires_at &&
+      new Date(subscriptionData.subscription_expires_at) > new Date()
+    );
+  };
+
+  // Helper function to fetch subscription data from database
+  const fetchSubscriptionData = async (userId: string) => {
+    const { data: driverData, error } = await supabase
+      .from("drivers")
+      .select(
+        "subscription_status, subscription_expires_at, subscription_plan, subscription_amount"
+      )
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching subscription:", error);
+      return null;
+    }
+
+    return driverData;
+  };
+
+  // Helper functions for order acceptance
+  const validateOrderAcceptance = (orderId: string, userId: string | undefined) => {
+    if (isProcessing) {
+      return { isValid: false, errorMessage: null };
+    }
+
+    if (!userId) {
+      const errorMessage = t("mustLoginToAcceptOrder") || "يجب تسجيل الدخول لقبول الطلب";
+      toast.error(errorMessage);
+      return { isValid: false, errorMessage };
+    }
+
+    return { isValid: true, errorMessage: null };
+  };
+
+  const checkOrderAvailability = async (orderId: string) => {
+    const { data: orderCheck, error: checkError } = await supabase
+      .from("orders")
+      .select("id, status, driver_id")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Error checking order status:", checkError);
+      const errorMessage = t("errorCheckingOrderStatus") || "حدث خطأ أثناء التحقق من حالة الطلب";
+      toast.error(errorMessage);
+      return { isAvailable: false, orderData: null, error: errorMessage };
+    }
+
+    if (!orderCheck) {
+      console.error("Order not found in database");
+      const errorMessage = t("orderNotFound") || "لم يتم العثور على الطلب";
+      toast.error(errorMessage);
+      return { isAvailable: false, orderData: null, error: errorMessage };
+    }
+
+    if (orderCheck.status !== "available" || orderCheck.driver_id) {
+      console.error("Order is no longer available for acceptance", orderCheck);
+      const errorMessage = t("orderNoLongerAvailable") || "هذا الطلب لم يعد متاحاً للقبول";
+      toast.error(errorMessage);
+      return { isAvailable: false, orderData: orderCheck, error: errorMessage };
+    }
+
+    return { isAvailable: true, orderData: orderCheck, error: null };
+  };
+
+  const updateOrderWithDriver = async (orderId: string, userId: string) => {
+    const { data: updateData, error: updateError } = await supabase
+      .from("orders")
+      .update({
+        driver_id: userId,
+        status: "picked_up",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", orderId)
+      .select();
+
+    if (updateError) {
+      console.error("Error accepting order:", updateError);
+      const errorMessage = t("errorAcceptingOrder") || "حدث خطأ أثناء قبول الطلب";
+      toast.error(errorMessage);
+      return { success: false, data: null, error: errorMessage };
+    }
+
+    if (!updateData || updateData.length === 0) {
+      console.error("No data returned from update operation");
+      const errorMessage = t("errorAcceptingOrderNoData") || "حدث خطأ أثناء قبول الطلب - لم يتم العثور على الطلب";
+      toast.error(errorMessage);
+      return { success: false, data: null, error: errorMessage };
+    }
+
+    return { success: true, data: updateData, error: null };
+  };
+
+  const handleOrderAcceptanceSuccess = async (orderId: string) => {
+    toast.success(
+      t("orderAcceptedSuccessfully") || `تم قبول الطلب رقم ${orderId.substring(0, 8)} بنجاح`
+    );
+
+    queryClient.invalidateQueries({ queryKey: ["orders"] });
+    await refetch();
+
+    setActiveTab("current");
+  };
+
   // Add this function to check driver subscription
   const checkDriverSubscription = useCallback(async () => {
     if (!user?.id) return;
 
     try {
-      const { data: driverData, error } = await supabase
-        .from("drivers")
-        .select(
-          "subscription_status, subscription_expires_at, subscription_plan, subscription_amount"
-        )
-        .eq("id", user.id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching subscription:", error);
-        return;
-      }
+      const subscriptionData = await fetchSubscriptionData(user.id);
+      
+      if (!subscriptionData) return;
 
       // Check if subscription is active and not expired
-      const isSubscriptionActive =
-        driverData?.subscription_status === "active" &&
-        driverData?.subscription_expires_at &&
-        new Date(driverData.subscription_expires_at) > new Date();
+      const isActive = isSubscriptionActive(subscriptionData);
 
       setDriverSubscription({
-        ...driverData,
-        isActive: isSubscriptionActive,
+        ...subscriptionData,
+        isActive: isActive,
       });
     } catch (err) {
       console.error("Error checking subscription:", err);
@@ -223,62 +549,79 @@ const DriverOrdersContent = () => {
     checkDriverSubscription();
   }, [user?.id, checkDriverSubscription]);
 
+  // Helper functions for driver availability
+  const validateDriverAvailabilityUpdate = (userId: string | undefined, isUpdating: boolean) => {
+    return userId && !isUpdating;
+  };
+
+  const checkDriverApprovalStatus = async (userId: string) => {
+    const { data: driverCheck, error: checkError } = await supabase
+      .from("drivers")
+      .select("status")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Error checking driver status:", checkError);
+      toast.error(t("errorCheckingDriverStatus") || "خطأ في التحقق من حالة السائق");
+      return { isApproved: false, error: checkError };
+    }
+
+    if (!driverCheck || driverCheck.status !== "approved") {
+      toast.error(
+        t("driverNotApproved") || "يجب الموافقة على حسابك من قبل الإدارة أولاً"
+      );
+      return { isApproved: false, error: null };
+    }
+
+    return { isApproved: true, error: null };
+  };
+
+  const performAvailabilityUpdate = async (userId: string, newAvailability: boolean) => {
+    const { error: updateError } = await supabase
+      .from("drivers")
+      .update({
+        is_available: newAvailability,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId);
+
+    if (updateError) {
+      console.error("Error updating driver availability:", updateError);
+      toast.error(t("errorUpdatingAvailability") || "خطأ في تحديث حالة التوفر");
+      return { success: false, error: updateError };
+    }
+
+    setIsAvailable(newAvailability);
+    toast.success(
+      newAvailability
+        ? t("nowAvailableForOrders") || "أنت متاح الآن لاستلام الطلبات"
+        : t("nowNotAvailableForOrders") || "أنت غير متاح لاستلام الطلبات"
+    );
+
+    return { success: true, error: null };
+  };
+
   // Update driver availability when toggle changes
   const updateDriverAvailability = async (newAvailability: boolean) => {
-    if (!user?.id || updatingAvailability) return;
+    if (!validateDriverAvailabilityUpdate(user?.id, updatingAvailability)) return;
 
     setUpdatingAvailability(true);
 
     try {
-      // First check if driver is approved
-      const { data: driverCheck, error: checkError } = await supabase
-        .from("drivers")
-        .select("status")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error("Error checking driver status:", checkError);
-        toast.error(
-          t("errorCheckingDriverStatus") || "خطأ في التحقق من حالة السائق"
-        );
-        setUpdatingAvailability(false);
-        return;
-      }
-
-      if (!driverCheck || driverCheck.status !== "approved") {
-        toast.error(
-          t("driverNotApproved") ||
-            "يجب الموافقة على حسابك من قبل الإدارة أولاً"
-        );
+      // Check if driver is approved
+      const approvalCheck = await checkDriverApprovalStatus(user!.id);
+      if (!approvalCheck.isApproved) {
         setIsAvailable(false);
         setUpdatingAvailability(false);
         return;
       }
 
       // Update availability
-      const { error: updateError } = await supabase
-        .from("drivers")
-        .update({
-          is_available: newAvailability,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
-
-      if (updateError) {
-        console.error("Error updating driver availability:", updateError);
-        toast.error(
-          t("errorUpdatingAvailability") || "خطأ في تحديث حالة التوفر"
-        );
-        // Revert the state
+      const updateResult = await performAvailabilityUpdate(user!.id, newAvailability);
+      if (!updateResult.success) {
+        // Revert the state on error
         setIsAvailable(!newAvailability);
-      } else {
-        setIsAvailable(newAvailability);
-        toast.success(
-          newAvailability
-            ? t("nowAvailableForOrders") || "أنت متاح الآن لاستلام الطلبات"
-            : t("nowNotAvailableForOrders") || "أنت غير متاح لاستلام الطلبات"
-        );
       }
     } catch (err) {
       console.error("Error in updateDriverAvailability:", err);
@@ -369,91 +712,33 @@ const DriverOrdersContent = () => {
   useEffect(() => {
     if (currentOrders.length > 0) {
       setActiveTab("current");
-      setLastAcceptedOrderId(null);
     }
   }, [currentOrders.length]);
 
   const handleAcceptOrder = async (id: string) => {
-    if (isProcessing) {
-      return;
-    }
-
-    if (!user?.id) {
-      toast.error(
-        t("mustLoginToAcceptOrder") || "يجب تسجيل الدخول لقبول الطلب"
-      );
+    // Validate the request
+    const validation = validateOrderAcceptance(id, user?.id);
+    if (!validation.isValid) {
       return;
     }
 
     setIsProcessing(true);
 
     try {
-      const { data: orderCheck, error: checkError } = await supabase
-        .from("orders")
-        .select("id, status, driver_id")
-        .eq("id", id)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error("Error checking order status:", checkError);
-        toast.error(
-          t("errorCheckingOrderStatus") || "حدث خطأ أثناء التحقق من حالة الطلب"
-        );
+      // Check if order is available
+      const orderCheck = await checkOrderAvailability(id);
+      if (!orderCheck.isAvailable) {
         return;
       }
 
-      if (!orderCheck) {
-        console.error("Order not found in database");
-        toast.error(t("orderNotFound") || "لم يتم العثور على الطلب");
+      // Update order with driver
+      const updateResult = await updateOrderWithDriver(id, user!.id);
+      if (!updateResult.success) {
         return;
       }
 
-      if (orderCheck.status !== "available" || orderCheck.driver_id) {
-        console.error(
-          "Order is no longer available for acceptance",
-          orderCheck
-        );
-        toast.error(
-          t("orderNoLongerAvailable") || "هذا الطلب لم يعد متاحاً للقبول"
-        );
-        return;
-      }
-
-      const { data: updateData, error: updateError } = await supabase
-        .from("orders")
-        .update({
-          driver_id: user.id,
-          status: "picked_up",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id)
-        .select();
-
-      if (updateError) {
-        console.error("Error accepting order:", updateError);
-        toast.error(t("errorAcceptingOrder") || "حدث خطأ أثناء قبول الطلب");
-        return;
-      }
-
-      if (!updateData || updateData.length === 0) {
-        console.error("No data returned from update operation");
-        toast.error(
-          t("errorAcceptingOrderNoData") ||
-            "حدث خطأ أثناء قبول الطلب - لم يتم العثور على الطلب"
-        );
-        return;
-      }
-
-      toast.success(
-        t("orderAcceptedSuccessfully") ||
-          `تم قبول الطلب رقم ${id.substring(0, 8)} بنجاح`
-      );
-      setLastAcceptedOrderId(id);
-
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      await refetch();
-
-      setActiveTab("current");
+      // Handle success
+      await handleOrderAcceptanceSuccess(id);
     } catch (err) {
       console.error("Error accepting order:", err);
       toast.error(t("errorAcceptingOrder") || "حدث خطأ أثناء قبول الطلب");
@@ -509,123 +794,28 @@ const DriverOrdersContent = () => {
                 {t("manageOrders")}
               </h1>
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      driverLocation
-                        ? "bg-green-500 animate-pulse"
-                        : "bg-red-500"
-                    }`}
-                  ></div>
-                  <MapPin
-                    className={`h-4 w-4 ${
-                      driverLocation ? "text-green-600" : "text-red-500"
-                    }`}
-                  />
-                  <span
-                    className={`text-xs sm:text-sm font-medium ${
-                      driverLocation ? "text-green-700" : "text-red-600"
-                    }`}
-                  >
-                    {driverLocation
-                      ? t("locationActive") || "الموقع نشط"
-                      : t("locationInactive") || "الموقع غير نشط"}
-                  </span>
-                  {!driverLocation && !isRequestingLocation && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={requestLocation}
-                      className="text-xs px-3 py-1 border-safedrop-gold text-safedrop-gold hover:bg-safedrop-gold hover:text-white transition-colors"
-                    >
-                      <RefreshCw className="h-3 w-3 mr-1 rtl:ml-1 rtl:mr-0" />
-                      {t("enableLocation") || "تفعيل الموقع"}
-                    </Button>
-                  )}
-                  {isRequestingLocation && (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin h-3 w-3 border-2 border-safedrop-gold border-t-transparent rounded-full"></div>
-                      <span className="text-xs text-safedrop-gold font-medium">
-                        {t("locating") || "جاري التحديد"}...
-                      </span>
-                    </div>
-                  )}
-                </div>
+                <LocationStatus
+                  driverLocation={driverLocation}
+                  isRequestingLocation={isRequestingLocation}
+                  requestLocation={requestLocation}
+                  t={t}
+                />
 
-                {/* Availability Toggle */}
-                <div className="flex items-center gap-3">
-                  <span className="text-xs sm:text-sm font-medium text-gray-700">
-                    {t("availabilityStatus") || "حالة التوفر"}:
-                  </span>
-                  <div
-                    className={`relative h-7 w-14 cursor-pointer rounded-full transition-all duration-300 shadow-inner ${
-                      updatingAvailability
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : isAvailable
-                        ? "bg-gradient-to-r from-safedrop-gold to-amber-500 shadow-safedrop-gold/30"
-                        : "bg-gray-300 hover:bg-gray-400"
-                    }`}
-                    onClick={handleAvailabilityToggle}
-                  >
-                    <div
-                      className={`absolute transition-all duration-300 h-5 w-5 top-1 rounded-full bg-white shadow-lg ${
-                        isAvailable
-                          ? "right-1 rtl:left-1 rtl:right-auto"
-                          : "left-1 rtl:right-1 rtl:left-auto"
-                      } ${
-                        isAvailable
-                          ? "shadow-safedrop-gold/40"
-                          : "shadow-gray-400/40"
-                      }`}
-                    />
-                    {updatingAvailability && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
-                      </div>
-                    )}
-                  </div>
-                  <span
-                    className={`text-xs sm:text-sm font-semibold ${
-                      isAvailable ? "text-safedrop-gold" : "text-gray-500"
-                    }`}
-                  >
-                    {isAvailable
-                      ? t("availableForOrders") || "متاح للطلبات"
-                      : t("notAvailableForOrders") || "غير متاح"}
-                  </span>
-                </div>
+                <AvailabilityToggle
+                  isAvailable={isAvailable}
+                  updatingAvailability={updatingAvailability}
+                  handleAvailabilityToggle={handleAvailabilityToggle}
+                  t={t}
+                />
               </div>
             </div>
           </div>
         </header>
 
-        {/* Subscription status indicator */}
-        {driverSubscription?.isActive && (
-          <div className="bg-gradient-to-r from-safedrop-gold/10 to-amber-50 border border-safedrop-gold/30 p-3 mx-4 mt-2 rounded-lg shadow-sm">
-            <div className="flex items-center gap-3 text-safedrop-gold">
-              <div className="w-8 h-8 bg-safedrop-gold rounded-full flex items-center justify-center">
-                <span className="text-white text-sm">✓</span>
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-sm">
-                  {t("subscriptionActive") || "الاشتراك نشط"}
-                </div>
-                <div className="text-xs text-gray-600">
-                  {t("plan") || "الخطة"}:{" "}
-                  {driverSubscription.subscription_plan === "monthly"
-                    ? t("monthly") || "شهري"
-                    : t("yearly") || "سنوي"}{" "}
-                  • {t("expiresOn") || "ينتهي في"}{" "}
-                  {new Date(
-                    driverSubscription.subscription_expires_at
-                  ).toLocaleDateString(
-                    t("locale") === "en" ? "en-US" : "ar-SA"
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <SubscriptionStatusIndicator 
+          driverSubscription={driverSubscription} 
+          t={t} 
+        />
 
         {/* Location Error Alert */}
         {locationError && (
@@ -762,51 +952,16 @@ const DriverOrdersContent = () => {
                 <h3 className="text-xl font-semibold mb-4">
                   {t("availableOrdersTab")}
                 </h3>
-                {!isAvailable ? (
-                  <div className="bg-white rounded-lg shadow p-6 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <AlertTriangle className="h-12 w-12 text-yellow-500 mb-4" />
-                      <p className="text-gray-600 mb-4">
-                        {t("notAvailableMessage")}
-                      </p>
-                      <Button
-                        variant="default"
-                        className="bg-safedrop-gold hover:bg-safedrop-gold/90"
-                        onClick={handleAvailabilityToggle}
-                        disabled={updatingAvailability}
-                      >
-                        {updatingAvailability
-                          ? t("updating") || "جاري التحديث..."
-                          : t("changeToAvailable")}
-                      </Button>
-                    </div>
-                  </div>
-                ) : availableOrders.length === 0 ? (
-                  <div className="bg-white rounded-lg shadow p-6 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <Clock className="h-12 w-12 text-gray-400 mb-4" />
-                      <p className="text-gray-500">{t("noAvailableOrders")}</p>
-                      <Button
-                        variant="outline"
-                        className="mt-4"
-                        onClick={() => refetch()}
-                      >
-                        {t("refreshOrders") || "تحديث الطلبات"}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  availableOrders.map((order) => (
-                    <OrderDetailsCard
-                      key={order.id}
-                      order={order}
-                      onOrderUpdate={refetch}
-                      driverLocation={driverLocation}
-                      showAcceptButton={true}
-                      onAcceptOrder={handleAcceptOrder}
-                    />
-                  ))
-                )}
+                <AvailableOrdersContent
+                  isAvailable={isAvailable}
+                  availableOrders={availableOrders}
+                  updatingAvailability={updatingAvailability}
+                  handleAvailabilityToggle={handleAvailabilityToggle}
+                  refetch={refetch}
+                  handleAcceptOrder={handleAcceptOrder}
+                  driverLocation={driverLocation}
+                  t={t}
+                />
               </TabsContent>
 
               <TabsContent value="completed" className="space-y-4">
@@ -879,7 +1034,6 @@ const DriverOrdersContent = () => {
                               69
                             </span>
                             <span className="text-sm text-black font-medium">
-                              {/* {t("currency") || "ريال"} */}
                               <SaudiRiyal className="w-6 h-6" />
                             </span>
                           </div>

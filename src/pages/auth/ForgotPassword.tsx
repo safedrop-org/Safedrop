@@ -27,66 +27,94 @@ const ForgotPasswordContent = () => {
   });
   const navigate = useNavigate();
 
+  // Validate email input and format
+  const validateEmail = (emailInput) => {
+    if (!emailInput) {
+      toast.error(t("pleaseEnterEmail") || "Please enter your email");
+      return false;
+    }
+
+    const normalizedEmail = emailInput.trim().toLowerCase();
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+    
+    if (!isValidEmail) {
+      toast.error(t("invalidEmailFormat") || "Invalid email format");
+      return false;
+    }
+
+    return normalizedEmail;
+  };
+
+  // Check if user has security questions setup
+  const checkSecurityQuestions = async (normalizedEmail) => {
+    const { data: securityQuestionsData, error: securityQuestionsError } =
+      await supabase
+        .from("security_questions")
+        .select("*")
+        .ilike("email", normalizedEmail)
+        .maybeSingle();
+
+    if (securityQuestionsError && securityQuestionsError.code !== "PGRST116") {
+      console.error("Error checking security questions:", securityQuestionsError);
+      throw new Error("Error checking security questions");
+    }
+
+    return securityQuestionsData;
+  };
+
+  // Fetch specific security questions for user
+  const fetchUserSecurityQuestions = async (normalizedEmail) => {
+    const { data: questions, error: questionsError } = await supabase.rpc(
+      "get_security_questions",
+      { user_email: normalizedEmail }
+    );
+
+    if (questionsError) {
+      console.error("Error fetching security questions:", questionsError);
+      return null;
+    }
+
+    return questions && questions.length > 0 ? questions[0] : null;
+  };
+
+  // Handle security questions flow
+  const handleSecurityQuestionsFlow = async (normalizedEmail) => {
+    const securityQuestionsData = await checkSecurityQuestions(normalizedEmail);
+    
+    if (!securityQuestionsData) {
+      // No security questions, proceed with email reset
+      return { useSecurityQuestions: false };
+    }
+
+    const questions = await fetchUserSecurityQuestions(normalizedEmail);
+    
+    if (!questions) {
+      // Fall back to email reset if questions can't be fetched
+      return { useSecurityQuestions: false };
+    }
+
+    // Show security questions form
+    setSecurityQuestions(questions);
+    setCurrentStep("questions");
+    return { useSecurityQuestions: true };
+  };
+
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!email) {
-      toast.error(t("pleaseEnterEmail") || "Please enter your email");
-      setIsLoading(false);
-      return;
-    }
-
-    // Validate email format
-    const normalizedEmail = email.trim().toLowerCase();
-    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
-    if (!isValidEmail) {
-      toast.error(t("invalidEmailFormat") || "Invalid email format");
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      // Check for security questions first
-      const { data: securityQuestionsData, error: securityQuestionsError } =
-        await supabase
-          .from("security_questions")
-          .select("*")
-          .ilike("email", normalizedEmail)
-          .maybeSingle();
-
-      if (
-        securityQuestionsError &&
-        securityQuestionsError.code !== "PGRST116"
-      ) {
-        console.error("Error checking security questions:", securityQuestionsError);
-        toast.error(t("errorProcessingRequest") || "Error processing request");
+      const normalizedEmail = validateEmail(email);
+      if (!normalizedEmail) {
         setIsLoading(false);
         return;
       }
 
-      // If security questions exist, use them for verification
-      if (securityQuestionsData) {
-        // Get the specific questions for this user
-        const { data: questions, error: questionsError } = await supabase.rpc(
-          "get_security_questions",
-          { user_email: normalizedEmail }
-        );
-
-        if (questionsError) {
-          console.error("Error fetching security questions:", questionsError);
-          // Fall back to email reset
-          sendPasswordResetEmail(normalizedEmail);
-          return;
-        }
-
-        if (questions && questions.length > 0) {
-          // Show security questions form
-          setSecurityQuestions(questions[0]);
-          setCurrentStep("questions");
-          setIsLoading(false);
-          return;
-        }
+      const { useSecurityQuestions } = await handleSecurityQuestionsFlow(normalizedEmail);
+      
+      if (useSecurityQuestions) {
+        setIsLoading(false);
+        return;
       }
 
       // No security questions, send email reset
