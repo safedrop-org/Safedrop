@@ -9,10 +9,6 @@ export const FAQ_KEYS = [
     answerKey: "accountActivationRequirementsAnswer",
   },
   {
-    questionKey: "earningsTransferQuestion",
-    answerKey: "earningsTransferAnswer",
-  },
-  {
     questionKey: "accountSuspensionQuestion",
     answerKey: "accountSuspensionAnswer",
   },
