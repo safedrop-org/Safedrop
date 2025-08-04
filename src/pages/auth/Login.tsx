@@ -4,25 +4,13 @@ import {
   LanguageProvider,
   useLanguage,
 } from "@/components/ui/language-context";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   LockIcon,
   MailIcon,
-  AlertCircle,
-  CheckCircle,
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import Cookies from "js-cookie";
 import { User } from "@supabase/supabase-js";
 import { ErrorAlert } from "@/components/auth/AuthLayout";
@@ -45,7 +33,6 @@ interface AuthError {
 
 const LoginContent = () => {
   const { t } = useLanguage();
-  const { user, userType } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -140,7 +127,7 @@ const LoginContent = () => {
 
       return !error && data?.role === "admin";
     } catch (error) {
-      console.log("No admin role found for user:", userId);
+      console.error("Error checking admin role for user:", userId, error);
       return false;
     }
   };
@@ -197,7 +184,7 @@ const LoginContent = () => {
 
       if (isAdmin) {
         setAuthCookie("admin", "true", session.user.email);
-        window.location.href = "/admin/dashboard";
+        navigate("/admin/dashboard", { replace: true });
         return;
       }
 
@@ -215,10 +202,10 @@ const LoginContent = () => {
         return;
       }
 
-      // Route based on user type using direct location change
+      // Route based on user type using navigate
       if (userTypeValue === "customer") {
         setAuthCookie("customer");
-        window.location.href = "/customer/dashboard";
+        navigate("/customer/dashboard", { replace: true });
       } else if (userTypeValue === "driver") {
         setAuthCookie("driver");
         const { data } = await supabase
@@ -227,10 +214,12 @@ const LoginContent = () => {
           .eq("id", session.user.id)
           .maybeSingle();
 
-        window.location.href =
+        navigate(
           data?.status === "approved"
             ? "/driver/dashboard"
-            : "/driver/pending-approval";
+            : "/driver/pending-approval",
+          { replace: true }
+        );
       } else {
         // If not admin and no valid user type, sign out
         await supabase.auth.signOut();
@@ -242,6 +231,7 @@ const LoginContent = () => {
         setIsCheckingSession(false);
       }
     } catch (error) {
+      console.error("Error in checkLoginStatus:", error);
       clearAuthCookies();
       setIsCheckingSession(false);
     }
@@ -287,7 +277,7 @@ const LoginContent = () => {
         return userMetadata.user_type;
       }
     } catch (err) {
-      // Ignore errors
+      console.error("Error in getUserType:", err);
     }
 
     return null;
@@ -380,7 +370,7 @@ const LoginContent = () => {
         setAuthCookie("admin", "true", email);
         toast.success(t("loginAsAdmin"));
         setTimeout(() => {
-          window.location.href = "/admin/dashboard";
+          navigate("/admin/dashboard", { replace: true });
         }, 100);
         return;
       }
@@ -403,7 +393,7 @@ const LoginContent = () => {
       if (userTypeValue === "customer") {
         setAuthCookie("customer");
         setTimeout(() => {
-          window.location.href = "/customer/dashboard";
+          navigate("/customer/dashboard", { replace: true });
         }, 100);
       } else if (userTypeValue === "driver") {
         setAuthCookie("driver");
@@ -415,12 +405,14 @@ const LoginContent = () => {
           .eq("id", data.user.id)
           .maybeSingle();
 
-        // Use direct location change for reliable redirect
+        // Use navigate for reliable redirect
         setTimeout(() => {
-          window.location.href =
+          navigate(
             driverData?.status === "approved"
               ? "/driver/dashboard"
-              : "/driver/pending-approval";
+              : "/driver/pending-approval",
+            { replace: true }
+          );
         }, 100);
       } else {
         setStatusMessage({

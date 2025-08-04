@@ -248,7 +248,7 @@ export function useAuth() {
       setUserType(null);
 
       setTimeout(() => {
-        window.location.href = "/auth/login";
+        navigate("/auth/login", { replace: true });
       }, 100);
 
       return { success: true, warning: error?.message };
@@ -269,12 +269,12 @@ export function useAuth() {
       setUserType(null);
 
       setTimeout(() => {
-        window.location.href = "/auth/login";
+        navigate("/auth/login", { replace: true });
       }, 100);
 
       return { success: false, error };
     }
-  }, [clearAuthData]);
+  }, [clearAuthData, navigate]);
 
   const checkDriverStatus = useCallback(async (userId) => {
     try {
