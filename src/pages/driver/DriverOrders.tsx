@@ -27,7 +27,7 @@ const LocationStatus = ({
   driverLocation: any;
   isRequestingLocation: boolean;
   requestLocation: () => void;
-  t: (key: string) => string;
+  t: (arg: string) => string;
 }) => (
   <div className="flex items-center gap-2">
     <div
