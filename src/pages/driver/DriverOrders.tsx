@@ -81,7 +81,7 @@ const AvailabilityToggle = ({
   isAvailable: boolean;
   updatingAvailability: boolean;
   handleAvailabilityToggle: () => void;
-  t: (key: string) => string;
+  t: (arg: string) => string;
 }) => {
   const getToggleClassName = () => {
     if (updatingAvailability) {
@@ -151,7 +151,7 @@ const AvailableOrdersContent = ({
   refetch: () => void;
   handleAcceptOrder: (id: string) => Promise<void>;
   driverLocation: any;
-  t: (key: string) => string;
+  t: (arg: string) => string;
 }) => {
   if (!isAvailable) {
     return (
@@ -216,7 +216,7 @@ const SubscriptionStatusIndicator = ({
   t 
 }: {
   driverSubscription: any;
-  t: (key: string) => string;
+  t: (arg: string) => string;
 }) => {
   if (!driverSubscription?.isActive) return null;
 
