@@ -82,8 +82,8 @@ interface UserTypeBadgeProps {
 export const UserTypeBadge: React.FC<UserTypeBadgeProps> = ({ userType, size = "md" }) => {
   const { t } = useLanguage();
 
-  const iconSize = size === "sm" ? "h-3 w-3" : "h-3 w-3";
-  const textSize = size === "sm" ? "text-xs" : "text-xs";
+  const iconSize = size === "sm" ? "h-3 w-3" : "h-4 w-4";
+  const textSize = size === "sm" ? "text-xs" : "text-sm";
 
   if (userType === "driver") {
     return (
