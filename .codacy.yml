@@ -6,9 +6,11 @@ engines:
       - "eslint.config.mjs"
       - "eslint-config.ts"
       - "eslint-config.js"
+      - "postcss.config.js"   
   jshint:
     enabled: false
 exclude_paths:
   - "eslint.config.mjs"
   - "eslint-config.ts" 
   - "eslint-config.js"
+  - "postcss.config.js"
