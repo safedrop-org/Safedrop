@@ -12,10 +12,12 @@ engines:
       - "src/App.tsx"
       - "src/index.tsx"
       - "src/main.tsx"
-      - "src/App.css"
+      - "src/App.css"  
 
 
   jshint:
+    enabled: false
+  stylelint:
     enabled: false
 exclude_paths:
   - "eslint.config.mjs"
