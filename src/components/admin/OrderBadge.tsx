@@ -65,7 +65,7 @@ export const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({
   };
 
   const statusDisplay = getStatusDisplay(status);
-  const textSize = size === "sm" ? "text-xs" : "text-xs";
+  const textSize = size === "sm" ? "text-xs" : "text-sm";
 
   return (
     <Badge
@@ -115,7 +115,7 @@ export const PaymentStatusBadge: React.FC<PaymentStatusBadgeProps> = ({
   };
 
   const statusDisplay = getPaymentStatusDisplay(paymentStatus);
-  const textSize = size === "sm" ? "text-xs" : "text-xs";
+  const textSize = size === "sm" ? "text-xs" : "text-sm";
 
   return (
     <Badge

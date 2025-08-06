@@ -9,6 +9,12 @@ engines:
       - "postcss.config.js"
       - "supabase/migrations/20240318000000_add_email_verified_to_profiles.sql"   
       - "README.md"
+      - "src/App.tsx"
+      - "src/index.tsx"
+      - "src/main.tsx"
+      - "src/App.css"
+
+
   jshint:
     enabled: false
 exclude_paths:
@@ -18,3 +24,7 @@ exclude_paths:
   - "postcss.config.js"
   - "supabase/migrations/20240318000000_add_email_verified_to_profiles.sql"
   - "README.md"
+  - "src/App.tsx"
+  - "src/index.tsx"
+  - "src/main.tsx"
+  - "src/App.css"
