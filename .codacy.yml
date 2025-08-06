@@ -1,0 +1,14 @@
+---
+engines:
+  eslint:
+    enabled: true
+    exclude_paths:
+      - "eslint.config.mjs"
+      - "eslint-config.ts"
+      - "eslint-config.js"
+  jshint:
+    enabled: false
+exclude_paths:
+  - "eslint.config.mjs"
+  - "eslint-config.ts" 
+  - "eslint-config.js"
