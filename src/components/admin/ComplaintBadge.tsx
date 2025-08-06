@@ -24,24 +24,25 @@ export const IssueTypeBadge: React.FC<IssueTypeBadgeProps> = ({ type }) => {
   };
 
   const getIssueTypeBadgeStyle = (type: string) => {
+    // Tailwind CSS background (bg) classes for styling badges
     const styles = {
-      login: "bg-blue-100 text-blue-800 border-blue-200",
-      order: "bg-purple-100 text-purple-800 border-purple-200",
-      payment: "bg-green-100 text-green-800 border-green-200",
-      driver: "bg-orange-100 text-orange-800 border-orange-200",
-      customer: "bg-teal-100 text-teal-800 border-teal-200",
-      other: "bg-gray-100 text-gray-800 border-gray-200",
+      login: "bg-blue-100 text-blue-800 border-blue-200", // background blue
+      order: "bg-purple-100 text-purple-800 border-purple-200", // background purple
+      payment: "bg-green-100 text-green-800 border-green-200", // background green
+      driver: "bg-orange-100 text-orange-800 border-orange-200", // background orange
+      customer: "bg-teal-100 text-teal-800 border-teal-200", // background teal
+      other: "bg-gray-100 text-gray-800 border-gray-200", // background gray
     };
     return (
       styles[type as keyof typeof styles] ||
-      "bg-gray-100 text-gray-800 border-gray-200"
+      "bg-gray-100 text-gray-800 border-gray-200" // default background gray
     );
   };
 
   return (
     <Badge
       variant="outline"
-      className={`text-xs sm:text-sm whitespace-nowrap ${getIssueTypeBadgeStyle(type)}`}
+      className={`text-xs sm:text-sm whitespace-nowrap ${getIssueTypeBadgeStyle(type)}`} // whitespace-nowrap prevents text wrapping
     >
       {getIssueTypeLabel(type)}
     </Badge>
