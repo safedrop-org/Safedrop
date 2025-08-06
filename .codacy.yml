@@ -8,6 +8,7 @@ engines:
       - "eslint-config.js"
       - "postcss.config.js"
       - "supabase/migrations/20240318000000_add_email_verified_to_profiles.sql"   
+      - "README.md"
   jshint:
     enabled: false
 exclude_paths:
@@ -16,3 +17,4 @@ exclude_paths:
   - "eslint-config.js"
   - "postcss.config.js"
   - "supabase/migrations/20240318000000_add_email_verified_to_profiles.sql"
+  - "README.md"
