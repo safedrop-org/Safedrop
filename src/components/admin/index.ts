@@ -33,6 +33,14 @@ export { OrderMobileCard } from './OrderMobileCard';
 export { OrdersTable } from './OrdersTable';
 export { useOrderExport } from './useOrderExport';
 
+// Driver Components
+export { DriverMobileCard, type Driver } from './DriverMobileCard';
+export { ResponsiveDriversTable } from './ResponsiveDriversTable';
+
 // Re-export hooks
 export { useComplaintExport } from '../../hooks/useComplaintExport';
+
+// Common utilities
+export * from './common/utils';
+export * from './common/exportUtils';
 

@@ -1,57 +1,18 @@
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  LanguageProvider,
-  useLanguage,
-} from "@/components/ui/language-context";
+import { useLanguage } from "@/components/ui/language-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Eye,
   Search,
-  RefreshCw,
-  User,
-  Phone,
-  Mail,
-  Shield,
   AlertTriangle,
   Download,
-  Calendar,
-  Clock,
-  Car,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-interface Driver {
-  id: string;
-  first_name: string;
-  last_name: string;
-  phone: string;
-  status: string | null;
-  email?: string | null;
-  user_type: string;
-  created_at?: string; // Driver registration date
-  updated_at?: string; // Driver acceptance date
-  profile_created_at?: string; // Profile creation date as fallback
-
-  subscription_status: string;
-  subscription_plan: string;
-  subscription_amount: number;
-  subscription_activated_at: string;
-  subscription_expires_at: string;
-}
+import { Driver, ResponsiveDriversTable, exportDriversToCSV, getUserName } from "@/components/admin";
 
 interface DriverStatusCategory {
   name: string;
@@ -59,435 +20,8 @@ interface DriverStatusCategory {
   color: string;
 }
 
-// Mobile Card Component - Updated to match complaints styling
-const MobileDriverCard: React.FC<{
-  driver: Driver;
-  statusCategories: DriverStatusCategory[];
-  language: string;
-  onViewDriver: (driverId: string) => void;
-  t: (key: string) => string;
-}> = ({ driver, statusCategories, language, onViewDriver, t }) => {
-  const statusCategory = statusCategories.find(
-    (cat) => cat.name === driver.status
-  );
-  const formatCurrency = (value: number) => {
-    if (value === undefined || value === null) return `0 ${t("currency")}`;
-    return `${value.toLocaleString()} ${t("currency")}`;
-  };
-  const getStatusBadgeStyle = (status: string) => {
-    const category = statusCategories.find((cat) => cat.name === status);
-    const color = category ? category.color : "#6c757d";
-    return {
-      backgroundColor: color,
-      color: "#ffffff",
-      border: "none",
-    };
-  };
-
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return t("notSpecified");
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return t("invalidDate");
-      return date.toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch (error) {
-      return t("invalidDate");
-    }
-  };
-
-  const getUserName = () => {
-    const firstName = driver.first_name || "";
-    const lastName = driver.last_name || "";
-    const fullName = `${firstName} ${lastName}`.trim();
-    return fullName || t("notAvailable");
-  };
-
-  const getUserTypeBadge = () => {
-    return (
-      <Badge className="bg-blue-100 text-blue-800 border-blue-200 gap-1 text-xs">
-        <Car className="h-3 w-3" />
-        {t("driver")}
-      </Badge>
-    );
-  };
-
-  return (
-    <Card className="w-full">
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          {/* Header */}
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-gray-500" />
-              <span className="font-bold text-lg">{getUserName()}</span>
-            </div>
-            <Badge
-              style={getStatusBadgeStyle(driver.status || "pending")}
-              className="text-white border-0 text-xs"
-            >
-              {language === "ar"
-                ? statusCategory?.display_name_ar || driver.status
-                : statusCategory?.name || driver.status}
-            </Badge>
-          </div>
-
-          {/* User Info */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
-                <User className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-600">{t("user")}:</span>
-                <span className="font-medium">{getUserName()}</span>
-              </div>
-              {getUserTypeBadge()}
-            </div>
-
-            <div className="flex items-start gap-2 text-sm">
-              <Mail className="h-4 w-4 text-gray-500 mt-0.5" />
-              <span className="text-gray-600">{t("email")}:</span>
-              <span className="font-medium break-all text-left">
-                {driver.email || t("notAvailable")}
-              </span>
-            </div>
-          </div>
-
-          {/* Driver Details */}
-          <div className="space-y-2 pt-2 border-t">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t("phoneLabel")}:</span>
-              <span className="font-medium">{driver.phone}</span>
-            </div>
-
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t("userTypeLabel")}:</span>
-              <span className="font-medium">{driver.user_type}</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">{t("registrationDate")}:</span>
-              <span className="font-medium">
-                {formatDate(driver.created_at || driver.profile_created_at)}
-              </span>
-            </div>
-
-            {driver.status === "approved" && driver.updated_at && (
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-600">{t("acceptanceDate")}:</span>
-                <span className="font-medium">
-                  {formatDate(driver.updated_at)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* subsccription Details */}
-          <div className="space-y-2 pt-2 border-t">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t("subscriptionStatus")}:</span>
-              <span className="font-medium">
-                {t(driver.subscription_status)}
-              </span>
-            </div>
-            {driver.subscription_status === "active" && (
-              <>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">
-                    {t("subscriptionPlan")}:
-                  </span>
-                  <span className="font-medium">
-                    {t(driver.subscription_plan)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">
-                    {t("subscriptionAmount")}:
-                  </span>
-                  <span dir="ltr" className="font-medium">
-                    {formatCurrency(driver.subscription_amount)}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-600">
-                    {t("subscriptionActivationDate")}:
-                  </span>
-                  <span className="font-medium">
-                    {formatDate(driver.subscription_activated_at)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-600">
-                    {t("subscriptionExpiresDate")}:
-                  </span>
-                  <span className="font-medium">
-                    {formatDate(driver.subscription_expires_at)}
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Action Button */}
-          <div className="pt-3 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewDriver(driver.id)}
-              className="w-full gap-2"
-            >
-              <Eye className="h-4 w-4" />
-              {t("viewFullDetails")}
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// Responsive Table Component - Updated to match complaints styling
-interface DriversTableProps {
-  drivers: Driver[];
-  statusCategories: DriverStatusCategory[];
-  language: string;
-  status?: "all" | "pending" | "approved" | "rejected";
-  onViewDriver: (driverId: string) => void;
-  t: (key: string) => string;
-}
-
-const ResponsiveDriversTable: React.FC<DriversTableProps> = ({
-  drivers,
-  statusCategories,
-  language,
-  status = "all",
-  onViewDriver,
-  t,
-}) => {
-  const filteredDrivers =
-    status === "all"
-      ? drivers
-      : drivers.filter((driver) => driver.status === status);
-
-  const getStatusBadgeStyle = (status: string) => {
-    const category = statusCategories.find((cat) => cat.name === status);
-    const color = category ? category.color : "#6c757d";
-    return {
-      backgroundColor: color,
-      color: "#ffffff",
-      border: "none",
-    };
-  };
-
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return t("notSpecified");
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return t("invalidDate");
-      return date.toLocaleDateString(language === "ar" ? "ar-SA" : "en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      });
-    } catch (error) {
-      return t("invalidDate");
-    }
-  };
-
-  const getUserName = (driver: Driver) => {
-    const firstName = driver.first_name || "";
-    const lastName = driver.last_name || "";
-    const fullName = `${firstName} ${lastName}`.trim();
-    return fullName || t("notAvailable");
-  };
-
-  const getUserTypeBadge = () => {
-    return (
-      <Badge className="bg-blue-100 text-blue-800 border-blue-200 gap-1 text-xs">
-        <Car className="h-3 w-3" />
-        {t("driver")}
-      </Badge>
-    );
-  };
-
-  if (filteredDrivers.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="text-gray-400 mb-2">
-          <User className="h-12 w-12 mx-auto" />
-        </div>
-        <p className="text-gray-500 text-lg">{t("noDriversInCategory")}</p>
-      </div>
-    );
-  }
-  const formatCurrency = (value: number) => {
-    if (value === undefined || value === null) return `0 ${t("currency")}`;
-    return `${value.toLocaleString()} ${t("currency")}`;
-  };
-  return (
-    <>
-      {/* Desktop Table */}
-      <div className="hidden lg:block">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("driverName")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("userType")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("email")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("phone")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("status")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("registrationDate")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("acceptanceDate")}
-                </TableHead>
-
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("subscriptionStatus")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("subscriptionPlan")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("subscriptionAmount")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("subscriptionActivationDate")}
-                </TableHead>
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("subscriptionExpiresDate")}
-                </TableHead>
-
-                <TableHead className="text-center whitespace-nowrap font-bold">
-                  {t("actions")}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredDrivers.map((driver) => {
-                const statusCategory = statusCategories.find(
-                  (cat) => cat.name === driver.status
-                );
-                return (
-                  <TableRow key={driver.id} className="hover:bg-gray-50">
-                    <TableCell className="text-center">
-                      <div
-                        className="max-w-[140px] truncate"
-                        title={getUserName(driver)}
-                      >
-                        {getUserName(driver)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {getUserTypeBadge()}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div
-                        className="max-w-[180px] truncate"
-                        title={driver.email || t("notAvailable")}
-                      >
-                        {driver.email || t("notAvailable")}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {driver.phone}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge
-                        style={getStatusBadgeStyle(driver.status || "pending")}
-                        className="text-white border-0 whitespace-nowrap text-xs"
-                      >
-                        {language === "ar"
-                          ? statusCategory?.display_name_ar || driver.status
-                          : statusCategory?.name || driver.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center whitespace-nowrap text-sm">
-                      {formatDate(
-                        driver.created_at || driver.profile_created_at
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center whitespace-nowrap text-sm">
-                      {driver.status === "approved" && driver.updated_at
-                        ? formatDate(driver.updated_at)
-                        : driver.status === "rejected" && driver.updated_at
-                        ? formatDate(driver.updated_at)
-                        : t("notApplicable")}
-                    </TableCell>
-
-                    <TableCell className="text-center">
-                      {t(driver.subscription_status)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {t(driver.subscription_plan) || "-"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {formatCurrency(driver.subscription_amount)}
-                    </TableCell>
-                    <TableCell className="text-center whitespace-nowrap">
-                      {formatDate(driver.subscription_activated_at)}
-                    </TableCell>
-                    <TableCell className="text-center whitespace-nowrap">
-                      {formatDate(driver.subscription_expires_at)}
-                    </TableCell>
-
-                    <TableCell className="text-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onViewDriver(driver.id)}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* Mobile Cards */}
-      <div className="block lg:hidden space-y-4">
-        {filteredDrivers.map((driver) => (
-          <MobileDriverCard
-            key={driver.id}
-            driver={driver}
-            statusCategories={statusCategories}
-            language={language}
-            onViewDriver={onViewDriver}
-            t={t}
-          />
-        ))}
-      </div>
-    </>
-  );
-};
-
 const DriverVerification = () => {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [statusCategories, setStatusCategories] = useState<
     DriverStatusCategory[]
@@ -570,18 +104,6 @@ const DriverVerification = () => {
           };
         });
       }
-      /*
-      const driversCombined = profilesData.map((profile) => {
-        const driverDates = driverDatesMap[profile.id] || {};
-        return {
-          ...profile,
-          status: driverStatusMap[profile.id] ?? "pending",
-          created_at: driverDates.created_at, // Driver table created_at (registration date)
-          updated_at: driverDates.updated_at, // Driver table updated_at (acceptance date)
-          profile_created_at: profile.created_at, // Profile created_at as fallback
-        };
-      });
-      */
       const driversCombined = driversData.map((driver) => {
         const profile = profilesData.find((p) => p.id === driver.id);
         return {
@@ -612,14 +134,11 @@ const DriverVerification = () => {
   }, [error]);
 
   const filteredDrivers = drivers.filter((driver) => {
-    const userName = `${driver.first_name || ""} ${
-      driver.last_name || ""
-    }`.trim();
+    const userName = getUserName(driver, t);
 
     const matchesSearch =
       !searchTerm ||
-      (driver.email &&
-        driver.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      driver.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       driver.phone.includes(searchTerm);
 
@@ -631,51 +150,10 @@ const DriverVerification = () => {
   };
 
   const handleExportDrivers = () => {
-    const headers = [
-      t("driverName"),
-      t("userType"),
-      t("email"),
-      t("phone"),
-      t("status"),
-      t("registrationDate"),
-      t("acceptanceDate"),
-    ];
-
-    const csvData = drivers.map((driver) => [
-      `${driver.first_name || ""} ${driver.last_name || ""}`.trim(),
-      driver.user_type,
-      driver.email || t("notSpecified"),
-      driver.phone,
-      driver.status || "pending",
-      driver.created_at
-        ? new Date(driver.created_at).toLocaleDateString()
-        : driver.profile_created_at
-        ? new Date(driver.profile_created_at).toLocaleDateString()
-        : t("notSpecified"),
-      driver.status === "approved" && driver.updated_at
-        ? new Date(driver.updated_at).toLocaleDateString()
-        : t("notApplicable"),
-    ]);
-
-    let csvContent = headers.join(",") + "\n";
-    csvData.forEach((row) => {
-      csvContent += row.map((field) => `"${field}"`).join(",") + "\n";
-    });
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `drivers-${new Date().toISOString().split("T")[0]}.csv`
-    );
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast.success(t("exportSuccess"));
+    const success = exportDriversToCSV(drivers, t);
+    if (success) {
+      toast.success(t("exportSuccess"));
+    }
   };
 
   if (error) {
@@ -893,10 +371,8 @@ const DriverVerification = () => {
                   <ResponsiveDriversTable
                     drivers={filteredDrivers}
                     statusCategories={statusCategories}
-                    language={language}
                     status="pending"
                     onViewDriver={navigateToDriverDetails}
-                    t={t}
                   />
                 </TabsContent>
 
@@ -904,10 +380,8 @@ const DriverVerification = () => {
                   <ResponsiveDriversTable
                     drivers={filteredDrivers}
                     statusCategories={statusCategories}
-                    language={language}
                     status="approved"
                     onViewDriver={navigateToDriverDetails}
-                    t={t}
                   />
                 </TabsContent>
 
@@ -915,10 +389,8 @@ const DriverVerification = () => {
                   <ResponsiveDriversTable
                     drivers={filteredDrivers}
                     statusCategories={statusCategories}
-                    language={language}
                     status="rejected"
                     onViewDriver={navigateToDriverDetails}
-                    t={t}
                   />
                 </TabsContent>
 
@@ -926,10 +398,8 @@ const DriverVerification = () => {
                   <ResponsiveDriversTable
                     drivers={filteredDrivers}
                     statusCategories={statusCategories}
-                    language={language}
                     status="all"
                     onViewDriver={navigateToDriverDetails}
-                    t={t}
                   />
                 </TabsContent>
               </Tabs>
