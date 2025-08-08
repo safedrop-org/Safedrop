@@ -80,7 +80,7 @@ export const useOrderCostCalculation = (language: string) => {
             pickupLocation
           )},SA&destination=${encodeURIComponent(
             dropoffLocation
-          )},SA&mode=driving&language=${languageParam}&key=AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w`,
+          )},SA&mode=driving&language=${languageParam}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`,
           {
             method: "GET",
             headers: {

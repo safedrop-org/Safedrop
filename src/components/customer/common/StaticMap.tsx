@@ -17,8 +17,6 @@ const StaticMap: React.FC<StaticMapProps> = ({
   const [mapUrl, setMapUrl] = useState("");
   const [error, setError] = useState(false);
 
-  const GOOGLE_MAPS_API_KEY = "AIzaSyCydsClVwciuKXIgNiAy6YL2-FL1y4B6_w";
-
   useEffect(() => {
     if (!pickup_location || !dropoff_location) return;
 
@@ -33,7 +31,7 @@ const StaticMap: React.FC<StaticMapProps> = ({
       `&markers=color:green|label:A|${encodeURIComponent(pickup_location)}` +
       `&markers=color:red|label:B|${encodeURIComponent(dropoff_location)}` +
       (marker ? `&markers=${encodeURIComponent(marker)}` : "") +
-      `&key=${GOOGLE_MAPS_API_KEY}`;
+      `&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`;
 
     setMapUrl(staticMapUrl);
   }, [pickup_location, dropoff_location, driver_location]);
