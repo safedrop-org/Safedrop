@@ -30,9 +30,15 @@ name: SonarCloud analysis
 
 on:
   push:
+<<<<<<< HEAD
     branches: [ "alae" ]
   pull_request:
     branches: [ "alae" ]
+=======
+    branches: [ "main", "alae" ]
+  pull_request:
+    branches: [ "main", "alae" ]
+>>>>>>> d568cd486b6c244d0b93f046276c528d16c14eee
   workflow_dispatch:
 
 permissions:
@@ -49,7 +55,11 @@ jobs:
         # uses: SonarSource/sonarcloud-github-action@v2.2.0
         uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
         env:
+<<<<<<< HEAD
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
+=======
+          SONAR_TOKEN: ${{ 289206ca118ecd0ba5e39a3b61e9fd6ad9c4682c }}   # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
+>>>>>>> d568cd486b6c244d0b93f046276c528d16c14eee
         with:
           # Additional arguments for the SonarScanner CLI
           args:

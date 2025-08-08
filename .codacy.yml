@@ -30,3 +30,4 @@ exclude_paths:
   - "src/index.tsx"
   - "src/main.tsx"
   - "src/App.css"
+  - "src/hooks/"
